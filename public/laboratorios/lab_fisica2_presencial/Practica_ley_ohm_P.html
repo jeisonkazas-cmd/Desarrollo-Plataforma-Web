@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRÁCTICA FIS-OH — Ley de Ohm</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$']]},options:{skipHtmlTags:['script','noscript','style','textarea','pre']}};</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+  :root{--ink:#1a1a2e;--ink-soft:#3d3d5c;--ink-muted:#7a7a9a;--paper:#faf8f3;--paper-alt:#f2ede3;--rule:#d4c9b0;--accent:#1a5276;--accent2:#c0392b;--gold:#b8860b;--green:#1e8449;--mono:'JetBrains Mono',monospace;--serif:'Source Serif 4',Georgia,serif;--display:'Playfair Display',Georgia,serif;}
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}html{scroll-behavior:smooth;}
+  body{background:#dde3e8;font-family:var(--serif);color:var(--ink);font-size:17px;line-height:1.8;padding:0 0 80px;}
+  .documento{max-width:900px;margin:0 auto;background:var(--paper);box-shadow:0 2px 4px rgba(0,0,0,.08),0 8px 32px rgba(0,0,0,.14);position:relative;overflow-x:hidden;}
+  .documento::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:linear-gradient(180deg,var(--accent) 0%,var(--accent2) 50%,var(--gold) 100%);}
+  .header{background:var(--ink);color:#fff;padding:36px 50px 30px 55px;position:relative;overflow:hidden;}
+  .header::after{content:'R';font-family:var(--display);font-size:260px;font-weight:700;color:rgba(255,255,255,.04);position:absolute;right:-10px;top:-40px;line-height:1;pointer-events:none;user-select:none;}
+  .header-meta{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;gap:20px;}
+  .badge-codigo{font-family:var(--mono);font-size:.7em;background:var(--accent);color:#fff;padding:3px 10px;letter-spacing:.12em;text-transform:uppercase;}
+  .badge-tipo{font-family:var(--mono);font-size:.7em;color:rgba(255,255,255,.5);letter-spacing:.1em;text-transform:uppercase;border:1px solid rgba(255,255,255,.15);padding:3px 10px;}
+  .header h1{font-family:var(--display);font-size:2.1em;font-weight:700;line-height:1.2;color:#fff;margin-bottom:6px;}
+  .header h1 em{font-style:italic;color:rgba(255,255,255,.65);font-size:.82em;}
+  .header-sub{font-size:.82em;color:rgba(255,255,255,.45);font-weight:300;letter-spacing:.04em;margin-top:4px;}
+  .header-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px 24px;margin-top:24px;padding-top:20px;border-top:1px solid rgba(255,255,255,.12);}
+  .field-item label{display:block;font-family:var(--mono);font-size:.65em;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.12em;margin-bottom:4px;}
+  .field-item input{width:100%;background:rgba(255,255,255,.07);border:none;border-bottom:1px solid rgba(255,255,255,.25);color:#fff;font-family:var(--serif);font-size:.9em;padding:4px 0;outline:none;}
+  .field-item input::placeholder{color:rgba(255,255,255,.2);}
+  .body{padding:44px 50px 50px 55px;}
+  .seccion{margin-bottom:42px;}
+  .seccion-titulo{font-family:var(--display);font-size:1.15em;font-weight:600;color:var(--ink);display:flex;align-items:center;gap:12px;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--rule);}
+  .seccion-titulo .num{font-family:var(--mono);font-size:.75em;color:var(--accent);background:#e8f0f7;padding:2px 7px;letter-spacing:.05em;min-width:36px;text-align:center;}
+  .subseccion-titulo{font-family:var(--display);font-size:1em;font-weight:600;color:var(--accent);margin:22px 0 10px;display:flex;align-items:center;gap:8px;}
+  .subseccion-titulo::before{content:'';width:14px;height:2px;background:var(--accent);display:inline-block;flex-shrink:0;}
+  p{margin-bottom:10px;color:var(--ink-soft);font-size:.95em;}
+  .objetivos-lista{list-style:none;padding:0;}
+  .objetivos-lista li{display:flex;gap:12px;align-items:flex-start;padding:8px 0;border-bottom:1px dashed var(--rule);font-size:.93em;color:var(--ink-soft);}
+  .objetivos-lista li:last-child{border-bottom:none;}
+  .objetivos-lista li .obj-num{font-family:var(--mono);font-size:.75em;color:#fff;background:var(--accent);min-width:22px;height:22px;display:flex;align-items:center;justify-content:center;margin-top:2px;flex-shrink:0;}
+  .formula-box{background:var(--ink);color:#fff;padding:18px 24px;margin:18px 0;position:relative;overflow:hidden;}
+  .formula-box::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent2);}
+  .formula-box .formula-label{font-family:var(--mono);font-size:.65em;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.12em;margin-bottom:10px;}
+  .formula-main{font-size:1.15em;text-align:center;padding:6px 0;}
+  .formula-num{font-family:var(--mono);font-size:.65em;color:rgba(255,255,255,.35);text-align:right;margin-top:6px;}
+  .formula-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0;}
+  .tabla-wrap{overflow-x:auto;margin:16px 0;}
+  table{width:100%;border-collapse:collapse;font-size:.88em;}
+  thead tr{background:var(--ink);color:#fff;}
+  thead th{font-family:var(--mono);font-size:.72em;font-weight:500;letter-spacing:.06em;text-transform:uppercase;padding:10px 12px;text-align:center;}
+  tbody tr:nth-child(even){background:var(--paper-alt);}
+  tbody tr:hover{background:#e8f0f7;}
+  tbody td{padding:6px 10px;border-bottom:1px solid var(--rule);text-align:center;color:var(--ink-soft);font-size:.9em;}
+  tbody td.fila-label{font-family:var(--mono);font-size:.8em;color:var(--ink-muted);text-align:left;padding-left:12px;}
+  input.celda{width:90px;border:none;border-bottom:1px solid var(--rule);background:transparent;font-family:var(--mono);font-size:.85em;color:var(--ink);text-align:center;padding:2px 4px;outline:none;transition:border-color .2s;}
+  input.celda:focus{border-bottom-color:var(--accent);}
+  input.celda.calc{color:var(--accent);background:rgba(26,82,118,.06);border-bottom-color:rgba(26,82,118,.3);}
+  input.celda.prom{color:var(--green);background:rgba(30,132,73,.06);border-bottom-color:rgba(30,132,73,.3);font-weight:500;}
+  input.celda.er{color:var(--accent2);background:rgba(192,57,43,.06);border-bottom-color:rgba(192,57,43,.3);}
+  .grafica-wrap{background:#fff;border:1px solid var(--rule);padding:20px;margin:20px 0;}
+  .grafica-titulo{font-family:var(--mono);font-size:.72em;color:var(--ink-muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;}
+  canvas{display:block;width:100%;cursor:crosshair;}
+  .grafica-controles{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;}
+  .btn{font-family:var(--mono);font-size:.72em;letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--rule);background:var(--paper-alt);color:var(--ink-soft);padding:6px 14px;cursor:pointer;transition:all .15s;}
+  .btn:hover{background:var(--ink);color:#fff;border-color:var(--ink);}
+  .btn.activo{background:var(--accent);color:#fff;border-color:var(--accent);}
+  .pregunta{display:flex;gap:14px;padding:14px 0;border-bottom:1px dashed var(--rule);align-items:flex-start;}
+  .pregunta:last-child{border-bottom:none;}
+  .preg-num{font-family:var(--mono);font-size:.72em;color:#fff;background:var(--gold);min-width:28px;height:28px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;}
+  .preg-texto{font-size:.93em;color:var(--ink-soft);flex:1;}
+  textarea.respuesta,textarea.conclusion-resp{width:100%;min-height:75px;margin-top:8px;border:1px solid var(--rule);background:var(--paper-alt);font-family:var(--serif);font-size:.88em;color:var(--ink);padding:10px 12px;outline:none;resize:vertical;line-height:1.6;transition:border-color .2s;}
+  textarea.respuesta:focus,textarea.conclusion-resp:focus{border-color:var(--accent);}
+  .info-box{background:#e8f0f7;border-left:3px solid var(--accent);padding:12px 16px;font-size:.88em;color:var(--accent);margin:14px 0;font-style:italic;}
+  .precaucion-box{background:#fff3cd;border-left:3px solid var(--gold);padding:10px 14px;font-size:.85em;color:#7c5c00;margin:14px 0;}
+  .precaucion-box strong{font-family:var(--mono);font-size:.85em;letter-spacing:.05em;}
+  /* MONTAJE */
+  .montaje-box{background:var(--paper-alt);border:1px solid var(--rule);padding:20px 24px;margin:16px 0;}
+  .montaje-materiales{list-style:none;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;margin-bottom:18px;}
+  .montaje-materiales li{display:flex;align-items:center;gap:8px;font-size:.88em;color:var(--ink-soft);}
+  .montaje-materiales li::before{content:'';width:6px;height:6px;background:var(--accent2);flex-shrink:0;}
+  .pasos-lista{list-style:none;padding:0;counter-reset:pasos;}
+  .pasos-lista li{counter-increment:pasos;display:flex;gap:14px;padding:10px 0;border-bottom:1px dashed var(--rule);font-size:.9em;color:var(--ink-soft);align-items:flex-start;}
+  .pasos-lista li:last-child{border-bottom:none;}
+  .pasos-lista li::before{content:counter(pasos);font-family:var(--mono);font-size:.75em;color:#fff;background:var(--ink);min-width:24px;height:24px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  /* INCERTIDUMBRES */
+  .incert-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:16px 0;}
+  .incert-card{background:var(--paper-alt);border:1px solid var(--rule);padding:14px 18px;}
+  .incert-card label{font-family:var(--mono);font-size:.65em;color:var(--ink-muted);text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:6px;}
+  .incert-card input{width:100%;border:none;border-bottom:2px solid var(--rule);background:transparent;font-family:var(--mono);font-size:1.05em;color:var(--ink);font-weight:500;padding:4px 0;outline:none;}
+  .incert-card.ir-card{border-left:3px solid var(--gold);} .incert-card.ir-card input{color:var(--gold);}
+  .incert-card.er-card{border-left:3px solid var(--accent2);} .incert-card.er-card input{color:var(--accent2);}
+  .incert-card.ok-card{border-left:3px solid var(--green);} .incert-card.ok-card input{color:var(--green);}
+  .formula-incert{background:var(--ink);color:#fff;padding:14px 20px;margin:12px 0;position:relative;}
+  .formula-incert::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--gold);}
+  .formula-incert .fi-label{font-family:var(--mono);font-size:.63em;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;}
+  .formula-incert .fi-body{font-size:1em;text-align:center;padding:4px 0;}
+  .incert-tabla{width:100%;border-collapse:collapse;font-size:.86em;margin:14px 0;}
+  .incert-tabla thead tr{background:var(--ink);color:#fff;}
+  .incert-tabla thead th{font-family:var(--mono);font-size:.68em;font-weight:500;letter-spacing:.06em;text-transform:uppercase;padding:8px 10px;text-align:center;}
+  .incert-tabla tbody tr:nth-child(even){background:var(--paper-alt);}
+  .incert-tabla tbody td{padding:5px 8px;border-bottom:1px solid var(--rule);text-align:center;font-size:.88em;}
+  .incert-tabla input.ld{width:75px;border:none;border-bottom:1px solid var(--rule);background:transparent;font-family:var(--mono);font-size:.83em;color:var(--ink);text-align:center;padding:2px 3px;outline:none;}
+  .incert-tabla input.lc{width:75px;border:none;border-bottom:1px solid rgba(26,82,118,.3);background:rgba(26,82,118,.05);font-family:var(--mono);font-size:.83em;color:var(--accent);text-align:center;padding:2px 3px;outline:none;}
+  .incert-resumen{background:#f0f7ee;border:1px solid #b8ddb2;border-left:4px solid var(--green);padding:14px 18px;margin:14px 0;font-family:var(--mono);font-size:.82em;color:var(--ink-soft);}
+  .incert-resumen span{color:var(--green);font-weight:600;}
+  /* RESUMEN */
+  .resumen-tabla{width:100%;border-collapse:collapse;font-size:.88em;margin:14px 0;}
+  .resumen-tabla thead tr{background:var(--ink);color:#fff;}
+  .resumen-tabla thead th{font-family:var(--mono);font-size:.7em;font-weight:500;letter-spacing:.06em;text-transform:uppercase;padding:9px 12px;text-align:left;}
+  .resumen-tabla tbody tr:nth-child(even){background:var(--paper-alt);}
+  .resumen-tabla tbody td{padding:7px 12px;border-bottom:1px solid var(--rule);font-size:.9em;color:var(--ink-soft);}
+  .resumen-tabla tbody td.td-label{font-family:var(--mono);font-size:.78em;color:var(--ink-muted);}
+  .resumen-tabla tbody td.td-val{font-family:var(--mono);color:var(--accent);font-weight:500;}
+  .resumen-tabla input.rv{width:100%;border:none;border-bottom:1px solid rgba(26,82,118,.3);background:rgba(26,82,118,.05);font-family:var(--mono);font-size:.88em;color:var(--accent);padding:2px 4px;outline:none;}
+  .resumen-semaforo{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0;}
+  .semaforo-item{flex:1;min-width:140px;background:var(--paper-alt);border:1px solid var(--rule);padding:12px 16px;text-align:center;}
+  .semaforo-item .si-label{font-family:var(--mono);font-size:.63em;color:var(--ink-muted);text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:6px;}
+  .semaforo-item .si-valor{font-family:var(--mono);font-size:1.1em;font-weight:600;display:block;}
+  .semaforo-item.verde{border-left:4px solid var(--green);} .semaforo-item.verde .si-valor{color:var(--green);}
+  .semaforo-item.gold{border-left:4px solid var(--gold);} .semaforo-item.gold .si-valor{color:var(--gold);}
+  .semaforo-item.rojo{border-left:4px solid var(--accent2);} .semaforo-item.rojo .si-valor{color:var(--accent2);}
+  .semaforo-item.azul{border-left:4px solid var(--accent);} .semaforo-item.azul .si-valor{color:var(--accent);}
+  /* CONCLUSIONES */
+  .conclusiones-wrap{margin:14px 0;}
+  .conclusion-item{display:flex;gap:14px;padding:14px 0;border-bottom:1px dashed var(--rule);align-items:flex-start;}
+  .conclusion-item:last-child{border-bottom:none;}
+  .conclusion-num{font-family:var(--mono);font-size:.72em;color:#fff;background:var(--ink-soft);min-width:28px;height:28px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;font-weight:500;}
+  .conclusion-guia{font-size:.9em;color:var(--ink-soft);flex:1;}
+  .conclusion-guia strong{color:var(--ink);}
+  .conclusion-placeholder{font-family:var(--mono);font-size:.68em;color:var(--ink-muted);font-style:italic;margin-top:4px;}
+  /* PRINT-DIV */
+  .print-div{display:none;}
+  @media(max-width:640px){.header{padding:24px 20px 20px 26px;}.body{padding:28px 20px 30px 26px;}.header-fields,.incert-grid,.resumen-semaforo,.formula-grid,.montaje-materiales{grid-template-columns:1fr;}}
+  @media print{
+    .btn-imprimir-wrap { display: none !important; }
+    body{background:#fff !important;padding-bottom:0 !important;}
+    .documento{max-width:100% !important;box-shadow:none !important;margin:0 !important;}
+    .seccion{page-break-inside:avoid;}
+    table{page-break-inside:avoid;}
+    .formula-box,.formula-incert,.montaje-box{page-break-inside:avoid;}
+    .grafica-controles{display:none !important;}
+    canvas{max-width:100% !important;}
+    .header{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .formula-box,.formula-incert{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .seccion-titulo .num{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    thead tr{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .precaucion-box,.incert-resumen{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .semaforo-item{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    #sec-montaje{page-break-before:always;}
+    #sec-resumen{page-break-before:always;}
+        /* Área de respuesta: se imprime completa siempre */
+    .respuesta-div {
+      border: 1px solid #bbb !important;
+      background: #f2ede3 !important;
+      min-height: 0 !important;
+      overflow: visible !important;
+      page-break-inside: avoid;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .respuesta-div:empty::before { content: '' !important; }
+    /* Ocultar textareas viejos si quedara alguno */
+    textarea.respuesta, textarea.conclusion-resp { display: none !important; }
+    /* Ocultar print-div viejo (ya no se usa) */
+    .print-div { display: none !important; }
+  }
+
+  /* ════════════════════════════════════════
+     MEJORAS: FUENTE + RESPONSIVE + PRINT
+     ════════════════════════════════════════ */
+
+  /* — Fuente base más grande — */
+  html { font-size: 17px; }
+  body { font-size: 1rem !important; line-height: 1.8 !important; }
+  p { font-size: 1rem !important; margin-bottom: 12px; }
+  .header h1 { font-size: 2.3em !important; }
+  .header-sub { font-size: .9em !important; }
+  .seccion-titulo { font-size: 1.25em !important; }
+  .subseccion-titulo { font-size: 1.08em !important; }
+  .objetivos-lista li,
+  .pasos-lista li { font-size: 1rem !important; }
+  .preg-texto,
+  .conclusion-texto { font-size: 1rem !important; }
+  .formula-main,
+  .fi-body { font-size: 1.15em !important; }
+  .res-card input { font-size: 1.15em !important; }
+  input.celda { font-size: .95em !important; width: 90px !important; }
+  table { font-size: .95em !important; }
+  thead th { font-size: .78em !important; padding: 12px 10px !important; }
+  tbody td { font-size: .95em !important; padding: 8px 10px !important; }
+  .precaucion-box, .info-box { font-size: .95em !important; }
+  textarea.respuesta,
+  textarea.conclusion-resp { font-size: .95em !important; min-height: 90px !important; }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 900px) {
+    html { font-size: 16px; }
+    .documento { max-width: 100% !important; margin: 0 !important; }
+    .header { padding: 28px 24px 24px 30px !important; }
+    .body   { padding: 28px 24px 32px 30px !important; }
+    .header-fields,
+    .formula-grid,
+    .incert-grid { grid-template-columns: 1fr 1fr !important; }
+    .resultados-grid,
+    .resumen-semaforo { grid-template-columns: 1fr 1fr !important; }
+  }
+  @media (max-width: 640px) {
+    html { font-size: 15px; }
+    .header { padding: 20px 16px 18px 20px !important; }
+    .body   { padding: 20px 16px 24px 20px !important; }
+    .header h1 { font-size: 1.7em !important; }
+    .header-fields,
+    .resultados-grid,
+    .formula-grid,
+    .incert-grid,
+    .resumen-semaforo,
+    .montaje-materiales { grid-template-columns: 1fr !important; }
+    .tabla-wrap { -webkit-overflow-scrolling: touch; overflow-x: auto; }
+    table { min-width: 480px; }
+    input.celda { width: 70px !important; }
+    canvas { max-width: 100% !important; height: auto !important; }
+  }
+  @media (max-width: 400px) {
+    html { font-size: 14px; }
+    .header h1 { font-size: 1.5em !important; }
+  }
+    /* Asegurar que textarea quede oculto (por si acaso) */
+    textarea.respuesta,
+    textarea.conclusion-resp { display: none !important; }
+
+    /* Campos numéricos */
+    input.celda, input.celda.calc, input.celda.prom {
+      border-bottom: 1px solid #999 !important;
+      -webkit-appearance: none !important;
+    }
+    .res-card input { border-bottom: 2px solid #999 !important; }
+
+    /* Tablas completas */
+    .tabla-wrap { overflow: visible !important; }
+    table { min-width: 0 !important; width: 100% !important; }
+    tr { page-break-inside: avoid; page-break-after: auto; }
+    thead { display: table-header-group; }
+  }
+
+  /* — Botón imprimir — */
+  .btn-imprimir-wrap {
+    text-align: center;
+    padding: 28px 0 10px;
+    border-top: 2px solid var(--rule);
+    margin-top: 40px;
+  }
+  .btn-imprimir {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: var(--ink); color: #fff; border: none;
+    padding: 13px 32px; font-family: var(--mono); font-size: .9em;
+    letter-spacing: .1em; text-transform: uppercase; cursor: pointer;
+    transition: background .2s, transform .15s;
+    box-shadow: 0 4px 16px rgba(0,0,0,.18); border-radius: 4px;
+  }
+  .btn-imprimir:hover { background: var(--accent); transform: translateY(-2px); }
+  .btn-imprimir svg { width: 20px; height: 20px; flex-shrink: 0; }
+
+  /* — Área de respuesta: div contenteditable (crece con el contenido, imprime completo) — */
+  .respuesta-div {
+    width: 100%;
+    min-height: 90px;
+    margin-top: 8px;
+    border: 1px solid var(--rule);
+    background: var(--paper-alt);
+    font-family: var(--serif);
+    font-size: .95em;
+    color: var(--ink);
+    padding: 10px 12px;
+    outline: none;
+    line-height: 1.6;
+    cursor: text;
+    white-space: pre-wrap;
+    word-break: break-word;
+    box-sizing: border-box;
+  }
+  .respuesta-div:focus {
+    border-color: var(--accent);
+  }
+  .respuesta-div:empty::before {
+    content: attr(data-placeholder);
+    color: var(--ink-muted);
+    font-style: italic;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+<div class="documento">
+  <div class="header">
+    <div class="header-meta">
+      <span class="badge-codigo" id="codigoPractica">PRÁCTICA FIS-OH</span>
+      <span class="badge-tipo">Electricidad · Circuitos</span>
+    </div>
+    <h1>Ley de Ohm<br><em>Materiales óhmicos, bombilla y combinaciones de resistencias</em></h1>
+    <div class="header-sub">Departamento de Ciencias Básicas · Institución Universitaria Antonio José Camacho · Cali 2025</div>
+    <div class="header-fields">
+      <div class="field-item"><label>Nombre del estudiante</label><input type="text" placeholder="Apellidos, Nombres"></div>
+      <div class="field-item"><label>Grupo / Sección</label><input type="text" placeholder="Ej. Física II – G1"></div>
+      <div class="field-item"><label>Docente</label><input type="text" placeholder="Nombre del profesor"></div>
+      <div class="field-item"><label>Fecha de realización</label><input type="date"></div>
+    </div>
+  </div>
+
+  <div class="body">
+
+    <div class="seccion">
+      <div class="seccion-titulo"><span class="num">01</span> Objetivos</div>
+      <ul class="objetivos-lista"><li><span class="obj-num">1</span>Comprobar experimentalmente la Ley de Ohm.</li>
+<li><span class="obj-num">2</span>Verificar si la resistencia de una bombilla es un material óhmico.</li>
+<li><span class="obj-num">3</span>Determinar la resistencia equivalente en combinaciones serie y paralelo.</li></ul>
+    </div>
+
+    <div class="seccion">
+      <div class="seccion-titulo"><span class="num">02</span> Modelo Teórico</div>
+      
+<div class="formula-grid">
+  <div class="formula-box"><div class="formula-label">Ley de Ohm</div><div class="formula-main">$$I = \frac{V}{R} \quad\Leftrightarrow\quad V = RI$$</div><div class="formula-num">(1–2)</div></div>
+  <div class="formula-box"><div class="formula-label">Material óhmico: gráfica I vs V lineal</div><div class="formula-main">$$R = \frac{1}{\text{pendiente}(I\text{ vs }V)}$$</div></div>
+</div>
+<div class="formula-grid">
+  <div class="formula-box"><div class="formula-label">Resistencia equivalente en serie</div><div class="formula-main">$$R_s = R_1+R_2+\cdots+R_n$$</div><div class="formula-num">(3)</div></div>
+  <div class="formula-box"><div class="formula-label">Resistencia equivalente en paralelo</div><div class="formula-main">$$\frac{1}{R_p}=\frac{1}{R_1}+\frac{1}{R_2}+\cdots+\frac{1}{R_n}$$</div><div class="formula-num">(4)</div></div>
+</div>
+    </div>
+
+    <div class="seccion" id="sec-montaje">
+      <div class="seccion-titulo"><span class="num">M</span> Montaje Experimental</div>
+      <div class="montaje-box">
+        <div class="subseccion-titulo">Materiales y Equipo</div>
+        <ul class="montaje-materiales"><li>Fuente de voltaje DC variable</li>
+<li>Caja de resistencias PASCO (con bombilla 2,5 V)</li>
+<li>Multímetro y amperímetro PASCO</li>
+<li>Resistencias (2 distintas)</li>
+<li>Cables de conexión rojos, negros y caimanes</li></ul>
+        <div class="subseccion-titulo">Procedimiento de Montaje</div>
+        <ol class="pasos-lista"><li>Monte el circuito según la Figura 6 de la guía (amperímetro en serie, voltímetro en paralelo con R).</li>
+<li>Coloque la fuente en 0 V. Verifique todas las conexiones antes de encender.</li>
+<li><strong>Parte I:</strong> con la resistencia disponible, incremente V gradualmente y registre I y V en cada paso.</li>
+<li>Mida R directamente con el multímetro y por código de colores.</li>
+<li>Reemplace la resistencia por la bombilla de 2,5 V y repita.</li>
+<li><strong>Parte II:</strong> conecte las dos resistencias primero en serie y luego en paralelo. Registre V e I para cada configuración.</li>
+</ol>
+        <div class="precaucion-box"><strong>⚠ Precauciones:</strong> Verifique la polaridad. No supere el voltaje nominal de la bombilla (2,5 V). Comience siempre desde 0 V. Nunca conecte el amperímetro directamente en paralelo.</div>
+      </div>
+    </div>
+
+    <div class="seccion">
+      <div class="seccion-titulo"><span class="num">03</span> Adquisición de Datos</div>
+      
+<div class="subseccion-titulo">Parte I-A — Resistencia (material óhmico)</div>
+<div style="display:flex;gap:14px;flex-wrap:wrap;margin:8px 0 12px;">
+  <div><label style="font-family:var(--mono);font-size:.67em;color:var(--ink-muted);text-transform:uppercase;display:block;">R multímetro (Ω)</label>
+    <input class="celda" id="oh-Rm" type="text" placeholder="0" style="width:100px;border:1px solid var(--rule);padding:4px 6px;" oninput="calcOH()"></div>
+  <div><label style="font-family:var(--mono);font-size:.67em;color:var(--ink-muted);text-transform:uppercase;display:block;">R código colores (Ω)</label>
+    <input class="celda" id="oh-Rc" type="text" placeholder="0" style="width:100px;border:1px solid var(--rule);padding:4px 6px;" oninput="calcOH()"></div>
+  <div><label style="font-family:var(--mono);font-size:.67em;color:var(--ink-muted);text-transform:uppercase;display:block;">R por regresión (Ω)</label>
+    <input class="celda ok" id="oh-Rreg" readonly style="width:110px;border:1px solid rgba(30,132,73,.3);background:rgba(30,132,73,.05);font-family:var(--mono);color:var(--green);padding:4px 6px;" placeholder="—"></div>
+</div>
+<div class="tabla-wrap"><table><thead><tr><th>#</th><th>V (V)</th><th>I (A)</th><th>R = V/I (Ω)</th><th>ΔR (%)</th></tr></thead><tbody id="tbody-oh-R"></tbody></table></div>
+<div class="grafica-wrap"><div class="grafica-titulo">I vs V — Resistencia (óhmica)</div>
+  <canvas id="cv-ohR" height="230"></canvas>
+  <div class="grafica-controles">
+    <button class="btn activo" id="btn-ohR" onclick="ohReg[0]=!ohReg[0];this.classList.toggle('activo',ohReg[0]);dibujarOH();">Regresión</button>
+    <span id="info-ohR" style="font-family:var(--mono);font-size:.72em;color:var(--ink-muted);align-self:center;"></span>
+  </div>
+</div>
+
+<div class="subseccion-titulo" style="margin-top:20px;">Parte I-B — Bombilla (material no-óhmico)</div>
+<div class="tabla-wrap"><table><thead><tr><th>#</th><th>V (V)</th><th>I (A)</th><th>R = V/I (Ω)</th><th>ΔR (%)</th></tr></thead><tbody id="tbody-oh-B"></tbody></table></div>
+<div class="grafica-wrap"><div class="grafica-titulo">I vs V — Bombilla (no-óhmica)</div>
+  <canvas id="cv-ohB" height="230"></canvas>
+  <div class="grafica-controles">
+    <button class="btn activo" id="btn-ohB" onclick="ohReg[1]=!ohReg[1];this.classList.toggle('activo',ohReg[1]);dibujarOH();">Regresión</button>
+    <span id="info-ohB" style="font-family:var(--mono);font-size:.72em;color:var(--ink-muted);align-self:center;"></span>
+  </div>
+</div>
+
+<div class="subseccion-titulo" style="margin-top:20px;">Parte II — Combinaciones de Resistencias</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px 20px;margin:10px 0 14px;">
+  <div><label style="font-family:var(--mono);font-size:.67em;color:var(--ink-muted);text-transform:uppercase;display:block;">R₁ medida (Ω)</label><input class="celda" id="oh-R1" type="text" placeholder="0" style="width:100px;border:1px solid var(--rule);padding:4px 6px;" oninput="calcOH()"></div>
+  <div><label style="font-family:var(--mono);font-size:.67em;color:var(--ink-muted);text-transform:uppercase;display:block;">R₂ medida (Ω)</label><input class="celda" id="oh-R2" type="text" placeholder="0" style="width:100px;border:1px solid var(--rule);padding:4px 6px;" oninput="calcOH()"></div>
+  <div><label style="font-family:var(--mono);font-size:.67em;color:var(--ink-muted);text-transform:uppercase;display:block;">R_serie teórica (Ω)</label><input id="oh-Rs-teo" readonly style="width:100px;border:1px solid rgba(26,82,118,.3);background:rgba(26,82,118,.05);font-family:var(--mono);font-size:.88em;color:var(--accent);padding:4px 6px;" placeholder="—"></div>
+  <div><label style="font-family:var(--mono);font-size:.67em;color:var(--ink-muted);text-transform:uppercase;display:block;">R_paralelo teórica (Ω)</label><input id="oh-Rp-teo" readonly style="width:100px;border:1px solid rgba(26,82,118,.3);background:rgba(26,82,118,.05);font-family:var(--mono);font-size:.88em;color:var(--accent);padding:4px 6px;" placeholder="—"></div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+  <div>
+    <p style="font-family:var(--mono);font-size:.75em;text-transform:uppercase;color:var(--ink-muted);margin-bottom:6px;">Serie — V e I medidas</p>
+    <div class="tabla-wrap"><table><thead><tr><th>#</th><th>V (V)</th><th>I (A)</th><th>R = V/I (Ω)</th></tr></thead><tbody id="tbody-oh-S"></tbody></table></div>
+    <div class="incert-card ok-card" style="margin-top:8px;"><label>R_serie experimental (Ω)</label><input id="oh-Rs-exp" readonly placeholder="—"></div>
+    <div class="incert-card er-card" style="margin-top:8px;"><label>ER serie (%)</label><input id="oh-er-s" readonly placeholder="—"></div>
+  </div>
+  <div>
+    <p style="font-family:var(--mono);font-size:.75em;text-transform:uppercase;color:var(--ink-muted);margin-bottom:6px;">Paralelo — V e I medidas</p>
+    <div class="tabla-wrap"><table><thead><tr><th>#</th><th>V (V)</th><th>I (A)</th><th>R = V/I (Ω)</th></tr></thead><tbody id="tbody-oh-P"></tbody></table></div>
+    <div class="incert-card ok-card" style="margin-top:8px;"><label>R_paralelo experimental (Ω)</label><input id="oh-Rp-exp" readonly placeholder="—"></div>
+    <div class="incert-card er-card" style="margin-top:8px;"><label>ER paralelo (%)</label><input id="oh-er-p" readonly placeholder="—"></div>
+  </div>
+</div>
+    </div>
+
+    <div class="seccion" id="sec-incert">
+      <div class="seccion-titulo"><span class="num">IN</span> Incertidumbre, IR y ER</div>
+      
+<div class="formula-incert"><div class="fi-label">Incertidumbre de R por propagación (Δ = lectura directa del instrumento)</div>
+  <div class="fi-body">$$\Delta R = R\sqrt{\left(\frac{\Delta V}{V}\right)^2+\left(\frac{\Delta I}{I}\right)^2}$$</div>
+</div>
+<div class="incert-grid">
+  <div class="incert-card ir-card"><label>IR de R (material óhmico) (%)</label><input id="oh-ir-R" readonly placeholder="—"></div>
+  <div class="incert-card er-card"><label>ER serie (%)</label><input id="oh-er2-s" readonly placeholder="—"></div>
+  <div class="incert-card er-card"><label>ER paralelo (%)</label><input id="oh-er2-p" readonly placeholder="—"></div>
+  <div class="incert-card"><label>R_ohm R² ajuste (%)</label><input id="oh-r2" readonly placeholder="—"></div>
+</div>
+<div class="incert-resumen" id="oh-resumen">Complete los datos para ver el resumen.</div>
+    </div>
+
+    <div class="seccion">
+      <div class="seccion-titulo"><span class="num">04</span> Preguntas e Informe</div>
+      
+      <div class="pregunta">
+        <span class="preg-num">1</span>
+        <div class="preg-texto">¿La gráfica I vs V de la resistencia es lineal? ¿La resistencia es constante para todos los voltajes? ¿Es un material óhmico?
+          <div class="respuesta-div" contenteditable="true" data-placeholder="Analice el R² y la variación de R = V/I en la tabla…"></div>
+        </div>
+      </div>
+      <div class="pregunta">
+        <span class="preg-num">2</span>
+        <div class="preg-texto">¿La gráfica I vs V de la bombilla es lineal? ¿Qué indica esto sobre el filamento?
+          <div class="respuesta-div" contenteditable="true" data-placeholder="Compare la forma de la curva con la de la resistencia óhmica…"></div>
+        </div>
+      </div>
+      <div class="pregunta">
+        <span class="preg-num">3</span>
+        <div class="preg-texto">Compare los valores de $R_s$ y $R_p$ obtenidos experimentalmente con los calculados teóricamente.
+          <div class="respuesta-div" contenteditable="true" data-placeholder="Cite R₁, R₂, R_serie_teo, R_serie_exp, R_paralelo_teo, R_paralelo_exp y los ER…"></div>
+        </div>
+      </div>
+      <div class="pregunta">
+        <span class="preg-num">4</span>
+        <div class="preg-texto">¿Por qué la bombilla no sigue la Ley de Ohm? ¿Qué propiedad del material lo explica?
+          <div class="respuesta-div" contenteditable="true" data-placeholder="Relación entre resistividad y temperatura en el filamento…"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="seccion" id="sec-resumen">
+      <div class="seccion-titulo"><span class="num">RS</span> Resumen de Resultados</div>
+      
+<table class="resumen-tabla"><thead><tr><th>Circuito</th><th>R experimental (Ω)</th><th>R teórica (Ω)</th><th>ER (%)</th><th>Calidad</th></tr></thead>
+<tbody>
+  <tr><td class="td-label">Resistencia (óhmica)</td><td class="td-val"><input class="rv" id="rs-oh-Rr" readonly placeholder="—"></td><td class="td-val"><input class="rv" id="rs-oh-Rm" readonly placeholder="—"></td><td>—</td><td>—</td></tr>
+  <tr><td class="td-label">Serie R₁+R₂</td><td class="td-val"><input class="rv" id="rs-oh-Rs" readonly placeholder="—"></td><td class="td-val"><input class="rv" id="rs-oh-RsT" readonly placeholder="—"></td><td><input class="rv" id="rs-oh-ers" readonly placeholder="—"></td><td><span id="rs-oh-cals" style="font-family:var(--mono);font-size:.8em;">—</span></td></tr>
+  <tr><td class="td-label">Paralelo R₁‖R₂</td><td class="td-val"><input class="rv" id="rs-oh-Rp" readonly placeholder="—"></td><td class="td-val"><input class="rv" id="rs-oh-RpT" readonly placeholder="—"></td><td><input class="rv" id="rs-oh-erp" readonly placeholder="—"></td><td><span id="rs-oh-calp" style="font-family:var(--mono);font-size:.8em;">—</span></td></tr>
+</tbody></table>
+      <div class="resumen-semaforo">
+  <div class="semaforo-item azul"><span class="si-label">R óhmica (Ω)</span><span class="si-valor" id="rssv-oh-R">—</span></div>
+  <div class="semaforo-item rojo"><span class="si-label">ER serie (%)</span><span class="si-valor" id="rssv-oh-s">—</span></div>
+  <div class="semaforo-item verde"><span class="si-label">ER paralelo (%)</span><span class="si-valor" id="rssv-oh-p">—</span></div>
+</div>
+    </div>
+
+    <div class="seccion" id="sec-conclusiones">
+      <div class="seccion-titulo"><span class="num">CO</span> Conclusiones</div>
+      <div class="conclusiones-wrap">
+      <div class="conclusion-item">
+        <span class="conclusion-num">1</span>
+        <div class="conclusion-guia">
+          <strong>Verificación de la Ley de Ohm:</strong>
+          <div class="respuesta-div" contenteditable="true" data-placeholder="¿La resistencia es óhmica? Cite R_reg, R_multímetro y el R² de la regresión."></div>
+          <div class="conclusion-placeholder">↑ Desarrolle su conclusión con base en los datos experimentales</div>
+        </div>
+      </div>
+      <div class="conclusion-item">
+        <span class="conclusion-num">2</span>
+        <div class="conclusion-guia">
+          <strong>Material no-óhmico (bombilla):</strong>
+          <div class="respuesta-div" contenteditable="true" data-placeholder="¿Por qué la bombilla no cumple la Ley de Ohm? ¿Cómo varía R con V?"></div>
+          <div class="conclusion-placeholder">↑ Desarrolle su conclusión con base en los datos experimentales</div>
+        </div>
+      </div>
+      <div class="conclusion-item">
+        <span class="conclusion-num">3</span>
+        <div class="conclusion-guia">
+          <strong>Combinaciones de resistencias:</strong>
+          <div class="respuesta-div" contenteditable="true" data-placeholder="Compare R_serie y R_paralelo teóricos vs experimentales. Cite los ER. ¿Se verificaron las ecuaciones (3) y (4)?"></div>
+          <div class="conclusion-placeholder">↑ Desarrolle su conclusión con base en los datos experimentales</div>
+        </div>
+      </div>
+      <div class="conclusion-item">
+        <span class="conclusion-num">4</span>
+        <div class="conclusion-guia">
+          <strong>Fuentes de error y conclusión:</strong>
+          <div class="respuesta-div" contenteditable="true" data-placeholder="Mencione los errores principales (tolerancia de R, resistencia de cables) y concluya."></div>
+          <div class="conclusion-placeholder">↑ Desarrolle su conclusión con base en los datos experimentales</div>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="seccion">
+      <div class="seccion-titulo"><span class="num">05</span> Referencias</div>
+      <p style="font-size:1rem;color:var(--ink-muted);">[1] Sears, F. W. et al. (2004). Física Universitaria, Vol. II. Pearson.</p>
+<p style="font-size:1rem;color:var(--ink-muted);">[2] Serway, R. A. & Jewett, J. W. (2009). Física para Ciencias e Ingeniería, Vol. 2. Cengage.</p>
+      <p style="font-size:1rem;color:var(--ink-muted);">[3] Sears, F. W., Zemansky, M. W., Young, H. D. &amp; Freedman, R. A. (2013). <em>Física Universitaria Vol. 1</em> (13ª ed.). Pearson.</p>
+      <p style="font-size:1rem;color:var(--ink-muted);">[4] Giancoli, D. C. (2008). <em>Física para Ciencias e Ingeniería Vol. 1</em> (4ª ed.). Pearson.</p>
+<p style="font-size:1rem;color:var(--ink-muted);">[5] Tipler, P. A. & Mosca, G. (2008). Física para la Ciencia y la Tecnología, Vol. 2. Reverté.</p>
+    </div>
+
+  </div>
+</div>
+
+<!-- BOTÓN IMPRIMIR -->
+<style>
+  #print-hint{font-family:'JetBrains Mono',monospace;font-size:.68em;color:rgba(255,255,255,.45);letter-spacing:.04em;}
+  #print-hint kbd{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);padding:1px 6px;font-family:inherit;font-size:.9em;}
+</style>
+
+<script>
+function pn(s){return parseFloat((s||'').replace(',','.'));}
+function ft(n,d){return (isNaN(n)||n===null)?'—':n.toFixed(d);}
+function erCalidad(er){return isNaN(er)?'—':er<5?'✓ Excelente':er<10?'~ Bueno':er<20?'△ Aceptable':'✗ Revisar';}
+function erColor(er){return isNaN(er)?'#aaa':er<5?'var(--green)':er<10?'var(--gold)':er<20?'#e67e22':'var(--accent2)';}
+
+
+function regLin(xs,ys){var n=xs.length,sx=xs.reduce(function(a,b){return a+b;},0),sy=ys.reduce(function(a,b){return a+b;},0);var sxy=xs.reduce(function(s,x,i){return s+x*ys[i];},0),sx2=xs.reduce(function(s,x){return s+x*x;},0);var m=(n*sxy-sx*sy)/(n*sx2-sx*sx),b=(sy-m*sx)/n;var ym=sy/n,ss=ys.reduce(function(s,y){return s+(y-ym)*(y-ym);},0),sr=ys.reduce(function(s,y,i){return s+(y-(m*xs[i]+b))*(y-(m*xs[i]+b));},0);return{m:m,b:b,r2:ss>0?1-sr/ss:0};}
+function drawG(cvId,xL,yL,pts,reg,infoId){var cv=document.getElementById(cvId);if(!cv)return;var ctx=cv.getContext('2d'),W=cv.offsetWidth||700;cv.width=W*devicePixelRatio;cv.height=230*devicePixelRatio;cv.style.width=W+'px';cv.style.height='230px';ctx.scale(devicePixelRatio,devicePixelRatio);var w=W,h=230,P={top:14,right:14,bottom:38,left:52};var pw=w-P.left-P.right,ph=h-P.top-P.bottom;ctx.fillStyle='#fafafa';ctx.fillRect(0,0,w,h);ctx.fillStyle='#f5f5f5';ctx.fillRect(P.left,P.top,pw,ph);var xM=pts.length?Math.max.apply(null,pts.map(function(p){return p.x;}))*1.2:1;var yM=pts.length?Math.max.apply(null,pts.map(function(p){return p.y;}))*1.2:1;xM=Math.max(xM,.001);yM=Math.max(yM,.001);var cx=function(v){return P.left+(v/xM)*pw;},cy=function(v){return P.top+ph-(v/yM)*ph;};ctx.strokeStyle='#e0e0e0';ctx.lineWidth=1;for(var i=0;i<=5;i++){ctx.beginPath();ctx.moveTo(cx(i*xM/5),P.top);ctx.lineTo(cx(i*xM/5),P.top+ph);ctx.stroke();}for(var i=0;i<=4;i++){ctx.beginPath();ctx.moveTo(P.left,cy(i*yM/4));ctx.lineTo(P.left+pw,cy(i*yM/4));ctx.stroke();}ctx.strokeStyle='#333';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(P.left,P.top);ctx.lineTo(P.left,P.top+ph);ctx.stroke();ctx.beginPath();ctx.moveTo(P.left,P.top+ph);ctx.lineTo(P.left+pw,P.top+ph);ctx.stroke();ctx.fillStyle='#555';ctx.font='10px JetBrains Mono,monospace';ctx.textAlign='center';for(var i=0;i<=5;i++)ctx.fillText((i*xM/5).toFixed(3),cx(i*xM/5),P.top+ph+11);ctx.textAlign='right';for(var i=0;i<=4;i++)ctx.fillText((i*yM/4).toFixed(3),P.left-3,cy(i*yM/4)+4);ctx.fillStyle='#333';ctx.font='bold 10px Source Serif 4,serif';ctx.textAlign='center';ctx.fillText(xL,P.left+pw/2,h-2);ctx.save();ctx.translate(10,P.top+ph/2);ctx.rotate(-Math.PI/2);ctx.fillText(yL,0,0);ctx.restore();if(reg&&pts.length>=2){var r=regLin(pts.map(function(p){return p.x;}),pts.map(function(p){return p.y;}));ctx.strokeStyle='#1a5276';ctx.lineWidth=2;ctx.setLineDash([5,4]);ctx.beginPath();ctx.moveTo(cx(0),cy(r.b));ctx.lineTo(cx(xM),cy(r.m*xM+r.b));ctx.stroke();ctx.setLineDash([]);if(infoId&&document.getElementById(infoId))document.getElementById(infoId).textContent='m='+ft(r.m,4)+'  R²='+ft(r.r2*100,2)+'%';}var C=['#1a5276','#c0392b','#1e8449','#b8860b','#7d3c98','#1a7276'];pts.forEach(function(p,i){ctx.fillStyle=C[i%C.length];ctx.beginPath();ctx.arc(cx(p.x),cy(p.y),4,0,Math.PI*2);ctx.fill();});if(!pts.length){ctx.fillStyle='#bbb';ctx.font='11px Source Serif 4,serif';ctx.textAlign='center';ctx.fillText('Ingrese datos en la tabla',P.left+pw/2,P.top+ph/2);}}
+
+var ohDataR=Array.from({length:8},function(){return{V:null,I:null,R:null};});
+var ohDataB=Array.from({length:8},function(){return{V:null,I:null,R:null};});
+var ohDataS=Array.from({length:6},function(){return{V:null,I:null,R:null};});
+var ohDataP=Array.from({length:6},function(){return{V:null,I:null,R:null};});
+var ohReg=[true,true];
+function buildOH(){
+  function mkTb(id,arr,cb){
+    var tb=document.getElementById(id);if(!tb)return;tb.innerHTML='';
+    arr.forEach(function(_,i){
+      var tr=document.createElement('tr');
+      tr.innerHTML='<td class="fila-label">'+(i+1)+'</td>'
+        +'<td><input class="celda" type="text" placeholder="0.000" oninput="'+cb+'('+i+',\'V\',this.value)"></td>'
+        +'<td><input class="celda" type="text" placeholder="0.000" oninput="'+cb+'('+i+',\'I\',this.value)"></td>'
+        +'<td><input class="celda calc" id="'+id+'-R-'+i+'" readonly placeholder="—"></td>'
+        +'<td><input class="celda er" id="'+id+'-dR-'+i+'" readonly placeholder="—"></td>';
+      tb.appendChild(tr);
+    });
+  }
+  mkTb('tbody-oh-R',ohDataR,'onOHR');mkTb('tbody-oh-B',ohDataB,'onOHB');
+  function mkTb2(id,arr,cb){
+    var tb=document.getElementById(id);if(!tb)return;tb.innerHTML='';
+    arr.forEach(function(_,i){
+      var tr=document.createElement('tr');
+      tr.innerHTML='<td class="fila-label">'+(i+1)+'</td>'
+        +'<td><input class="celda" type="text" placeholder="0.000" oninput="'+cb+'('+i+',\'V\',this.value)"></td>'
+        +'<td><input class="celda" type="text" placeholder="0.000" oninput="'+cb+'('+i+',\'I\',this.value)"></td>'
+        +'<td><input class="celda calc" id="'+id+'-R-'+i+'" readonly placeholder="—"></td>';
+      tb.appendChild(tr);
+    });
+  }
+  mkTb2('tbody-oh-S',ohDataS,'onOHS');mkTb2('tbody-oh-P',ohDataP,'onOHP');
+}
+function setRowR(tb,i,d){
+  if(d.V!==null&&d.I!==null&&d.I!==0){d.R=d.V/d.I;
+    var el=document.getElementById(tb+'-R-'+i);if(el)el.value=ft(d.R,2);
+    var Rm=pn(document.getElementById('oh-Rm').value);
+    if(!isNaN(Rm)&&Rm>0){var dr=Math.abs(d.R-Rm)/Rm*100;var el2=document.getElementById(tb+'-dR-'+i);if(el2)el2.value=ft(dr,1)+'%';}
+  }
+}
+function onOHR(i,c,v){ohDataR[i][c]=pn(v);setRowR('tbody-oh-R',i,ohDataR[i]);calcOH();}
+function onOHB(i,c,v){ohDataB[i][c]=pn(v);setRowR('tbody-oh-B',i,ohDataB[i]);calcOH();}
+function onOHS(i,c,v){ohDataS[i][c]=pn(v);var d=ohDataS[i];if(d.V!==null&&d.I!==null&&d.I!==0){d.R=d.V/d.I;var el=document.getElementById('tbody-oh-S-R-'+i);if(el)el.value=ft(d.R,2);}calcOH();}
+function onOHP(i,c,v){ohDataP[i][c]=pn(v);var d=ohDataP[i];if(d.V!==null&&d.I!==null&&d.I!==0){d.R=d.V/d.I;var el=document.getElementById('tbody-oh-P-R-'+i);if(el)el.value=ft(d.R,2);}calcOH();}
+function calcOH(){
+  var R1=pn(document.getElementById('oh-R1').value);
+  var R2=pn(document.getElementById('oh-R2').value);
+  if(!isNaN(R1)&&!isNaN(R2)&&R1>0&&R2>0){
+    document.getElementById('oh-Rs-teo').value=ft(R1+R2,2)+' Ω';
+    document.getElementById('oh-Rp-teo').value=ft(R1*R2/(R1+R2),2)+' Ω';
+  }
+  // R por regresión
+  var ptsR=ohDataR.filter(function(r){return r.V!==null&&r.I!==null&&r.I>0;}).map(function(r){return{x:r.V,y:r.I};});
+  if(ptsR.length>=2){var rR=regLin(ptsR.map(function(p){return p.x;}),ptsR.map(function(p){return p.y;}));document.getElementById('oh-Rreg').value=ft(1/rR.m,2)+' Ω';document.getElementById('oh-r2').value=ft(rR.r2*100,2)+' %';
+    var Rm=pn(document.getElementById('oh-Rm').value);if(!isNaN(Rm)&&Rm>0)document.getElementById('oh-ir-R').value=ft(Math.abs(1/rR.m-Rm)/Rm*100,2)+' %';
+  }
+  // Serie
+  var ptsS=ohDataS.filter(function(r){return r.R!==null&&!isNaN(r.R);});
+  if(ptsS.length){var Rs=ptsS.reduce(function(s,r){return s+r.R;},0)/ptsS.length;document.getElementById('oh-Rs-exp').value=ft(Rs,2)+' Ω';
+    var RsT=pn(document.getElementById('oh-Rs-teo').value);if(!isNaN(RsT)&&RsT>0){var es=Math.abs(Rs-RsT)/RsT*100;document.getElementById('oh-er-s').value=ft(es,2)+' %';document.getElementById('oh-er2-s').value=ft(es,2)+' %';}}
+  // Paralelo
+  var ptsP=ohDataP.filter(function(r){return r.R!==null&&!isNaN(r.R);});
+  if(ptsP.length){var Rp=ptsP.reduce(function(s,r){return s+r.R;},0)/ptsP.length;document.getElementById('oh-Rp-exp').value=ft(Rp,2)+' Ω';
+    var RpT=pn(document.getElementById('oh-Rp-teo').value);if(!isNaN(RpT)&&RpT>0){var ep=Math.abs(Rp-RpT)/RpT*100;document.getElementById('oh-er-p').value=ft(ep,2)+' %';document.getElementById('oh-er2-p').value=ft(ep,2)+' %';}}
+  // resumen
+  var Rreg=pn(document.getElementById('oh-Rreg').value);var RmV=pn(document.getElementById('oh-Rm').value);
+  if(!isNaN(Rreg)&&!isNaN(RmV))document.getElementById('oh-resumen').innerHTML='<b>Resumen:</b> R_multímetro = <span>'+ft(RmV,2)+' Ω</span> &ensp;|&ensp; R_reg = <span>'+ft(Rreg,2)+' Ω</span> &ensp;|&ensp; ER = <span>'+ft(Math.abs(Rreg-RmV)/RmV*100,2)+' %</span>';
+  dibujarOH();
+  updateResOH();
+}
+function dibujarOH(){
+  var pR=ohDataR.filter(function(r){return r.V!==null&&r.I!==null;}).map(function(r){return{x:r.V,y:r.I};});
+  var pB=ohDataB.filter(function(r){return r.V!==null&&r.I!==null;}).map(function(r){return{x:r.V,y:r.I};});
+  drawG('cv-ohR','V (V)','I (A)',pR,ohReg[0],'info-ohR');
+  drawG('cv-ohB','V (V)','I (A)',pB,ohReg[1],'info-ohB');
+}
+setTimeout(function(){buildOH();dibujarOH();},200);
+window.addEventListener('resize',dibujarOH);
+
+
+function updateResOH(){
+  var map=[['oh-Rreg','rs-oh-Rr'],['oh-Rm','rs-oh-Rm'],['oh-Rs-exp','rs-oh-Rs'],['oh-Rs-teo','rs-oh-RsT'],['oh-er-s','rs-oh-ers'],['oh-Rp-exp','rs-oh-Rp'],['oh-Rp-teo','rs-oh-RpT'],['oh-er-p','rs-oh-erp']];
+  map.forEach(function(p){var s=document.getElementById(p[0]),d=document.getElementById(p[1]);if(s&&d)d.value=s.value||'—';});
+  var sR=document.getElementById('rssv-oh-R'),Rr=document.getElementById('oh-Rreg');if(sR&&Rr)sR.textContent=Rr.value||'—';
+  var ss=document.getElementById('rssv-oh-s'),es=document.getElementById('oh-er-s');if(ss&&es)ss.textContent=es.value||'—';
+  var sp=document.getElementById('rssv-oh-p'),ep=document.getElementById('oh-er-p');if(sp&&ep)sp.textContent=ep.value||'—';
+  var cals=document.getElementById('rs-oh-cals'),erEs=document.getElementById('oh-er-s');if(cals&&erEs){var ev=parseFloat((erEs.value||'').replace('%',''));cals.textContent=erCalidad(ev);cals.style.color=erColor(ev);}
+  var calp=document.getElementById('rs-oh-calp'),erEp=document.getElementById('oh-er-p');if(calp&&erEp){var ev2=parseFloat((erEp.value||'').replace('%',''));calp.textContent=erCalidad(ev2);calp.style.color=erColor(ev2);}
+}
+document.addEventListener('input',updateResOH);setTimeout(updateResOH,600);
+
+// Print-div fix
+(function(){
+  })();
+
+window.addEventListener('load',function(){
+  var now=new Date(),sem=now.getMonth()<6?'1':'2';
+  document.getElementById('codigoPractica').textContent='PRÁCTICA FIS-OH · '+now.getFullYear()+'-'+sem;
+  document.querySelectorAll('input[type="date"]').forEach(function(i){i.value=new Date().toISOString().split('T')[0];});
+});
+</script>
+<div class="btn-imprimir-wrap">
+  <button class="btn-imprimir" onclick="window.print()">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="6 9 6 2 18 2 18 9"/>
+      <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+      <rect x="6" y="14" width="12" height="8"/>
+    </svg>
+    Imprimir / Guardar como PDF
+  </button>
+</div>
+</body>
+</html>

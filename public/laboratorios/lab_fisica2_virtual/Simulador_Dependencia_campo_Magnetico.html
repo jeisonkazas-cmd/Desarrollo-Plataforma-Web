@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Campo Magnético: Dependencia con la Distancia — Bobinas de Helmholtz</title>
+<style>
+/* ── Variables: Modo Claro (default) ── */
+:root {
+  --bg:          #f0f2f5;
+  --panel-bg:    #ffffff;
+  --header-bg:   #1a2236;
+  --text:        #1e2d45;
+  --text2:       #4a5568;
+  --text3:       #718096;
+  --border:      #d1d9e6;
+  --accent:      #0055cc;
+  --accent2:     #c0392b;
+  --gold:        #b8860b;
+  --green:       #1e7e34;
+  --tab-active:  #0055cc;
+  --tab-text:    #4a5568;
+  --input-bg:    #f7f8fb;
+  --table-even:  #f7f9fc;
+  --badge-bg:    #e8f0fe;
+  --badge-text:  #0055cc;
+  --pr-info-bg:  #f0f4fa;
+  --shadow:      0 2px 16px rgba(0,0,0,.10);
+}
+body.dark {
+  --bg:          #0d1117;
+  --panel-bg:    #161b22;
+  --header-bg:   #0d1117;
+  --text:        #c9d1d9;
+  --text2:       #8b949e;
+  --text3:       #484f58;
+  --border:      #30363d;
+  --accent:      #58a6ff;
+  --accent2:     #f85149;
+  --gold:        #e3b341;
+  --green:       #3fb950;
+  --tab-active:  #58a6ff;
+  --tab-text:    #8b949e;
+  --input-bg:    #0d1117;
+  --table-even:  #1c2128;
+  --badge-bg:    #172030;
+  --badge-text:  #58a6ff;
+  --pr-info-bg:  #1c2128;
+  --shadow:      0 2px 16px rgba(0,0,0,.4);
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);transition:background .3s,color .3s;}
+
+/* ── Layout principal ── */
+#container{display:flex;flex-direction:row;height:100vh;overflow:hidden;}
+#canvas-3d{flex:3;min-width:350px;height:100%;position:relative;}
+#panel{flex:1;min-width:330px;max-width:420px;background:var(--panel-bg);display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--shadow);transition:background .3s;z-index:10;}
+
+/* ── Header del panel ── */
+#panel-header{
+  background:var(--header-bg);
+  padding:13px 16px 10px;
+  flex-shrink:0;
+  border-bottom:1px solid var(--border);
+}
+#panel-header h2{font-size:13px;font-weight:700;letter-spacing:.06em;color:#fff;line-height:1.3;}
+#panel-header p{font-size:10px;color:rgba(255,255,255,.45);margin-top:3px;letter-spacing:.04em;}
+
+/* ── Botón modo oscuro ── */
+#dark-btn{
+  position:absolute;top:10px;right:12px;
+  background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);
+  color:#fff;border-radius:50%;width:32px;height:32px;
+  font-size:16px;cursor:pointer;z-index:100;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .2s;
+}
+#dark-btn:hover{background:rgba(255,255,255,.22);}
+
+/* ── Tabs de modo ── */
+#mode-tabs{
+  display:flex;gap:0;flex-shrink:0;
+  background:var(--panel-bg);
+  border-bottom:2px solid var(--border);
+}
+.mode-tab{
+  flex:1;font-size:10px;font-weight:700;letter-spacing:.04em;
+  padding:9px 4px 7px;border:none;background:transparent;
+  color:var(--tab-text);cursor:pointer;
+  border-bottom:2px solid transparent;margin-bottom:-2px;
+  transition:color .15s,border-color .15s;text-align:center;
+}
+.mode-tab.active{color:var(--tab-active);border-bottom-color:var(--tab-active);}
+.mode-tab:hover:not(.active){color:var(--text);background:rgba(0,85,204,.06);}
+
+/* ── Panel scrollable (Modo Libre) ── */
+#panel-scroll{flex:1;overflow-y:auto;padding:14px;}
+#panel-scroll.hidden{display:none;}
+
+/* ── Panel práctica (modos A/B/C) ── */
+#practica-panel{display:none;flex-direction:column;flex:1;overflow-y:auto;padding:12px 14px;}
+#practica-panel.visible{display:flex;}
+
+/* ── Secciones de controls (Modo Libre) ── */
+.sec-title{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border);padding-bottom:4px;margin-bottom:10px;margin-top:14px;}
+.sec-title:first-child{margin-top:0;}
+
+/* ── Material badge ── */
+.mat-badge{
+  background:var(--badge-bg);border-radius:6px;padding:8px 10px;
+  margin-bottom:10px;border:1px solid var(--border);
+}
+.mat-badge strong{font-size:12px;color:var(--badge-text);}
+.mat-badge span{font-size:11px;color:var(--text2);display:block;margin-top:2px;}
+
+/* ── Sliders ── */
+.slider-group{margin-bottom:11px;}
+.slider-group label{font-size:11px;color:var(--text2);display:flex;justify-content:space-between;margin-bottom:3px;}
+.slider-group label b{color:var(--accent);font-family:monospace;}
+input[type=range]{width:100%;accent-color:var(--accent);cursor:pointer;}
+.slider-group small{font-size:9px;color:var(--text3);}
+
+/* ── Botones ── */
+.btn{
+  padding:8px 12px;border:none;border-radius:5px;cursor:pointer;
+  font-size:12px;font-weight:600;width:100%;margin-top:7px;
+  transition:opacity .15s,transform .1s;
+}
+.btn:active{transform:scale(.98);}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-secondary{background:#e9ecef;color:#333;}
+body.dark .btn-secondary{background:#21262d;color:var(--text);}
+.btn-success{background:var(--green);color:#fff;}
+.btn-danger{background:#ffc107;color:#333;}
+.btn-purple{background:#7c3aed;color:#fff;}
+.btn-csv{background:#1e8449;color:#fff;}
+
+/* ── Tabla ── */
+.data-table{width:100%;border-collapse:collapse;font-size:10px;margin-top:8px;}
+.data-table th{background:var(--pr-info-bg);color:var(--text2);padding:5px 6px;text-align:center;font-size:9px;letter-spacing:.06em;border:1px solid var(--border);}
+.data-table td{padding:4px 6px;border:1px solid var(--border);text-align:center;color:var(--text);font-family:monospace;}
+.data-table tr:nth-child(even) td{background:var(--table-even);}
+
+/* ── Práctica Panel interno ── */
+.pr-title{
+  font-size:13px;font-weight:700;color:var(--text);
+  margin-bottom:6px;padding-bottom:6px;border-bottom:2px solid var(--border);
+  display:flex;align-items:center;gap:8px;
+}
+.pr-hint{font-size:10px;color:var(--text3);font-style:italic;margin-bottom:10px;line-height:1.5;}
+.pr-sec{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border);padding-bottom:3px;margin:12px 0 8px;}
+.pr-sec:first-of-type{margin-top:0;}
+.pr-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px 10px;margin-bottom:10px;}
+.pr-info-item label{font-size:8px;letter-spacing:.1em;color:var(--text3);text-transform:uppercase;display:block;margin-bottom:1px;}
+.pr-info-item span{font-size:11px;font-weight:700;color:var(--accent);font-family:monospace;background:var(--pr-info-bg);display:block;padding:3px 6px;border-radius:3px;border:1px solid var(--border);}
+.pr-info-item span.big{font-size:14px;color:var(--gold);border-color:var(--gold);background:rgba(184,134,11,.08);}
+
+/* ── Fórmula ── */
+.pr-formula{
+  background:var(--pr-info-bg);border:1px solid var(--border);
+  border-radius:5px;padding:8px 10px;margin:8px 0;
+  font-family:monospace;font-size:11px;color:var(--text);
+  text-align:center;line-height:1.8;
+}
+.pr-formula b{color:var(--accent);}
+
+/* ── Input verificar ── */
+.verify-row{display:flex;gap:6px;margin-top:8px;align-items:center;}
+.verify-row input{
+  flex:1;background:var(--input-bg);border:1px solid var(--border);
+  color:var(--text);padding:7px 9px;border-radius:4px;
+  font-family:monospace;font-size:12px;outline:none;
+  transition:border-color .2s;
+}
+.verify-row input:focus{border-color:var(--accent);}
+.verify-row .btn{width:auto;margin:0;padding:7px 14px;flex-shrink:0;}
+
+/* ── Status messages ── */
+.pr-status{
+  font-size:11px;text-align:center;padding:7px 10px;
+  border-radius:5px;margin-top:8px;min-height:28px;
+  font-weight:600;transition:all .3s;
+}
+.pr-status.ok{background:rgba(30,126,52,.15);color:var(--green);border:1px solid var(--green);}
+.pr-status.fail{background:rgba(200,57,43,.12);color:var(--accent2);border:1px solid var(--accent2);}
+.pr-status.info{background:var(--badge-bg);color:var(--accent);border:1px solid var(--border);}
+.pr-status.warn{background:rgba(184,134,11,.12);color:var(--gold);border:1px solid var(--gold);}
+
+/* ── Chart canvas (Modo B) ── */
+#bz-chart{
+  width:100%;height:160px;border:1px solid var(--border);
+  border-radius:5px;display:block;margin-top:8px;
+  background:var(--pr-info-bg);
+}
+
+/* ── Live B reading (Modo C) ── */
+.live-b-display{
+  text-align:center;margin:10px 0;padding:12px;
+  background:var(--pr-info-bg);border-radius:6px;
+  border:2px solid var(--border);
+}
+.live-b-display .lbl{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);}
+.live-b-display .val{font-size:22px;font-weight:700;font-family:monospace;color:var(--accent);margin:4px 0;}
+.live-b-display .target{font-size:10px;color:var(--text2);}
+
+/* ── Intentos (Modo C) ── */
+.intentos-wrap{display:flex;gap:5px;margin:8px 0;justify-content:center;}
+.intento-dot{width:12px;height:12px;border-radius:50%;border:2px solid var(--border);background:transparent;transition:all .3s;}
+.intento-dot.used{background:var(--accent2);border-color:var(--accent2);}
+.intento-dot.success{background:var(--green);border-color:var(--green);}
+
+/* ── Capturar button ── */
+.btn-capture{background:linear-gradient(135deg,#7c3aed,#9b59b6);color:#fff;margin-top:10px;}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+
+/* ── Mobile ── */
+#panel-toggle{
+  display:none;position:fixed;bottom:18px;right:14px;z-index:999;
+  background:var(--accent);color:#fff;border:none;border-radius:50%;
+  width:48px;height:48px;font-size:20px;cursor:pointer;
+  box-shadow:0 3px 14px rgba(0,0,0,.35);
+  align-items:center;justify-content:center;
+}
+#panel-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:599;}
+#panel-overlay.show{display:block;}
+
+@media(max-width:768px){
+  #container{flex-direction:column;}
+  #canvas-3d{width:100%;height:50vh;min-width:initial;}
+  #panel{
+    position:fixed;top:0;right:0;bottom:0;width:300px!important;
+    transform:translateX(110%);transition:transform .28s ease;z-index:600;
+  }
+  #panel.open{transform:translateX(0);}
+  #panel-toggle{display:flex;}
+  #panel-overlay.show{display:block;}
+}
+@media(max-width:480px){
+  #panel{width:90vw!important;}
+  .mode-tab{font-size:9px;padding:8px 2px 6px;}
+}
+
+/* ── Overlay de captura ── */
+#capture-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);
+  z-index:2000;align-items:center;justify-content:center;
+}
+#capture-overlay.show{display:flex;}
+#capture-box{
+  background:var(--panel-bg);border-radius:10px;padding:24px 28px;
+  max-width:380px;width:90%;text-align:center;border:1px solid var(--border);
+  box-shadow:0 8px 40px rgba(0,0,0,.4);
+}
+#capture-box h3{font-size:14px;margin-bottom:8px;color:var(--text);}
+#capture-box p{font-size:11px;color:var(--text3);margin-bottom:14px;}
+</style>
+</head>
+<body>
+
+<div id="panel-overlay" onclick="togglePanel()"></div>
+<div id="capture-overlay" id="capture-overlay">
+  <div id="capture-box">
+    <h3>📸 Captura guardada</h3>
+    <p>La imagen con todos los datos ha sido descargada.</p>
+    <button class="btn btn-primary" onclick="document.getElementById('capture-overlay').classList.remove('show')">Cerrar</button>
+  </div>
+</div>
+
+<div id="container">
+  <div id="canvas-3d">
+    <button id="dark-btn" onclick="toggleDark()">🌙</button>
+  </div>
+
+  <div id="panel">
+    <div id="panel-header">
+      <h2>🧲 CAMPO MAGNÉTICO — HELMHOLTZ</h2>
+      <p id="mat-badge-header">Selecciona un modo para comenzar</p>
+    </div>
+
+    <!-- TABS -->
+    <div id="mode-tabs">
+      <button class="mode-tab active" id="tab-open" onclick="switchMode('open')">🔬 Libre</button>
+      <button class="mode-tab" id="tab-pA" onclick="switchMode('pA')">⚗️ Parte A</button>
+      <button class="mode-tab" id="tab-pB" onclick="switchMode('pB')">📈 Parte B</button>
+      <button class="mode-tab" id="tab-pC" onclick="switchMode('pC')">🎯 Reto C</button>
+    </div>
+
+    <!-- ════ MODO LIBRE ════ -->
+    <div id="panel-scroll">
+      <div class="sec-title">Material del Núcleo</div>
+      <div class="mat-badge">
+        <strong id="mat-name">—</strong>
+        <span>μ = <span id="mat-mu">—</span> H/m</span>
+      </div>
+      <button class="btn btn-secondary" onclick="iniciarNuevaSimulacion()">🎲 Cambiar Material</button>
+
+      <div class="sec-title" style="margin-top:16px;">Geometría de las Bobinas</div>
+      <div class="slider-group">
+        <label>Radio (a) <b id="a-val">0.20</b> m</label>
+        <input type="range" id="sl-a" min="0.1" max="0.5" step="0.05" value="0.2" oninput="updateGeometry(+this.value,'a')">
+      </div>
+      <div class="slider-group">
+        <label>Separación (d) <b id="d-val">0.20</b> m</label>
+        <input type="range" id="sl-d" min="0.0" max="0.5" step="0.01" value="0.2" oninput="updateGeometry(+this.value,'d')">
+        <small>Condición Helmholtz: d = a → separación óptima</small>
+      </div>
+      <div class="slider-group">
+        <label>Espiras (N) <b id="N-val">150</b></label>
+        <input type="range" id="sl-N" min="50" max="500" step="10" value="150" oninput="updateTurns(+this.value)">
+      </div>
+
+      <div class="sec-title">Sensor y Corriente</div>
+      <div class="slider-group">
+        <label>Posición del Sensor (z) <b id="z-val">0.00</b> m</label>
+        <input type="range" id="sl-z" min="-0.90" max="0.90" step="0.01" value="0.0" oninput="updateSensor(+this.value)">
+        <small>Centro (z=0) = punto medio entre bobinas</small>
+      </div>
+      <div class="slider-group">
+        <label>Corriente (I) <b id="I-val">0.5</b> A</label>
+        <input type="range" id="sl-I" min="0.1" max="2.0" step="0.1" value="0.5" oninput="recordMeasurement(+this.value)">
+      </div>
+      <div class="mat-badge" style="text-align:center;">
+        <span style="font-size:9px;">B calculado en z actual</span>
+        <strong id="B-live" style="font-size:15px;display:block;">— T</strong>
+      </div>
+
+      <div class="sec-title">Tabla de Datos</div>
+      <button class="btn btn-danger" onclick="clearTable()">🗑️ Limpiar Tabla</button>
+      <button class="btn btn-csv" onclick="exportCSV('libre')">📥 Exportar CSV</button>
+      <button class="btn btn-capture" onclick="capturar('open')">📸 Capturar Evidencia</button>
+      <div style="overflow-x:auto;margin-top:6px;">
+        <table class="data-table" id="tbl-libre">
+          <thead><tr><th>z (m)</th><th>I (A)</th><th>B (T)</th></tr></thead>
+          <tbody id="tbl-libre-body"></tbody>
+        </table>
+      </div>
+    </div><!-- /panel-scroll -->
+
+    <!-- ════ PANEL PRÁCTICA ════ -->
+    <div id="practica-panel">
+      <div id="pr-content"><!-- filled by JS --></div>
+    </div>
+
+  </div><!-- /panel -->
+</div><!-- /container -->
+
+<button id="panel-toggle" onclick="togglePanel()">⚙️</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ══════════════════════════════════════════
+// MATERIALES
+// ══════════════════════════════════════════
+const MATERIALS = {
+  "Hierro":         6.3e-3,
+  "Neodimio":       1.32e-5,
+  "Aluminio":       1.26e-6,
+  "Aire":           1.256e-6,
+  "Madera Seca":    1.256e-6,
+  "Cobre":          1.27e-6,
+  "Acero al Carbón":1.26e-4,
+  "Agua Pura":      1.26e-6,
+  "Manganeso-Zinc": 2.5e-2,
+  "Níquel-Hierro":  1.25e-1
+};
+
+// ══════════════════════════════════════════
+// ESTADO GLOBAL
+// ══════════════════════════════════════════
+let geo = { a: 0.2, d: 0.2, z_p: 0.0 };
+let matNow = { name: 'Aire', mu: 1.256e-6 };
+let Nturns = 150;
+let libreCount = 0;
+let currentMode = 'open';
+let isDark = false;
+
+// Mode A state
+let modeAData = [];
+let modeAMat  = null;
+let modeAGeo  = {};
+let modeAVerified = false;
+
+// Mode B state
+let modeBData = [];
+let modeBMat  = null;
+let modeBGeo  = {};
+let modeBN    = 150;
+let modeBCurI = 1.0;
+
+// Mode C state
+let cChallenge  = {};
+let cAttempts   = 0;
+const C_MAX     = 3;
+let cResolved   = false;
+
+// ══════════════════════════════════════════
+// FÍSICA
+// ══════════════════════════════════════════
+function calcBSingle(I, z_dist, mu, N, a) {
+  return (mu * N * I * a * a) / (2 * Math.pow(a*a + z_dist*z_dist, 1.5));
+}
+
+function calcB(I, z_p, mu, N, a, d) {
+  const d1 = Math.abs(z_p + d/2);
+  const d2 = Math.abs(d/2 - z_p);
+  return calcBSingle(I, d1, mu, N, a) + calcBSingle(I, d2, mu, N, a);
+}
+
+function calcBNow(I_nom, z_p_nom) {
+  // Con pequeño ruido de medición
+  const errI  = (Math.random()*.016 - .008) * I_nom;
+  const errZ  = z_p_nom !== 0 ? (Math.random()*.016 - .008) * z_p_nom : 0;
+  const I_m   = parseFloat((I_nom + errI).toFixed(4));
+  const z_m   = parseFloat((z_p_nom + errZ).toFixed(5));
+  return { B: calcB(I_m, z_m, matNow.mu, Nturns, geo.a, geo.d), I_m, z_m };
+}
+
+// ══════════════════════════════════════════
+// THREE.JS 3D
+// ══════════════════════════════════════════
+let scene3, cam3, renderer3, coil1, coil2, sensor3;
+
+function init3D() {
+  const el = document.getElementById('canvas-3d');
+  scene3 = new THREE.Scene();
+  scene3.background = new THREE.Color(0xd8dde8);
+
+  cam3 = new THREE.PerspectiveCamera(70, el.clientWidth/el.clientHeight, 0.01, 100);
+  cam3.position.set(0, 0.3, 0.6);
+  cam3.lookAt(0,0,0);
+
+  renderer3 = new THREE.WebGLRenderer({ antialias:true, preserveDrawingBuffer:true });
+  renderer3.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer3.setSize(el.clientWidth, el.clientHeight);
+  el.appendChild(renderer3.domElement);
+
+  scene3.add(new THREE.AmbientLight(0xffffff, 0.5));
+  const dl = new THREE.DirectionalLight(0xffffff, 0.8);
+  dl.position.set(1,2,3); scene3.add(dl);
+  scene3.add(new THREE.AxesHelper(0.35));
+
+  coil1 = makeCoil(); coil2 = makeCoil(); sensor3 = makeSensor();
+  scene3.add(coil1); scene3.add(coil2); scene3.add(sensor3);
+
+  update3D();
+
+  window.addEventListener('resize', onResize3D);
+  animate3D();
+}
+
+function makeCoil() {
+  const g = new THREE.TorusGeometry(1.0, 0.012, 12, 80);
+  const m = new THREE.MeshPhongMaterial({ color:0xcc2200, specular:0x442200, shininess:40 });
+  const mesh = new THREE.Mesh(g, m);
+  mesh.rotation.z = Math.PI/2;
+  return mesh;
+}
+
+function makeSensor() {
+  const g = new THREE.CylinderGeometry(.018, .018, .06, 16);
+  const m = new THREE.MeshPhongMaterial({ color:0x00cc66, emissive:0x004422 });
+  const mesh = new THREE.Mesh(g, m);
+  mesh.rotation.x = Math.PI/2;
+  return mesh;
+}
+
+function update3D() {
+  const { a, d, z_p } = geo;
+  coil1.scale.set(a, a, 1);
+  coil2.scale.set(a, a, 1);
+  coil1.position.z =  d/2;
+  coil2.position.z = -d/2;
+  sensor3.position.z = z_p;
+  renderer3 && renderer3.render(scene3, cam3);
+}
+
+function setSensorColor(ok) {
+  if (!sensor3) return;
+  sensor3.material.color.setHex(ok ? 0x00ee44 : 0xff4422);
+  sensor3.material.emissive.setHex(ok ? 0x004422 : 0x440000);
+  renderer3.render(scene3, cam3);
+}
+
+function animate3D() {
+  requestAnimationFrame(animate3D);
+  scene3.rotation.y += 0.004;
+  renderer3.render(scene3, cam3);
+}
+
+function onResize3D() {
+  const el = document.getElementById('canvas-3d');
+  if (!cam3 || !renderer3) return;
+  cam3.aspect = el.clientWidth / el.clientHeight;
+  cam3.updateProjectionMatrix();
+  renderer3.setSize(el.clientWidth, el.clientHeight);
+}
+
+// ══════════════════════════════════════════
+// HELPERS UI
+// ══════════════════════════════════════════
+function updateBLive(I) {
+  const B = calcB(I, geo.z_p, matNow.mu, Nturns, geo.a, geo.d);
+  document.getElementById('B-live').textContent = B.toExponential(4) + ' T';
+}
+
+function setMaterial(name) {
+  matNow = { name, mu: MATERIALS[name] };
+  const el1 = document.getElementById('mat-name');
+  const el2 = document.getElementById('mat-mu');
+  const elH = document.getElementById('mat-badge-header');
+  if (el1) el1.textContent = name;
+  if (el2) el2.textContent = MATERIALS[name].toExponential(3);
+  if (elH) elH.textContent = `Material: ${name}`;
+}
+
+function randomMaterial() {
+  const keys = Object.keys(MATERIALS);
+  return keys[Math.floor(Math.random() * keys.length)];
+}
+
+// ══════════════════════════════════════════
+// MODO LIBRE — funciones
+// ══════════════════════════════════════════
+function iniciarNuevaSimulacion() {
+  const name = randomMaterial();
+  setMaterial(name);
+  libreCount = 0;
+  document.getElementById('tbl-libre-body').innerHTML = '';
+  const I = parseFloat(document.getElementById('sl-I').value);
+  updateBLive(I);
+}
+
+function updateGeometry(val, param) {
+  geo[param === 'a' ? 'a' : 'd'] = val;
+  document.getElementById(param === 'a' ? 'a-val' : 'd-val').textContent = val.toFixed(2);
+  update3D();
+  updateBLive(parseFloat(document.getElementById('sl-I').value));
+  if (currentMode === 'pB') drawBZChart();
+  if (currentMode === 'pC') updateLiveBModeC();
+}
+
+function updateTurns(val) {
+  Nturns = val;
+  document.getElementById('N-val').textContent = val;
+  updateBLive(parseFloat(document.getElementById('sl-I').value));
+}
+
+function updateSensor(val) {
+  geo.z_p = val;
+  document.getElementById('z-val').textContent = val.toFixed(2);
+  update3D();
+  updateBLive(parseFloat(document.getElementById('sl-I').value));
+  if (currentMode === 'pC') updateLiveBModeC();
+}
+
+function recordMeasurement(I_nom) {
+  document.getElementById('I-val').textContent = I_nom.toFixed(1);
+  updateBLive(I_nom);
+  const { B, I_m, z_m } = calcBNow(I_nom, geo.z_p);
+  libreCount++;
+  const tbody = document.getElementById('tbl-libre-body');
+  const row = tbody.insertRow();
+  row.insertCell().textContent = z_m.toFixed(4);
+  row.insertCell().textContent = I_m.toFixed(4);
+  row.insertCell().textContent = B.toExponential(4);
+}
+
+function clearTable() {
+  document.getElementById('tbl-libre-body').innerHTML = '';
+  libreCount = 0;
+}
+
+// ══════════════════════════════════════════
+// MODO SWITCHING
+// ══════════════════════════════════════════
+function switchMode(mode) {
+  currentMode = mode;
+  ['open','pA','pB','pC'].forEach(m => {
+    document.getElementById('tab-'+m).classList.toggle('active', m === mode);
+  });
+  const scroll  = document.getElementById('panel-scroll');
+  const prPanel = document.getElementById('practica-panel');
+  if (mode === 'open') {
+    scroll.classList.remove('hidden');
+    prPanel.classList.remove('visible');
+    // Restaurar sliders a estado libre
+    document.getElementById('sl-z').disabled = false;
+    document.getElementById('sl-I').disabled = false;
+    document.getElementById('sl-a').disabled = false;
+    document.getElementById('sl-d').disabled = false;
+    document.getElementById('sl-N').disabled = false;
+    iniciarNuevaSimulacion();
+  } else {
+    scroll.classList.add('hidden');
+    prPanel.classList.add('visible');
+    renderPrPanel(mode);
+  }
+}
+
+// ══════════════════════════════════════════
+// RENDER PANEL DE PRÁCTICA
+// ══════════════════════════════════════════
+function renderPrPanel(mode) {
+  if (mode === 'pA') renderModeA();
+  else if (mode === 'pB') renderModeB();
+  else if (mode === 'pC') renderModeC();
+}
+
+// ══════════════════════════════════════════
+// ════ MODO A — PERMEABILIDAD ════════════
+// ══════════════════════════════════════════
+function renderModeA() {
+  // Seleccionar material aleatorio (oculto al usuario)
+  modeAMat = { name: randomMaterial() };
+  modeAMat.mu = MATERIALS[modeAMat.name];
+  modeAGeo = { a: parseFloat((0.1 + Math.random()*0.3).toFixed(2)), d: 0, N: Math.round(100 + Math.random()*300) };
+  modeAGeo.d = parseFloat((modeAGeo.a * (0.8 + Math.random()*0.4)).toFixed(2));
+  modeAData = [];
+  modeAVerified = false;
+
+  // Aplicar al simulador
+  geo.a = modeAGeo.a; geo.d = modeAGeo.d; geo.z_p = 0.0;
+  matNow = { name: modeAMat.name, mu: modeAMat.mu };
+  Nturns = modeAGeo.N;
+  document.getElementById('sl-a').value = geo.a;
+  document.getElementById('sl-d').value = geo.d;
+  document.getElementById('sl-N').value = Nturns;
+  document.getElementById('sl-z').value = 0;
+  document.getElementById('sl-z').disabled = true; // Sensor fijo en z=0
+  update3D();
+
+  const el = document.getElementById('pr-content');
+  el.innerHTML = `
+    <div class="pr-title">⚗️ Parte A — Permeabilidad Magnética</div>
+    <div class="pr-hint">Un material desconocido está cargado en las bobinas. Varía la corriente I, registra B en el centro (z = 0), y usa la fórmula para determinar su permeabilidad μ.</div>
+
+    <div class="pr-sec">Parámetros Fijos de la Sesión</div>
+    <div class="pr-info-grid">
+      <div class="pr-info-item"><label>Radio a</label><span>${modeAGeo.a.toFixed(3)} m</span></div>
+      <div class="pr-info-item"><label>Separación d</label><span>${modeAGeo.d.toFixed(3)} m</span></div>
+      <div class="pr-info-item"><label>Espiras N</label><span>${modeAGeo.N}</span></div>
+      <div class="pr-info-item"><label>Posición z</label><span>0.000 m (fija)</span></div>
+    </div>
+
+    <div class="pr-formula">
+      <b>B</b> = μ · N · I · a² / (a² + (d/2)²)<sup>3/2</sup><br>
+      <b>μ</b> = B · (a² + (d/2)²)<sup>3/2</sup> / (N · I · a²)
+    </div>
+
+    <div class="pr-sec">Control de Corriente</div>
+    <div class="slider-group" style="margin:6px 0 0;">
+      <label style="font-size:11px;color:var(--text2);display:flex;justify-content:space-between;">
+        Corriente I <b id="A-I-val" style="color:var(--accent);font-family:monospace;">${parseFloat(document.getElementById('sl-I').value).toFixed(1)} A</b>
+      </label>
+      <input type="range" id="A-sl-I" min="0.1" max="2.0" step="0.1" value="${document.getElementById('sl-I').value}" oninput="modeAUpdateI(+this.value)">
+    </div>
+    <div class="live-b-display">
+      <div class="lbl">B en z = 0</div>
+      <div class="val" id="A-B-live">—</div>
+    </div>
+    <button class="btn btn-primary" onclick="modeARecord()">📍 Registrar Medición</button>
+
+    <div class="pr-sec" style="margin-top:12px;">Tabla de Mediciones</div>
+    <div style="overflow-x:auto;">
+      <table class="data-table" id="tbl-mA">
+        <thead><tr><th>N°</th><th>I (A)</th><th>B (T)</th><th>μ calculado (H/m)</th></tr></thead>
+        <tbody id="tbl-mA-body"></tbody>
+      </table>
+    </div>
+
+    <div class="pr-sec" style="margin-top:12px;">Verificar Resultado</div>
+    <div style="font-size:10px;color:var(--text2);margin-bottom:6px;">Calcula μ promedio de tu tabla e ingrésalo:</div>
+    <div class="verify-row">
+      <input type="number" id="mu-input" placeholder="Ej: 1.26e-6" step="any">
+      <button class="btn btn-success" onclick="verifyMu()" style="width:auto;white-space:nowrap;">✓ Verificar</button>
+    </div>
+    <div class="pr-status info" id="A-status">Registra al menos 3 mediciones para verificar.</div>
+
+    <button class="btn btn-capture" onclick="capturar('pA')">📸 Capturar Evidencia</button>
+    <button class="btn btn-secondary" onclick="modeAClear()" style="margin-top:5px;">🗑️ Limpiar tabla</button>
+  `;
+  modeAUpdateI(parseFloat(document.getElementById('sl-I').value));
+}
+
+function modeAUpdateI(val) {
+  document.getElementById('A-I-val').textContent = val.toFixed(1) + ' A';
+  const B = calcB(val, 0, modeAMat.mu, modeAGeo.N, modeAGeo.a, modeAGeo.d);
+  document.getElementById('A-B-live').textContent = B.toExponential(4) + ' T';
+}
+
+function modeARecord() {
+  const I_nom = parseFloat(document.getElementById('A-sl-I').value);
+  const { B, I_m, z_m } = calcBNow(I_nom, 0);
+  const a = modeAGeo.a, d = modeAGeo.d, N = modeAGeo.N;
+  const mu_calc = B * Math.pow(a*a + (d/2)*(d/2), 1.5) / (N * I_m * a * a);
+  modeAData.push({ I: I_m, B, mu: mu_calc });
+
+  const tbody = document.getElementById('tbl-mA-body');
+  const row = tbody.insertRow();
+  row.insertCell().textContent = modeAData.length;
+  row.insertCell().textContent = I_m.toFixed(4);
+  row.insertCell().textContent = B.toExponential(4);
+  row.insertCell().textContent = mu_calc.toExponential(4);
+
+  if (modeAData.length >= 3) {
+    const avg = modeAData.reduce((s,d)=>s+d.mu,0)/modeAData.length;
+    document.getElementById('A-status').textContent = `μ promedio calculado: ${avg.toExponential(4)} H/m — ingresa tu resultado y verifica.`;
+    document.getElementById('A-status').className = 'pr-status info';
+  }
+}
+
+function modeAClear() {
+  modeAData = [];
+  document.getElementById('tbl-mA-body').innerHTML = '';
+  document.getElementById('A-status').textContent = 'Registra al menos 3 mediciones para verificar.';
+  document.getElementById('A-status').className = 'pr-status info';
+}
+
+function verifyMu() {
+  if (modeAData.length < 3) {
+    document.getElementById('A-status').textContent = '⚠️ Necesitas al menos 3 mediciones.';
+    document.getElementById('A-status').className = 'pr-status warn';
+    return;
+  }
+  const inputVal = parseFloat(document.getElementById('mu-input').value);
+  if (isNaN(inputVal)) {
+    document.getElementById('A-status').textContent = '⚠️ Ingresa un valor numérico válido.';
+    document.getElementById('A-status').className = 'pr-status warn';
+    return;
+  }
+  const err = Math.abs(inputVal - modeAMat.mu) / modeAMat.mu;
+  const st = document.getElementById('A-status');
+  if (err <= 0.10) {
+    st.textContent = `✅ ¡Correcto! μ real = ${modeAMat.mu.toExponential(3)} H/m. Material: ${modeAMat.name}. Error: ${(err*100).toFixed(1)}%`;
+    st.className = 'pr-status ok';
+    modeAVerified = true;
+    setSensorColor(true);
+  } else {
+    const diff = inputVal > modeAMat.mu ? 'sobreestimado' : 'subestimado';
+    st.textContent = `❌ Valor ${diff}. Error: ${(err*100).toFixed(1)}%. Revisa tu cálculo. Promedio sugerido: ${(modeAData.reduce((s,d)=>s+d.mu,0)/modeAData.length).toExponential(3)}`;
+    st.className = 'pr-status fail';
+    setSensorColor(false);
+  }
+}
+
+// ══════════════════════════════════════════
+// ════ MODO B — GRÁFICA B vs z ═══════════
+// ══════════════════════════════════════════
+function renderModeB() {
+  // Parámetros fijos para esta sesión
+  modeBMat = { name: randomMaterial() };
+  modeBMat.mu = MATERIALS[modeBMat.name];
+  modeBGeo = {
+    a: parseFloat((0.15 + Math.random()*0.2).toFixed(2)),
+    d: parseFloat((0.15 + Math.random()*0.25).toFixed(2))
+  };
+  modeBN    = Math.round(100 + Math.random()*300);
+  modeBCurI = parseFloat((0.5 + Math.random()*1.5).toFixed(1));
+  modeBData = [];
+
+  geo.a = modeBGeo.a; geo.d = modeBGeo.d; geo.z_p = 0;
+  matNow = modeBMat; Nturns = modeBN;
+  document.getElementById('sl-a').value = geo.a;
+  document.getElementById('sl-d').value = geo.d;
+  document.getElementById('sl-N').value = Nturns;
+  document.getElementById('sl-I').value = modeBCurI;
+  document.getElementById('sl-z').disabled = false;
+  update3D();
+
+  const el = document.getElementById('pr-content');
+  el.innerHTML = `
+    <div class="pr-title">📈 Parte B — Dependencia B(z)</div>
+    <div class="pr-hint">Mueve el sensor a distintas posiciones z y registra el campo B. Construye la tabla y observa cómo B varía con la distancia.</div>
+
+    <div class="pr-sec">Parámetros Fijos</div>
+    <div class="pr-info-grid">
+      <div class="pr-info-item"><label>Material</label><span>${modeBMat.name}</span></div>
+      <div class="pr-info-item"><label>μ (H/m)</label><span>${modeBMat.mu.toExponential(2)}</span></div>
+      <div class="pr-info-item"><label>a (m)</label><span>${modeBGeo.a.toFixed(3)}</span></div>
+      <div class="pr-info-item"><label>d (m)</label><span>${modeBGeo.d.toFixed(3)}</span></div>
+      <div class="pr-info-item"><label>N (espiras)</label><span>${modeBN}</span></div>
+      <div class="pr-info-item"><label>I (A)</label><span>${modeBCurI.toFixed(1)}</span></div>
+    </div>
+
+    <div class="pr-sec">Sensor y Registro</div>
+    <div class="slider-group" style="margin:0 0 6px;">
+      <label style="font-size:11px;color:var(--text2);display:flex;justify-content:space-between;">
+        Posición z <b id="B-z-val" style="color:var(--accent);font-family:monospace;">0.00 m</b>
+      </label>
+      <input type="range" id="B-sl-z" min="-0.80" max="0.80" step="0.02" value="0"
+        oninput="modeBUpdateZ(+this.value)">
+    </div>
+    <div class="live-b-display">
+      <div class="lbl">B en posición actual</div>
+      <div class="val" id="B-B-live">—</div>
+    </div>
+    <button class="btn btn-primary" onclick="modeBRecord()">📍 Registrar Punto</button>
+    <button class="btn btn-secondary" onclick="modeBClear()" style="margin-top:4px;">🗑️ Limpiar</button>
+
+    <div class="pr-sec" style="margin-top:10px;">Tabla y Gráfica</div>
+    <canvas id="bz-chart"></canvas>
+
+    <div style="overflow-x:auto;max-height:180px;overflow-y:auto;margin-top:6px;">
+      <table class="data-table">
+        <thead><tr><th>N°</th><th>z (m)</th><th>B (T)</th></tr></thead>
+        <tbody id="tbl-mB-body"></tbody>
+      </table>
+    </div>
+
+    <button class="btn btn-csv" onclick="exportCSV('pB')" style="margin-top:8px;">📥 Exportar CSV</button>
+    <button class="btn btn-capture" onclick="capturar('pB')">📸 Capturar Evidencia</button>
+  `;
+
+  modeBUpdateZ(0);
+}
+
+function modeBUpdateZ(val) {
+  geo.z_p = val;
+  document.getElementById('sl-z').value = val;
+  document.getElementById('z-val').textContent = val.toFixed(2);
+  document.getElementById('B-z-val').textContent = val.toFixed(2) + ' m';
+  update3D();
+  const B = calcB(modeBCurI, val, modeBMat.mu, modeBN, modeBGeo.a, modeBGeo.d);
+  document.getElementById('B-B-live').textContent = B.toExponential(4) + ' T';
+}
+
+function modeBRecord() {
+  const z = geo.z_p;
+  const B = calcB(modeBCurI, z, modeBMat.mu, modeBN, modeBGeo.a, modeBGeo.d);
+  const errZ = z !== 0 ? (Math.random()*.01-.005)*z : 0;
+  const errB = (Math.random()*.01-.005)*B;
+  const z_m = parseFloat((z + errZ).toFixed(4));
+  const B_m = parseFloat((B + errB).toFixed(8));
+  modeBData.push({ z: z_m, B: B_m });
+  modeBData.sort((a,b)=>a.z-b.z);
+
+  // Rebuild table
+  const tbody = document.getElementById('tbl-mB-body');
+  tbody.innerHTML = '';
+  modeBData.forEach((d,i) => {
+    const row = tbody.insertRow();
+    row.insertCell().textContent = i+1;
+    row.insertCell().textContent = d.z.toFixed(4);
+    row.insertCell().textContent = d.B.toExponential(4);
+  });
+
+  drawBZChart();
+}
+
+function modeBClear() {
+  modeBData = [];
+  document.getElementById('tbl-mB-body').innerHTML = '';
+  drawBZChart();
+}
+
+function drawBZChart() {
+  const canvas = document.getElementById('bz-chart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.offsetWidth || 280;
+  const H = 160;
+  canvas.width  = W * devicePixelRatio;
+  canvas.height = H * devicePixelRatio;
+  ctx.scale(devicePixelRatio, devicePixelRatio);
+  const pad = { t:16, r:14, b:30, l:54 };
+  const cw = W - pad.l - pad.r;
+  const ch = H - pad.t - pad.b;
+
+  const bg = isDark ? '#1c2128' : '#f7f9fc';
+  ctx.fillStyle = bg;
+  ctx.fillRect(0,0,W,H);
+
+  const textCol = isDark ? '#8b949e' : '#718096';
+  const axisCol = isDark ? '#30363d' : '#d1d9e6';
+  const lineCol = '#0055cc';
+  const dotCol  = '#c0392b';
+
+  if (modeBData.length < 2) {
+    ctx.fillStyle = textCol;
+    ctx.font = '10px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Registra al menos 2 puntos para graficar', W/2, H/2);
+    return;
+  }
+
+  const xs = modeBData.map(d=>d.z);
+  const ys = modeBData.map(d=>d.B);
+  const xmin = Math.min(...xs), xmax = Math.max(...xs);
+  const ymin = 0, ymax = Math.max(...ys)*1.15;
+  const xr = xmax - xmin || 1, yr = ymax - ymin || 1;
+
+  const mx = x => pad.l + (x-xmin)/xr*cw;
+  const my = y => H - pad.b - (y-ymin)/yr*ch;
+
+  // Grid lines
+  ctx.strokeStyle = axisCol; ctx.lineWidth = .5;
+  for (let i=1; i<=4; i++) {
+    const y = H - pad.b - (i/4)*ch;
+    ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(W-pad.r,y); ctx.stroke();
+  }
+  // Axes
+  ctx.strokeStyle = textCol; ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(pad.l, pad.t); ctx.lineTo(pad.l, H-pad.b); ctx.lineTo(W-pad.r, H-pad.b);
+  ctx.stroke();
+
+  // Labels
+  ctx.fillStyle = textCol; ctx.font = '9px monospace'; ctx.textAlign = 'right';
+  for (let i=0; i<=4; i++) {
+    const v = ymin + (i/4)*yr;
+    ctx.fillText(v.toExponential(1), pad.l-3, my(v)+3);
+  }
+  ctx.textAlign = 'center';
+  for (let i=0; i<=4; i++) {
+    const v = xmin + (i/4)*xr;
+    ctx.fillText(v.toFixed(2), mx(v), H-pad.b+11);
+  }
+  ctx.font = '9px sans-serif'; ctx.textAlign = 'left';
+  ctx.fillText('B (T)', 2, pad.t+8);
+  ctx.textAlign = 'center';
+  ctx.fillText('z (m)', W/2, H-2);
+
+  // Line
+  ctx.strokeStyle = lineCol; ctx.lineWidth = 2;
+  ctx.beginPath();
+  modeBData.forEach((d,i) => {
+    i===0 ? ctx.moveTo(mx(d.z), my(d.B)) : ctx.lineTo(mx(d.z), my(d.B));
+  });
+  ctx.stroke();
+
+  // Dots
+  ctx.fillStyle = dotCol;
+  modeBData.forEach(d => {
+    ctx.beginPath(); ctx.arc(mx(d.z), my(d.B), 3.5, 0, Math.PI*2); ctx.fill();
+  });
+}
+
+// ══════════════════════════════════════════
+// ════ MODO C — RETO ═════════════════════
+// ══════════════════════════════════════════
+function renderModeC() {
+  cAttempts  = 0;
+  cResolved  = false;
+
+  // Generar reto aleatorio
+  const matKey = randomMaterial();
+  const mu = MATERIALS[matKey];
+  const a  = parseFloat((0.1 + Math.random()*0.3).toFixed(2));
+  const d  = parseFloat((a * (0.8 + Math.random()*0.4)).toFixed(2));
+  const N  = Math.round(80 + Math.random()*320);
+  const I  = parseFloat((0.3 + Math.random()*1.7).toFixed(1));
+  // z objetivo: una distancia positiva entre 0.05 y 0.55 m
+  const z_target = parseFloat((0.05 + Math.random()*0.50).toFixed(3));
+  const B_target = calcB(I, z_target, mu, N, a, d);
+
+  cChallenge = { matKey, mu, a, d, N, I, z_target, B_target };
+
+  // Aplicar al simulador
+  geo.a = a; geo.d = d; geo.z_p = 0;
+  matNow = { name: '?', mu };
+  Nturns = N;
+  document.getElementById('sl-a').value = a;
+  document.getElementById('sl-d').value = d;
+  document.getElementById('sl-N').value = N;
+  document.getElementById('sl-I').value = I;
+  document.getElementById('sl-z').disabled = false;
+  update3D();
+
+  const el = document.getElementById('pr-content');
+  el.innerHTML = `
+    <div class="pr-title">🎯 Reto C — Localiza el Sensor</div>
+    <div class="pr-hint">Se ha medido un campo magnético específico. Debes posicionar el sensor en la distancia correcta. Tienes <b>3 intentos</b>.</div>
+
+    <div class="pr-sec">Campo Objetivo</div>
+    <div class="pr-info-grid">
+      <div class="pr-info-item" style="grid-column:1/-1;">
+        <label>B objetivo (campo a alcanzar)</label>
+        <span class="big">${B_target.toExponential(5)} T</span>
+      </div>
+    </div>
+
+    <div class="pr-sec">Parámetros del Sistema</div>
+    <div class="pr-info-grid">
+      <div class="pr-info-item"><label>Radio a</label><span>${a.toFixed(3)} m</span></div>
+      <div class="pr-info-item"><label>Separación d</label><span>${d.toFixed(3)} m</span></div>
+      <div class="pr-info-item"><label>Espiras N</label><span>${N}</span></div>
+      <div class="pr-info-item"><label>Corriente I</label><span>${I.toFixed(1)} A</span></div>
+    </div>
+    <div style="font-size:10px;color:var(--text3);margin-bottom:8px;">⚠️ El material es desconocido — explora con el simulador.</div>
+
+    <div class="pr-sec">Explorar con el Sensor</div>
+    <div class="slider-group" style="margin:4px 0 6px;">
+      <label style="font-size:11px;color:var(--text2);display:flex;justify-content:space-between;">
+        Mover sensor z <b id="C-z-val" style="color:var(--accent);font-family:monospace;">0.000 m</b>
+      </label>
+      <input type="range" id="C-sl-z" min="-0.80" max="0.80" step="0.005" value="0"
+        oninput="updateLiveBModeCSlider(+this.value)">
+    </div>
+    <div class="pr-sec">Intentos</div>
+    <div class="intentos-wrap" id="intentos-dots">
+      <div class="intento-dot" id="dot-0"></div>
+      <div class="intento-dot" id="dot-1"></div>
+      <div class="intento-dot" id="dot-2"></div>
+    </div>
+
+    <div class="verify-row">
+      <input type="number" id="C-z-input" placeholder="z exacta (m)" step="0.001" style="font-size:13px;">
+      <button class="btn btn-primary" id="C-verify-btn" onclick="verifyCMode()">✓ Verificar</button>
+    </div>
+    <div class="pr-status info" id="C-status">Mueve el sensor y encuentra la posición donde B coincide.</div>
+
+    <div id="C-capture-section" style="display:none;margin-top:6px;">
+      <button class="btn btn-capture" onclick="capturar('pC')">📸 Capturar Evidencia</button>
+    </div>
+    <button class="btn btn-secondary" style="margin-top:8px;" onclick="renderModeC()">🔄 Nuevo Reto</button>
+  `;
+
+  updateLiveBModeC();
+}
+
+function updateLiveBModeCSlider(val) {
+  geo.z_p = val;
+  document.getElementById('sl-z').value = val;
+  document.getElementById('z-val').textContent = val.toFixed(2);
+  document.getElementById('C-z-val').textContent = val.toFixed(3) + ' m';
+  document.getElementById('C-z-input').value = val.toFixed(3);
+  update3D();
+}
+
+function updateLiveBModeC() {
+  // B actual oculto en Reto C — sin retroalimentación visual
+}
+
+function verifyCMode() {
+  if (cResolved) return;
+  const z_input = parseFloat(document.getElementById('C-z-input').value);
+  if (isNaN(z_input)) {
+    document.getElementById('C-status').textContent = '⚠️ Ingresa una posición válida en metros.';
+    document.getElementById('C-status').className = 'pr-status warn';
+    return;
+  }
+  const B_guess = calcB(cChallenge.I, z_input, cChallenge.mu, cChallenge.N, cChallenge.a, cChallenge.d);
+  const err = Math.abs(B_guess - cChallenge.B_target) / cChallenge.B_target;
+  const st  = document.getElementById('C-status');
+  const dot = document.getElementById('dot-' + cAttempts);
+  const tolerancia = 0.03;
+
+  if (err <= tolerancia) {
+    // ¡Correcto!
+    dot.classList.add('success');
+    cResolved = true;
+    st.textContent = `✅ ¡Correcto! z = ${z_input.toFixed(3)} m. B calculado = ${B_guess.toExponential(4)} T. Error: ${(err*100).toFixed(2)}%. Material: ${cChallenge.matKey}`;
+    st.className = 'pr-status ok';
+    setSensorColor(true);
+    geo.z_p = z_input; update3D();
+    document.getElementById('C-verify-btn').disabled = true;
+    document.getElementById('C-capture-section').style.display = 'block';
+  } else {
+    dot.classList.add('used');
+    cAttempts++;
+    setSensorColor(false);
+
+    if (cAttempts >= C_MAX) {
+      cResolved = true;
+      st.textContent = `❌ Intentos agotados. z correcto: ${cChallenge.z_target.toFixed(3)} m | Material: ${cChallenge.matKey}`;
+      st.className = 'pr-status fail';
+      document.getElementById('C-verify-btn').disabled = true;
+      geo.z_p = cChallenge.z_target; update3D();
+      document.getElementById('C-capture-section').style.display = 'block';
+    } else {
+      st.textContent = `❌ Intento ${cAttempts}/3 fallido. Vuelve a intentarlo.`;
+      st.className = 'pr-status fail';
+    }
+  }
+}
+
+// ══════════════════════════════════════════
+// CAPTURA DE EVIDENCIA
+// ══════════════════════════════════════════
+function capturar(mode) {
+  renderer3.render(scene3, cam3);
+  const src = renderer3.domElement;
+  const oc  = document.createElement('canvas');
+  oc.width  = src.width  || 900;
+  oc.height = src.height || 600;
+  const ctx = oc.getContext('2d');
+
+  try { ctx.drawImage(src, 0, 0, oc.width, oc.height); } catch(e) {}
+
+  const labels = { open:'MODO LIBRE', pA:'PARTE A — PERMEABILIDAD', pB:'PARTE B — B vs z', pC:'RETO C — LOCALIZAR SENSOR' };
+  const title  = labels[mode] || mode;
+
+  // Header box
+  const bx=12, by=12, bw=360;
+  let bh = 90;
+  if (mode === 'pA' && modeAData.length) bh += modeAData.length*15 + 20;
+  if (mode === 'pB' && modeBData.length) bh += modeBData.length*13 + 20;
+  if (mode === 'pC') bh += 60;
+  bh = Math.min(bh, oc.height - 20);
+
+  ctx.fillStyle = 'rgba(0,8,24,0.88)';
+  ctx.fillRect(bx, by, bw, bh);
+  ctx.fillStyle = '#0055cc';
+  ctx.fillRect(bx, by, bw, 3);
+
+  ctx.fillStyle = '#88ccff'; ctx.font = 'bold 12px monospace';
+  ctx.fillText('🧲  ' + title, bx+10, by+22);
+  ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.font = '10px monospace';
+  ctx.fillText(`Material: ${matNow.name}  |  a=${geo.a}m  d=${geo.d}m  N=${Nturns}`, bx+10, by+38);
+
+  const ts = new Date().toLocaleString('es-CO');
+  ctx.fillText(`Fecha: ${ts}`, bx+10, by+52);
+
+  if (mode === 'pA' && modeAData.length) {
+    ctx.fillStyle = 'rgba(255,255,255,.25)'; ctx.fillRect(bx+8, by+60, bw-16, 1);
+    ctx.fillStyle = '#aaddee'; ctx.font = 'bold 9px monospace';
+    ctx.fillText('   I (A)          B (T)          μ calc (H/m)', bx+8, by+72);
+    modeAData.forEach((d,i) => {
+      const y0 = by+86+i*14; if(y0 > by+bh-6) return;
+      ctx.fillStyle = '#ddeeff'; ctx.font = '9px monospace';
+      ctx.fillText(`${(i+1)}: ${d.I.toFixed(4)}    ${d.B.toExponential(3)}    ${d.mu.toExponential(3)}`, bx+8, y0);
+    });
+    if (modeAVerified) {
+      ctx.fillStyle = '#3fb950'; ctx.font = 'bold 10px monospace';
+      ctx.fillText(`✓ μ REAL = ${modeAMat.mu.toExponential(3)} H/m`, bx+10, by+bh-10);
+    }
+  }
+
+  if (mode === 'pB' && modeBData.length) {
+    ctx.fillStyle = 'rgba(255,255,255,.25)'; ctx.fillRect(bx+8, by+60, bw-16, 1);
+    ctx.fillStyle = '#aaddee'; ctx.font = 'bold 9px monospace';
+    ctx.fillText('   z (m)              B (T)', bx+8, by+72);
+    modeBData.forEach((d,i) => {
+      const y0 = by+86+i*12; if(y0 > by+bh-6) return;
+      ctx.fillStyle = '#ddeeff'; ctx.font = '9px monospace';
+      ctx.fillText(`${(i+1)}: ${d.z.toFixed(4)}     ${d.B.toExponential(4)}`, bx+8, y0);
+    });
+  }
+
+  if (mode === 'pC' && cChallenge.B_target) {
+    ctx.fillStyle = 'rgba(255,255,255,.25)'; ctx.fillRect(bx+8, by+60, bw-16, 1);
+    ctx.fillStyle = '#aaddee'; ctx.font = '10px monospace';
+    ctx.fillText(`B objetivo: ${cChallenge.B_target.toExponential(5)} T`, bx+10, by+74);
+    ctx.fillText(`I=${cChallenge.I}A  a=${cChallenge.a}m  d=${cChallenge.d}m  N=${cChallenge.N}`, bx+10, by+88);
+    ctx.fillText(`Intentos usados: ${cAttempts}/3`, bx+10, by+102);
+    const res = cResolved && cAttempts <= 3;
+    ctx.fillStyle = res && cAttempts < C_MAX ? '#3fb950' : '#f85149';
+    ctx.font = 'bold 11px monospace';
+    ctx.fillText(res && cAttempts < C_MAX ? `✓ APROBADO — z encontrada = ${geo.z_p.toFixed(3)} m` : '✗ NO APROBADO', bx+10, by+116);
+  }
+
+  const url = oc.toDataURL('image/png');
+  const a   = document.createElement('a');
+  a.href = url; a.download = `campo_B_${mode}_${Date.now()}.png`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+
+  document.getElementById('capture-overlay').classList.add('show');
+  setTimeout(()=>document.getElementById('capture-overlay').classList.remove('show'), 3000);
+}
+
+// ══════════════════════════════════════════
+// EXPORTAR CSV
+// ══════════════════════════════════════════
+function exportCSV(mode) {
+  let csv = '', fname = 'datos';
+  if (mode === 'libre') {
+    const rows = document.querySelectorAll('#tbl-libre-body tr');
+    csv = `# Campo Magnético Helmholtz — Modo Libre\n# Material: ${matNow.name} | mu=${matNow.mu.toExponential(3)} H/m | a=${geo.a}m | d=${geo.d}m | N=${Nturns}\n`;
+    csv += 'z_m,I_A,B_T\n';
+    rows.forEach(r => {
+      const c = r.cells;
+      csv += `${c[0].textContent},${c[1].textContent},${c[2].textContent}\n`;
+    });
+    fname = 'helmholtz_libre';
+  } else if (mode === 'pB') {
+    csv = `# B vs z — Parte B\n# Mat: ${modeBMat.name} | a=${modeBGeo.a}m | d=${modeBGeo.d}m | N=${modeBN} | I=${modeBCurI}A\n`;
+    csv += 'z_m,B_T\n';
+    modeBData.forEach(d => { csv += `${d.z.toFixed(4)},${d.B.toExponential(6)}\n`; });
+    fname = 'helmholtz_B_vs_z';
+  }
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url  = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url; link.download = `${fname}_${Date.now()}.csv`;
+  document.body.appendChild(link); link.click(); document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+// ══════════════════════════════════════════
+// MODO OSCURO / PANEL TOGGLE
+// ══════════════════════════════════════════
+function toggleDark() {
+  isDark = !isDark;
+  document.body.classList.toggle('dark', isDark);
+  document.getElementById('dark-btn').textContent = isDark ? '☀️' : '🌙';
+  if (scene3) scene3.background = new THREE.Color(isDark ? 0x0d1117 : 0xd8dde8);
+}
+
+function togglePanel() {
+  const panel   = document.getElementById('panel');
+  const overlay = document.getElementById('panel-overlay');
+  const btn     = document.getElementById('panel-toggle');
+  const isOpen  = panel.classList.toggle('open');
+  overlay.classList.toggle('show', isOpen);
+  btn.textContent = isOpen ? '✕' : '⚙️';
+}
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+window.addEventListener('load', () => {
+  init3D();
+  iniciarNuevaSimulacion();
+  // Update z val display sync
+  document.getElementById('sl-z').oninput = function() {
+    updateSensor(+this.value);
+  };
+  // Resize observer for chart
+  window.addEventListener('resize', () => {
+    onResize3D();
+    if (currentMode === 'pB') drawBZChart();
+  });
+});
+</script>
+</body>
+</html>

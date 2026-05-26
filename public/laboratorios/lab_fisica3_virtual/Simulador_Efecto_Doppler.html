@@ -1,0 +1,1475 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador Efecto Doppler 3D</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+/* ═══════════ DAY (default) ═══════════ */
+:root {
+  --bg:     #e8f4ff;
+  --bg2:    #d0e8ff;
+  --bg3:    #b8d8f8;
+  --panel:  rgba(208,232,255,0.96);
+  --border: rgba(0,60,160,0.30);
+  --accent:  #0044cc;
+  --accent2: #007a30;
+  --accent3: #cc2200;
+  --accent4: #996600;
+  --text:    #001840;
+  --text2:   #0a3a70;
+  --text3:   #000010;
+  --warn:    #aa0000;
+  --glow:  0 0 12px rgba(0,68,204,0.45);
+  --glow2: 0 0 12px rgba(0,122,48,0.45);
+  --glow3: 0 0 12px rgba(204,34,0,0.45);
+  --tr: all 0.3s ease;
+}
+/* ═══════════ NIGHT ═══════════ */
+.night {
+  --bg:     #03070f;
+  --bg2:    #060e1e;
+  --bg3:    #0a1628;
+  --panel:  rgba(6,14,30,0.92);
+  --border: rgba(0,220,255,0.20);
+  --accent:  #00dcff;
+  --accent2: #00ff9d;
+  --accent3: #ff6b35;
+  --accent4: #ffd700;
+  --text:    #d0e8ff;
+  --text2:   #6a9ab8;
+  --text3:   #ffffff;
+  --warn:    #ff4455;
+  --glow:  0 0 18px rgba(0,220,255,0.5);
+  --glow2: 0 0 18px rgba(0,255,157,0.5);
+  --glow3: 0 0 18px rgba(255,107,53,0.5);
+}
+
+* { box-sizing:border-box; margin:0; padding:0; }
+html,body { width:100%; height:100%; overflow:hidden; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 16px; /* base bigger */
+  transition: var(--tr);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ═══ HEADER ═══ */
+#header {
+  height: 58px;
+  background: var(--bg2);
+  border-bottom: 2px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  gap: 10px;
+  flex-shrink: 0;
+  z-index: 100;
+}
+.logo {
+  font-family: 'Orbitron', monospace;
+  font-weight: 900;
+  font-size: 20px;
+  color: var(--accent);
+  letter-spacing: 2px;
+  text-shadow: var(--glow);
+  white-space: nowrap;
+}
+.logo span { color: var(--accent2); }
+
+.hcenter {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  overflow: hidden;
+}
+.mbtn {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 2px solid var(--border);
+  background: transparent;
+  color: var(--text2);
+  cursor: pointer;
+  transition: var(--tr);
+  white-space: nowrap;
+}
+.mbtn:hover { border-color:var(--accent); color:var(--accent); }
+.mbtn.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+  box-shadow: var(--glow);
+}
+.reto-btn {
+  border-color: var(--accent3) !important;
+  color: var(--accent3) !important;
+  font-weight: 800 !important;
+  animation: gpulse 2s infinite;
+}
+.reto-btn.active { background:var(--accent3)!important; color:#fff!important; }
+@keyframes gpulse { 0%,100%{box-shadow:none} 50%{box-shadow:var(--glow3)} }
+
+.hright { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+
+/* THEME BUTTON */
+.theme-btn {
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 2px solid var(--border);
+  background: var(--bg3);
+  color: var(--text);
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  transition: var(--tr);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+.theme-btn:hover { border-color:var(--accent); color:var(--accent); }
+
+/* score */
+.score-pill {
+  display:flex; align-items:center; gap:4px;
+  background:var(--bg3); border:2px solid var(--accent4);
+  border-radius:12px; padding:4px 11px;
+}
+.score-lbl { font-size:12px; color:var(--text2); font-weight:700; }
+.score-num { font-family:'Orbitron',monospace; font-size:16px; font-weight:900; color:var(--accent4); }
+
+/* capture */
+.cap-btn {
+  padding:6px 14px; border-radius:8px;
+  border:2px solid var(--border); background:var(--bg3);
+  color:var(--text2); font-family:'Rajdhani',sans-serif;
+  font-size:13px; font-weight:700; cursor:not-allowed;
+  opacity:0.35; transition:var(--tr); white-space:nowrap;
+}
+.cap-btn.on {
+  border-color:var(--accent2); color:var(--accent2);
+  opacity:1; cursor:pointer; box-shadow:var(--glow2);
+  animation:capblink 1.5s infinite;
+}
+.night .cap-btn.on { background: transparent; }
+.cap-btn.on:hover { background:var(--accent2); color:#fff; }
+@keyframes capblink { 0%,100%{box-shadow:var(--glow2)} 50%{box-shadow:0 0 20px rgba(0,122,48,.7)} }
+
+/* audio button */
+.audio-btn {
+  padding:6px 14px; border-radius:8px;
+  border:2px solid var(--border); background:var(--bg3);
+  color:var(--text2); font-family:'Rajdhani',sans-serif;
+  font-size:13px; font-weight:700; cursor:pointer;
+  transition:var(--tr); white-space:nowrap;
+}
+.audio-btn:hover { border-color:var(--accent); color:var(--accent); }
+.audio-btn.on {
+  border-color:var(--accent4); color:var(--accent4);
+  background:var(--bg3); box-shadow:0 0 10px rgba(153,102,0,0.4);
+}
+
+/* ═══ LAYOUT ═══ */
+#main { display:flex; flex:1; overflow:hidden; }
+
+/* ═══ SIDEBAR ═══ */
+#sidebar {
+  width: 250px;
+  flex-shrink: 0;
+  background: var(--bg2);
+  border-right: 2px solid var(--border);
+  display: flex; flex-direction: column;
+  overflow-y: auto; overflow-x: hidden;
+}
+.ss { border-bottom: 1px solid var(--border); padding: 14px 15px; }
+.st {
+  font-family: 'Orbitron', monospace;
+  font-size: 10px; letter-spacing: 2.5px;
+  color: var(--accent); margin-bottom: 10px;
+  text-transform: uppercase; font-weight: 700;
+  text-shadow: var(--glow);
+}
+.mdesc {
+  font-size: 13px; color: var(--text);
+  line-height: 1.55; padding: 8px 10px;
+  background: var(--bg3); border-radius: 8px;
+  border-left: 3px solid var(--accent);
+  margin-bottom: 10px; font-weight: 600;
+}
+.badge-row { display:flex; gap:5px; margin-bottom:10px; flex-wrap:wrap; }
+.badge {
+  display:inline-block; padding:4px 10px;
+  border-radius:10px; font-size:10px;
+  font-family:'Orbitron',monospace;
+  letter-spacing:1px; font-weight:700;
+}
+.ba { background:rgba(0,68,204,.12); color:var(--accent); border:2px solid var(--accent); }
+.bb { background:rgba(204,34,0,.12); color:var(--accent3); border:2px solid var(--accent3); }
+
+/* sliders */
+.pr { margin-bottom: 12px; }
+.pl {
+  display:flex; justify-content:space-between;
+  font-size: 14px; color: var(--text);
+  margin-bottom: 5px; font-weight: 700;
+}
+.pv { font-family:'Share Tech Mono',monospace; color:var(--accent); font-size:14px; font-weight:700; }
+
+input[type=range] {
+  width:100%; height:6px; -webkit-appearance:none;
+  background:var(--bg3); border-radius:3px; outline:none;
+  cursor:pointer; border:1px solid var(--border);
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance:none; width:18px; height:18px;
+  border-radius:50%; background:var(--accent);
+  box-shadow:var(--glow); cursor:pointer; border:2px solid #fff;
+}
+
+/* freq rows */
+.frow {
+  display:flex; justify-content:space-between; align-items:center;
+  background:var(--bg3); border:2px solid var(--border);
+  border-radius:9px; padding:8px 12px; margin-bottom:6px;
+}
+.flbl { font-size:13px; color:var(--text); font-weight:700; }
+.fval {
+  font-family:'Orbitron',monospace; font-size:15px;
+  font-weight:700; color:var(--accent); text-shadow:var(--glow);
+}
+.fval.up   { color:var(--accent2); text-shadow:var(--glow2); }
+.fval.down { color:var(--warn); }
+
+.fbox {
+  background:var(--bg3); border:2px solid var(--border);
+  border-radius:9px; padding:10px 12px; margin-top:7px; text-align:center;
+}
+.fform { font-family:'Share Tech Mono',monospace; font-size:14px; color:var(--accent2); font-weight:700; }
+.fnote { font-size:12px; color:var(--text2); line-height:1.45; margin-top:4px; font-weight:600; }
+
+/* oscilloscope */
+.osc-wrap {
+  width:100%; height:80px; /* taller */
+  background:var(--bg3); border:2px solid var(--border);
+  border-radius:9px; overflow:hidden; margin-top:7px;
+}
+#osc-canvas { width:100%; height:100%; display:block; }
+
+/* cap history */
+.cap-item {
+  background:var(--bg3); border:2px solid var(--border);
+  border-radius:9px; padding:7px 10px; margin-bottom:6px;
+  border-left:4px solid var(--accent2);
+}
+.ci-t { font-family:'Orbitron',monospace; font-size:10px; color:var(--accent2); font-weight:700; }
+.ci-s { font-size:12px; color:var(--text2); margin-top:1px; font-weight:600; }
+.ci-d { font-family:'Share Tech Mono',monospace; font-size:12px; color:var(--text); font-weight:700; }
+.cap-empty { font-size:13px; color:var(--text2); text-align:center; padding:10px 0; font-weight:600; }
+
+::-webkit-scrollbar { width:3px; }
+::-webkit-scrollbar-track { background:var(--bg2); }
+::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+
+/* ═══ CANVAS AREA ═══ */
+#canvas-area { flex:1; position:relative; overflow:hidden; }
+#three-canvas { width:100%; height:100%; display:block; }
+
+/* overlays */
+.mlabel {
+  position:absolute; top:12px; left:50%; transform:translateX(-50%);
+  font-family:'Orbitron',monospace; font-size:13px; font-weight:800;
+  color:var(--accent); text-shadow:var(--glow);
+  letter-spacing:1.5px; text-align:center;
+  background:var(--panel); border:2px solid var(--border);
+  border-radius:22px; padding:6px 18px; backdrop-filter:blur(12px);
+  pointer-events:none; white-space:nowrap; max-width:92%;
+  overflow:hidden; text-overflow:ellipsis;
+}
+.spdbadge {
+  position:absolute; top:12px; left:12px;
+  background:var(--panel); border:2px solid var(--border);
+  border-radius:10px; padding:8px 12px; backdrop-filter:blur(12px);
+  pointer-events:none;
+}
+.spdr { display:flex; align-items:center; gap:7px; margin-bottom:4px; }
+.spdr:last-child { margin-bottom:0; }
+.sd { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+.sd-s { background:var(--accent3); box-shadow:var(--glow3); }
+.sd-o { background:var(--accent);  box-shadow:var(--glow); }
+.sl { font-size:12px; color:var(--text); font-weight:700; min-width:32px; }
+.sv { font-family:'Share Tech Mono',monospace; font-size:13px; color:var(--text); font-weight:700; }
+
+.legbadge {
+  position:absolute; top:12px; right:12px;
+  background:var(--panel); border:2px solid var(--border);
+  border-radius:10px; padding:8px 12px; backdrop-filter:blur(12px);
+  pointer-events:none; font-size:12px; color:var(--text2);
+}
+.lt { font-family:'Orbitron',monospace; font-size:9px; color:var(--accent); letter-spacing:2px; margin-bottom:6px; font-weight:700; }
+.lr { display:flex; align-items:center; gap:7px; margin-bottom:3px; }
+.lr:last-child { margin-bottom:0; }
+.ll { width:16px; height:3px; border-radius:2px; }
+
+/* play controls */
+.pctrls {
+  position:absolute; bottom:14px; left:50%; transform:translateX(-50%);
+  display:flex; gap:8px;
+  background:var(--panel); border:2px solid var(--border);
+  border-radius:32px; padding:7px 14px;
+  backdrop-filter:blur(14px); pointer-events:all;
+}
+.cb {
+  width:38px; height:38px; border-radius:50%;
+  border:2px solid var(--border); background:var(--bg3);
+  color:var(--text); cursor:pointer; font-size:16px;
+  display:flex; align-items:center; justify-content:center;
+  transition:var(--tr); font-weight:700;
+}
+.cb:hover { border-color:var(--accent); color:var(--accent); }
+.pbtn { width:48px!important; height:48px!important; font-size:18px!important; border-color:var(--accent)!important; color:var(--accent)!important; }
+.pbtn.on { background:var(--accent); color:#fff!important; box-shadow:var(--glow); }
+
+/* ═══ CHALLENGE ═══ */
+#chov {
+  display:none; position:absolute; inset:0;
+  background:rgba(0,0,0,0.6); z-index:190; backdrop-filter:blur(5px);
+}
+#chov.on { display:block; }
+#chpanel {
+  display:none; position:absolute; top:50%; left:50%;
+  transform:translate(-50%,-50%);
+  width:440px; max-width:94vw; max-height:90vh;
+  background:var(--bg2); border:2px solid var(--accent3);
+  border-radius:18px; padding:24px 22px 20px;
+  z-index:200;
+  box-shadow:0 0 50px rgba(204,34,0,.4),0 24px 60px rgba(0,0,0,.5);
+  backdrop-filter:blur(20px); overflow-y:auto;
+}
+#chpanel.on { display:block; }
+.cht { font-family:'Orbitron',monospace; font-size:18px; font-weight:900; color:var(--accent3); text-shadow:var(--glow3); text-align:center; letter-spacing:3px; margin-bottom:5px; }
+.chs { font-size:14px; color:var(--text); text-align:center; margin-bottom:16px; font-weight:700; }
+.chbox { background:var(--bg3); border:2px solid var(--border); border-radius:11px; padding:13px 14px; margin-bottom:13px; }
+.chbt { font-family:'Orbitron',monospace; font-size:9px; color:var(--accent); letter-spacing:2px; margin-bottom:9px; font-weight:700; }
+.chgrid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.chitem { display:flex; flex-direction:column; gap:2px; }
+.chil { font-size:11px; color:var(--text2); font-weight:700; }
+.chiv { font-family:'Orbitron',monospace; font-size:13px; font-weight:700; color:var(--accent); }
+.chfbox { background:var(--bg); border:2px solid var(--accent3); border-radius:11px; padding:10px 14px; margin-bottom:13px; text-align:center; }
+.chfl { font-size:11px; color:var(--text); margin-bottom:3px; font-weight:700; }
+.chfv { font-family:'Share Tech Mono',monospace; font-size:16px; color:var(--accent2); font-weight:700; }
+.chir { display:flex; gap:8px; align-items:center; margin-bottom:12px; }
+.chinp {
+  flex:1; background:var(--bg3); border:2px solid var(--border);
+  border-radius:9px; padding:9px 13px; color:var(--text3);
+  font-family:'Share Tech Mono',monospace; font-size:18px;
+  outline:none; transition:var(--tr); font-weight:700;
+}
+.chinp:focus { border-color:var(--accent3); box-shadow:var(--glow3); }
+.chiu { font-size:15px; color:var(--text); font-weight:700; }
+.chvbtn {
+  width:100%; padding:12px; border-radius:11px; border:none;
+  background:linear-gradient(135deg,var(--accent3),#ff8844);
+  color:#fff; font-family:'Orbitron',monospace;
+  font-size:13px; font-weight:800; letter-spacing:2px;
+  cursor:pointer; transition:var(--tr);
+}
+.chvbtn:hover { transform:translateY(-1px); box-shadow:0 8px 22px rgba(204,34,0,.5); }
+.chvbtn:disabled { opacity:.4; cursor:default; transform:none; }
+.chfb { margin-top:9px; padding:10px 13px; border-radius:9px; font-size:14px; font-weight:700; display:none; text-align:center; }
+.chfb.err { background:rgba(170,0,0,.12); border:2px solid var(--warn); color:var(--warn); display:block; }
+.chfb.ok  { background:rgba(0,122,48,.12); border:2px solid var(--accent2); color:var(--accent2); display:block; font-size:15px; }
+.chhint {
+  font-size:12px; color:var(--text); margin-top:8px;
+  padding:9px 11px; background:var(--bg3); border-radius:8px;
+  border-left:3px solid var(--accent3); display:none;
+  line-height:1.6; font-weight:600;
+}
+.chtries { font-size:13px; color:var(--text2); text-align:center; margin-top:6px; font-weight:700; }
+#chcls {
+  position:absolute; top:12px; right:12px;
+  width:28px; height:28px; border-radius:50%;
+  border:2px solid var(--border); background:var(--bg3);
+  color:var(--text2); cursor:pointer; font-size:14px;
+  display:flex; align-items:center; justify-content:center;
+  transition:var(--tr);
+}
+#chcls:hover { border-color:var(--warn); color:var(--warn); }
+
+/* confetti */
+.cfp { position:fixed; border-radius:2px; animation:cff 2.5s ease forwards; pointer-events:none; z-index:400; }
+@keyframes cff { 0%{transform:translateY(-20px) rotate(0deg);opacity:1} 100%{transform:translateY(340px) rotate(720deg);opacity:0} }
+
+/* ═══════════════════════════════════
+   RESPONSIVE — tablet & mobile
+═══════════════════════════════════ */
+
+/* ── Tablet (≤900px): sidebar more compact ── */
+@media (max-width: 900px) {
+  #sidebar { width: 200px; }
+  .logo { font-size: 16px; letter-spacing: 1px; }
+  .mbtn { font-size: 11px; padding: 5px 8px; }
+  .hright { gap: 5px; }
+  .theme-btn, .audio-btn, .cap-btn { font-size: 11px; padding: 5px 9px; }
+  .score-pill { padding: 3px 8px; }
+  .score-num { font-size: 13px; }
+}
+
+/* ── Mobile (≤640px): sidebar becomes bottom drawer toggled by fab ── */
+@media (max-width: 640px) {
+  /* Header collapses to 2 rows */
+  #header {
+    height: auto;
+    flex-wrap: wrap;
+    padding: 8px 10px;
+    gap: 6px;
+  }
+  .logo { font-size: 15px; flex-shrink: 0; }
+  .hcenter {
+    order: 3;
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .hright { order: 2; margin-left: auto; gap: 5px; }
+
+  .mbtn { font-size: 11px; padding: 5px 7px; border-radius: 6px; }
+  .theme-btn, .audio-btn { font-size: 11px; padding: 5px 8px; }
+  .cap-btn { font-size: 11px; padding: 5px 8px; }
+  .score-pill { padding: 3px 7px; }
+  .score-lbl { display: none; } /* hide label, keep number */
+  .score-num { font-size: 13px; }
+
+  /* Sidebar hidden off-screen, toggled via FAB */
+  #sidebar {
+    position: fixed;
+    top: 0; left: 0;
+    width: 82vw; max-width: 320px;
+    height: 100%;
+    z-index: 300;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    box-shadow: 4px 0 24px rgba(0,0,0,0.25);
+  }
+  #sidebar.open { transform: translateX(0); }
+
+  /* Sidebar overlay backdrop */
+  #sidebar-backdrop {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 299;
+    backdrop-filter: blur(2px);
+  }
+  #sidebar-backdrop.on { display: block; }
+
+  /* FAB to open sidebar */
+  #sidebar-fab {
+    display: flex;
+    position: fixed;
+    bottom: 72px; left: 12px;
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    font-size: 20px;
+    border: none;
+    cursor: pointer;
+    z-index: 298;
+    align-items: center; justify-content: center;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+    transition: var(--tr);
+  }
+  #sidebar-fab:hover { filter: brightness(1.1); }
+
+  /* Canvas area takes full width */
+  #canvas-area { width: 100%; }
+
+  /* Overlay labels smaller */
+  .mlabel { font-size: 10px; padding: 4px 12px; max-width: 80%; }
+  .spdbadge { padding: 5px 8px; }
+  .sl { font-size: 10px; }
+  .sv { font-size: 11px; }
+  .legbadge { font-size: 10px; padding: 5px 8px; }
+  .pctrls { padding: 5px 10px; gap: 6px; bottom: 10px; }
+  .cb { width: 34px; height: 34px; font-size: 14px; }
+  .pbtn { width: 42px!important; height: 42px!important; font-size: 16px!important; }
+
+  /* Challenge panel full-width */
+  #chpanel { width: 96vw; padding: 18px 14px 16px; }
+  .cht { font-size: 15px; }
+}
+</style>
+</head>
+<body><!-- DAY by default, no class needed -->
+
+<!-- ═══ HEADER ═══ -->
+<div id="header">
+  <div class="logo">Efecto <span>Doppler</span></div>
+  <div class="hcenter">
+    <button class="mbtn active" data-mode="mode1" onclick="switchMode('mode1',this)">Modo 1</button>
+    <button class="mbtn" data-mode="mode2" onclick="switchMode('mode2',this)">Modo 2</button>
+    <button class="mbtn" data-mode="mode3" onclick="switchMode('mode3',this)">Modo 3</button>
+    <button class="mbtn" data-mode="mode4" onclick="switchMode('mode4',this)">Modo 4</button>
+    <button class="mbtn" data-mode="mode5" onclick="switchMode('mode5',this)">Modo 5</button>
+    <button class="mbtn" data-mode="mode6" onclick="switchMode('mode6',this)">Modo 6</button>
+    <button class="mbtn reto-btn" onclick="openChallenge()">⚡ RETO</button>
+  </div>
+  <div class="hright">
+    <div class="score-pill" title="Puntaje acumulado en retos superados">
+      <span class="score-lbl">🏆 Reto</span>
+      <span class="score-num" id="score-num">0</span>
+    </div>
+    <button class="theme-btn" id="theme-btn" onclick="toggleTheme()">🌙 Noche</button>
+    <button class="audio-btn" id="audio-btn" onclick="toggleAudio()" title="Escucha el efecto Doppler en tiempo real">🔇 Sonido</button>
+    <button class="cap-btn" id="cap-btn" onclick="captureEvidence()">📸 Capturar</button>
+  </div>
+</div>
+
+<!-- ═══ MAIN ═══ -->
+<div id="main">
+
+  <!-- Mobile sidebar backdrop -->
+  <div id="sidebar-backdrop" onclick="closeSidebar()"></div>
+  <!-- Mobile FAB to open sidebar -->
+  <button id="sidebar-fab" onclick="openSidebar()" style="display:none">⚙️</button>
+
+  <!-- SIDEBAR -->
+  <div id="sidebar">
+
+    <div class="ss">
+      <div class="st">Configuración Activa</div>
+      <div class="mdesc" id="mdesc">La fuente emisora se mueve lentamente hacia el observador. Observa cómo las ondas se comprimen frente a la fuente y se expanden detrás.</div>
+      <div class="badge-row">
+        <span class="badge ba" id="b-cfg">FUENTE MÓVIL</span>
+        <span class="badge bb" id="b-eff">ACERCAMIENTO</span>
+      </div>
+      <div class="pr">
+        <div class="pl"><span>Frecuencia f₀</span><span class="pv" id="vf">440 Hz</span></div>
+        <input type="range" min="100" max="2000" value="440" oninput="up('f',this.value)">
+      </div>
+      <div class="pr">
+        <div class="pl"><span>Vel. Fuente vₛ</span><span class="pv" id="vvs">8 m/s</span></div>
+        <input type="range" id="sl-vs" min="0" max="150" value="8" oninput="up('vs',this.value)">
+      </div>
+      <div class="pr">
+        <div class="pl"><span>Vel. Observador v₀</span><span class="pv" id="vvo">0 m/s</span></div>
+        <input type="range" id="sl-vo" min="0" max="80" value="0" oninput="up('vo',this.value)">
+      </div>
+      <div class="pr">
+        <div class="pl"><span>Vel. Sonido v</span><span class="pv" id="vv">343 m/s</span></div>
+        <input type="range" id="sl-v" min="200" max="500" value="343" oninput="up('v',this.value)">
+      </div>
+    </div>
+
+    <div class="ss">
+      <div class="st">Frecuencias</div>
+      <div class="frow"><span class="flbl">f₀ emitida</span><span class="fval" id="f0d">440 Hz</span></div>
+      <div class="frow"><span class="flbl">f' observada</span><span class="fval up" id="fpd">— Hz</span></div>
+      <div class="frow"><span class="flbl">Δf cambio</span><span class="fval" id="dfd">— Hz</span></div>
+      <div class="fbox">
+        <div class="fform">f' = f₀·(v ± v₀)/(v ∓ vₛ)</div>
+        <div class="fnote">Fórmula general del efecto Doppler.<br>Los signos dependen de la dirección.</div>
+      </div>
+    </div>
+
+    <div class="ss">
+      <div class="st">Onda Sonora (Osciloscopio)</div>
+      <div class="osc-wrap"><canvas id="osc-canvas"></canvas></div>
+      <div style="margin-top:7px">
+        <div class="frow"><span class="flbl">λ frente</span><span class="fval" id="lfd">— m</span></div>
+        <div class="frow"><span class="flbl">λ detrás</span><span class="fval" id="lbd">— m</span></div>
+      </div>
+    </div>
+
+    <div class="ss">
+      <div class="st">Evidencias Capturadas</div>
+      <div id="cap-hist"><div class="cap-empty">Sin capturas aún.<br>Supera el reto para habilitar.</div></div>
+    </div>
+
+  </div><!-- /sidebar -->
+
+  <!-- 3D CANVAS -->
+  <div id="canvas-area">
+    <canvas id="three-canvas"></canvas>
+
+    <div class="mlabel" id="mlabel">MODO 1 — FUENTE EN MOVIMIENTO HACIA EL OBSERVADOR</div>
+
+    <div class="spdbadge">
+      <div class="spdr"><div class="sd sd-s"></div><span class="sl">FUENTE</span><span class="sv" id="src-spd">8 m/s →</span></div>
+      <div class="spdr"><div class="sd sd-o"></div><span class="sl">OBS.</span><span class="sv" id="obs-spd">0 m/s ─</span></div>
+    </div>
+
+    <div class="legbadge">
+      <div class="lt">LEYENDA</div>
+      <div class="lr"><div class="ll" style="background:var(--accent3);box-shadow:var(--glow3)"></div><span>Fuente sonora</span></div>
+      <div class="lr"><div class="ll" style="background:var(--accent);box-shadow:var(--glow)"></div><span>Observador</span></div>
+      <div class="lr"><div class="ll" style="background:var(--accent2);box-shadow:var(--glow2)"></div><span>Frentes de onda</span></div>
+    </div>
+
+    <div class="pctrls">
+      <button class="cb" onclick="resetSim()" title="Reiniciar">↺</button>
+      <button class="cb pbtn" id="pbtn" onclick="togglePlay()">▶</button>
+      <button class="cb" onclick="stepSim()" title="Paso a paso">⏭</button>
+      <button class="cb" onclick="toggleCam()" id="cambtn" title="Cámara orbital">🎥</button>
+    </div>
+
+    <div id="chov"></div>
+    <div id="chpanel">
+      <button id="chcls" onclick="closeChallenge()">✕</button>
+      <div class="cht">⚡ RETO DOPPLER</div>
+      <div class="chs" id="ch-sub">Calcula la frecuencia observada</div>
+      <div class="chbox">
+        <div class="chbt">DATOS DEL ESCENARIO</div>
+        <div class="chgrid" id="ch-grid"></div>
+      </div>
+      <div class="chfbox">
+        <div class="chfl">FÓRMULA APLICABLE</div>
+        <div class="chfv" id="ch-form"></div>
+      </div>
+      <div class="chir">
+        <input type="number" class="chinp" id="ch-ans" placeholder="Tu respuesta..." step="0.1">
+        <span class="chiu">Hz</span>
+      </div>
+      <button class="chvbtn" id="ch-vbtn" onclick="verifyCh()">VERIFICAR RESPUESTA</button>
+      <div class="chfb"   id="ch-fb"></div>
+      <div class="chhint" id="ch-hint"></div>
+      <div class="chtries" id="ch-tries">Intentos: 0 / 3</div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<script>
+// ══════════════════════════════════════════
+//  MODES
+// ══════════════════════════════════════════
+const MODES = {
+  mode1:{ label:'MODO 1 — FUENTE → OBSERVADOR', name:'Fuente Hacia Observador',
+    desc:'La fuente se mueve hacia el observador estático. Las ondas se comprimen al frente y se expanden detrás. Frecuencia percibida MAYOR.',
+    cfg:'FUENTE MÓVIL', eff:'ACERCAMIENTO', sm:true, om:false, sd:1, od:0,
+    formula:"f' = f₀ · v / (v − vₛ)", fp:(f,vs,vo,v)=>f*v/(v-vs),
+    note:"Fuente acercándose → denominador disminuye → f' > f₀" },
+  mode2:{ label:'MODO 2 — FUENTE ALEJÁNDOSE', name:'Fuente Alejándose',
+    desc:'La fuente se aleja del observador. Las ondas se expanden en la dirección del movimiento. Frecuencia percibida MENOR.',
+    cfg:'FUENTE MÓVIL', eff:'ALEJAMIENTO', sm:true, om:false, sd:-1, od:0,
+    formula:"f' = f₀ · v / (v + vₛ)", fp:(f,vs,vo,v)=>f*v/(v+vs),
+    note:"Fuente alejándose → denominador aumenta → f' < f₀" },
+  mode3:{ label:'MODO 3 — OBSERVADOR → FUENTE', name:'Observador Hacia Fuente',
+    desc:'El observador se acerca a la fuente estática. Intercepta más frentes de onda por segundo. Frecuencia percibida MAYOR.',
+    cfg:'OBS. MÓVIL', eff:'ACERCAMIENTO', sm:false, om:true, sd:0, od:-1,
+    formula:"f' = f₀ · (v + v₀) / v", fp:(f,vs,vo,v)=>f*(v+vo)/v,
+    note:"Observador acercándose → numerador aumenta → f' > f₀" },
+  mode4:{ label:'MODO 4 — OBSERVADOR ALEJÁNDOSE', name:'Observador Alejándose',
+    desc:'El observador se aleja de la fuente estática. Intercepta menos frentes de onda por segundo. Frecuencia percibida MENOR.',
+    cfg:'OBS. MÓVIL', eff:'ALEJAMIENTO', sm:false, om:true, sd:0, od:1,
+    formula:"f' = f₀ · (v − v₀) / v", fp:(f,vs,vo,v)=>f*(v-vo)/v,
+    note:"Observador alejándose → numerador disminuye → f' < f₀" },
+  mode5:{ label:'MODO 5 — AMBOS ACERCÁNDOSE', name:'Ambos en Acercamiento',
+    desc:'Fuente y observador avanzan uno hacia el otro. Efecto Doppler máximo positivo.',
+    cfg:'AMBOS MÓVILES', eff:'MÁX. COMPRESIÓN', sm:true, om:true, sd:1, od:-1,
+    formula:"f' = f₀ · (v + v₀) / (v − vₛ)", fp:(f,vs,vo,v)=>f*(v+vo)/(v-vs),
+    note:"Ambos acercándose → f' es máxima posible" },
+  mode6:{ label:'MODO 6 — AMBOS ALEJÁNDOSE', name:'Ambos en Alejamiento',
+    desc:'Fuente y observador se alejan el uno del otro. Redshift acústico máximo.',
+    cfg:'AMBOS MÓVILES', eff:'MÁX. EXPANSIÓN', sm:true, om:true, sd:-1, od:1,
+    formula:"f' = f₀ · (v − v₀) / (v + vₛ)", fp:(f,vs,vo,v)=>f*(v-vo)/(v+vs),
+    note:"Ambos alejándose → f' es mínima — redshift acústico" },
+};
+
+const S = {
+  theme:'day', mode:'mode1', playing:false,
+  score:0, passed:false, attempts:0, chData:null,
+  camAuto:false, capN:0,
+  p:{ f:440, vs:8, vo:0, v:343 } // slow default speeds
+};
+
+// ══════════════════════════════════════════
+//  THREE.JS SCENE
+// ══════════════════════════════════════════
+const cvs = document.getElementById('three-canvas');
+const rdr = new THREE.WebGLRenderer({ canvas:cvs, antialias:true });
+rdr.setPixelRatio(Math.min(devicePixelRatio,2));
+rdr.shadowMap.enabled = true;
+rdr.shadowMap.type = THREE.PCFSoftShadowMap;
+
+const sc = new THREE.Scene();
+// Day sky gradient via background color
+sc.background = new THREE.Color(0x87ceeb); // sky blue
+sc.fog = new THREE.Fog(0x87ceeb, 40, 90);
+
+const cam = new THREE.PerspectiveCamera(55,1,0.1,500);
+cam.position.set(0,10,18); cam.lookAt(0,0,0);
+
+// ── LIGHTING (day) ──
+const aL  = new THREE.AmbientLight(0xffeedd, 0.8);
+const sun = new THREE.DirectionalLight(0xfff5e0, 2.0);
+sun.position.set(15, 30, 10);
+sun.castShadow = true;
+sun.shadow.mapSize.width = 2048; sun.shadow.mapSize.height = 2048;
+sun.shadow.camera.near = 0.5; sun.shadow.camera.far = 100;
+sun.shadow.camera.left = -30; sun.shadow.camera.right = 30;
+sun.shadow.camera.top = 20; sun.shadow.camera.bottom = -20;
+const hemi = new THREE.HemisphereLight(0x87ceeb, 0x4a8c3f, 0.6);
+sc.add(aL); sc.add(sun); sc.add(hemi);
+
+const ptS = new THREE.PointLight(0xff4422, 1.5, 20); sc.add(ptS);
+const ptO = new THREE.PointLight(0x0044cc, 1.2, 20); sc.add(ptO);
+
+// ── GROUND (grass) ──
+const gMat = new THREE.MeshStandardMaterial({ color:0x5a9e4a, roughness:0.9, metalness:0.0 });
+const gnd  = new THREE.Mesh(new THREE.PlaneGeometry(80,40,40,20), gMat);
+gnd.rotation.x = -Math.PI/2; gnd.position.y = -0.5;
+gnd.receiveShadow = true; sc.add(gnd);
+
+// Ground grid lines (road-like)
+const grid = new THREE.GridHelper(80,40,0x3a7030,0x4a8840);
+grid.position.y = -0.48;
+grid.material.transparent = true; grid.material.opacity = 0.25;
+sc.add(grid);
+
+// Road strip
+const roadMat = new THREE.MeshStandardMaterial({ color:0x888888, roughness:0.8 });
+const road = new THREE.Mesh(new THREE.PlaneGeometry(80,3), roadMat);
+road.rotation.x = -Math.PI/2; road.position.set(0,-0.49,0);
+road.receiveShadow = true; sc.add(road);
+
+// Road dashes
+for(let x=-36; x<=36; x+=6){
+  const dash = new THREE.Mesh(
+    new THREE.PlaneGeometry(3.5,0.15),
+    new THREE.MeshBasicMaterial({ color:0xffffff })
+  );
+  dash.rotation.x = -Math.PI/2; dash.position.set(x,-0.481,0);
+  sc.add(dash);
+}
+
+// Horizon buildings (day scenery)
+const bldColors=[0x8899aa,0x99aabb,0xaab0bb];
+for(let i=0;i<8;i++){
+  const h=4+Math.random()*8, w=2+Math.random()*3;
+  const bld=new THREE.Mesh(
+    new THREE.BoxGeometry(w,h,w*0.8),
+    new THREE.MeshStandardMaterial({color:bldColors[i%3],roughness:0.7})
+  );
+  bld.position.set(-35+i*10+(Math.random()-0.5)*4, h/2-0.5, -15-Math.random()*5);
+  bld.castShadow=true; sc.add(bld);
+}
+
+// Trees
+function mkTree(x,z){
+  const g=new THREE.Group();
+  const trunk=new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.2,1.5,8),
+    new THREE.MeshStandardMaterial({color:0x5c3a1e}));
+  trunk.position.y=0.25; trunk.castShadow=true; g.add(trunk);
+  const foliage=new THREE.Mesh(new THREE.SphereGeometry(1.2,10,8),
+    new THREE.MeshStandardMaterial({color:0x2d7a2d,roughness:0.9}));
+  foliage.position.y=2.2; foliage.castShadow=true; g.add(foliage);
+  g.position.set(x,-0.5,z); sc.add(g);
+}
+[-20,-10,10,20].forEach(x=>{ mkTree(x,-6); mkTree(x,6); });
+
+// ── SOURCE MESH (truck/car) ──
+function mkSrc(){
+  const g=new THREE.Group();
+  const bMat=new THREE.MeshStandardMaterial({color:0xcc2200,metalness:0.5,roughness:0.4});
+  const body=new THREE.Mesh(new THREE.BoxGeometry(1.6,0.8,0.8),bMat);
+  body.position.y=0.15; body.castShadow=true; g.add(body);
+  const cab=new THREE.Mesh(new THREE.BoxGeometry(0.7,0.55,0.75),
+    new THREE.MeshStandardMaterial({color:0xff3311,metalness:0.5,roughness:0.3}));
+  cab.position.set(0.35,0.65,0); cab.castShadow=true; g.add(cab);
+  // windows
+  const wMat=new THREE.MeshStandardMaterial({color:0x88ccff,metalness:0.1,roughness:0.1});
+  const win=new THREE.Mesh(new THREE.BoxGeometry(0.62,0.3,0.05),wMat);
+  win.position.set(0.35,0.65,-0.38); g.add(win);
+  const win2=win.clone(); win2.position.z=0.38; g.add(win2);
+  // wheels
+  const wGeo=new THREE.CylinderGeometry(0.18,0.18,0.12,14);
+  const wMa=new THREE.MeshStandardMaterial({color:0x111111,metalness:0.7});
+  [[-0.55,-0.25,0.38],[0.55,-0.25,0.38],[-0.55,-0.25,-0.38],[0.55,-0.25,-0.38]].forEach(([x,y,z])=>{
+    const w=new THREE.Mesh(wGeo,wMa); w.rotation.x=Math.PI/2; w.position.set(x,y,z); g.add(w);
+  });
+  // speaker horn
+  const horn=new THREE.Mesh(new THREE.ConeGeometry(0.28,0.5,14),
+    new THREE.MeshStandardMaterial({color:0xff6644,emissive:0xcc2200,emissiveIntensity:0.4}));
+  horn.rotation.z=Math.PI/2; horn.position.set(0.98,0.25,0); g.add(horn);
+  // pulse ring
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(0.4,0.06,8,32),
+    new THREE.MeshBasicMaterial({color:0xff3300,transparent:true,opacity:0.9}));
+  ring.position.y=0.15; g.add(ring);
+  return g;
+}
+
+// ── OBSERVER MESH (person with mic stand) ──
+function mkObs(){
+  const g=new THREE.Group();
+  // stand
+  const stMat=new THREE.MeshStandardMaterial({color:0x334466,metalness:0.7});
+  const stand=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.07,1.4,8),stMat);
+  stand.position.y=0.2; stand.castShadow=true; g.add(stand);
+  // base
+  const base=new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.3,0.06,12),stMat);
+  base.position.y=-0.47; g.add(base);
+  // mic capsule
+  const mic=new THREE.Mesh(new THREE.SphereGeometry(0.28,16,14),
+    new THREE.MeshStandardMaterial({color:0x0055ee,metalness:0.8,roughness:0.15,emissive:0x001166,emissiveIntensity:0.4}));
+  mic.position.y=0.98; mic.castShadow=true; g.add(mic);
+  // glow ring
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(0.38,0.06,8,32),
+    new THREE.MeshBasicMaterial({color:0x0044cc,transparent:true,opacity:0.9}));
+  ring.position.y=0.98; g.add(ring);
+  return g;
+}
+
+const srcM=mkSrc(); srcM.position.set(-9,0,0); sc.add(srcM);
+const obsM=mkObs(); obsM.position.set(9,0,0);  sc.add(obsM);
+
+// ── ARROWS ──
+function mkArr(col){
+  const g=new THREE.Group();
+  g.add(new THREE.Line(
+    new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0),new THREE.Vector3(1.8,0,0)]),
+    new THREE.LineBasicMaterial({color:col,linewidth:3})
+  ));
+  const h=new THREE.Mesh(new THREE.ConeGeometry(0.18,0.48,10),
+    new THREE.MeshBasicMaterial({color:col}));
+  h.rotation.z=-Math.PI/2; h.position.x=2.04; g.add(h);
+  return g;
+}
+const sArr=mkArr(0xff3300); sArr.position.y=1.5; sc.add(sArr);
+const oArr=mkArr(0x0044cc); oArr.position.y=1.5; sc.add(oArr);
+
+// ══════════════════════════════════════════
+//  WAVE SYSTEM — big, visible, colorful
+// ══════════════════════════════════════════
+const waves=[]; let lastEm=0, simT=0;
+let srcX=-9, obsX=9;
+const BOUNDS=28;
+
+function emitWave(){
+  // Create a thick torus ring instead of thin wireframe sphere
+  // Use multiple rings for visibility
+  const colors=[0x00cc44, 0x00ee55, 0x22ff66];
+  const col=colors[waves.length % colors.length];
+
+  const geo=new THREE.TorusGeometry(0.15, 0.12, 10, 48);
+  const mat=new THREE.MeshBasicMaterial({
+    color: col,
+    transparent: true,
+    opacity: 0.42,
+    side: THREE.DoubleSide
+  });
+  const ring=new THREE.Mesh(geo,mat);
+  ring.rotation.x = Math.PI/2; // lay flat on XZ plane → vertical ring in XY
+  ring.rotation.x = 0; // vertical ring in XZ → wave propagates outward
+  // Actually make it a vertical ring (XY plane) so it expands horizontally
+  ring.position.copy(srcM.position);
+  ring.position.y = 0.15;
+  sc.add(ring);
+  waves.push({ mesh:ring, r:0.15, born:simT });
+}
+
+let lastF=performance.now();
+
+function resetSim(){
+  waves.forEach(w=>sc.remove(w.mesh)); waves.length=0;
+  srcX=-9; obsX=9; simT=0; lastEm=0;
+  srcM.position.set(-9,0,0); obsM.position.set(9,0,0);
+  updateFreqs();
+}
+function stepSim(){ if(!S.playing) tick(0.08); }
+
+let cTh=Math.PI*0.28, cPh=Math.PI*0.18, cDist=20;
+
+function tick(dt){
+  const m=MODES[S.mode]; if(!m) return;
+  const {f,vs,vo,v}=S.p;
+
+  // Use very gentle visual scale so motion is slow and readable
+  const SCALE=0.008;
+  const vVs=vs*SCALE, vVo=vo*SCALE, vV=v*SCALE;
+
+  if(m.sm){ srcX+=m.sd*vVs*dt*60; if(srcX>BOUNDS)srcX=BOUNDS; if(srcX<-BOUNDS)srcX=-BOUNDS; }
+  srcM.position.x=srcX;
+  if(m.om){ obsX+=m.od*vVo*dt*60; if(obsX>BOUNDS)obsX=BOUNDS; if(obsX<-BOUNDS)obsX=-BOUNDS; }
+  obsM.position.x=obsX;
+
+  // animate rings
+  const sr=srcM.children[srcM.children.length-1]; if(sr&&sr.isMesh) sr.rotation.y+=0.04;
+  const or=obsM.children[obsM.children.length-1]; if(or&&or.isMesh) or.rotation.y+=0.03;
+
+  simT+=dt;
+  // Emit interval: based on frequency (scaled for visual clarity)
+  const iv=1.0/Math.max(f*0.0025,0.4);
+  if(simT-lastEm>iv){ emitWave(); lastEm=simT; }
+
+  // Expand waves
+  const ex=vV*dt*60*0.55;
+  for(let i=waves.length-1;i>=0;i--){
+    const w=waves[i];
+    w.r+=ex;
+    // Scale both radius and tube proportionally but keep tube thick
+    const scl=w.r/0.15;
+    w.mesh.scale.set(scl, scl, 1); // scale X,Y (ring radius), keep Z for tube thickness visible
+    const age=simT-w.born;
+    const op=Math.max(0, 0.42-age*0.10);
+    w.mesh.material.opacity=op;
+    if(w.r>70||op<=0){ sc.remove(w.mesh); waves.splice(i,1); }
+  }
+
+  sArr.position.x=srcX; sArr.visible=m.sm; if(m.sm) sArr.scale.x=m.sd;
+  oArr.position.x=obsX; oArr.visible=m.om; if(m.om) oArr.scale.x=m.od;
+  ptS.position.set(srcX,2,0);
+  ptO.position.set(obsX,3,0);
+
+  if(S.camAuto){
+    const t=Date.now()*0.00025;
+    cam.position.set(Math.sin(t)*cDist, 8+Math.sin(t*0.4)*3, Math.cos(t)*cDist);
+    cam.lookAt(0,0,0);
+  }
+
+  updateFreqs(); drawOsc(); updateAudioFreq();
+}
+
+function loop(){
+  requestAnimationFrame(loop);
+  const now=performance.now(), dt=Math.min((now-lastF)/1000,0.05); lastF=now;
+  if(S.playing) tick(dt);
+  rdr.render(sc,cam);
+}
+loop();
+
+function onRes(){
+  const a=document.getElementById('canvas-area'), w=a.clientWidth, h=a.clientHeight;
+  cam.aspect=w/h; cam.updateProjectionMatrix(); rdr.setSize(w,h);
+}
+window.addEventListener('resize',onRes); onRes();
+
+// Mouse/touch orbit
+let drag=false, pmx=0, pmy=0;
+cvs.addEventListener('mousedown',e=>{drag=true;pmx=e.clientX;pmy=e.clientY;});
+window.addEventListener('mouseup',()=>drag=false);
+window.addEventListener('mousemove',e=>{
+  if(!drag||S.camAuto) return;
+  cTh-=(e.clientX-pmx)*0.007; cPh=Math.max(0.05,Math.min(Math.PI*0.44,cPh-(e.clientY-pmy)*0.007));
+  pmx=e.clientX; pmy=e.clientY;
+  cam.position.set(cDist*Math.sin(cTh)*Math.cos(cPh),cDist*Math.sin(cPh)+1,cDist*Math.cos(cTh)*Math.cos(cPh));
+  cam.lookAt(0,0,0);
+});
+cvs.addEventListener('wheel',e=>{
+  cDist=Math.max(7,Math.min(45,cDist+e.deltaY*0.02));
+  cam.position.set(cDist*Math.sin(cTh)*Math.cos(cPh),cDist*Math.sin(cPh)+1,cDist*Math.cos(cTh)*Math.cos(cPh));
+  cam.lookAt(0,0,0);
+},{passive:true});
+let t0=null;
+cvs.addEventListener('touchstart',e=>{t0={x:e.touches[0].clientX,y:e.touches[0].clientY};},{passive:true});
+cvs.addEventListener('touchmove',e=>{
+  if(!t0||S.camAuto) return;
+  cTh-=(e.touches[0].clientX-t0.x)*0.007;
+  cPh=Math.max(0.05,Math.min(Math.PI*0.44,cPh-(e.touches[0].clientY-t0.y)*0.007));
+  t0={x:e.touches[0].clientX,y:e.touches[0].clientY};
+  cam.position.set(cDist*Math.sin(cTh)*Math.cos(cPh),cDist*Math.sin(cPh)+1,cDist*Math.cos(cTh)*Math.cos(cPh));
+  cam.lookAt(0,0,0);
+},{passive:true});
+
+// ══════════════════════════════════════════
+//  OSCILLOSCOPE
+// ══════════════════════════════════════════
+const oc=document.getElementById('osc-canvas'), ox=oc.getContext('2d'); let oP=0;
+function drawOsc(){
+  const w=oc.offsetWidth,h=oc.offsetHeight; if(!w||!h) return;
+  oc.width=w; oc.height=h;
+  const day=S.theme==='day';
+  // background with grid
+  ox.fillStyle=day?'#b8d8f8':'#06101e'; ox.fillRect(0,0,w,h);
+  // grid lines
+  ox.strokeStyle=day?'rgba(0,68,204,0.15)':'rgba(0,220,255,0.1)'; ox.lineWidth=0.5;
+  for(let i=1;i<4;i++){
+    ox.beginPath(); ox.moveTo(0,h*i/4); ox.lineTo(w,h*i/4); ox.stroke();
+    ox.beginPath(); ox.moveTo(w*i/4,0); ox.lineTo(w*i/4,h); ox.stroke();
+  }
+  const m=MODES[S.mode]; if(!m) return;
+  const {f,vs,vo,v}=S.p, fp=m.fp(f,vs,vo,v), ratio=fp/f;
+  // emitted wave — orange/red thick
+  ox.strokeStyle=day?'#cc2200':'#ff6b35'; ox.lineWidth=3; ox.beginPath();
+  for(let x=0;x<w;x++){
+    const y=h/2+(h*0.32)*Math.sin(2*Math.PI*x/w*5+oP);
+    x?ox.lineTo(x,y):ox.moveTo(x,y);
+  }
+  ox.stroke();
+  // observed wave — green thick, offset
+  ox.strokeStyle=day?'#007a30':'#00ff9d'; ox.lineWidth=3; ox.beginPath();
+  for(let x=0;x<w;x++){
+    const y=h/2-(h*0.32)*Math.sin(2*Math.PI*x/w*5*ratio+oP*ratio);
+    x?ox.lineTo(x,y):ox.moveTo(x,y);
+  }
+  ox.stroke();
+  // labels
+  ox.font=`bold 11px 'Rajdhani', sans-serif`;
+  ox.fillStyle=day?'#cc2200':'#ff6b35'; ox.fillText('f₀ emitida',4,12);
+  ox.fillStyle=day?'#007a30':'#00ff9d'; ox.fillText("f' observada",4,h-5);
+  oP+=0.045;
+}
+
+// ══════════════════════════════════════════
+//  UI
+// ══════════════════════════════════════════
+function updateFreqs(){
+  const m=MODES[S.mode]; if(!m) return;
+  const {f,vs,vo,v}=S.p;
+  const fp=m.fp(f,vs,vo,v), fpR=fp.toFixed(1), df=(fp-f).toFixed(1);
+  document.getElementById('f0d').textContent=`${f} Hz`;
+  const fpe=document.getElementById('fpd');
+  fpe.textContent=`${fpR} Hz`;
+  fpe.className=`fval ${fp>f?'up':fp<f?'down':''}`;
+  const dfe=document.getElementById('dfd'); const sg=parseFloat(df)>=0?'+':'';
+  dfe.textContent=`${sg}${df} Hz`;
+  dfe.style.color=parseFloat(df)>0?'var(--accent2)':parseFloat(df)<0?'var(--warn)':'var(--accent)';
+  document.getElementById('lfd').textContent=`${(v/fp).toFixed(3)} m`;
+  document.getElementById('lbd').textContent=`${(v/Math.max(f*v/(v+vs),1)).toFixed(3)} m`;
+  document.getElementById('src-spd').textContent=m.sm?`${vs} m/s ${m.sd>0?'→':'←'}`:'estático';
+  document.getElementById('obs-spd').textContent=m.om?`${vo} m/s ${m.od>0?'→':'←'}`:'estático';
+}
+
+function up(k,val){
+  S.p[k]=parseFloat(val);
+  const ids={f:'vf',vs:'vvs',vo:'vvo',v:'vv'};
+  document.getElementById(ids[k]).textContent=k==='f'?`${val} Hz`:`${val} m/s`;
+  updateFreqs();
+}
+
+function switchMode(mk,btn){
+  S.mode=mk;
+  document.querySelectorAll('.mbtn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const m=MODES[mk];
+  document.getElementById('mlabel').textContent=m.label;
+  document.getElementById('mdesc').textContent=m.desc;
+  document.getElementById('b-cfg').textContent=m.cfg;
+  document.getElementById('b-eff').textContent=m.eff;
+  resetSim(); if(!S.playing) togglePlay();
+}
+
+function togglePlay(){
+  S.playing=!S.playing;
+  const b=document.getElementById('pbtn');
+  b.textContent=S.playing?'⏸':'▶'; b.classList.toggle('on',S.playing);
+}
+function toggleCam(){
+  S.camAuto=!S.camAuto;
+  document.getElementById('cambtn').style.color=S.camAuto?'var(--accent2)':'';
+}
+
+// ── THEME BUTTON ──
+function toggleTheme(){
+  S.theme=S.theme==='day'?'night':'day';
+  const btn=document.getElementById('theme-btn');
+  if(S.theme==='night'){
+    document.body.classList.add('night');
+    btn.textContent='☀️ Día';
+    // 3D night
+    sc.background=new THREE.Color(0x05091a);
+    sc.fog=new THREE.Fog(0x05091a,40,90);
+    gMat.color.set(0x0a1e0a);
+    grid.material.opacity=0.4;
+    aL.color.set(0x223344); aL.intensity=0.3;
+    sun.color.set(0x334466); sun.intensity=0.5;
+    hemi.color.set(0x051020); hemi.intensity=0.2;
+    ptS.color.set(0xff6b35); ptS.intensity=2.5;
+    ptO.color.set(0x00dcff); ptO.intensity=2.0;
+    // make waves cyan at night
+    waves.forEach(w=>w.mesh.material.color.set(0x00ff9d));
+  } else {
+    document.body.classList.remove('night');
+    btn.textContent='🌙 Noche';
+    // 3D day
+    sc.background=new THREE.Color(0x87ceeb);
+    sc.fog=new THREE.Fog(0x87ceeb,40,90);
+    gMat.color.set(0x5a9e4a);
+    grid.material.opacity=0.25;
+    aL.color.set(0xffeedd); aL.intensity=0.8;
+    sun.color.set(0xfff5e0); sun.intensity=2.0;
+    hemi.color.set(0x87ceeb); hemi.intensity=0.6;
+    ptS.color.set(0xff4422); ptS.intensity=1.5;
+    ptO.color.set(0x0044cc); ptO.intensity=1.2;
+    waves.forEach(w=>w.mesh.material.color.set(0x00cc44));
+  }
+}
+
+// ══════════════════════════════════════════
+//  CHALLENGE
+// ══════════════════════════════════════════
+const PRESETS=[
+  {mk:'mode1',desc:'🚑 Ambulancia acercándose a toda velocidad'},
+  {mk:'mode2',desc:'🚂 Tren alejándose de la estación'},
+  {mk:'mode3',desc:'🚴 Ciclista pedaleando hacia el parlante'},
+  {mk:'mode4',desc:'🚗 Auto escapándose del radar'},
+  {mk:'mode5',desc:'💥 Dos trenes en ruta de colisión'},
+  {mk:'mode6',desc:'🌌 Redshift acústico — ambos alejándose'},
+];
+
+function genCh(){
+  const p=PRESETS[Math.floor(Math.random()*PRESETS.length)], m=MODES[p.mk];
+  const f =Math.round(150+Math.random()*1650);
+  const vs=(p.mk==='mode3'||p.mk==='mode4')?0:Math.round(10+Math.random()*80);
+  const vo=(p.mk==='mode1'||p.mk==='mode2')?0:Math.round(5+Math.random()*40);
+  const v =Math.round(320+Math.random()*40);
+  return {p,m,mk:p.mk,f,vs,vo,v,fp:Math.round(m.fp(f,vs,vo,v)*10)/10};
+}
+
+function openChallenge(){
+  S.chData=genCh(); S.passed=false; S.attempts=0;
+  buildCh();
+  ['ch-fb','ch-hint'].forEach(id=>{const e=document.getElementById(id);e.className=e.className.replace(/err|ok/,'');e.style.display='none';e.textContent='';});
+  document.getElementById('ch-ans').value='';
+  document.getElementById('ch-vbtn').disabled=false;
+  document.getElementById('ch-tries').textContent='Intentos: 0 / 3';
+  document.getElementById('chov').classList.add('on');
+  document.getElementById('chpanel').classList.add('on');
+  updCapBtn();
+}
+
+function buildCh(){
+  const d=S.chData;
+  document.getElementById('ch-sub').textContent=d.p.desc;
+  document.getElementById('ch-grid').innerHTML=[
+    {l:'Frecuencia emitida (f₀)',v:`${d.f} Hz`},
+    {l:'Velocidad del sonido (v)',v:`${d.v} m/s`},
+    {l:'Velocidad de la fuente (vₛ)',v:`${d.vs} m/s`},
+    {l:'Velocidad del observador (v₀)',v:`${d.vo} m/s`},
+    {l:'Configuración',v:d.m.name},
+  ].map(i=>`<div class="chitem"><span class="chil">${i.l}</span><span class="chiv" style="font-size:12px">${i.v}</span></div>`).join('');
+  document.getElementById('ch-form').textContent=d.m.formula;
+}
+
+function verifyCh(){
+  const ans=parseFloat(document.getElementById('ch-ans').value);
+  if(isNaN(ans)){showFb('err','⚠️ Ingresa un número válido.');return;}
+  S.attempts++;
+  document.getElementById('ch-tries').textContent=`Intentos: ${S.attempts} / 3`;
+  const d=S.chData, tol=d.fp*0.05;
+  if(Math.abs(ans-d.fp)<=tol){
+    S.passed=true;
+    const pts=Math.max(1,4-S.attempts); S.score+=pts;
+    document.getElementById('score-num').textContent=S.score;
+    showFb('ok',`✅ ¡CORRECTO! f' = ${d.fp} Hz  •  +${pts} puntos 🎉`);
+    document.getElementById('ch-vbtn').disabled=true;
+    updCapBtn(); confetti();
+  } else {
+    const hint=ans<d.fp?'Tu respuesta está por debajo.':'Tu respuesta está por encima.';
+    if(S.attempts>=3){
+      showFb('err',`❌ La respuesta correcta era: ${d.fp} Hz`);
+      const h=document.getElementById('ch-hint');
+      h.style.display='block';
+      h.innerHTML=`💡 <strong>Solución paso a paso:</strong><br>
+        Fórmula: ${d.m.formula}<br>
+        Sustituyendo: f₀=${d.f}, vₛ=${d.vs}, v₀=${d.vo}, v=${d.v}<br>
+        Resultado: <strong>f' = ${d.fp} Hz</strong><br>
+        <em>${d.m.note}</em>`;
+      document.getElementById('ch-vbtn').disabled=true;
+    } else {
+      showFb('err',`❌ Incorrecto. ${hint} Quedan ${3-S.attempts} intento(s).`);
+    }
+  }
+}
+
+function showFb(t,msg){
+  const e=document.getElementById('ch-fb');
+  e.className=`chfb ${t}`; e.textContent=msg; e.style.display='block';
+}
+function closeChallenge(){
+  document.getElementById('chov').classList.remove('on');
+  document.getElementById('chpanel').classList.remove('on');
+}
+function updCapBtn(){
+  document.getElementById('cap-btn').classList.toggle('on',S.passed);
+}
+
+// ── CONFETTI ──
+function confetti(){
+  const cols=['#0044cc','#007a30','#cc2200','#996600','#0099cc'];
+  const r=document.getElementById('chpanel').getBoundingClientRect();
+  for(let i=0;i<55;i++) setTimeout(()=>{
+    const e=document.createElement('div'); e.className='cfp';
+    e.style.cssText=`left:${r.left+Math.random()*r.width}px;top:${r.top}px;background:${cols[Math.floor(Math.random()*cols.length)]};width:${5+Math.random()*9}px;height:${5+Math.random()*9}px;animation-delay:${Math.random()*0.5}s`;
+    document.body.appendChild(e); setTimeout(()=>e.remove(),3200);
+  },i*35);
+}
+
+// ── CAPTURE ──
+function captureEvidence(){
+  if(!S.passed) return; S.capN++;
+  rdr.render(sc, cam);
+
+  const d   = S.chData;
+  const ts  = new Date().toLocaleString('es-CO');
+  const day = S.theme === 'day';
+
+  // ── Composite canvas ──
+  const W = cvs.width, H = cvs.height;
+  const comp = document.createElement('canvas');
+  comp.width = W; comp.height = H;
+  const ctx = comp.getContext('2d');
+
+  // 1. Draw 3D scene
+  ctx.drawImage(cvs, 0, 0);
+
+  // 2. Dark/light panel at bottom
+  const PH = 210; // panel height
+  const PY = H - PH;
+  // gradient backdrop
+  const grad = ctx.createLinearGradient(0, PY, 0, H);
+  if(day){
+    grad.addColorStop(0, 'rgba(208,232,255,0)');
+    grad.addColorStop(0.18, 'rgba(208,232,255,0.97)');
+    grad.addColorStop(1,   'rgba(184,212,248,1)');
+  } else {
+    grad.addColorStop(0, 'rgba(3,7,15,0)');
+    grad.addColorStop(0.18, 'rgba(6,14,30,0.97)');
+    grad.addColorStop(1,   'rgba(3,7,15,1)');
+  }
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, PY, W, PH);
+
+  // border line
+  ctx.strokeStyle = day ? 'rgba(0,60,160,0.4)' : 'rgba(0,220,255,0.3)';
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(0, PY+38); ctx.lineTo(W, PY+38); ctx.stroke();
+
+  // colours
+  const clrAccent  = day ? '#0044cc' : '#00dcff';
+  const clrGreen   = day ? '#007a30' : '#00ff9d';
+  const clrRed     = day ? '#cc2200' : '#ff6b35';
+  const clrText    = day ? '#001840' : '#d0e8ff';
+  const clrSub     = day ? '#0a3a70' : '#6a9ab8';
+  const clrBg3     = day ? 'rgba(184,212,248,0.85)' : 'rgba(10,22,40,0.85)';
+
+  // ── APPROVED stamp (top-right of panel) ──
+  const sx = W - 24, sy = PY + 22;
+  ctx.save();
+  ctx.translate(sx, sy);
+  ctx.rotate(-0.18);
+  // stamp circle
+  ctx.beginPath();
+  ctx.arc(0, 0, 52, 0, Math.PI*2);
+  ctx.strokeStyle = clrGreen;
+  ctx.lineWidth = 4;
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(0, 0, 46, 0, Math.PI*2);
+  ctx.strokeStyle = clrGreen;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  // ✓ check
+  ctx.fillStyle = clrGreen;
+  ctx.font = 'bold 34px Arial';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('✓', 0, -8);
+  ctx.font = 'bold 11px Orbitron, monospace';
+  ctx.fillText('APROBADO', 0, 16);
+  ctx.restore();
+
+  // ── Header row: title + scenario ──
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+
+  // Title
+  ctx.fillStyle = clrAccent;
+  ctx.font = `bold 15px 'Orbitron', monospace`;
+  ctx.fillText('⚡ RETO DOPPLER — EVIDENCIA DE APROBACIÓN', 24, PY + 8);
+
+  // Timestamp
+  ctx.fillStyle = clrSub;
+  ctx.font = `600 12px 'Rajdhani', sans-serif`;
+  ctx.fillText(`Captura #${S.capN}  •  ${ts}`, 24, PY + 26);
+
+  // ── Data cards ──
+  const cardY = PY + 48;
+  const cardH = 48;
+  const cols  = 6;
+  const gap   = 10;
+  const totalW = W - 48 - (cols - 1) * gap;
+  const cw    = totalW / cols;
+
+  const fields = [
+    { lbl: 'Escenario',     val: d.p.desc.replace(/^../,'') },
+    { lbl: 'Configuración', val: d.m.name },
+    { lbl: 'f₀ emitida',    val: `${d.f} Hz` },
+    { lbl: 'f\' observada', val: `${d.fp} Hz` },
+    { lbl: `Δf`,            val: `${d.fp - d.f >= 0 ? '+' : ''}${(d.fp - d.f).toFixed(1)} Hz` },
+    { lbl: 'Intentos',      val: `${S.attempts} / 3` },
+  ];
+
+  fields.forEach((field, i) => {
+    const cx = 24 + i * (cw + gap);
+    // card bg
+    ctx.fillStyle = clrBg3;
+    roundRect(ctx, cx, cardY, cw, cardH, 8);
+    ctx.fill();
+    ctx.strokeStyle = day ? 'rgba(0,60,160,0.25)' : 'rgba(0,220,255,0.2)';
+    ctx.lineWidth = 1.5;
+    roundRect(ctx, cx, cardY, cw, cardH, 8);
+    ctx.stroke();
+    // label
+    ctx.fillStyle = clrSub;
+    ctx.font = `600 10px 'Rajdhani', sans-serif`;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText(field.lbl, cx + 8, cardY + 6);
+    // value
+    const isFreq = field.lbl.includes('f') || field.lbl.includes('Δ');
+    ctx.fillStyle = isFreq ? clrGreen : clrText;
+    ctx.font = `bold 13px 'Share Tech Mono', monospace`;
+    ctx.fillText(field.val.length > 14 ? field.val.slice(0,13)+'…' : field.val, cx + 8, cardY + 22);
+  });
+
+  // ── Formula row ──
+  const fY = cardY + cardH + 10;
+  ctx.fillStyle = clrBg3;
+  roundRect(ctx, 24, fY, W - 48, 36, 8);
+  ctx.fill();
+  ctx.strokeStyle = clrRed;
+  ctx.lineWidth = 1.5;
+  roundRect(ctx, 24, fY, W - 48, 36, 8);
+  ctx.stroke();
+
+  ctx.fillStyle = clrSub;
+  ctx.font = `600 10px 'Rajdhani', sans-serif`;
+  ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+  ctx.fillText('Fórmula aplicada:', 34, fY + 5);
+  ctx.fillStyle = clrGreen;
+  ctx.font = `bold 14px 'Share Tech Mono', monospace`;
+  ctx.fillText(d.m.formula, 34, fY + 18);
+
+  // ── Params row ──
+  const pY = fY + 46;
+  ctx.fillStyle = clrSub;
+  ctx.font = `600 11px 'Rajdhani', sans-serif`;
+  ctx.textAlign = 'left';
+  ctx.fillText(`Datos:  f₀ = ${d.f} Hz   vₛ = ${d.vs} m/s   v₀ = ${d.vo} m/s   v = ${d.v} m/s   →   f' = ${d.fp} Hz  ✔ APROBADO`, 24, pY);
+
+  // ── Watermark ──
+  ctx.fillStyle = day ? 'rgba(0,68,204,0.18)' : 'rgba(0,220,255,0.12)';
+  ctx.font = `bold 11px 'Orbitron', monospace`;
+  ctx.textAlign = 'right';
+  ctx.fillText('Efecto Doppler — Simulador 3D Educativo', W - 14, H - 10);
+
+  // ── Download ──
+  const lnk = document.createElement('a');
+  lnk.href = comp.toDataURL('image/png');
+  lnk.download = `doppler_reto_aprobado_${Date.now()}.png`;
+  lnk.click();
+
+  // ── Log in sidebar history ──
+  const hist = document.getElementById('cap-hist');
+  if(hist.querySelector('.cap-empty')) hist.innerHTML = '';
+  const item = document.createElement('div'); item.className = 'cap-item';
+  item.innerHTML = `<div class="ci-t">📸 CAPTURA #${S.capN} — APROBADO ✔</div>
+    <div class="ci-s">${ts}</div>
+    <div class="ci-d">f₀ = ${d.f} Hz  →  f' = ${d.fp} Hz</div>
+    <div class="ci-s">${d.m.name}  •  Intentos: ${S.attempts}/3</div>`;
+  hist.appendChild(item);
+}
+
+// Helper: rounded rectangle path
+function roundRect(ctx, x, y, w, h, r){
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.lineTo(x+w-r, y); ctx.arcTo(x+w, y, x+w, y+r, r);
+  ctx.lineTo(x+w, y+h-r); ctx.arcTo(x+w, y+h, x+w-r, y+h, r);
+  ctx.lineTo(x+r, y+h); ctx.arcTo(x, y+h, x, y+h-r, r);
+  ctx.lineTo(x, y+r); ctx.arcTo(x, y, x+r, y, r);
+  ctx.closePath();
+}
+
+// ── KEYBOARD ──
+document.addEventListener('keydown',e=>{
+  if(e.code==='Space'&&e.target.tagName!=='INPUT'){e.preventDefault();togglePlay();}
+  if(e.code==='KeyR') resetSim();
+  if(e.code==='Enter'&&document.getElementById('chpanel').classList.contains('on')) verifyCh();
+  if(e.key>='1'&&e.key<='6'){
+    const mk='mode'+e.key, btn=document.querySelector(`[data-mode="${mk}"]`);
+    if(btn) switchMode(mk,btn);
+  }
+});
+
+// ══════════════════════════════════════════
+//  AUDIO — Doppler tone via Web Audio API
+// ══════════════════════════════════════════
+let audioCtx = null, osc = null, gainNode = null;
+let audioOn = false;
+
+function initAudio(){
+  if(audioCtx) return;
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  gainNode = audioCtx.createGain();
+  gainNode.gain.setValueAtTime(0.18, audioCtx.currentTime);
+  gainNode.connect(audioCtx.destination);
+  osc = audioCtx.createOscillator();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+  osc.connect(gainNode);
+  osc.start();
+}
+
+function updateAudioFreq(){
+  if(!audioOn || !osc) return;
+  const m = MODES[S.mode]; if(!m) return;
+  const {f,vs,vo,v} = S.p;
+  const fp = Math.max(50, Math.min(4000, m.fp(f,vs,vo,v)));
+  // smooth glide to new frequency
+  osc.frequency.linearRampToValueAtTime(fp, audioCtx.currentTime + 0.08);
+}
+
+function toggleAudio(){
+  const btn = document.getElementById('audio-btn');
+  if(!audioOn){
+    initAudio();
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+    gainNode.gain.setValueAtTime(0.18, audioCtx.currentTime);
+    audioOn = true;
+    btn.textContent = '🔊 Sonido';
+    btn.classList.add('on');
+  } else {
+    gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+    audioOn = false;
+    btn.textContent = '🔇 Sonido';
+    btn.classList.remove('on');
+  }
+}
+
+// ── INIT ──
+// Show FAB only on mobile
+if(window.innerWidth <= 640){
+  document.getElementById('sidebar-fab').style.display = 'flex';
+}
+window.addEventListener('resize', ()=>{
+  const fab = document.getElementById('sidebar-fab');
+  fab.style.display = window.innerWidth <= 640 ? 'flex' : 'none';
+  if(window.innerWidth > 640) closeSidebar();
+});
+
+function openSidebar(){
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('sidebar-backdrop').classList.add('on');
+}
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-backdrop').classList.remove('on');
+}
+updateFreqs();
+togglePlay(); // start running immediately
+</script>
+</body>
+</html>

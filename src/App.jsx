@@ -1,49 +1,68 @@
-import { Routes, Route } from 'react-router-dom';
+import './App.css';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import ScrollToTop from './components/ScrollToTop';
+import Navbar from './components/Navbar';
+import Home from './pages/Home.jsx';
+import Simulaciones from './pages/Simulaciones.jsx';
+import QuienesSomos from './pages/QuienesSomos.jsx';
+import Investigacion from './pages/Investigacion.jsx';
 import Login from './pages/Login.jsx';
-import StudentDashboard from './pages/estudiante/Dashboard.jsx';
-import TeacherDashboard from './pages/docente/Dashboard.jsx';
-import CrearPractica from "./pages/docente/CrearPractica";
-import PracticaEstudiantes from "./pages/docente/EstudiantesPractica";
-import TeacherGrupos from "./pages/docente/Grupos";
-import InformeDetalle from "./pages/docente/InformeEstudiante";
-import GrupoPracticas from "./pages/docente/PracticasGrupo";  
-import PracticasList from "./pages/estudiante/PracticasList";
-import PracticaDetalle from "./pages/estudiante/PracticaDetalle";
-import InformesList from "./pages/estudiante/InformesList";
-import InformeDetalleEst from "./pages/estudiante/InformeDetalle";
+import DashboardAdmin from './pages/Admin/DashboardAdmin.jsx';
+import GestionUsuarios from './pages/Admin/Usuarios/GestionUsuarios.jsx';
+import GestionContenido from './pages/Admin/Contenido/GestionContenido.jsx';
+import AdminReportes from './pages/Admin/Reportes/AdminReportes.jsx';
+import DashboardEstudiante from './pages/Estudiante/DashboardEstudiante.jsx';
+import PracticasGrupoEstudiante from './pages/Estudiante/PracticasGrupo.jsx';
+import SimulacionEstudiante from './pages/Estudiante/Simulacion.jsx';
+import ForoEstudiante from './pages/Estudiante/Foro.jsx';
+import TeacherDashboard from './pages/Docente/TeacherDashboard.jsx';
+import Foro from './pages/Docente/Practicas/Foro.jsx';
+import TeacherGrupos from './pages/Docente/Practicas/Grupos.jsx';
+import PracticasGrupo from './pages/Docente/Practicas/PracticasGrupo.jsx';
+import PracticaEstudiantes from './pages/Docente/Practicas/EstudiantesPractica.jsx';
+import InformeEstudiante from './pages/Docente/Practicas/InformeEstudiante.jsx';
+import CrearPractica from './pages/Docente/Practicas/CrearPractica.jsx';
+
+function AppContent() {
+  return (
+    <>
+      <ScrollToTop />
+      <Navbar />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/simulaciones" element={<Simulaciones />} />
+        <Route path="/quienes-somos" element={<QuienesSomos />} />
+        <Route path="/investigacion" element={<Investigacion />} />
+        <Route path="/login" element={<Login />} />
+
+        <Route path="/dashboard/admin" element={<DashboardAdmin />} />
+        <Route path="/admin/usuarios" element={<GestionUsuarios />} />
+        <Route path="/admin/contenido" element={<GestionContenido />} />
+        <Route path="/admin/reportes" element={<AdminReportes />} />
+
+        <Route path="/dashboard/estudiante" element={<DashboardEstudiante />} />
+        <Route path="/estudiante/grupos/:grupoId/practicas" element={<PracticasGrupoEstudiante />} />
+        <Route path="/estudiante/practicas/:practicaId" element={<SimulacionEstudiante />} />
+        <Route path="/estudiante/practicas/:practicaId/foro/:grupoId" element={<ForoEstudiante />} />
+
+        <Route path="/dashboard/docente" element={<TeacherDashboard />} />
+        <Route path="/docente/grupos" element={<TeacherGrupos />} />
+        <Route path="/docente/grupo/:grupoId/practicas" element={<PracticasGrupo />} />
+        <Route path="/docente/grupo/:grupoId/practica/:practicaId" element={<PracticaEstudiantes />} />
+        <Route path="/docente/grupo/:grupoId/practica/:practicaId/foro" element={<Foro />} />
+        <Route path="/docente/grupo/:grupoId/practica/:practicaId/informe/:informeId" element={<InformeEstudiante />} />
+        <Route path="/docente/practicas/crear" element={<CrearPractica />} />
+
+        <Route path="/estudiante" element={<Navigate to="/dashboard/estudiante" replace />} />
+        <Route path="/docente" element={<Navigate to="/dashboard/docente" replace />} />
+        <Route path="/admin" element={<Navigate to="/dashboard/admin" replace />} />
+      </Routes>
+    </>
+  );
+}
 
 function App() {
-  return (
-    <Routes>
-      {/* Login */}
-      <Route path="/" element={<Login />} />
-
-      {/* Docente */}
-      <Route path="/docente" element={<TeacherDashboard />} />
-
-      <Route path="/docente/practicas/crear" element={<CrearPractica />} />
-
-      <Route path="/docente/practicas" element={<TeacherGrupos />} />
-
-      <Route path="/docente/grupo/:idGrupo/practicas" element={<GrupoPracticas />} />
-
-      {/* Estudiante */}
-      <Route path="/estudiante" element={<StudentDashboard />} />
-
-      <Route path="/docente/practicas/:idPractica" element={<PracticaEstudiantes />} />
-
-      <Route path="/docente/estudiante/:idUsuario/informe/:idInforme" element={<InformeDetalle />} />
-
-      <Route path="/estudiante/practicas" element={<PracticasList />} />
-
-      <Route path="/estudiante/practicas/:idPractica" element={<PracticaDetalle />} />
-      
-      <Route path="/estudiante/informes" element={<InformesList />} />
-
-      <Route path="/estudiante/informes/:idInforme" element={<InformeDetalleEst />} />
-
-    </Routes>
-  );
+  return <AppContent />;
 }
 
 export default App;

@@ -1,0 +1,1636 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador 3D — Campo Eléctrico & Equipotenciales</title>
+<style>
+/* ── CSS Variables: Night (default) ── */
+:root {
+  --bg:        #010c1a;
+  --bg2:       #020e1e;
+  --header-bg: #010e20;
+  --border:    #0a2030;
+  --border2:   #0d2840;
+  --border3:   #062030;
+  --text:      #5ab0cc;
+  --text2:     #2a6a8a;
+  --text3:     #2a6080;
+  --text4:     #1a4060;
+  --text5:     #1a5070;
+  --h1:        #88d8f0;
+  --btn-on-bg: rgba(58,138,170,.12);
+  --btn-on-border: #3a8aaa;
+  --btn-on-color:  #88d8f0;
+  --item-bg:   #01080f;
+  --hud-col:   #1a4060;
+  --scroll-bg: #010c1a;
+  --scroll-th: #0d2840;
+  --inp-bg:    #010c1a;
+  --lbl-col:   #1a4060;
+  --sec-border:#061828;
+  --del-border:#1a0a0a;
+  --del-color: #4a2020;
+  --del-hover-b:#882020;
+  --del-hover-c:#ff5a5a;
+  --canvas-bg: #010c1a;
+}
+/* ── Day mode overrides ── */
+body.day {
+  --bg:        #e8f4fb;
+  --bg2:       #d4ecf7;
+  --header-bg: #b8dff0;
+  --border:    #5aa0c0;
+  --border2:   #4a90b8;
+  --border3:   #5aaac8;
+  --text:      #1a35cc;
+  --text2:     #1530bb;
+  --text3:     #142eb0;
+  --text4:     #1228a0;
+  --text5:     #1632c8;
+  --h1:        #0d1f99;
+  --btn-on-bg: rgba(20,50,200,.14);
+  --btn-on-border: #1530bb;
+  --btn-on-color:  #0a1888;
+  --item-bg:   #c8d8f8;
+  --hud-col:   #1228a0;
+  --scroll-bg: #d0e8f4;
+  --scroll-th: #7090e0;
+  --inp-bg:    #dff0f9;
+  --lbl-col:   #1228a0;
+  --sec-border:#5aaac8;
+  --del-border:#c08080;
+  --del-color: #6e1010;
+  --del-hover-b:#aa1818;
+  --del-hover-c:#aa0000;
+  --canvas-bg: #d0e8f5;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Courier New',monospace;overflow:hidden;height:100vh;display:flex;flex-direction:column;transition:background .4s,color .4s;font-size:15px;}
+header{padding:7px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:var(--header-bg);transition:background .4s,border-color .4s;}
+header h1{font-size:17px;letter-spacing:.18em;color:var(--h1);font-weight:600;}
+#main{display:flex;flex:1;overflow:hidden;}
+#viewport{flex:1;position:relative;}
+#viewport canvas{width:100%;height:100%;display:block;}
+#panel{width:230px;background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;transition:background .4s,border-color .4s;}
+#panel-scroll{flex:1;overflow-y:auto;padding:12px;}
+.sec{margin-bottom:13px;}
+.sec-title{font-size:13px;letter-spacing:.18em;color:var(--text4);margin-bottom:8px;border-bottom:1px solid var(--sec-border);padding-bottom:4px;text-transform:uppercase;font-weight:600;}
+.btn{background:transparent;border:1px solid var(--border2);color:var(--text2);padding:6px 12px;border-radius:4px;cursor:pointer;font-family:'Courier New',monospace;font-size:14px;transition:all .15s;}
+.btn:hover{border-color:var(--text5);color:var(--text);}
+.btn.on{border-color:var(--btn-on-border);color:var(--btn-on-color);background:var(--btn-on-bg);}
+.btn-del{border-color:var(--del-border);color:var(--del-color);}
+.btn-del:hover{border-color:var(--del-hover-b);color:var(--del-hover-c);}
+.btn-full{width:100%;margin-bottom:4px;text-align:center;display:block;}
+select,input[type=number]{background:var(--inp-bg);border:1px solid var(--border2);color:var(--text);padding:6px 10px;border-radius:4px;font-family:'Courier New',monospace;font-size:14px;width:100%;margin-bottom:6px;transition:background .4s,color .4s,border-color .4s;}
+.lbl{font-size:13px;color:var(--lbl-col);display:block;margin-bottom:3px;font-weight:500;}
+.row2{display:flex;gap:5px;}
+.row2 .btn{flex:1;font-size:13px;padding:6px 4px;text-align:center;}
+.citem{background:var(--item-bg);border:1px solid var(--border3);border-radius:4px;padding:7px 10px;margin-bottom:4px;display:flex;align-items:center;justify-content:space-between;font-size:13px;gap:5px;transition:background .4s,border-color .4s;}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.hud{position:absolute;bottom:12px;left:14px;font-size:14px;color:var(--hud-col);line-height:2;pointer-events:none;}
+.vbtns{display:flex;gap:5px;}
+.vbtns .btn{font-size:13px;padding:6px 13px;}
+input[type=range]{width:100%;accent-color:#3aa0c0;margin:2px 0 5px;}
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-track{background:var(--scroll-bg);}
+::-webkit-scrollbar-thumb{background:var(--scroll-th);border-radius:2px;}
+.cgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;}
+.cgrid2{display:grid;grid-template-columns:1fr 1fr;gap:4px;}
+.cgrid label,.cgrid2 label{font-size:12px;color:var(--lbl-col);margin-bottom:2px;}
+
+/* ══════════════════════════════════════════════════════
+   RESPONSIVE — cualquier dispositivo
+══════════════════════════════════════════════════════ */
+
+/* Handle bar (oculto en desktop) */
+#panel-handle{display:none;}
+
+/* Panel toggle FAB (oculto en desktop) */
+#panel-toggle{
+  display:none;
+  position:fixed;
+  bottom:20px;right:16px;
+  z-index:999;
+  background:var(--btn-on-border);
+  color:#fff;
+  border:none;
+  border-radius:50%;
+  width:48px;height:48px;
+  font-size:20px;
+  cursor:pointer;
+  box-shadow:0 3px 14px rgba(0,0,0,.4);
+  align-items:center;justify-content:center;
+  transition:background .2s,transform .15s;
+  touch-action:manipulation;
+}
+#panel-toggle:hover{background:var(--text5);}
+#panel-toggle:active{transform:scale(.92);}
+
+/* ── Tablet landscape (901–1100px) ── */
+@media (max-width:1100px){
+  #panel{width:210px;}
+  header h1{font-size:15px;letter-spacing:.1em;}
+}
+
+/* ── Tablet portrait / phone landscape (≤768px) ── */
+@media (max-width:768px){
+  /* Header: apila título arriba, botones abajo */
+  header{
+    flex-direction:column;
+    align-items:flex-start;
+    gap:6px;
+    padding:8px 12px 6px;
+  }
+  header h1{font-size:15px;letter-spacing:.09em;}
+  #medium-badge{font-size:10px !important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+  .vbtns{
+    display:flex;
+    flex-wrap:wrap;
+    gap:4px;
+    width:100%;
+  }
+  .vbtns .btn{font-size:13px;padding:6px 11px;flex:1 1 auto;text-align:center;min-width:76px;}
+
+  /* Canvas ocupa toda la zona principal */
+  #main{flex-direction:row;position:relative;}
+  #viewport{flex:1;}
+
+  /* Panel: drawer desde la derecha */
+  #panel{
+    position:fixed;
+    top:0;right:0;bottom:0;
+    width:260px !important;
+    border-left:2px solid var(--border);
+    border-top:none;
+    border-radius:0;
+    transform:translateX(110%);
+    transition:transform .28s ease;
+    z-index:600;
+    box-shadow:-4px 0 24px rgba(0,0,0,.35);
+    overflow-y:auto;
+  }
+  #panel.open{transform:translateX(0);}
+
+  /* Handle bar visible como franja en el panel */
+  #panel-handle{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:10px 14px 6px;
+    cursor:pointer;
+    flex-shrink:0;
+    border-bottom:1px solid var(--sec-border);
+    font-size:11px;
+    color:var(--text4);
+    letter-spacing:.1em;
+  }
+  #panel-handle::before{content:'CONTROLES';}
+  #panel-handle::after{content:'✕';font-size:14px;color:var(--text2);}
+
+  /* FAB visible */
+  #panel-toggle{display:flex;}
+
+  /* HUD más pequeño */
+  .hud{font-size:10px;bottom:70px;left:10px;}
+
+  /* Quitar panel-scroll padding extra */
+  #panel-scroll{padding:10px 12px;}
+}
+
+/* ── Teléfono portrait (≤480px) ── */
+@media (max-width:480px){
+  header h1{font-size:14px;letter-spacing:.06em;}
+  #medium-badge{font-size:11px !important;}
+  .vbtns .btn{font-size:12px;padding:5px 8px;min-width:66px;}
+  #panel{width:88vw !important;}
+  .sec-title{font-size:12px;}
+  .btn{font-size:13px;padding:6px 9px;}
+  .lbl{font-size:12px;}
+  select,input[type=number]{font-size:13px;padding:5px 9px;}
+  .hud{font-size:9px;bottom:75px;}
+}
+
+/* ── Teléfono muy pequeño (≤360px) ── */
+@media (max-width:360px){
+  header h1{font-size:13px;}
+  .vbtns .btn{font-size:11px;padding:5px 7px;min-width:58px;}
+  #panel{width:94vw !important;}
+}
+
+/* Overlay oscuro al abrir panel en móvil */
+#panel-overlay{
+  display:none;
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.35);
+  z-index:599;
+}
+#panel-overlay.show{display:block;}
+
+/* ── Botones especiales con hover de color ── */
+/* ── Botón Cambiar Medio: azul destacado ── */
+.btn-medium{
+  margin-top:6px;
+  padding:9px 12px;
+  font-size:14px;
+  font-weight:700;
+  letter-spacing:.06em;
+  border:2px solid #2255cc;
+  color:#fff;
+  background:linear-gradient(135deg,#2255cc,#3a7aee);
+  border-radius:6px;
+  box-shadow:0 3px 10px rgba(34,85,204,.45);
+  transition:background .2s, box-shadow .2s, transform .12s;
+}
+.btn-medium:hover{
+  background:linear-gradient(135deg,#1a44bb,#2d66dd);
+  box-shadow:0 5px 16px rgba(34,85,204,.65);
+  color:#fff;
+  border-color:#1a44bb;
+  transform:translateY(-1px);
+}
+.btn-medium:active{transform:translateY(0);box-shadow:0 2px 6px rgba(34,85,204,.4);}
+
+/* ── Botón Agregar Fuente: verde destacado ── */
+.btn-add{
+  padding:9px 12px;
+  font-size:14px;
+  font-weight:700;
+  letter-spacing:.06em;
+  border:2px solid #18a050;
+  color:#fff;
+  background:linear-gradient(135deg,#18a050,#22cc66);
+  border-radius:6px;
+  box-shadow:0 3px 10px rgba(24,160,80,.45);
+  transition:background .2s, box-shadow .2s, transform .12s;
+}
+.btn-add:hover{
+  background:linear-gradient(135deg,#128840,#1ab858);
+  box-shadow:0 5px 16px rgba(24,160,80,.65);
+  color:#fff;
+  border-color:#128840;
+  transform:translateY(-1px);
+}
+.btn-add:active{transform:translateY(0);box-shadow:0 2px 6px rgba(24,160,80,.4);}
+
+/* ══ MODOS DE PRÁCTICA ══════════════════════════════════════════════ */
+#mode-tabs{
+  display:flex;gap:2px;padding:6px 10px 0;
+  background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;
+}
+.mode-tab{
+  flex:1;font-family:'Courier New',monospace;font-size:10px;font-weight:700;
+  letter-spacing:.06em;padding:5px 2px;border:none;border-radius:4px 4px 0 0;
+  cursor:pointer;background:rgba(255,255,255,.05);color:var(--text4);
+  transition:background .15s,color .15s;text-align:center;
+}
+.mode-tab.active{background:var(--accent,#1a5276);color:#fff;}
+.mode-tab:hover:not(.active){background:rgba(255,255,255,.1);color:var(--text);}
+
+/* Panel de práctica (se muestra en modos A/B/C) */
+#practica-panel{
+  display:none;flex-direction:column;gap:0;
+  padding:10px 12px 12px;overflow-y:auto;flex:1;
+}
+#practica-panel.visible{display:flex;}
+#panel-scroll.hidden{display:none;}
+
+.pr-sec-title{
+  font-size:11px;letter-spacing:.14em;font-weight:700;
+  color:var(--text4);text-transform:uppercase;
+  border-bottom:1px solid var(--sec-border);padding-bottom:3px;margin-bottom:8px;margin-top:10px;
+}
+.pr-sec-title:first-child{margin-top:0;}
+.pr-info-row{
+  display:grid;grid-template-columns:1fr 1fr;gap:4px 8px;margin-bottom:8px;
+}
+.pr-info-item label{
+  font-size:9px;letter-spacing:.1em;color:var(--text4);text-transform:uppercase;display:block;margin-bottom:1px;
+}
+.pr-info-item span{
+  font-size:11px;color:var(--text);font-weight:600;display:block;
+  background:rgba(0,0,0,.2);padding:2px 5px;border-radius:3px;
+}
+
+/* Tabla de datos */
+.pr-table{width:100%;border-collapse:collapse;font-size:10px;margin:6px 0;}
+.pr-table th{
+  background:rgba(0,0,0,.35);color:var(--text4);
+  padding:4px 5px;text-align:center;font-family:'Courier New',monospace;
+  font-size:9px;letter-spacing:.06em;border:1px solid var(--border);
+}
+.pr-table td{
+  padding:3px 5px;border:1px solid var(--border);
+  text-align:center;color:var(--text);font-family:'Courier New',monospace;font-size:10px;
+}
+.pr-table tr:nth-child(even) td{background:rgba(255,255,255,.03);}
+.pr-table td.pos{color:#ff9955;}
+.pr-table td.neg{color:#66bbff;}
+
+/* Botones de práctica */
+.pr-btn{
+  width:100%;margin-top:5px;padding:7px 8px;
+  font-family:'Courier New',monospace;font-size:11px;font-weight:700;
+  border:none;border-radius:5px;cursor:pointer;
+  transition:background .2s,transform .1s;text-align:center;
+}
+.pr-btn:active{transform:scale(.97);}
+.pr-btn-gen{background:linear-gradient(135deg,#1a5276,#2980b9);color:#fff;}
+.pr-btn-gen:hover{background:linear-gradient(135deg,#1a3d5c,#1f6fa0);}
+.pr-btn-csv{background:linear-gradient(135deg,#1e6a30,#27ae60);color:#fff;}
+.pr-btn-csv:hover{background:linear-gradient(135deg,#145224,#1e8a4a);}
+.pr-btn-cap{background:linear-gradient(135deg,#7d3c98,#9b59b6);color:#fff;}
+.pr-btn-cap:hover{background:linear-gradient(135deg,#5d2e72,#7a4494);}
+.pr-rango{
+  display:flex;gap:5px;align-items:center;margin:5px 0;
+}
+.pr-rango label{font-size:10px;color:var(--text4);white-space:nowrap;min-width:28px;}
+.pr-rango input{
+  flex:1;background:rgba(0,0,0,.3);border:1px solid var(--border);
+  color:var(--text);font-family:'Courier New',monospace;font-size:11px;
+  padding:3px 6px;border-radius:3px;text-align:center;outline:none;
+}
+.pr-status{
+  font-size:10px;color:var(--text4);text-align:center;
+  padding:4px;font-style:italic;min-height:18px;
+}
+
+</style>
+</head>
+<body class="day">
+<div id="panel-overlay" onclick="togglePanel()"></div>
+
+<header>
+  <div style="display:flex;flex-direction:column;gap:3px;">
+    <h1>⚡ SIMULADOR 3D — CAMPO ELÉCTRICO & EQUIPOTENCIALES</h1>
+    <div id="medium-badge" style="font-size:13px;letter-spacing:.1em;color:var(--text4);padding-left:1px;">🌌 <b style='color:var(--h1)'>Vacío / Aire</b> &nbsp;·&nbsp; <span style='color:var(--text)'>εᵣ = 1.00 · Campo máximo, sin atenuación</span></div>
+  </div>
+  <div class="vbtns">
+    <button class="btn" id="btn-daynight" onclick="toggleDayNight()" style="font-size:11px;padding:3px 10px;">☀️ Día</button>
+    <button class="btn" onclick="resetView()" title="Reiniciar vista 3D" style="font-size:11px;padding:3px 10px;">🔄 Reiniciar Vista</button>
+    <button class="btn on" id="btn-3d"   onclick="setView('3d')">3D Libre</button>
+    <button class="btn"    id="btn-top"  onclick="setView('top')">Vista Superior</button>
+    <button class="btn"    id="btn-side" onclick="setView('side')">Vista Lateral</button>
+    <button class="btn"    id="btn-front"onclick="setView('front')">Vista Frontal</button>
+  </div>
+</header>
+
+<div id="main">
+  <div id="viewport"><canvas id="c"></canvas></div>
+
+  <div id="panel">
+  <div id="mode-tabs">
+    <button class="mode-tab active" id="tab-open"   onclick="switchMode('open')">🔬 Libre</button>
+    <button class="mode-tab"        id="tab-pA"     onclick="switchMode('pA')">⊕ Parte A</button>
+    <button class="mode-tab"        id="tab-pB"     onclick="switchMode('pB')">╿ Parte B</button>
+    <button class="mode-tab"        id="tab-pC"     onclick="switchMode('pC')">▬ Parte C</button>
+  </div>
+    <div id="panel-handle" onclick="togglePanel()" role="button" aria-label="Cerrar panel"></div>
+    <div id="panel-scroll">
+
+      <!-- CAPAS -->
+      <div class="sec">
+        <div class="sec-title">Capas Visuales</div>
+        <div class="row2" style="margin-bottom:5px;">
+          <button class="btn on" id="tog-slices" onclick="tog('slices')">Planos V</button>
+          <button class="btn on" id="tog-equip"  onclick="tog('equip')">Equipot.</button>
+          <button class="btn on" id="tog-field"  onclick="tog('field')">Campo E</button>
+        </div>
+        <div class="row2" style="margin-bottom:8px;">
+          <button class="btn on" id="tog-grid"   onclick="tog('grid')">Grilla</button>
+          <button class="btn on" id="tog-axes"   onclick="tog('axes')">Ejes</button>
+        </div>
+        <span class="lbl">Planos de corte: <b id="sv">5</b></span>
+        <input type="range" min="1" max="9" value="5" oninput="setSlices(+this.value)">
+        <span class="lbl">Líneas equipotenciales: <b id="lv">8</b></span>
+        <input type="range" min="3" max="18" value="8" oninput="setLevels(+this.value)">
+        <span class="lbl">Opacidad planos: <b id="ov">70</b>%</span>
+        <input type="range" min="10" max="100" value="70" oninput="setOpacity(+this.value)">
+        <button class="btn btn-full btn-medium" onclick="pickRandomMedium();rebuild();">🎲 Cambiar Medio Aleatorio</button>
+        <select id="medium-select" onchange="selectMedium(+this.value)" style="margin-top:4px;">
+          <option value="0">🌌 Vacío / Aire (εᵣ=1)</option>
+          <option value="1">🛢️ Aceite Silicona (εᵣ=2.5)</option>
+          <option value="2">🔬 Vidrio / Cuarzo (εᵣ=7)</option>
+          <option value="3">⚫ Goma / Caucho (εᵣ=4)</option>
+          <option value="4">💧 Agua Pura (εᵣ=80)</option>
+        </select>
+      </div>
+
+      <!-- AÑADIR FUENTE -->
+      <div class="sec">
+        <div class="sec-title">Añadir Fuente de Campo</div>
+        <span class="lbl">Tipo de fuente</span>
+        <select id="ctype" onchange="uiType()">
+          <option value="point">⦿ Carga Puntual</option>
+          <option value="line">╿ Carga Lineal (eje Y)</option>
+          <option value="plane">▬ Plano Cargado (YZ)</option>
+        </select>
+        <span class="lbl">Signo / polaridad</span>
+        <select id="csign" style="margin-bottom:6px;">
+          <option value="1">⊕ Positiva</option>
+          <option value="-1">⊖ Negativa</option>
+        </select>
+
+        <div id="ui-point">
+          <span class="lbl">Posición (X, Y, Z)</span>
+          <div class="cgrid" style="margin-bottom:5px;">
+            <div><label>X</label><input type="number" id="px" value="0" step=".5" min="-4" max="4"></div>
+            <div><label>Y</label><input type="number" id="py" value="0" step=".5" min="-3" max="3"></div>
+            <div><label>Z</label><input type="number" id="pz" value="0" step=".5" min="-4" max="4"></div>
+          </div>
+        </div>
+
+        <div id="ui-line" style="display:none;">
+          <span class="lbl">Posición (X, Z) — se extiende en Y</span>
+          <div class="cgrid2" style="margin-bottom:5px;">
+            <div><label>X</label><input type="number" id="lx" value="0" step=".5"></div>
+            <div><label>Z</label><input type="number" id="lz" value="0" step=".5"></div>
+          </div>
+        </div>
+
+        <div id="ui-plane" style="display:none;">
+          <span class="lbl">Posición X del plano (YZ)</span>
+          <input type="number" id="plane-x" value="0" step=".5" min="-4" max="4">
+        </div>
+
+        <button class="btn btn-full btn-add" onclick="addCharge()">+ AGREGAR FUENTE</button>
+      </div>
+
+      <!-- LISTA FUENTES -->
+      <div class="sec">
+        <div class="sec-title">Fuentes Activas</div>
+        <div id="clist"></div>
+        <button class="btn btn-full" style="margin-top:6px;" onclick="resetDipole()">⟳ Dipolo estándar</button>
+        <button class="btn btn-full" onclick="setScene('quad')">⊞ Cuadrupolo</button>
+        <button class="btn btn-full" onclick="setScene('linePlane')">╿ + ▬ Línea & Plano</button>
+        <button class="btn btn-full" style="margin-top:10px;background:linear-gradient(135deg,#7d3c98,#9b59b6);color:#fff;font-weight:700;" onclick="capturarLibre()">📸 Capturar Vista</button>
+      </div>
+
+    </div>
+
+    <!-- ══ PRÁCTICA PANEL ══════════════════════════════════════════ -->
+    <div id="practica-panel">
+      <div id="pr-content"><!-- filled by JS --></div>
+    </div>
+
+    <!-- ESCALA DE COLOR -->
+    <div style="padding:7px 10px;border-top:1px solid #061828;flex-shrink:0;">
+      <div style="font-size:8px;color:var(--text4);margin-bottom:3px;letter-spacing:.12em;">POTENCIAL ELÉCTRICO V</div>
+      <div style="display:flex;align-items:center;gap:6px;font-size:8px;">
+        <span style="color:#5a8fff;">−V</span>
+        <div style="flex:1;height:5px;border-radius:3px;background:linear-gradient(to right,#001478,#0050ff,#00d0c8,#d0c800,#ff6400,#ff0000);border:1px solid #061828;"></div>
+        <span style="color:#ff5a5a;">+V</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="hud" id="hud">Arrastra para rotar · Scroll para zoom</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ══════════════════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════════════════
+const DOM = 5;       // world domain [-DOM, DOM]
+const RES = 200;     // slice texture resolution
+const K0  = 1.0;     // base constant (vacuum)
+let K     = 1.0;     // effective K = K0 / eps_r
+let N_SLICES = 5;
+let N_LEVELS = 8;
+let OPACITY  = 0.70;
+
+// ══════════════════════════════════════════════════════
+// DIELECTRIC MEDIA
+// ══════════════════════════════════════════════════════
+const MEDIA = [
+  { name: 'Vacío / Aire',      eps: 1.0,  color: '#010c1a', fog: 0x010c1a, desc: 'εᵣ = 1.00 · Campo máximo, sin atenuación',          icon: '🌌' },
+  { name: 'Aceite de Silicona', eps: 2.5,  color: '#0a0e06', fog: 0x0a1008, desc: 'εᵣ = 2.50 · Aislante líquido común en capacitores', icon: '🛢️' },
+  { name: 'Vidrio / Cuarzo',   eps: 7.0,  color: '#06080d', fog: 0x080c14, desc: 'εᵣ = 7.00 · Sustrato en circuitos integrados',      icon: '🔬' },
+  { name: 'Goma / Caucho',     eps: 4.0,  color: '#080808', fog: 0x060606, desc: 'εᵣ = 4.00 · Aislante en cables eléctricos',         icon: '⚫' },
+  { name: 'Agua Pura',         eps: 80.0, color: '#00080f', fog: 0x000c18, desc: 'εᵣ = 80.0 · Campo muy atenuado — ¡notar diferencia!', icon: '💧' },
+];
+let currentMedium = MEDIA[0];
+
+function pickRandomMedium(){
+  const m = MEDIA[Math.floor(Math.random()*MEDIA.length)];
+  currentMedium = m;
+  K = K0 / m.eps;
+  // Update background tint
+  if(typeof renderer !== 'undefined') renderer.setClearColor(isDayMode ? 0xd0e8f5 : m.fog);
+  document.body.style.background = `linear-gradient(135deg, ${m.color} 0%, #020f22 100%)`;
+  // Update the medium display badge
+  const el = document.getElementById('medium-badge');
+  if(el){
+    el.innerHTML = `${m.icon} <b style="color:#88d8f0">${m.name}</b> &nbsp;·&nbsp; <span style="color:#5ab0cc">${m.desc}</span>`;
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════
+let charges = [
+  {id:0, type:'point', q:1,  x:-2, y:0, z:0},
+  {id:1, type:'point', q:-1, x:2,  y:0, z:0},
+];
+let nextId = 2;
+let L = {slices:true, equip:true, field:true, grid:true, axes:true};
+let viewMode = '3d';
+
+// ══════════════════════════════════════════════════════
+// THREE.JS INIT
+// ══════════════════════════════════════════════════════
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({canvas, antialias:true, preserveDrawingBuffer:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+renderer.setClearColor(0xd0e8f5);
+renderer.sortObjects = true;
+
+const scene = new THREE.Scene();
+
+// Cameras
+const camP = new THREE.PerspectiveCamera(52, 1, .05, 200);
+camP.position.set(8, 7, 10);
+camP.lookAt(0,0,0);
+
+function makeOrtho(){
+  const c = new THREE.OrthographicCamera(-DOM*1.3, DOM*1.3, DOM*1.3, -DOM*1.3, .05, 200);
+  return c;
+}
+const camTop   = makeOrtho(); camTop.position.set(0,25,0);   camTop.lookAt(0,0,0);
+const camSide  = makeOrtho(); camSide.position.set(0,0,25);  camSide.lookAt(0,0,0);
+const camFront = makeOrtho(); camFront.position.set(25,0,0); camFront.lookAt(0,0,0);
+
+let activeCam = camP;
+
+scene.add(new THREE.AmbientLight(0x223344, 1.0));
+const dl = new THREE.DirectionalLight(0xaaccff, 0.5);
+dl.position.set(5,10,5);
+scene.add(dl);
+
+// Groups
+const G = {};
+['slices','field','charges','grid','axes'].forEach(n=>{G[n]=new THREE.Group(); scene.add(G[n]);});
+
+// ══════════════════════════════════════════════════════
+// PHYSICS
+// ══════════════════════════════════════════════════════
+function getV(x,y,z){
+  let v=0;
+  for(const c of charges){
+    if(c.type==='point'){
+      const r=Math.sqrt((x-c.x)**2+(y-c.y)**2+(z-c.z)**2);
+      if(r<.12) return Infinity*Math.sign(c.q);
+      v += K*c.q/r;
+    } else if(c.type==='line'){
+      const rho=Math.sqrt((x-c.x)**2+(z-c.z)**2);
+      if(rho<.12) return Infinity*Math.sign(c.q);
+      v += -K*c.q*1.4*Math.log(rho/1.0);
+    } else if(c.type==='plane'){
+      v += -K*c.q*0.7*Math.abs(x-c.x);
+    }
+  }
+  return v;
+}
+
+function getE(x,y,z){
+  let ex=0,ey=0,ez=0;
+  for(const c of charges){
+    if(c.type==='point'){
+      const dx=x-c.x,dy=y-c.y,dz=z-c.z;
+      const r2=dx*dx+dy*dy+dz*dz;
+      if(r2<.02) continue;
+      const f=K*c.q/(r2*Math.sqrt(r2));
+      ex+=f*dx; ey+=f*dy; ez+=f*dz;
+    } else if(c.type==='line'){
+      const dx=x-c.x,dz=z-c.z;
+      const rho2=dx*dx+dz*dz;
+      if(rho2<.02) continue;
+      const f=K*c.q*1.4/rho2;
+      ex+=f*dx; ez+=f*dz;
+    } else if(c.type==='plane'){
+      const sgn=x>c.x?1:-1;
+      ex+=K*c.q*0.7*sgn;
+    }
+  }
+  return [ex,ey,ez];
+}
+
+// ══════════════════════════════════════════════════════
+// COLOR MAP
+// ══════════════════════════════════════════════════════
+function mapRGB(t){
+  t=Math.max(0,Math.min(1,t));
+  if(t<.2) {const s=t/.2;        return [0,        s*80,      120+s*135];}
+  if(t<.42){const s=(t-.2)/.22;  return [0,         80+s*175, 255];}
+  if(t<.55){const s=(t-.42)/.13; return [s*160,     255,      255-s*255];}
+  if(t<.78){const s=(t-.55)/.23; return [160+s*95,  255-s*90, 0];}
+  const s=(t-.78)/.22;
+  return [255, 165-s*165, 0];
+}
+
+// ══════════════════════════════════════════════════════
+// MARCHING SQUARES
+// ══════════════════════════════════════════════════════
+function msSegs(A,B,C,D,lev,x0,y0){
+  const a=A>=lev,b=B>=lev,c=C>=lev,d=D>=lev;
+  const idx=(a?1:0)|(b?2:0)|(c?4:0)|(d?8:0);
+  if(idx===0||idx===15) return [];
+  const li=(va,vb,xa,xb)=>xa+(lev-va)/(vb-va+1e-12)*(xb-xa);
+  const top   =a!==b?[li(A,B,x0,x0+1),y0]:null;
+  const rgt   =b!==c?[x0+1,li(B,C,y0,y0+1)]:null;
+  const bot   =d!==c?[li(D,C,x0,x0+1),y0+1]:null;
+  const lft   =a!==d?[x0,li(A,D,y0,y0+1)]:null;
+  const pts=[top,rgt,bot,lft].filter(Boolean);
+  if(pts.length===2) return [pts];
+  if(pts.length===4){
+    const m=(A+B+C+D)/4;
+    return m>=lev?[[top,lft],[rgt,bot]]:[[top,rgt],[lft,bot]];
+  }
+  return [];
+}
+
+// ══════════════════════════════════════════════════════
+// BUILD SLICES
+// ══════════════════════════════════════════════════════
+function clearGroup(g){while(g.children.length){const c=g.children[0];if(c.geometry)c.geometry.dispose();if(c.material){if(c.material.map)c.material.map.dispose();c.material.dispose();}g.remove(c);}}
+
+function buildSlices(){
+  clearGroup(G.slices);
+  if(!L.slices&&!L.equip) return;
+
+  // Compute vmax from a sample grid
+  let vm=0;
+  for(let i=0;i<=6;i++)for(let j=0;j<=6;j++)for(let k=0;k<=6;k++){
+    const v=getV(-DOM+i*DOM/3,-DOM+j*DOM/3,-DOM+k*DOM/3);
+    if(isFinite(v)&&Math.abs(v)>vm) vm=Math.abs(v);
+  }
+  vm=Math.max(0.5, Math.min(vm, 5));
+
+  const ys=[];
+  for(let i=0;i<N_SLICES;i++) ys.push(-DOM*.85+(i/Math.max(N_SLICES-1,1))*DOM*1.7);
+
+  for(const sy of ys){
+    const tc=document.createElement('canvas'); tc.width=RES; tc.height=RES;
+    const ctx=tc.getContext('2d');
+    const img=ctx.createImageData(RES,RES);
+    const dd=img.data;
+    const vg=new Float32Array(RES*RES);
+
+    for(let j=0;j<RES;j++)for(let i=0;i<RES;i++){
+      const wx=-DOM+(i/(RES-1))*2*DOM;
+      const wz=-DOM+(j/(RES-1))*2*DOM;
+      let v=getV(wx,sy,wz);
+      vg[j*RES+i]=v;
+      if(!isFinite(v)) v=0;
+      v=Math.max(-vm,Math.min(vm,v));
+      const t=(v+vm)/(2*vm);
+      const [r,g,b]=mapRGB(t);
+      const idx=(j*RES+i)*4;
+      dd[idx]=r;dd[idx+1]=g;dd[idx+2]=b;dd[idx+3]=L.slices?Math.round(OPACITY*255):0;
+    }
+    ctx.putImageData(img,0,0);
+
+    // Draw equipotential lines on canvas
+    if(L.equip){
+      for(let lv=1;lv<=N_LEVELS;lv++){
+        const lev=-vm+(lv/(N_LEVELS+1))*2*vm;
+        const nr=Math.abs(lev)/(vm+1e-9);
+        ctx.strokeStyle=lev>0
+          ?`rgba(255,${Math.round(200-nr*160)},${Math.round(80-nr*80)},0.98)`
+          :`rgba(${Math.round(80-nr*60)},${Math.round(200-nr*150)},255,0.98)`;
+        ctx.lineWidth=2.8;
+        ctx.beginPath();
+        for(let j=0;j<RES-1;j++)for(let i=0;i<RES-1;i++){
+          const A=vg[j*RES+i],B=vg[j*RES+i+1],C=vg[(j+1)*RES+i+1],D=vg[(j+1)*RES+i];
+          if(!isFinite(A)||!isFinite(B)||!isFinite(C)||!isFinite(D)) continue;
+          for(const [p1,p2] of msSegs(A,B,C,D,lev,i,j)){
+            ctx.moveTo(p1[0],p1[1]); ctx.lineTo(p2[0],p2[1]);
+          }
+        }
+        ctx.stroke();
+      }
+    }
+
+    const tex=new THREE.CanvasTexture(tc);
+    tex.needsUpdate=true;
+    const geo=new THREE.PlaneGeometry(DOM*2, DOM*2);
+    const mat=new THREE.MeshBasicMaterial({map:tex,transparent:true,opacity:1,side:THREE.DoubleSide,depthWrite:false});
+    const mesh=new THREE.Mesh(geo,mat);
+    mesh.rotation.x=-Math.PI/2;
+    mesh.position.y=sy;
+    G.slices.add(mesh);
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// BUILD FIELD LINES
+// ══════════════════════════════════════════════════════
+function buildField(){
+  clearGroup(G.field);
+  if(!L.field) return;
+
+  // lines: {pts, col} — col is a THREE color hex
+  const posLines=[];  // from + charges → red/orange
+  const negLines=[];  // into − charges → blue
+
+  // ── Positive point charges: lines go OUT ──────────────
+  for(const c of charges.filter(ch=>ch.type==='point'&&ch.q>0)){
+    const N=18;
+    for(let i=0;i<N;i++){
+      const theta=Math.acos(-1+(2*i+1)/N);
+      const phi=Math.PI*(1+Math.sqrt(5))*i;
+      let x=c.x+Math.sin(theta)*Math.cos(phi)*.32;
+      let y=c.y+Math.cos(theta)*.32;
+      let z=c.z+Math.sin(theta)*Math.sin(phi)*.32;
+      const pts=[[x,y,z]];
+      for(let s=0;s<400;s++){
+        if(Math.abs(x)>DOM*1.4||Math.abs(y)>DOM*1.4||Math.abs(z)>DOM*1.4) break;
+        let hit=false;
+        for(const cc of charges) if(cc.type==='point'&&cc.q<0&&(x-cc.x)**2+(y-cc.y)**2+(z-cc.z)**2<.22){hit=true;break;}
+        if(hit){pts.push([x,y,z]);break;}
+        const [ex,ey,ez]=getE(x,y,z);
+        const m=Math.sqrt(ex*ex+ey*ey+ez*ez);
+        if(m<1e-8) break;
+        x+=ex/m*.1; y+=ey/m*.1; z+=ez/m*.1;
+        pts.push([x,y,z]);
+      }
+      if(pts.length>3) posLines.push(pts);
+    }
+  }
+
+  // ── Negative point charges: lines come IN (trace backwards) ──
+  for(const c of charges.filter(ch=>ch.type==='point'&&ch.q<0)){
+    const N=18;
+    for(let i=0;i<N;i++){
+      const theta=Math.acos(-1+(2*i+1)/N);
+      const phi=Math.PI*(1+Math.sqrt(5))*i;
+      // Start just outside the charge, trace AGAINST E (backwards)
+      let x=c.x+Math.sin(theta)*Math.cos(phi)*.32;
+      let y=c.y+Math.cos(theta)*.32;
+      let z=c.z+Math.sin(theta)*Math.sin(phi)*.32;
+      const pts=[[x,y,z]];
+      for(let s=0;s<400;s++){
+        if(Math.abs(x)>DOM*1.4||Math.abs(y)>DOM*1.4||Math.abs(z)>DOM*1.4) break;
+        let hit=false;
+        for(const cc of charges) if(cc.type==='point'&&cc.q>0&&(x-cc.x)**2+(y-cc.y)**2+(z-cc.z)**2<.22){hit=true;break;}
+        if(hit){pts.push([x,y,z]);break;}
+        const [ex,ey,ez]=getE(x,y,z);
+        const m=Math.sqrt(ex*ex+ey*ey+ez*ez);
+        if(m<1e-8) break;
+        // Go AGAINST field direction (into negative charge)
+        x-=ex/m*.1; y-=ey/m*.1; z-=ez/m*.1;
+        pts.push([x,y,z]);
+      }
+      // Reverse so pts go FROM outside → INTO charge
+      if(pts.length>3) negLines.push(pts.reverse());
+    }
+  }
+
+  // ── Line charges: dense radial fan at multiple Y heights ──
+  const N_LINE_PHI  = 20;  // angular divisions around the cylinder
+  const LINE_Y_VALS = [-DOM*.8,-DOM*.5,-DOM*.25,0,DOM*.25,DOM*.5,DOM*.8];
+
+  // Positive line charges: lines go OUT radially
+  for(const c of charges.filter(ch=>ch.type==='line'&&ch.q>0)){
+    for(let i=0;i<N_LINE_PHI;i++){
+      const phi=(i/N_LINE_PHI)*Math.PI*2;
+      for(const startY of LINE_Y_VALS){
+        let x=c.x+Math.cos(phi)*.25, y=startY, z=c.z+Math.sin(phi)*.25;
+        const pts=[[c.x,startY,c.z],[x,y,z]];
+        for(let s=0;s<600;s++){
+          if(Math.abs(x)>DOM*1.6||Math.abs(z)>DOM*1.6) break;
+          let hit=false;
+          for(const cc of charges) if(cc.type==='line'&&cc.q<0&&(x-cc.x)**2+(z-cc.z)**2<.12){hit=true;break;}
+          if(hit){pts.push([x,y,z]);break;}
+          const [ex,ey,ez]=getE(x,y,z);
+          const m=Math.sqrt(ex*ex+ey*ey+ez*ez);
+          if(m<1e-8) break;
+          x+=ex/m*.09; y+=ey/m*.09; z+=ez/m*.09;
+          pts.push([x,y,z]);
+        }
+        if(pts.length>3) posLines.push(pts);
+      }
+    }
+  }
+
+  // Negative line charges: lines come IN radially (trace backwards)
+  for(const c of charges.filter(ch=>ch.type==='line'&&ch.q<0)){
+    for(let i=0;i<N_LINE_PHI;i++){
+      const phi=(i/N_LINE_PHI)*Math.PI*2;
+      for(const startY of LINE_Y_VALS){
+        let x=c.x+Math.cos(phi)*.25, y=startY, z=c.z+Math.sin(phi)*.25;
+        const pts=[[x,y,z]];
+        for(let s=0;s<600;s++){
+          if(Math.abs(x)>DOM*1.6||Math.abs(z)>DOM*1.6) break;
+          let hit=false;
+          for(const cc of charges) if(cc.type==='line'&&cc.q>0&&(x-cc.x)**2+(z-cc.z)**2<.12){hit=true;break;}
+          if(hit){pts.push([x,y,z]);break;}
+          const [ex,ey,ez]=getE(x,y,z);
+          const m=Math.sqrt(ex*ex+ey*ey+ez*ez);
+          if(m<1e-8) break;
+          x-=ex/m*.09; y-=ey/m*.09; z-=ez/m*.09;
+          pts.push([x,y,z]);
+        }
+        if(pts.length>3) negLines.push(pts.reverse());
+      }
+    }
+  }
+
+  // ── Plane charges: grid of lines from BOTH sides of each plane ──
+  const PLANE_GRID = 7;
+  for(const c of charges.filter(ch=>ch.type==='plane')){
+    const isPos = c.q > 0;
+    // Emit from both sides: +side (x>c.x) and -side (x<c.x)
+    for(const side of [+1, -1]){
+      for(let gi=0;gi<PLANE_GRID;gi++){
+        for(let gj=0;gj<PLANE_GRID;gj++){
+          const wy = -DOM*.75 + (gi/(PLANE_GRID-1))*DOM*1.5;
+          const wz = -DOM*.75 + (gj/(PLANE_GRID-1))*DOM*1.5;
+          let x = c.x + side*0.15, y = wy, z = wz;
+          const pts = [[c.x, wy, wz],[x, y, z]];
+
+          if(isPos){
+            // Positive plane: follow E forward from surface (lines EXIT)
+            for(let s=0;s<550;s++){
+              if(Math.abs(x)>DOM*1.7||Math.abs(y)>DOM*1.6||Math.abs(z)>DOM*1.6) break;
+              let hit=false;
+              for(const cc of charges){
+                if(cc.type==='plane'&&cc.q<0&&Math.abs(x-cc.x)<.15){hit=true;break;}
+                if(cc.type==='point'&&cc.q<0&&(x-cc.x)**2+(y-cc.y)**2+(z-cc.z)**2<.22){hit=true;break;}
+              }
+              if(hit){pts.push([x,y,z]);break;}
+              const [ex,ey,ez]=getE(x,y,z);
+              const m=Math.sqrt(ex*ex+ey*ey+ez*ez);
+              if(m<1e-8) break;
+              x+=ex/m*.09; y+=ey/m*.09; z+=ez/m*.09;
+              pts.push([x,y,z]);
+            }
+            if(pts.length>3) posLines.push(pts);
+          } else {
+            // Negative plane: trace AGAINST E from surface, then reverse (lines ENTER)
+            for(let s=0;s<550;s++){
+              if(Math.abs(x)>DOM*1.7||Math.abs(y)>DOM*1.6||Math.abs(z)>DOM*1.6) break;
+              let hit=false;
+              for(const cc of charges){
+                if(cc.type==='plane'&&cc.q>0&&Math.abs(x-cc.x)<.15){hit=true;break;}
+                if(cc.type==='point'&&cc.q>0&&(x-cc.x)**2+(y-cc.y)**2+(z-cc.z)**2<.22){hit=true;break;}
+              }
+              if(hit){pts.push([x,y,z]);break;}
+              const [ex,ey,ez]=getE(x,y,z);
+              const m=Math.sqrt(ex*ex+ey*ey+ez*ez);
+              if(m<1e-8) break;
+              // Go AGAINST E (toward negative plane)
+              x-=ex/m*.09; y-=ey/m*.09; z-=ez/m*.09;
+              pts.push([x,y,z]);
+            }
+            // Reverse: arrows now point FROM outside INTO the plane
+            if(pts.length>3) negLines.push(pts.reverse());
+          }
+        }
+      }
+    }
+  }
+
+  // ── Build geometries by color ──────────────────────────
+  function buildLineGeo(lineArr, color, opacity){
+    const verts=[];
+    for(const pts of lineArr)
+      for(let i=0;i<pts.length-1;i++) verts.push(...pts[i],...pts[i+1]);
+    if(!verts.length) return;
+    const geo=new THREE.BufferGeometry();
+    geo.setAttribute('position',new THREE.Float32BufferAttribute(verts,3));
+    G.field.add(new THREE.LineSegments(geo,
+      new THREE.LineBasicMaterial({color,transparent:true,opacity})));
+  }
+
+  buildLineGeo(posLines, 0xff6633, .85);   // warm orange-red for + charges
+  buildLineGeo(negLines, 0x44aaff, .85);   // cool blue for − charges
+
+  // ── Arrow cones (mid-point) ────────────────────────────
+  function addArrows(lineArr, color){
+    const mat=new THREE.MeshBasicMaterial({color,transparent:true,opacity:.95});
+    for(const pts of lineArr){
+      if(pts.length<6) continue;
+      // Arrow at ~35% of line length
+      const mi=Math.floor(pts.length*.35);
+      const [ax,ay,az]=pts[mi];
+      const [bx,by,bz]=pts[Math.min(mi+1,pts.length-1)];
+      const dir=new THREE.Vector3(bx-ax,by-ay,bz-az).normalize();
+      const geo=new THREE.ConeGeometry(.09,.28,7);
+      const mesh=new THREE.Mesh(geo,mat.clone());
+      mesh.position.set(ax,ay,az);
+      mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),dir);
+      G.field.add(mesh);
+    }
+  }
+
+  addArrows(posLines, 0xff9955);
+  addArrows(negLines, 0x66bbff);
+}
+
+// ══════════════════════════════════════════════════════
+// BUILD CHARGE OBJECTS
+// ══════════════════════════════════════════════════════
+function buildCharges(){
+  clearGroup(G.charges);
+  for(const c of charges){
+    if(c.type==='point'){
+      const pos=c.q>0;
+      const geo=new THREE.SphereGeometry(.22,24,24);
+      const mat=new THREE.MeshPhongMaterial({
+        color:pos?0xff3333:0x3366ff, emissive:pos?0x661111:0x112244,
+        shininess:90, transparent:true, opacity:.95
+      });
+      const m=new THREE.Mesh(geo,mat);
+      m.position.set(c.x,c.y,c.z);
+      G.charges.add(m);
+      // Glow ring
+      const rg=new THREE.TorusGeometry(.34,.025,8,32);
+      const rm=new THREE.MeshBasicMaterial({color:pos?0xff8888:0x88aaff,transparent:true,opacity:.4});
+      const ring=new THREE.Mesh(rg,rm); ring.position.set(c.x,c.y,c.z);
+      G.charges.add(ring);
+      // Second ring orthogonal
+      const ring2=new THREE.Mesh(rg.clone(),rm.clone());
+      ring2.position.set(c.x,c.y,c.z); ring2.rotation.x=Math.PI/2;
+      G.charges.add(ring2);
+      makeLabel(c.x,c.y+.5,c.z, pos?'+':'−', pos?'#ff8888':'#8899ff');
+
+    } else if(c.type==='line'){
+      const pos=c.q>0;
+      const geo=new THREE.CylinderGeometry(.055,.055,DOM*2,16);
+      const mat=new THREE.MeshPhongMaterial({
+        color:pos?0xff9900:0x00cc88, emissive:pos?0x442200:0x004422,
+        transparent:true, opacity:.85, shininess:60
+      });
+      const m=new THREE.Mesh(geo,mat); m.position.set(c.x,0,c.z);
+      G.charges.add(m);
+      // End caps
+      for(const yy of [-DOM*.99, DOM*.99]){
+        const cg=new THREE.SphereGeometry(.07,12,12);
+        const cm=new THREE.Mesh(cg,mat.clone()); cm.position.set(c.x,yy,c.z);
+        G.charges.add(cm);
+      }
+      makeLabel(c.x, DOM*.95, c.z, pos?'λ+':'λ−', pos?'#ffaa44':'#44ddaa');
+
+    } else if(c.type==='plane'){
+      const pos=c.q>0;
+      // YZ Plane surface — perpendicular to X axis
+      const geo=new THREE.PlaneGeometry(DOM*2,DOM*2,1,1);
+      const mat=new THREE.MeshBasicMaterial({
+        color:pos?0xff5500:0x0088ff, transparent:true, opacity:.1, side:THREE.DoubleSide
+      });
+      const m=new THREE.Mesh(geo,mat);
+      m.rotation.y=Math.PI/2; m.position.x=c.x;
+      G.charges.add(m);
+      // Edge lines
+      const eg=new THREE.EdgesGeometry(geo);
+      const em=new THREE.LineBasicMaterial({color:pos?0xff7700:0x00aaff,transparent:true,opacity:.55});
+      const el=new THREE.LineSegments(eg,em);
+      el.rotation.y=Math.PI/2; el.position.x=c.x;
+      G.charges.add(el);
+      // Arrow normals along X showing field direction
+      const arrowMat=new THREE.MeshBasicMaterial({color:pos?0xff9944:0x44aaff,transparent:true,opacity:.5});
+      for(let ai=-2;ai<=2;ai++) for(let aj=-2;aj<=2;aj++){
+        const cg=new THREE.ConeGeometry(.04,.25,8);
+        const cm=new THREE.Mesh(cg,arrowMat);
+        cm.position.set(c.x+(pos?.3:-.3), ai*1.5, aj*1.5);
+        cm.rotation.z = pos ? -Math.PI/2 : Math.PI/2;
+        G.charges.add(cm);
+      }
+      makeLabel(c.x+(pos?.5:-.5), DOM*.8, DOM*.8, pos?'σ+':'σ−', pos?'#ff8844':'#44aaff');
+    }
+  }
+}
+
+function makeLabel(x,y,z,text,color){
+  const cv=document.createElement('canvas'); cv.width=48; cv.height=28;
+  const ctx=cv.getContext('2d');
+  ctx.fillStyle=color; ctx.font='bold 22px Courier New';
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(text,24,14);
+  const tex=new THREE.CanvasTexture(cv);
+  const m=new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false});
+  const s=new THREE.Sprite(m);
+  s.position.set(x,y,z); s.scale.set(.45,.28,1);
+  G.charges.add(s);
+}
+
+// ══════════════════════════════════════════════════════
+// BUILD GRID & AXES
+// ══════════════════════════════════════════════════════
+function buildGrid(){
+  clearGroup(G.grid); clearGroup(G.axes);
+  if(L.grid){
+    const pts=[];
+    for(let i=-DOM;i<=DOM;i++){
+      pts.push(i,-DOM*.88,-DOM, i,-DOM*.88,DOM);
+      pts.push(-DOM,-DOM*.88,i, DOM,-DOM*.88,i);
+    }
+    const geo=new THREE.BufferGeometry();
+    geo.setAttribute('position',new THREE.Float32BufferAttribute(pts,3));
+    const gridColor = isDayMode ? 0x99cce0 : 0x051828;
+    G.grid.add(new THREE.LineSegments(geo,new THREE.LineBasicMaterial({color:gridColor,opacity:.7,transparent:true})));
+  }
+  if(L.axes){
+    const ax=new THREE.AxesHelper(DOM*1.15);
+    ax.position.y=-DOM*.88;
+    G.axes.add(ax);
+    [['X',DOM*1.25,-DOM*.88,0,'#ff4444'],['Y',0,-DOM*.88+DOM*1.25,0,'#44ff44'],['Z',0,-DOM*.88,DOM*1.25,'#4444ff']].forEach(([t,x,y,z,col])=>{
+      const cv=document.createElement('canvas'); cv.width=32; cv.height=32;
+      const ctx=cv.getContext('2d');
+      ctx.fillStyle=col; ctx.font='bold 20px Courier New';
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(t,16,16);
+      const m=new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),transparent:true,depthTest:false});
+      const s=new THREE.Sprite(m); s.position.set(x,y,z); s.scale.set(.35,.35,1);
+      G.axes.add(s);
+    });
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// REBUILD
+// ══════════════════════════════════════════════════════
+function rebuild(){
+  // Just rebuild visuals with the current medium (no random change here)
+  buildSlices(); buildField(); buildCharges(); buildGrid(); updateList();
+}
+
+// ══════════════════════════════════════════════════════
+// RESIZE
+// ══════════════════════════════════════════════════════
+function resize(){
+  const vp=document.getElementById('viewport');
+  const W=vp.clientWidth, H=vp.clientHeight;
+  renderer.setSize(W,H,false);
+  camP.aspect=W/H; camP.updateProjectionMatrix();
+  const asp=W/H, d=DOM*1.3;
+  [camTop,camSide,camFront].forEach(cam=>{
+    cam.left=-d*asp; cam.right=d*asp; cam.top=d; cam.bottom=-d;
+    cam.updateProjectionMatrix();
+  });
+}
+window.addEventListener('resize',()=>{resize();});
+resize();
+
+// ══════════════════════════════════════════════════════
+// ORBIT CONTROLS
+// ══════════════════════════════════════════════════════
+let dragging=false, mx=0, my=0, lastPinchDist=0;
+let sph={theta:.9, phi:.65, r:15};
+
+function resetView(){
+  sph = {theta:.9, phi:.65, r:15};
+  updateCam();
+  // Also reset orthographic zoom
+  [camTop,camSide,camFront].forEach(cam=>{
+    const asp = canvas.width/canvas.height || 1;
+    const d = DOM*1.3;
+    cam.left=-d*asp; cam.right=d*asp; cam.top=d; cam.bottom=-d;
+    cam.updateProjectionMatrix();
+  });
+  setView('3d');
+}
+
+function updateCam(){
+  camP.position.set(
+    sph.r*Math.sin(sph.phi)*Math.sin(sph.theta),
+    sph.r*Math.cos(sph.phi),
+    sph.r*Math.sin(sph.phi)*Math.cos(sph.theta)
+  );
+  camP.lookAt(0,0,0);
+}
+updateCam();
+
+const vp=document.getElementById('viewport');
+vp.addEventListener('mousedown',e=>{dragging=true;mx=e.clientX;my=e.clientY;});
+vp.addEventListener('touchstart',e=>{
+  if(e.touches.length===1){
+    dragging=true; mx=e.touches[0].clientX; my=e.touches[0].clientY;
+    lastPinchDist=0;
+  } else if(e.touches.length===2){
+    dragging=false;
+    const dx=e.touches[0].clientX-e.touches[1].clientX;
+    const dy=e.touches[0].clientY-e.touches[1].clientY;
+    lastPinchDist=Math.sqrt(dx*dx+dy*dy);
+  }
+},{passive:true});
+window.addEventListener('mouseup',()=>dragging=false);
+window.addEventListener('touchend',e=>{if(e.touches.length===0){dragging=false;lastPinchDist=0;}});
+window.addEventListener('mousemove',e=>{
+  if(!dragging||viewMode!=='3d') return;
+  const dx=e.clientX-mx, dy=e.clientY-my; mx=e.clientX; my=e.clientY;
+  sph.theta-=dx*.008;
+  sph.phi=Math.max(.04,Math.min(Math.PI-.04,sph.phi+dy*.008));
+  updateCam();
+});
+window.addEventListener('touchmove',e=>{
+  if(e.touches.length===2){
+    // Pinch to zoom
+    const dx=e.touches[0].clientX-e.touches[1].clientX;
+    const dy=e.touches[0].clientY-e.touches[1].clientY;
+    const dist=Math.sqrt(dx*dx+dy*dy);
+    if(lastPinchDist>0){
+      const delta=lastPinchDist-dist;
+      if(viewMode==='3d'){sph.r=Math.max(3,Math.min(35,sph.r+delta*.04));updateCam();}
+      else{const cam=activeCam,s=1+delta*.003;cam.left*=s;cam.right*=s;cam.top*=s;cam.bottom*=s;cam.updateProjectionMatrix();}
+    }
+    lastPinchDist=dist;
+    return;
+  }
+  if(!dragging||viewMode!=='3d'||e.touches.length!==1) return;
+  const dx=e.touches[0].clientX-mx, dy=e.touches[0].clientY-my;
+  mx=e.touches[0].clientX; my=e.touches[0].clientY;
+  sph.theta-=dx*.012; sph.phi=Math.max(.04,Math.min(Math.PI-.04,sph.phi+dy*.012));
+  updateCam();
+},{passive:true});
+vp.addEventListener('wheel',e=>{
+  e.preventDefault();
+  if(viewMode==='3d'){sph.r=Math.max(3,Math.min(35,sph.r+e.deltaY*.02));updateCam();}
+  else{const c=activeCam,s=1+e.deltaY*.001;c.left*=s;c.right*=s;c.top*=s;c.bottom*=s;c.updateProjectionMatrix();}
+},{passive:false});
+
+// ══════════════════════════════════════════════════════
+// VIEW SWITCHING
+// ══════════════════════════════════════════════════════
+function setView(v){
+  viewMode=v;
+  ['3d','top','side','front'].forEach(x=>document.getElementById('btn-'+x).classList.toggle('on',x===v));
+  const map={
+    '3d':{cam:camP,     hud:'Arrastra para rotar · Scroll/Pellizca para zoom'},
+    'top':{cam:camTop,  hud:'Vista Superior (plano XZ) · Scroll para zoom'},
+    'side':{cam:camSide, hud:'Vista Lateral (plano XY) · Scroll para zoom'},
+    'front':{cam:camFront,hud:'Vista Frontal (plano YZ) · Scroll para zoom'},
+  };
+  activeCam=map[v].cam;
+  document.getElementById('hud').textContent=map[v].hud;
+  resize();
+}
+
+// ══════════════════════════════════════════════════════
+// UI CONTROLS
+// ══════════════════════════════════════════════════════
+function tog(name){
+  L[name]=!L[name];
+  document.getElementById('tog-'+name).classList.toggle('on',L[name]);
+  if(name==='grid'||name==='axes') buildGrid();
+  else if(name==='field') buildField();
+  else buildSlices();
+}
+function setSlices(v){N_SLICES=v;document.getElementById('sv').textContent=v;buildSlices();}
+function setLevels(v){N_LEVELS=v;document.getElementById('lv').textContent=v;buildSlices();}
+function setOpacity(v){OPACITY=v/100;document.getElementById('ov').textContent=v;buildSlices();}
+
+// ══════════════════════════════════════════════════════
+// PANEL TOGGLE (mobile)
+// ══════════════════════════════════════════════════════
+function togglePanel(){
+  const panel   = document.getElementById('panel');
+  const btn     = document.getElementById('panel-toggle');
+  const overlay = document.getElementById('panel-overlay');
+  const isOpen  = panel.classList.toggle('open');
+  if(overlay) overlay.classList.toggle('show', isOpen);
+  btn.textContent = isOpen ? '✕' : '⚙️';
+  setTimeout(resize, 300);
+}
+
+// ══════════════════════════════════════════════════════
+// BADGE HELPER
+// ══════════════════════════════════════════════════════
+function updateBadge(m){
+  const el = document.getElementById('medium-badge');
+  if(!el) return;
+  // Use CSS variables via the style attribute so day/night is respected automatically
+  el.style.color = '';
+  el.innerHTML = `${m.icon} <b style="color:var(--h1)">${m.name}</b> &nbsp;·&nbsp; <span style="color:var(--text)">${m.desc}</span>`;
+}
+
+// ══════════════════════════════════════════════════════
+// DAY / NIGHT MODE
+// ══════════════════════════════════════════════════════
+let isDayMode = true;
+
+function toggleDayNight(){
+  isDayMode = !isDayMode;
+  document.body.classList.toggle('day', isDayMode);
+  const btn = document.getElementById('btn-daynight');
+  btn.textContent = isDayMode ? '☀️ Día' : '🌙 Noche';
+
+  // Update Three.js background and grid colors
+  if(isDayMode){
+    renderer.setClearColor(0xd0e8f5);
+  } else {
+    renderer.setClearColor(currentMedium.fog);
+  }
+  // Rebuild grid with correct color for current mode
+  buildGrid();
+
+  // Update medium badge text colors
+  const el = document.getElementById('medium-badge');
+  if(el){
+    const m = currentMedium;
+    if(isDayMode){
+      updateBadge(m);
+    } else {
+      updateBadge(m);
+    }
+  }
+}
+
+function selectMedium(idx){
+  currentMedium = MEDIA[idx];
+  K = K0 / currentMedium.eps;
+  if(typeof renderer !== 'undefined') renderer.setClearColor(isDayMode ? 0xd0e8f5 : currentMedium.fog);
+  document.body.style.background = `linear-gradient(135deg, ${currentMedium.color} 0%, #020f22 100%)`;
+  updateBadge(currentMedium);
+  rebuild();
+}
+
+function uiType(){
+  const t=document.getElementById('ctype').value;
+  document.getElementById('ui-point').style.display=t==='point'?'block':'none';
+  document.getElementById('ui-line').style.display=t==='line'?'block':'none';
+  document.getElementById('ui-plane').style.display=t==='plane'?'block':'none';
+}
+
+function addCharge(){
+  const type=document.getElementById('ctype').value;
+  const q=+document.getElementById('csign').value;
+  let x=0,y=0,z=0;
+  if(type==='point'){x=+document.getElementById('px').value;y=+document.getElementById('py').value;z=+document.getElementById('pz').value;}
+  else if(type==='line'){x=+document.getElementById('lx').value;z=+document.getElementById('lz').value;}
+  else if(type==='plane'){x=+document.getElementById('plane-x').value;}
+  charges.push({id:nextId++,type,q,x,y,z});
+  rebuild();
+}
+
+function removeCharge(id){charges=charges.filter(c=>c.id!==id);rebuild();}
+
+function resetDipole(){
+  charges=[{id:nextId++,type:'point',q:1,x:-2,y:0,z:0},{id:nextId++,type:'point',q:-1,x:2,y:0,z:0}];
+  rebuild();
+}
+function setScene(s){
+  if(s==='quad'){
+    charges=[
+      {id:nextId++,type:'point',q:1,x:-2,y:0,z:-2},{id:nextId++,type:'point',q:1,x:2,y:0,z:2},
+      {id:nextId++,type:'point',q:-1,x:2,y:0,z:-2},{id:nextId++,type:'point',q:-1,x:-2,y:0,z:2}
+    ];
+  } else if(s==='linePlane'){
+    charges=[
+      {id:nextId++,type:'line',q:1,x:0,y:0,z:0},
+      {id:nextId++,type:'plane',q:-1,x:-3,y:0,z:0},
+      {id:nextId++,type:'plane',q:-1,x:3,y:0,z:0}
+    ];
+  }
+  rebuild();
+}
+
+function updateList(){
+  const el=document.getElementById('clist');
+  const ico={point:'⦿',line:'╿',plane:'▬'};
+  const nm={point:'Puntual',line:'Lineal',plane:'Plano'};
+  if(!charges.length){el.innerHTML='<div style="font-size:9px;color:#0d2840;text-align:center;padding:8px;">Sin fuentes</div>';return;}
+  el.innerHTML=charges.map(c=>{
+    const pos=c.q>0;
+    const col=pos?'#ff7777':'#7799ff';
+    const info=c.type==='point'?`(${c.x},${c.y},${c.z})`:c.type==='line'?`x=${c.x},z=${c.z}`:`x=${c.x}`;
+    return `<div class="citem">
+      <div class="dot" style="background:${col};box-shadow:0 0 4px ${col};"></div>
+      <span style="color:${col};margin-right:3px;">${ico[c.type]}</span>
+      <span style="flex:1;color:var(--text3);">${nm[c.type]} ${pos?'+':'−'} <span style="color:var(--text4);">${info}</span></span>
+      <button onclick="removeCharge(${c.id})" class="btn btn-del" style="padding:1px 6px;font-size:9px;">✕</button>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════
+// ANIMATION LOOP
+// ══════════════════════════════════════════════════════
+let t0=Date.now();
+function animate(){
+  requestAnimationFrame(animate);
+  const t=(Date.now()-t0)*.001;
+  // Animate charge rings
+  G.charges.children.forEach((obj,i)=>{
+    if(obj.geometry&&obj.geometry.type==='TorusGeometry'){
+      obj.rotation.y=t*.4+(i*.7);
+    }
+  });
+  renderer.render(scene,activeCam);
+}
+
+// ══════════════════════════════════════════════════════
+// START
+// ══════════════════════════════════════════════════════
+rebuild();
+animate();
+
+// ══════════════════════════════════════════════════════════════════════
+//  MODOS DE PRÁCTICA
+// ══════════════════════════════════════════════════════════════════════
+let currentMode = 'open';
+let prDatos = [];   // tabla de 16 valores generada
+
+// ── Cambiar modo ────────────────────────────────────────────────────────
+function switchMode(mode){
+  currentMode = mode;
+  ['open','pA','pB','pC'].forEach(m=>{
+    const t = document.getElementById('tab-'+m);
+    if(t) t.classList.toggle('active', m===mode);
+  });
+  const scroll = document.getElementById('panel-scroll');
+  const prPanel = document.getElementById('practica-panel');
+  if(mode === 'open'){
+    scroll.classList.remove('hidden');
+    prPanel.classList.remove('visible');
+  } else {
+    scroll.classList.add('hidden');
+    prPanel.classList.add('visible');
+    // ── Cargar escena según el modo ────────────────────────
+    nextId = 100;   // reset seguro para evitar colisiones de id
+    if(mode === 'pA'){
+      charges = [
+        {id:nextId++, type:'point', q:1,  x:-2, y:0, z:0},
+        {id:nextId++, type:'point', q:-1, x:2,  y:0, z:0}
+      ];
+    } else if(mode === 'pB'){
+      charges = [
+        {id:nextId++, type:'line', q:1,  x:-2, y:0, z:0},
+        {id:nextId++, type:'line', q:-1, x:2,  y:0, z:0}
+      ];
+    } else if(mode === 'pC'){
+      charges = [
+        {id:nextId++, type:'plane', q:1,  x:-3, y:0, z:0},
+        {id:nextId++, type:'plane', q:-1, x:3,  y:0, z:0}
+      ];
+    }
+    rebuild();
+    renderPrPanel(mode);
+  }
+}
+
+// ── Describir fuentes activas ────────────────────────────────────────────
+function describeFuentes(){
+  if(!charges || charges.length===0) return 'Sin fuentes';
+  const nm = {point:'Carga Puntual', line:'Línea de Carga', plane:'Plano'};
+  return charges.map(c=>{
+    const tipo = nm[c.type]||c.type;
+    const signo = c.q>0?'⊕':'⊖';
+    if(c.type==='point') return `${signo}${tipo}(${c.x.toFixed(1)},${c.y.toFixed(1)},${c.z.toFixed(1)})`;
+    if(c.type==='line')  return `${signo}${tipo}(X=${c.x.toFixed(1)},Z=${c.z.toFixed(1)})`;
+    if(c.type==='plane') return `${signo}${tipo}(X=${c.x.toFixed(1)})`;
+    return tipo;
+  }).join(' | ');
+}
+
+// ── Configuración actual (medio + fuentes) ────────────────────────────────
+function getConfig(){
+  return {
+    medio: currentMedium.name,
+    eps: currentMedium.eps,
+    K: K,
+    fuentes: describeFuentes(),
+    cargasData: charges ? charges.map(c=>({...c})) : []
+  };
+}
+
+// ── Render del panel de práctica ────────────────────────────────────────
+function renderPrPanel(mode){
+  const el = document.getElementById('pr-content');
+  const cfg = getConfig();
+  const titles = {pA:'⊕ Parte A — Cargas Puntuales', pB:'╿ Parte B — Líneas de Carga', pC:'▬ Parte C — Planos'};
+  const hints  = {
+    pA:'Usa dos cargas puntuales. Define el rango X para los 16 valores.',
+    pB:'Usa dos líneas de carga. Define el rango X (distancia radial).',
+    pC:'Usa dos planos cargados. Define el rango X entre y fuera de los planos.'
+  };
+
+  el.innerHTML = `
+    <div class="pr-sec-title">${titles[mode]}</div>
+    <div style="font-size:10px;color:var(--text4);margin-bottom:8px;font-style:italic;">${hints[mode]}</div>
+
+    <div class="pr-sec-title">Configuración Actual</div>
+    <div class="pr-info-row">
+      <div class="pr-info-item"><label>Medio</label><span id="pr-medio">${cfg.medio}</span></div>
+      <div class="pr-info-item"><label>εᵣ</label><span id="pr-eps">${cfg.eps}</span></div>
+    </div>
+    <div class="pr-info-item" style="margin-bottom:8px;">
+      <label>Fuentes activas</label>
+      <span id="pr-fuentes" style="font-size:9px;word-break:break-all;">${cfg.fuentes}</span>
+    </div>
+
+    <div class="pr-sec-title">Rango de Distancias</div>
+    <div class="pr-rango">
+      <label>−X₀</label>
+      <input type="number" id="pr-xmin" value="-4.5" step="0.5">
+    </div>
+    <div class="pr-rango">
+      <label>+X₀</label>
+      <input type="number" id="pr-xmax" value="4.5" step="0.5">
+    </div>
+
+    <button class="pr-btn pr-btn-gen" onclick="generarDatos('${mode}')">
+      🎲 Generar 16 Valores al Azar
+    </button>
+    <div class="pr-status" id="pr-status">Presiona el botón para generar los datos.</div>
+
+    <div id="pr-tabla-wrap" style="overflow-x:auto;"></div>
+
+    <button class="pr-btn pr-btn-csv" id="pr-csv-btn" style="display:none;" onclick="exportarCSV('${mode}')">
+      📥 Exportar CSV
+    </button>
+    <button class="pr-btn pr-btn-cap" style="margin-top:8px;" onclick="capturarModo('${mode}')">
+      📸 Capturar Vista + Datos
+    </button>
+  `;
+}
+
+// ── Generar 16 valores al azar ───────────────────────────────────────────
+function generarDatos(mode){
+  const xmin = parseFloat(document.getElementById('pr-xmin').value) || -4.5;
+  const xmax = parseFloat(document.getElementById('pr-xmax').value) ||  4.5;
+  if(xmin >= xmax){ document.getElementById('pr-status').textContent='⚠ Rango inválido: −X₀ debe ser menor que +X₀'; return; }
+  if(!charges || charges.length===0){ document.getElementById('pr-status').textContent='⚠ Agrega fuentes en el Modo Libre primero.'; return; }
+
+  // 16 posiciones uniformemente distribuidas con pequeña perturbación aleatoria
+  const step = (xmax-xmin)/15;
+  const puntos = [];
+  for(let i=0;i<16;i++){
+    const base = xmin + i*step;
+    const jitter = (Math.random()-0.5)*step*0.3;
+    const x = Math.min(xmax, Math.max(xmin, base+jitter));
+    puntos.push(x);
+  }
+  puntos.sort((a,b)=>a-b);
+
+  prDatos = puntos.map(x=>{
+    let V = 0;
+    // Evalúa según el modo
+    if(mode==='pA'){
+      // Potencial en (x,0,0) para cargas puntuales
+      V = getV(x, 0, 0);
+    } else if(mode==='pB'){
+      // Potencial en (x,0,0) — distancia radial a líneas en XZ
+      V = getV(x, 0, 0);
+    } else if(mode==='pC'){
+      // Potencial en (x,0,0) — variación lineal en X para planos
+      V = getV(x, 0, 0);
+    }
+    return { x: parseFloat(x.toFixed(4)), V: isFinite(V) ? parseFloat(V.toFixed(6)) : 0 };
+  });
+
+  renderTabla(mode);
+  document.getElementById('pr-status').textContent=`✅ 16 valores generados (${xmin.toFixed(1)} a ${xmax.toFixed(1)})`;
+  document.getElementById('pr-csv-btn').style.display='block';
+}
+
+// ── Renderizar tabla ─────────────────────────────────────────────────────
+function renderTabla(mode){
+  const wrap = document.getElementById('pr-tabla-wrap');
+  const colX  = {pA:'x (u)', pB:'x (u)', pC:'x (u)'}[mode];
+  const colRho= {pA:'|x|', pB:'ρ=|x|', pC:'|x|'}[mode];
+
+  let rows = '';
+  prDatos.forEach((d,i)=>{
+    const ax = Math.abs(d.x);
+    const rho= ax > 0 ? ax.toFixed(4) : '—';
+    const vc = d.V >= 0 ? 'pos' : 'neg';
+    rows += `<tr>
+      <td>${i+1}</td>
+      <td>${d.x.toFixed(4)}</td>
+      <td class="${vc}">${d.V.toFixed(4)}</td>
+      <td>${rho}</td>
+    </tr>`;
+  });
+
+  wrap.innerHTML = `
+    <table class="pr-table">
+      <thead><tr>
+        <th>N°</th><th>${colX}</th><th>V (V)</th><th>${colRho}</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+// ── Exportar CSV ─────────────────────────────────────────────────────────
+function exportarCSV(mode){
+  if(!prDatos.length) return;
+  const cfg = getConfig();
+  const colX  = {pA:'x_u', pB:'x_u', pC:'x_u'}[mode];
+  const colRho= {pA:'abs_x', pB:'rho_u', pC:'abs_x'}[mode];
+
+  let csv = `# Simulador 3D Campo Eléctrico — ${mode.toUpperCase()}\n`;
+  csv += `# Medio: ${cfg.medio} | eps_r: ${cfg.eps} | K: ${cfg.K.toFixed(4)}\n`;
+  csv += `# Fuentes: ${cfg.fuentes}\n`;
+  csv += `N,${colX},V_V,${colRho}\n`;
+  prDatos.forEach((d,i)=>{
+    const ax = Math.abs(d.x).toFixed(4);
+    csv += `${i+1},${d.x.toFixed(4)},${d.V.toFixed(6)},${ax}\n`;
+  });
+
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = `campo3D_${mode}_${Date.now()}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── Captura de pantalla + datos ──────────────────────────────────────────
+function capturarLibre(){
+  capturarModo('open');
+}
+function capturarModo(mode){
+  // Forzar un render fresco antes de leer el buffer
+  renderer.render(scene, activeCam);
+
+  const cfg = getConfig();
+  const src = renderer.domElement;           // canvas WebGL con preserveDrawingBuffer:true
+
+  // Canvas temporal del mismo tamaño
+  const oc  = document.createElement('canvas');
+  oc.width  = src.width  || 900;
+  oc.height = src.height || 600;
+  const ox  = oc.getContext('2d');
+
+  // ── 1. Copia la escena 3D ──────────────────────────────────
+  try { ox.drawImage(src, 0, 0, oc.width, oc.height); }
+  catch(e){ console.warn('drawImage error:', e); }
+
+  // ── 2. Caja de info (sin roundRect para compatibilidad) ─────
+  const modeLabel = {
+    open: 'MODO LIBRE',
+    pA:   'PARTE A — CARGAS PUNTUALES',
+    pB:   'PARTE B — LÍNEAS DE CARGA',
+    pC:   'PARTE C — PLANOS CONDUCTORES'
+  }[mode] || mode.toUpperCase();
+
+  const bx=12, by=12, bw=340;
+  const rowsData = prDatos.length;
+  const bh = rowsData ? Math.min(92 + rowsData*13, oc.height - 20) : 90;
+
+  ox.fillStyle = 'rgba(0,8,22,0.84)';
+  ox.fillRect(bx, by, bw, bh);
+
+  // Borde superior de color
+  ox.fillStyle = '#1a7ec8';
+  ox.fillRect(bx, by, bw, 3);
+
+  ox.fillStyle = '#88d8f0';
+  ox.font = 'bold 12px "Courier New", monospace';
+  ox.fillText('⚡  ' + modeLabel, bx+10, by+20);
+
+  ox.fillStyle = 'rgba(255,255,255,0.6)';
+  ox.font = '10px "Courier New", monospace';
+  ox.fillText('Medio: ' + cfg.medio + '  |  εᵣ = ' + cfg.eps, bx+10, by+36);
+  ox.fillText('K = ' + cfg.K.toFixed(3) + '  |  ' + cfg.fuentes.substring(0,42), bx+10, by+50);
+
+  if(rowsData){
+    // Separador
+    ox.fillStyle = 'rgba(255,255,255,0.25)';
+    ox.fillRect(bx+8, by+58, bw-16, 1);
+
+    // Cabecera tabla
+    ox.fillStyle = '#aaddee';
+    ox.font = 'bold 9px "Courier New", monospace';
+    ox.fillText(' N°     x (u)       V (V)      |x|', bx+8, by+70);
+
+    ox.fillStyle = 'rgba(255,255,255,0.2)';
+    ox.fillRect(bx+8, by+74, bw-16, 1);
+
+    // Filas
+    prDatos.forEach((d, i) => {
+      const y0 = by + 86 + i * 13;
+      if(y0 > by + bh - 6) return;
+      const col = d.V >= 0 ? '#ffaa66' : '#66bbff';
+      ox.fillStyle = '#cce8f4';
+      ox.font = '9px "Courier New", monospace';
+      const ni  = String(i+1).padStart(3,' ');
+      const xi  = d.x.toFixed(4).padStart(9,' ');
+      const ax  = Math.abs(d.x).toFixed(4).padStart(9,' ');
+      ox.fillText(ni + '  ' + xi, bx+8, y0);
+      ox.fillStyle = col;
+      ox.fillText(d.V.toFixed(5).padStart(12,' '), bx+140, y0);
+      ox.fillStyle = '#cce8f4';
+      ox.fillText(ax, bx+242, y0);
+    });
+  }
+
+  // ── 3. Descarga ─────────────────────────────────────────────
+  const url = oc.toDataURL('image/png');
+  const a   = document.createElement('a');
+  a.href    = url;
+  a.download = 'campo3D_' + mode + '_' + Date.now() + '.png';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+</script>
+<button id="panel-toggle" onclick="togglePanel()" title="Panel de control">⚙️</button>
+</body>
+</html>

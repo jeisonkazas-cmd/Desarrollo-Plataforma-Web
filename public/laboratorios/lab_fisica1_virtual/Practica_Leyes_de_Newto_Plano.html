@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Práctica de Laboratorio — Plano Inclinado y Fricción</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>
+  MathJax = {
+    tex: { inlineMath: [['$','$'],['\\(','\\)']], displayMath: [['$$','$$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+  :root {
+    --ink:       #1a1a2e;
+    --ink-soft:  #3d3d5c;
+    --ink-muted: #7a7a9a;
+    --paper:     #faf8f3;
+    --paper-alt: #f2ede3;
+    --rule:      #d4c9b0;
+    --accent:    #1a5276;
+    --accent2:   #c0392b;
+    --gold:      #b8860b;
+    --green:     #1e8449;
+    --mono:      'JetBrains Mono', monospace;
+    --serif:     'Source Serif 4', Georgia, serif;
+    --display:   'Playfair Display', Georgia, serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: #dde3e8;
+    font-family: var(--serif);
+    color: var(--ink);
+    font-size: 15px;
+    line-height: 1.75;
+    min-height: 100vh;
+    padding: 30px 15px 80px;
+  }
+  .documento {
+    max-width: 860px;
+    margin: 0 auto;
+    background: var(--paper);
+    box-shadow: 0 2px 4px rgba(0,0,0,.08), 0 8px 32px rgba(0,0,0,.14), 0 20px 60px rgba(0,0,0,.08);
+    position: relative;
+   overflow-x: hidden; }
+  .documento::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 5px;
+    background: linear-gradient(180deg, var(--accent) 0%, var(--accent2) 50%, var(--gold) 100%);
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--ink);
+    color: #fff;
+    padding: 36px 50px 30px 55px;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::after {
+    content: 'θ';
+    font-family: var(--display);
+    font-size: 300px;
+    font-weight: 700;
+    color: rgba(255,255,255,.04);
+    position: absolute;
+    right: -10px; top: -60px;
+    line-height: 1;
+    pointer-events: none;
+    user-select: none;
+  }
+  .header-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    gap: 20px;
+  }
+  .badge-codigo {
+    font-family: var(--mono);
+    font-size: .7em;
+    background: var(--accent);
+    color: #fff;
+    padding: 3px 10px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+  .badge-tipo {
+    font-family: var(--mono);
+    font-size: .7em;
+    color: rgba(255,255,255,.5);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    border: 1px solid rgba(255,255,255,.15);
+    padding: 3px 10px;
+  }
+  .header h1 {
+    font-family: var(--display);
+    font-size: 2.1em;
+    font-weight: 700;
+    line-height: 1.2;
+    color: #fff;
+    margin-bottom: 6px;
+  }
+  .header h1 em {
+    font-style: italic;
+    color: rgba(255,255,255,.65);
+    font-size: .82em;
+  }
+  .header-sub {
+    font-size: .82em;
+    color: rgba(255,255,255,.45);
+    font-weight: 300;
+    letter-spacing: .04em;
+    margin-top: 4px;
+  }
+  .header-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 24px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,.12);
+  }
+  .field-item label {
+    display: block;
+    font-family: var(--mono);
+    font-size: .65em;
+    color: rgba(255,255,255,.4);
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    margin-bottom: 4px;
+  }
+  .field-item input[type="text"],
+  .field-item input[type="date"] {
+    width: 100%;
+    background: rgba(255,255,255,.07);
+    border: none;
+    border-bottom: 1px solid rgba(255,255,255,.25);
+    color: #fff;
+    font-family: var(--serif);
+    font-size: .9em;
+    padding: 4px 0;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .field-item input:focus { border-bottom-color: var(--accent2); }
+  .field-item input::placeholder { color: rgba(255,255,255,.2); }
+
+  /* ── BODY ── */
+  .body { padding: 44px 50px 50px 55px; }
+  .seccion { margin-bottom: 42px; }
+  .seccion-titulo {
+    font-family: var(--display);
+    font-size: 1.15em;
+    font-weight: 600;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--rule);
+  }
+  .seccion-titulo .num {
+    font-family: var(--mono);
+    font-size: .75em;
+    color: var(--accent);
+    background: #e8f0f7;
+    padding: 2px 7px;
+    letter-spacing: .05em;
+    min-width: 36px;
+    text-align: center;
+  }
+  .subseccion-titulo {
+    font-family: var(--display);
+    font-size: 1em;
+    font-weight: 600;
+    color: var(--accent);
+    margin: 22px 0 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .subseccion-titulo::before {
+    content: '';
+    width: 14px; height: 2px;
+    background: var(--accent);
+    display: inline-block;
+    flex-shrink: 0;
+  }
+  p { margin-bottom: 10px; color: var(--ink-soft); font-size: .95em; }
+  p:last-child { margin-bottom: 0; }
+
+  /* ── RESUMEN ── */
+  .resumen-box {
+    background: var(--paper-alt);
+    border-left: 3px solid var(--accent);
+    padding: 16px 20px;
+    font-size: .9em;
+    font-style: italic;
+    color: var(--ink-soft);
+    line-height: 1.7;
+  }
+
+  /* ── OBJETIVOS ── */
+  .objetivos-lista { list-style: none; padding: 0; }
+  .objetivos-lista li {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 8px 0;
+    border-bottom: 1px dashed var(--rule);
+    font-size: .93em;
+    color: var(--ink-soft);
+  }
+  .objetivos-lista li:last-child { border-bottom: none; }
+  .objetivos-lista li .obj-num {
+    font-family: var(--mono);
+    font-size: .75em;
+    color: #fff;
+    background: var(--accent);
+    min-width: 22px; height: 22px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin-top: 2px; flex-shrink: 0;
+  }
+
+  /* ── FÓRMULAS ── */
+  .formula-box {
+    background: var(--ink);
+    color: #fff;
+    padding: 18px 24px;
+    margin: 18px 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .formula-box::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--accent2);
+  }
+  .formula-box .formula-label {
+    font-family: var(--mono);
+    font-size: .65em;
+    color: rgba(255,255,255,.4);
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    margin-bottom: 10px;
+  }
+  .formula-main { font-size: 1.2em; text-align: center; padding: 6px 0; }
+  .formula-num {
+    font-family: var(--mono);
+    font-size: .65em;
+    color: rgba(255,255,255,.35);
+    text-align: right;
+    margin-top: 6px;
+  }
+
+  /* ── TABLA DATOS ── */
+  .tabla-resultados {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .86em;
+    margin: 14px 0;
+  }
+  .tabla-resultados th {
+    background: var(--ink);
+    color: #fff;
+    font-family: var(--mono);
+    font-size: .7em;
+    letter-spacing: .07em;
+    padding: 9px 12px;
+    text-align: center;
+    font-weight: 500;
+    border: 1px solid #444;
+  }
+  .tabla-resultados td {
+    padding: 7px 10px;
+    border: 1px solid var(--rule);
+    text-align: center;
+    color: var(--ink-soft);
+    vertical-align: middle;
+  }
+  .tabla-resultados td.input-cell { padding: 3px 4px; }
+  .tabla-resultados input[type="text"] {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid var(--rule);
+    background: transparent;
+    font-family: var(--mono);
+    font-size: .88em;
+    color: var(--ink);
+    padding: 4px 4px;
+    text-align: center;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .tabla-resultados input:focus { border-bottom-color: var(--accent); }
+  .tabla-resultados tr:nth-child(even) td { background: var(--paper-alt); }
+  .tabla-resultados tr:nth-child(even) td.input-cell { background: var(--paper-alt); }
+  .tabla-resultados .row-label {
+    font-family: var(--mono);
+    font-size: .82em;
+    font-weight: 500;
+    color: var(--accent);
+  }
+
+  /* ── PASOS ── */
+  .paso { display: flex; gap: 16px; margin-bottom: 20px; align-items: flex-start; }
+  .paso-num {
+    font-family: var(--mono); font-size: .8em;
+    background: var(--accent); color: #fff;
+    min-width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 2px;
+  }
+  .paso-content { flex: 1; }
+  .paso-content p { margin-bottom: 6px; }
+
+  /* ── ÁREA DE TRABAJO ── */
+  .trabajo-area {
+    width: 100%; min-height: 110px;
+    border: 1px solid var(--rule);
+    background: #fff;
+    font-family: var(--serif);
+    font-size: .9em; color: var(--ink);
+    padding: 14px 16px; resize: vertical; outline: none;
+    line-height: 1.8; transition: border-color .2s; display: block;
+  }
+  .trabajo-area:focus { border-color: var(--accent); }
+  .trabajo-area::placeholder { color: #bbb; font-style: italic; }
+  .area-label {
+    font-family: var(--mono); font-size: .68em;
+    color: var(--ink-muted); text-transform: uppercase;
+    letter-spacing: .1em; margin-bottom: 5px; margin-top: 14px; display: block;
+  }
+
+  /* ── NOTA ── */
+  .nota {
+    background: #fef9e7;
+    border-left: 3px solid var(--gold);
+    padding: 10px 16px;
+    font-size: .85em; color: #7d6608;
+    margin: 14px 0; font-style: italic;
+  }
+  .nota strong { font-style: normal; color: var(--gold); }
+
+  /* ── CAJAS DE RESULTADO ── */
+  .result-box {
+    background: var(--paper-alt);
+    border: 1px solid var(--rule);
+    padding: 16px 20px; margin: 14px 0;
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  .result-box.col2 { grid-template-columns: 1fr 1fr; }
+  .result-box.col4 { grid-template-columns: repeat(4, 1fr); }
+  .result-box.col5 { grid-template-columns: repeat(5, 1fr); }
+  @media(max-width:600px) {
+    .result-box, .result-box.col2, .result-box.col4, .result-box.col5 { grid-template-columns: 1fr 1fr; }
+  }
+  .res-campo label {
+    font-family: var(--mono); font-size: .63em;
+    color: var(--ink-muted); text-transform: uppercase;
+    letter-spacing: .1em; display: block; margin-bottom: 5px;
+  }
+  .res-campo input[type="text"] {
+    width: 100%; border: none;
+    border-bottom: 2px solid var(--rule);
+    background: transparent; font-family: var(--mono);
+    font-size: 1em; color: var(--ink); padding: 4px 0;
+    outline: none; transition: border-color .2s; text-align: center;
+  }
+  .res-campo input:focus { border-bottom-color: var(--accent); }
+
+  /* ── RANGO / TABLA DE CRITERIOS ── */
+  .rango-tabla {
+    width: 100%; border-collapse: collapse;
+    font-size: .85em; margin: 12px 0;
+  }
+  .rango-tabla th {
+    background: var(--ink); color: #fff;
+    font-family: var(--mono); font-size: .68em;
+    padding: 7px 12px; letter-spacing: .08em; text-align: center;
+  }
+  .rango-tabla td {
+    padding: 6px 12px; border: 1px solid var(--rule);
+    text-align: center; font-size: .88em;
+  }
+  .rango-tabla .bueno { color: var(--green); font-weight: 600; }
+  .rango-tabla .medio { color: var(--gold); font-weight: 600; }
+  .rango-tabla .malo  { color: var(--accent2); font-weight: 600; }
+
+  /* ── ADJUNTO ── */
+  .adjunto-slot {
+    border: 2px dashed var(--rule);
+    background: var(--paper-alt);
+    padding: 24px 16px;
+    text-align: center;
+    margin-top: 10px;
+    position: relative;
+    cursor: pointer;
+    transition: border-color .2s, background .2s;
+  }
+  .adjunto-slot:hover { border-color: var(--accent); background: #edf2f7; }
+  .adjunto-slot input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+  }
+  .adjunto-slot .slot-icon { font-size: 1.8em; margin-bottom: 5px; display: block; }
+  .adjunto-slot .slot-label {
+    font-family: var(--mono); font-size: .68em;
+    color: var(--ink-muted); text-transform: uppercase; letter-spacing: .1em; display: block;
+  }
+  .adjunto-slot .slot-hint { font-size: .78em; color: var(--ink-muted); margin-top: 3px; display: block; }
+  .adjunto-slot .preview-img {
+    max-width: 100%; max-height: 200px;
+    margin-top: 10px; border: 1px solid var(--rule); display: none;
+  }
+
+  /* ── RETO ── */
+  .reto-header {
+    background: linear-gradient(135deg, #1a1a2e 0%, #2c1654 100%);
+    color: #fff;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .reto-badge {
+    font-family: var(--mono); font-size: .65em;
+    background: var(--accent2); color: #fff;
+    padding: 3px 9px; letter-spacing: .12em;
+    text-transform: uppercase; flex-shrink: 0;
+  }
+  .reto-header h4 {
+    font-family: var(--display); font-size: 1em;
+    font-weight: 600; color: #fff; margin: 0;
+  }
+  .reto-header p { font-size: .8em; color: rgba(255,255,255,.6); margin: 2px 0 0; }
+  .reto-body {
+    border: 1px solid #2c1654;
+    border-top: none;
+    padding: 20px;
+    background: #faf8ff;
+  }
+
+  /* ── SEPARADOR ── */
+  .divider {
+    display: flex; align-items: center; gap: 12px;
+    margin: 32px 0; opacity: .4;
+  }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--rule); }
+  .divider span {
+    font-family: var(--mono); font-size: .65em;
+    color: var(--ink-muted); letter-spacing: .1em; text-transform: uppercase;
+  }
+
+  /* ── DIAGRAMA DE FUERZAS (SVG placeholder) ── */
+  .diagrama-slot {
+    border: 1px solid var(--rule);
+    background: #fff;
+    min-height: 160px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 14px 0;
+    color: var(--ink-muted);
+    font-family: var(--mono);
+    font-size: .75em;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  /* ── FIRMA ── */
+  .firma-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 30px; }
+  .firma-slot {
+    text-align: center; padding-top: 50px;
+    border-top: 1px solid var(--rule);
+    font-family: var(--mono); font-size: .68em;
+    color: var(--ink-muted); text-transform: uppercase; letter-spacing: .08em;
+  }
+
+  /* ── BTN IMPRIMIR ── */
+  .btn-imprimir {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--accent); color: #fff; border: none;
+    padding: 12px 22px; font-family: var(--mono);
+    font-size: .75em; letter-spacing: .1em; text-transform: uppercase;
+    cursor: pointer; box-shadow: 0 4px 16px rgba(26,82,118,.35);
+    transition: transform .15s, box-shadow .15s; z-index: 100;
+  }
+  .btn-imprimir:hover { transform: translateY(-2px); box-shadow: 0 6px 22px rgba(26,82,118,.45); }
+
+
+  /* ===== RESPONSIVE MOBILE ===== */
+  @media (max-width: 680px) {
+    body { padding: 10px 0 40px; }
+    .documento { border-radius: 0; }
+
+    /* Header */
+    .header { padding: 22px 18px 20px 22px; }
+    .header::after { font-size: 160px; }
+    .header h1 { font-size: 1.4em !important; }
+    .header-meta { flex-direction: column; gap: 8px; }
+    .header-fields { grid-template-columns: 1fr !important; gap: 10px 0; }
+
+    /* Body */
+    .body { padding: 22px 16px 28px 20px; }
+
+    /* Tablas — scroll horizontal */
+    .tabla-resultados,
+    .rango-tabla { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+    /* Result boxes — máx 2 columnas */
+    .result-box,
+    .result-box.col2,
+    .result-box.col4,
+    .result-box.col5,
+    .result-box.col6 { grid-template-columns: 1fr 1fr !important; }
+
+    /* Grids de firma */
+    .firma-grid { grid-template-columns: 1fr !important; gap: 20px; }
+
+    /* Pasos de procedimiento */
+    .paso { gap: 10px; }
+
+    /* Parte headers */
+    .parte-header,
+    .reto-header { padding: 12px 14px; gap: 10px; }
+    .parte-header h4,
+    .reto-header h4 { font-size: 0.9em; }
+    .parte-body,
+    .reto-body { padding: 14px; }
+
+    /* Controles de gráfica */
+    .grafica-controles { gap: 6px; flex-wrap: wrap; }
+    .btn-ctrl { font-size: 0.65em; padding: 4px 8px; }
+
+    /* Section titles */
+    .seccion-titulo { font-size: 1em; gap: 8px; }
+
+    /* Adjunto slot */
+    .adjunto-slot { padding: 16px 10px; }
+
+    /* Trabajo área */
+    .trabajo-area { min-height: 80px; }
+  }
+
+  @media (max-width: 420px) {
+    .header { padding: 18px 14px 16px 18px; }
+    .body { padding: 16px 12px 20px 14px; }
+    .result-box,
+    .result-box.col2,
+    .result-box.col4,
+    .result-box.col5,
+    .result-box.col6 { grid-template-columns: 1fr !important; }
+    .header h1 { font-size: 1.2em !important; }
+    .formula-main { font-size: 1em !important; }
+  }
+
+  @media print {
+    body { background: #fff; padding: 0; }
+    .documento { box-shadow: none; }
+    .btn-imprimir { display: none; }
+  }
+  @media(max-width:640px) {
+    .header { padding: 24px 20px 20px 26px; }
+    .body { padding: 24px 20px 30px 26px; }
+    .header-fields { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="documento">
+
+  <!-- ══ ENCABEZADO ══ -->
+  <div class="header">
+    <div class="header-meta">
+      <span class="badge-codigo" id="codigoPractica">PRÁCTICA FIS-PI-02</span>
+      <span class="badge-tipo">Laboratorio de Física · Dinámica</span>
+    </div>
+    <h1>Plano Inclinado<br><em>Equilibrio, Fricción Estática y Fricción Dinámica</em></h1>
+    <div class="header-sub">Fuerzas · Ángulo crítico · Coeficientes de rozamiento · Análisis por polea</div>
+    <div class="header-fields">
+      <div class="field-item">
+        <label>Nombre del estudiante</label>
+        <input type="text" placeholder="Escriba su nombre completo">
+      </div>
+      <div class="field-item">
+        <label>Código</label>
+        <input type="text" placeholder="Código estudiantil">
+      </div>
+      <div class="field-item">
+        <label>Grupo / Sección</label>
+        <input type="text" placeholder="Ej. Grupo B — Martes 8 am">
+      </div>
+      <div class="field-item">
+        <label>Docente</label>
+        <input type="text" placeholder="Nombre del profesor/a">
+      </div>
+      <div class="field-item">
+        <label>Fecha de realización</label>
+        <input type="date">
+      </div>
+      <div class="field-item">
+        <label>Sede</label>
+        <input type="text" placeholder="Campus / Laboratorio">
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ CUERPO ══ -->
+  <div class="body">
+
+    <!-- 00. RESUMEN -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">00</span> Resumen</h2>
+      <div class="resumen-box">
+        En esta práctica se estudian las fuerzas que actúan sobre un bloque en un plano inclinado mediante
+        un simulador interactivo. Se abordan tres situaciones: <strong>Parte A</strong> — equilibrio de fuerzas
+        externas sobre un plano horizontal; <strong>Parte B</strong> — determinación del ángulo crítico de
+        deslizamiento y cálculo del coeficiente de fricción estática $\mu_s$; y <strong>Parte C</strong> —
+        determinación experimental del coeficiente de fricción dinámica $\mu_d$ usando un sistema de polea
+        con masas colgantes y el principio de igualdad de aceleraciones. Los resultados se comparan con los
+        valores reales del simulador mediante el error relativo porcentual.
+      </div>
+      <p style="margin-top:10px;"><strong>Palabras clave:</strong>
+        plano inclinado · equilibrio estático · fricción estática · ángulo crítico · fricción dinámica ·
+        segunda ley de Newton · sistema polea · aceleración constante
+      </p>
+    </div>
+
+    <!-- 01. OBJETIVOS -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">01</span> Objetivos</h2>
+      <ul class="objetivos-lista">
+        <li><span class="obj-num">1</span>Aplicar la condición de equilibrio estático $\Sigma F = 0$ para determinar la fuerza aplicada que mantiene un bloque en reposo sobre un plano horizontal.</li>
+        <li><span class="obj-num">2</span>Determinar experimentalmente el coeficiente de fricción estática $\mu_s$ a partir del ángulo crítico de deslizamiento.</li>
+        <li><span class="obj-num">3</span>Calcular el coeficiente de fricción dinámica $\mu_d$ usando un sistema de polea ideal con masas colgantes $m_2$ y $m_2'$, bajo la condición de igualdad de aceleraciones.</li>
+        <li><span class="obj-num">4</span>Evaluar la calidad de los resultados mediante el error relativo porcentual (ER) comparando los valores experimentales con los del simulador.</li>
+        <li><span class="obj-num">5</span>Interpretar los diagramas de cuerpo libre y relacionar las ecuaciones de la dinámica newtoniana con los resultados observados.</li>
+      </ul>
+    </div>
+
+    <!-- 02. MARCO TEÓRICO -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">02</span> Marco Teórico</h2>
+
+      <div class="subseccion-titulo">2.1 · Fuerzas sobre el plano inclinado</div>
+      <p>
+        Un bloque de masa $m_1$ sobre un plano inclinado de ángulo $\theta$ experimenta el peso $\vec{W} = m_1 g$
+        descompuesto en dos componentes: una perpendicular al plano
+        $W_\perp = m_1 g \cos\theta$ (equilibrada por la normal $N$) y una paralela al plano
+        $W_\parallel = m_1 g \sin\theta$ (que tiende a deslizar el bloque hacia abajo).
+        La fuerza de rozamiento $f$ actúa paralela al plano y oponiéndose al movimiento o tendencia de movimiento.
+      </p>
+
+      <div class="subseccion-titulo">2.2 · Parte A — Equilibrio de fuerzas (θ = 0°)</div>
+      <p>
+        Con el plano horizontal se aplican dos fuerzas externas $F_1$ y $F_2$ sobre el bloque.
+        Para mantener el sistema en <strong>equilibrio estático</strong> la suma de todas las fuerzas
+        paralelas al plano debe ser nula:
+      </p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 1 — Condición de equilibrio estático</div>
+        <div class="formula-main">$$\Sigma F = F_1 + F_2 + F_{ap} = 0$$</div>
+        <div class="formula-num">(1)</div>
+      </div>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 2 — Fuerza aplicada para equilibrio</div>
+        <div class="formula-main">$$F_{ap} = -(F_1 + F_2)$$</div>
+        <div class="formula-num">(2)</div>
+      </div>
+
+      <div class="subseccion-titulo">2.3 · Parte B — Ángulo crítico y coeficiente de fricción estática</div>
+      <p>
+        El bloque comienza a deslizarse cuando la componente paralela del peso supera la máxima fuerza
+        de fricción estática. En ese instante $\theta = \theta_c$ (ángulo crítico) y se cumple:
+      </p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 3 — Coeficiente de fricción estática</div>
+        <div class="formula-main">$$\mu_s = \tan(\theta_c) = \frac{m_1 g \sin\theta_c}{m_1 g \cos\theta_c}$$</div>
+        <div class="formula-num">(3)</div>
+      </div>
+      <p>
+        La gráfica de la fuerza de rozamiento máxima vs. la fuerza normal tiene pendiente $\mu_s$.
+        Basta con encontrar el ángulo exacto al que el bloque <em>inicia</em> el movimiento.
+      </p>
+
+      <div class="subseccion-titulo">2.4 · Parte C — Coeficiente de fricción dinámica con polea</div>
+      <p>
+        Un sistema polea-bloque conecta $m_1$ (sobre el plano a $\theta = 45°$) con una masa colgante $m_H$.
+        Aplicando la segunda ley de Newton al sistema:
+      </p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 4 — Aceleración del sistema (dirección positiva: bloque sube)</div>
+        <div class="formula-main">$$a = \frac{m_H g - m_1 g \sin\theta \mp \mu_d\,m_1 g \cos\theta}{m_1 + m_H}$$</div>
+        <div class="formula-num">(4)</div>
+      </div>
+      <p>
+        El signo $-$ corresponde a que $m_1$ <strong>sube</strong> (fricción opuesta al movimiento),
+        y el signo $+$ a que $m_1$ <strong>baja</strong> (fricción también opuesta).
+        Si se escoge $m_2$ tal que $m_1$ baja con aceleración $a_1$, y $m_2'$ tal que $m_1$ sube con
+        aceleración $a_2$, imponiendo $a_1 = a_2 = a$ (misma aceleración en ambas fases):
+      </p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 5 — Coeficiente de fricción dinámica (θ = 45°)</div>
+        <div class="formula-main">$$\mu_d = \frac{m_2' - m_2}{2\,m_1\,\cos 45°} = \frac{m_2' - m_2}{\sqrt{2}\;m_1}$$</div>
+        <div class="formula-num">(5)</div>
+      </div>
+      <div class="nota">
+        <strong>Condición de validez:</strong> La Ec. 5 es válida únicamente si las aceleraciones de
+        las dos fases son iguales, es decir, $|a_1 - a_2| / \bar{a} \leq 2\%$.
+        Si esta condición no se cumple, los valores de $m_2$ y $m_2'$ deben ajustarse.
+      </div>
+
+      <div class="subseccion-titulo">2.5 · Error relativo porcentual</div>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 6 — Error relativo (ER)</div>
+        <div class="formula-main">$$\text{ER} = \frac{|\mu_{\exp} - \mu_{\text{real}}|}{\mu_{\text{real}}} \times 100\,\%$$</div>
+        <div class="formula-num">(6)</div>
+      </div>
+
+      <table class="rango-tabla">
+        <thead>
+          <tr><th>Indicador</th><th>Rango</th><th>Interpretación</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td rowspan="3" style="font-family:var(--mono);font-size:.85em;">ER</td>
+            <td class="bueno">ER &lt; 2 %</td><td>Resultado excelente</td>
+          </tr>
+          <tr>
+            <td class="medio">2 % ≤ ER &lt; 10 %</td><td>Resultado aceptable</td>
+          </tr>
+          <tr>
+            <td class="malo">ER ≥ 10 %</td><td>Revisar procedimiento</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 03. PROCEDIMIENTO -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">03</span> Procedimiento Experimental</h2>
+
+      <div class="paso">
+        <div class="paso-num">1</div>
+        <div class="paso-content">
+          <p><strong>Configuración inicial.</strong> Abra el simulador y seleccione los materiales del bloque y del plano. Anote los parámetros iniciales:</p>
+          <div class="result-box col4" style="margin-top:8px;">
+            <div class="res-campo">
+              <label>Material del bloque</label>
+              <input type="text" placeholder="Ej. Madera">
+            </div>
+            <div class="res-campo">
+              <label>Material del plano</label>
+              <input type="text" placeholder="Ej. Concreto">
+            </div>
+            <div class="res-campo">
+              <label>Masa m₁ (kg)</label>
+              <input type="text" placeholder="m₁ = ___">
+            </div>
+            <div class="res-campo">
+              <label>Gravedad g (m/s²)</label>
+              <input type="text" placeholder="9.81">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="paso">
+        <div class="paso-num">2</div>
+        <div class="paso-content">
+          <p><strong>Parte A — Equilibrio.</strong> Cambie al modo <em>Parte A</em>. El simulador coloca el plano horizontal (θ = 0°) y aplica automáticamente fuerzas aleatorias $F_1$ y $F_2$. Anote los valores y calcule $F_{ap}$ usando la Ec. 2. Ingrésela en el campo del simulador y verifique.</p>
+        </div>
+      </div>
+
+      <div class="paso">
+        <div class="paso-num">3</div>
+        <div class="paso-content">
+          <p><strong>Parte B — Ángulo crítico.</strong> Cambie al modo <em>Parte B</em>. Los coeficientes de fricción quedan ocultos. Aumente el ángulo lentamente (de 0° a 90°) con el deslizador hasta que el bloque <em>comience</em> a moverse. Registre ese ángulo $\theta_c$ y calcule $\mu_s$ con la Ec. 3.</p>
+        </div>
+      </div>
+
+      <div class="paso">
+        <div class="paso-num">4</div>
+        <div class="paso-content">
+          <p><strong>Parte C — Polea, Fase 1.</strong> Cambie al modo <em>Parte C</em> (θ = 45° fijo). Ingrese una masa $m_2$ en el campo de Fase 1, presione <em>Aplicar</em> e <em>Iniciar</em>. Aumente $m_2$ hasta que m₁ <strong>baje</strong> con aceleración constante (barra |a| verde). Anote $m_2$ y la aceleración $a_1$.</p>
+        </div>
+      </div>
+
+      <div class="paso">
+        <div class="paso-num">5</div>
+        <div class="paso-content">
+          <p><strong>Parte C — Polea, Fase 2.</strong> Ingrese una masa $m_2'$ <em>mayor</em> que $m_2$ en el campo de Fase 2, presione <em>Aplicar</em> e <em>Iniciar</em>. Ajuste hasta que m₁ <strong>suba</strong> con aceleración $a_2 \approx a_1$ (error ≤ 2%). Presione <em>Calcular μd</em> para verificar.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════ -->
+    <!-- 04. PARTE A         -->
+    <!-- ════════════════════ -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">04</span> Parte A — Equilibrio de Fuerzas</h2>
+
+      <div class="nota">
+        <strong>Modo del simulador:</strong> Seleccione <em>🔴 Parte A</em>. El plano quedará a θ = 0° y el simulador mostrará $F_1$ y $F_2$ de forma aleatoria. El ángulo está bloqueado para este reto.
+      </div>
+
+      <div class="subseccion-titulo">Diagrama de cuerpo libre — Parte A</div>
+      <span class="area-label">Dibuje el diagrama de fuerzas sobre el bloque en el plano horizontal</span>
+      <div class="adjunto-slot" style="min-height:160px;">
+        <input type="file" accept="image/*" onchange="previsualizarImagen(this,'prevDCLA')">
+        <span class="slot-icon">✏️</span>
+        <span class="slot-label">Adjuntar diagrama dibujado a mano o captura del simulador</span>
+        <span class="slot-hint">Debe mostrar: W, N, F₁, F₂ y F_ap · PNG, JPG</span>
+        <img id="prevDCLA" class="preview-img" alt="">
+      </div>
+
+      <div class="subseccion-titulo">Registro de datos — Parte A</div>
+      <span class="area-label">Anote las fuerzas que muestra el simulador y calcule F_ap</span>
+      <div class="result-box">
+        <div class="res-campo">
+          <label>F₁ (N)</label>
+          <input type="text" id="pA_F1" placeholder="F₁ = ___">
+        </div>
+        <div class="res-campo">
+          <label>F₂ (N)</label>
+          <input type="text" id="pA_F2" placeholder="F₂ = ___">
+        </div>
+        <div class="res-campo">
+          <label>F_ap calculado (N)</label>
+          <input type="text" id="pA_Fap" placeholder="F_ap = ___">
+        </div>
+      </div>
+
+      <span class="area-label">Procedimiento de cálculo — Equilibrio</span>
+      <textarea class="trabajo-area" style="min-height:130px;"
+        placeholder="Aplicando ΣF = 0:&#10;  F₁ + F₂ + F_ap = 0&#10;  F_ap = -(F₁ + F₂)&#10;  F_ap = -( ___ + ___ )&#10;  F_ap = ___ N&#10;&#10;Verificación: F₁ + F₂ + F_ap = ___ ≈ 0 ✓"></textarea>
+
+      <div class="subseccion-titulo">Resultado — Parte A</div>
+      <div class="result-box col2" style="margin-top:6px;">
+        <div class="res-campo">
+          <label>F_ap calculado por el estudiante (N)</label>
+          <input type="text" placeholder="___ N">
+        </div>
+        <div class="res-campo">
+          <label>F_ap confirmado por el simulador (N)</label>
+          <input type="text" placeholder="___ N">
+        </div>
+      </div>
+
+      <span class="area-label">Captura del simulador — Reto A aprobado</span>
+      <div class="adjunto-slot">
+        <input type="file" accept="image/*" onchange="previsualizarImagen(this,'prevA')">
+        <span class="slot-icon">✅</span>
+        <span class="slot-label">Adjuntar captura del mensaje de aprobación — Parte A</span>
+        <span class="slot-hint">Debe mostrarse el recuadro verde "¡Correcto!" · PNG, JPG</span>
+        <img id="prevA" class="preview-img" alt="">
+      </div>
+    </div>
+
+    <!-- ════════════════════ -->
+    <!-- 05. PARTE B         -->
+    <!-- ════════════════════ -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">05</span> Parte B — Ángulo Crítico y Coeficiente de Fricción Estática</h2>
+
+      <div class="nota">
+        <strong>Modo del simulador:</strong> Seleccione <em>🟠 Parte B</em>. Los coeficientes de fricción quedan ocultos — ¡no aparecen en pantalla! Aumente el ángulo lentamente hasta que el bloque <em>empiece a moverse</em>. El ángulo en ese instante es $\theta_c$.
+      </div>
+
+      <div class="subseccion-titulo">Diagrama de cuerpo libre — Parte B</div>
+      <span class="area-label">Dibuje el diagrama de fuerzas al ángulo crítico θ_c</span>
+      <div class="adjunto-slot" style="min-height:160px;">
+        <input type="file" accept="image/*" onchange="previsualizarImagen(this,'prevDCLB')">
+        <span class="slot-icon">✏️</span>
+        <span class="slot-label">Adjuntar diagrama dibujado — Parte B</span>
+        <span class="slot-hint">Debe mostrar: W (y sus componentes), N, f_s_max · PNG, JPG</span>
+        <img id="prevDCLB" class="preview-img" alt="">
+      </div>
+
+      <div class="subseccion-titulo">Registro y cálculo — Parte B</div>
+      <span class="area-label">Anote el ángulo crítico observado y calcule μ_s</span>
+      <div class="result-box col2">
+        <div class="res-campo">
+          <label>Ángulo crítico θ_c (°)</label>
+          <input type="text" id="pB_theta" placeholder="θ_c = ___°">
+        </div>
+        <div class="res-campo">
+          <label>μ_s = tan(θ_c) calculado</label>
+          <input type="text" id="pB_mus" placeholder="μ_s = ___">
+        </div>
+      </div>
+
+      <span class="area-label">Procedimiento de cálculo — μ_s</span>
+      <textarea class="trabajo-area" style="min-height:130px;"
+        placeholder="Al ángulo crítico, la fricción estática es máxima:&#10;  f_s_max = μ_s · N = μ_s · m₁g·cosθ_c&#10;  m₁g·sinθ_c = μ_s · m₁g·cosθ_c&#10;  μ_s = tanθ_c = tan( ___° )&#10;  μ_s = ___&#10;&#10;Valor de μ_s experimental: ___"></textarea>
+
+      <div class="subseccion-titulo">Análisis de error — Parte B</div>
+      <div class="result-box col4">
+        <div class="res-campo">
+          <label>μ_s experimental</label>
+          <input type="text" id="pB_mus_exp" placeholder="___">
+        </div>
+        <div class="res-campo">
+          <label>μ_s real (simulador)</label>
+          <input type="text" id="pB_mus_real" placeholder="Se revela al aprobar">
+        </div>
+        <div class="res-campo">
+          <label>ER (%) — Ec. 6</label>
+          <input type="text" id="pB_ER" placeholder="___ %">
+        </div>
+        <div class="res-campo">
+          <label>Interpretación</label>
+          <input type="text" placeholder="Excelente / Aceptable / …">
+        </div>
+      </div>
+
+      <span class="area-label">Captura del simulador — Reto B aprobado</span>
+      <div class="adjunto-slot">
+        <input type="file" accept="image/*" onchange="previsualizarImagen(this,'prevB')">
+        <span class="slot-icon">✅</span>
+        <span class="slot-label">Adjuntar captura del mensaje de aprobación — Parte B</span>
+        <span class="slot-hint">Debe verse θ_c, μ_s calculado y valor real · PNG, JPG</span>
+        <img id="prevB" class="preview-img" alt="">
+      </div>
+    </div>
+
+    <!-- ════════════════════ -->
+    <!-- 06. PARTE C         -->
+    <!-- ════════════════════ -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">06</span> Parte C — Coeficiente de Fricción Dinámica con Polea</h2>
+
+      <div class="nota">
+        <strong>Modo del simulador:</strong> Seleccione <em>🟢 Parte C</em>. El ángulo se fija en θ = 45°. El objetivo es encontrar dos masas colgantes $m_2$ (m₁ baja) y $m_2'$ (m₁ sube) con la <em>misma aceleración</em> para calcular $\mu_d$ con la Ec. 5.
+      </div>
+
+      <!-- RETO C -->
+      <div>
+        <div class="reto-header">
+          <div><span class="reto-badge">Parte C</span></div>
+          <div>
+            <h4>Reto — Determinar μ_d mediante el método de las dos masas</h4>
+            <p>Ajuste m₂ y m₂' hasta que |a₁ − a₂| / ā ≤ 2%, luego calcule μ_d con la Ec. 5.</p>
+          </div>
+        </div>
+        <div class="reto-body">
+
+          <div class="subseccion-titulo" style="margin-top:0">Diagrama de cuerpo libre — Sistema polea (Parte C)</div>
+          <span class="area-label">Dibuje el DCL completo: bloque sobre el plano + masa colgante</span>
+          <div class="adjunto-slot" style="min-height:180px;">
+            <input type="file" accept="image/*" onchange="previsualizarImagen(this,'prevDCLC')">
+            <span class="slot-icon">✏️</span>
+            <span class="slot-label">Adjuntar diagrama del sistema polea-bloque</span>
+            <span class="slot-hint">Debe mostrar: m₁ en plano, m_H colgante, T, W₁, N, f_k · PNG, JPG</span>
+            <img id="prevDCLC" class="preview-img" alt="">
+          </div>
+
+          <div class="divider"><span>Fase 1 — m₁ Baja</span></div>
+
+          <span class="area-label">Datos de la Fase 1 (m₁ baja con aceleración constante a₁)</span>
+          <div class="result-box">
+            <div class="res-campo">
+              <label>m₂ aplicado (kg)</label>
+              <input type="text" id="pC_m2" placeholder="m₂ = ___">
+            </div>
+            <div class="res-campo">
+              <label>Aceleración a₁ medida (m/s²)</label>
+              <input type="text" id="pC_a1" placeholder="a₁ = ___">
+            </div>
+            <div class="res-campo">
+              <label>Dirección del movimiento</label>
+              <input type="text" placeholder="↙ m₁ baja">
+            </div>
+          </div>
+
+          <span class="area-label">Procedimiento — Segunda ley de Newton para Fase 1</span>
+          <textarea class="trabajo-area" style="min-height:150px;"
+            placeholder="Sistema: m₁ sobre el plano (θ=45°) + m₂ colgante&#10;Dirección positiva: m₁ baja (m₂ sube)&#10;&#10;Para m₂ (colgante):   m₂·g − T = m₂·a₁&#10;Para m₁ (en plano):   T − m₁·g·sinθ − μ_d·N = −m₁·a₁&#10;Sumando: (m₂ − m₁·sinθ − μ_d·m₁·cosθ) · g = (m₁ + m₂)·a₁&#10;&#10;Sustituyendo valores:&#10;  a₁ = ( ___ · 9.81 − ___ · 9.81 · sin45° − μ_d · ___ · 9.81 · cos45° ) / ( ___ + ___ )&#10;  a₁ = ___ m/s²"></textarea>
+
+          <div class="divider"><span>Fase 2 — m₁ Sube</span></div>
+
+          <span class="area-label">Datos de la Fase 2 (m₁ sube con aceleración constante a₂)</span>
+          <div class="result-box">
+            <div class="res-campo">
+              <label>m₂' aplicado (kg)</label>
+              <input type="text" id="pC_m2p" placeholder="m₂' = ___">
+            </div>
+            <div class="res-campo">
+              <label>Aceleración a₂ medida (m/s²)</label>
+              <input type="text" id="pC_a2" placeholder="a₂ = ___">
+            </div>
+            <div class="res-campo">
+              <label>Dirección del movimiento</label>
+              <input type="text" placeholder="↗ m₁ sube">
+            </div>
+          </div>
+
+          <span class="area-label">Procedimiento — Segunda ley de Newton para Fase 2</span>
+          <textarea class="trabajo-area" style="min-height:150px;"
+            placeholder="Sistema: m₁ sobre el plano (θ=45°) + m₂' colgante&#10;Dirección positiva: m₁ sube (m₂' baja)&#10;&#10;Para m₂' (colgante):  m₂'·g − T = m₂'·a₂&#10;Para m₁ (en plano):   T − m₁·g·sinθ + μ_d·N = m₁·a₂&#10;Sumando: (m₂'·g − m₁·g·sinθ + μ_d·m₁·g·cosθ) = (m₁ + m₂')·a₂&#10;&#10;Sustituyendo valores:&#10;  a₂ = ( ___ · 9.81 − ___ · 9.81 · sin45° + μ_d · ___ · 9.81 · cos45° ) / ( ___ + ___ )&#10;  a₂ = ___ m/s²"></textarea>
+
+          <div class="divider"><span>Verificación de la condición a₁ ≈ a₂</span></div>
+
+          <div class="result-box col4">
+            <div class="res-campo">
+              <label>a₁ (m/s²)</label>
+              <input type="text" id="pC_a1v" placeholder="___">
+            </div>
+            <div class="res-campo">
+              <label>a₂ (m/s²)</label>
+              <input type="text" id="pC_a2v" placeholder="___">
+            </div>
+            <div class="res-campo">
+              <label>ā = (a₁+a₂)/2</label>
+              <input type="text" id="pC_abar" placeholder="___">
+            </div>
+            <div class="res-campo">
+              <label>Error = |a₁−a₂|/ā × 100 %</label>
+              <input type="text" id="pC_aerr" placeholder="___ % (≤ 2%)">
+            </div>
+          </div>
+
+          <div class="divider"><span>Cálculo de μ_d — Ecuación 5</span></div>
+
+          <span class="area-label">Cálculo del coeficiente de fricción dinámica</span>
+          <textarea class="trabajo-area" style="min-height:130px;"
+            placeholder="Aplicando la Ec. 5 (θ = 45°, cos45° = √2/2):&#10;&#10;  μ_d = (m₂' − m₂) / (2 · m₁ · cos45°)&#10;  μ_d = ( ___ − ___ ) / ( 2 · ___ · cos45° )&#10;  μ_d = ___ / ___&#10;  μ_d = ___&#10;&#10;Resultado: μ_d = ___"></textarea>
+
+          <div class="subseccion-titulo">Resultados finales — Parte C</div>
+          <div class="result-box col5">
+            <div class="res-campo">
+              <label>m₁ (kg)</label>
+              <input type="text" placeholder="___">
+            </div>
+            <div class="res-campo">
+              <label>m₂ (kg)</label>
+              <input type="text" placeholder="___">
+            </div>
+            <div class="res-campo">
+              <label>m₂' (kg)</label>
+              <input type="text" placeholder="___">
+            </div>
+            <div class="res-campo">
+              <label>μ_d experimental</label>
+              <input type="text" id="pC_mud_exp" placeholder="___">
+            </div>
+            <div class="res-campo">
+              <label>μ_d real (simulador)</label>
+              <input type="text" id="pC_mud_real" placeholder="Se revela al aprobar">
+            </div>
+          </div>
+
+          <div class="result-box col2" style="margin-top:6px;">
+            <div class="res-campo">
+              <label>ER = |μ_d_exp − μ_d_real| / μ_d_real × 100 %</label>
+              <input type="text" id="pC_ER" placeholder="___ %">
+            </div>
+            <div class="res-campo">
+              <label>Interpretación del error</label>
+              <input type="text" placeholder="Excelente / Aceptable / …">
+            </div>
+          </div>
+
+          <span class="area-label">Captura del simulador — Reto C aprobado</span>
+          <div class="adjunto-slot">
+            <input type="file" accept="image/*" onchange="previsualizarImagen(this,'prevC')">
+            <span class="slot-icon">🏆</span>
+            <span class="slot-label">Adjuntar captura del mensaje "¡Reto aprobado!" — Parte C</span>
+            <span class="slot-hint">Debe mostrarse μ_d calculado, materiales y μ_k real · PNG, JPG</span>
+            <img id="prevC" class="preview-img" alt="">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 07. TABLA COMPARATIVA -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">07</span> Tabla Comparativa de Resultados</h2>
+      <p>Complete la tabla con los valores obtenidos en cada parte de la práctica.</p>
+      <table class="tabla-resultados">
+        <thead>
+          <tr>
+            <th>Parte</th>
+            <th>Magnitud</th>
+            <th>Valor experimental</th>
+            <th>Valor real (simulador)</th>
+            <th>ER (%)</th>
+            <th>Interpretación</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="row-label">A</td>
+            <td>$F_{ap}$ (N)</td>
+            <td class="input-cell"><input type="text" placeholder="___"></td>
+            <td class="input-cell"><input type="text" placeholder="___"></td>
+            <td class="input-cell"><input type="text" placeholder="___ %"></td>
+            <td class="input-cell"><input type="text" placeholder="___"></td>
+          </tr>
+          <tr>
+            <td class="row-label">B</td>
+            <td>$\mu_s$</td>
+            <td class="input-cell"><input type="text" placeholder="___"></td>
+            <td class="input-cell"><input type="text" placeholder="___"></td>
+            <td class="input-cell"><input type="text" placeholder="___ %"></td>
+            <td class="input-cell"><input type="text" placeholder="___"></td>
+          </tr>
+          <tr>
+            <td class="row-label">C</td>
+            <td>$\mu_d$</td>
+            <td class="input-cell"><input type="text" placeholder="___"></td>
+            <td class="input-cell"><input type="text" placeholder="___"></td>
+            <td class="input-cell"><input type="text" placeholder="___ %"></td>
+            <td class="input-cell"><input type="text" placeholder="___"></td>
+          </tr>
+          <tr>
+            <td class="row-label" colspan="2" style="text-align:right;font-style:italic;">Relación esperada:</td>
+            <td colspan="4" style="font-family:var(--mono);font-size:.85em;color:var(--ink-muted);">
+              $\mu_d &lt; \mu_s$ siempre · ¿Se cumple en sus resultados?
+              <input type="text" placeholder="Sí / No" style="width:80px;border:none;border-bottom:1px solid var(--rule);background:transparent;font-family:var(--mono);font-size:.9em;padding:2px 4px;outline:none;margin-left:8px;">
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 08. DISCUSIÓN -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">08</span> Discusión de Resultados</h2>
+
+      <span class="area-label">8.1 · Parte A — ¿La condición ΣF = 0 se cumplió? ¿Qué ocurriría si F_ap no fuera exacta?</span>
+      <textarea class="trabajo-area" placeholder="Escriba su análisis aquí..."></textarea>
+
+      <span class="area-label">8.2 · Parte B — ¿Por qué μ_s = tan(θ_c)? Explique la deducción a partir del DCL y analice la sensibilidad al ángulo.</span>
+      <textarea class="trabajo-area" placeholder="Escriba su análisis aquí..."></textarea>
+
+      <span class="area-label">8.3 · Parte C — ¿Por qué es necesario que a₁ = a₂ para que la Ec. 5 sea válida? Justifique álgebricamente.</span>
+      <textarea class="trabajo-area" placeholder="Escriba su análisis aquí..."></textarea>
+
+      <span class="area-label">8.4 · Verifique que μ_d &lt; μ_s en sus resultados. Si no se cumple, ¿a qué se debería?</span>
+      <textarea class="trabajo-area" placeholder="Escriba su análisis aquí..."></textarea>
+
+      <span class="area-label">8.5 · Fuentes de error — Identifique al menos tres fuentes de error (sistemáticas y aleatorias) en esta práctica.</span>
+      <textarea class="trabajo-area" placeholder="1. ...&#10;2. ...&#10;3. ..."></textarea>
+    </div>
+
+    <!-- 09. CONCLUSIONES -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">09</span> Conclusiones</h2>
+      <p>Redacte tres conclusiones concretas que respondan directamente a los objetivos planteados.</p>
+
+      <span class="area-label">Conclusión 1 — Sobre el equilibrio de fuerzas (Parte A)</span>
+      <textarea class="trabajo-area" style="min-height:90px;" placeholder="Redacte su primera conclusión..."></textarea>
+
+      <span class="area-label">Conclusión 2 — Sobre el coeficiente de fricción estática μ_s y el ángulo crítico (Parte B)</span>
+      <textarea class="trabajo-area" style="min-height:90px;" placeholder="Redacte su segunda conclusión..."></textarea>
+
+      <span class="area-label">Conclusión 3 — Sobre el coeficiente de fricción dinámica μ_d y la condición a₁ = a₂ (Parte C)</span>
+      <textarea class="trabajo-area" style="min-height:90px;" placeholder="Redacte su tercera conclusión..."></textarea>
+    </div>
+
+    <!-- 10. REFERENCIAS -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">10</span> Referencias</h2>
+      <p style="font-size:.88em; line-height:2.1;">
+        [1] Sears, F. W., Zemansky, M. W. &amp; Young, H. D. <em>University Physics</em>. 14ª ed. Pearson, 2016.<br>
+        [2] Serway, R. A. &amp; Jewett, J. W. <em>Physics for Scientists and Engineers</em>. 10ª ed. Cengage Learning, 2019.<br>
+        [3] Tipler, P. A. &amp; Llewellyn, R. A. <em>Physics for Scientists and Engineers</em>. 6ª ed. W. H. Freeman, 2008.<br>
+        [4] Halliday, D., Resnick, R. &amp; Krane, K. S. <em>Physics</em>. 5ª ed. John Wiley &amp; Sons, 2002.
+      </p>
+    </div>
+
+    <!-- FIRMAS -->
+    <div class="firma-grid">
+      <div class="firma-slot">Firma del Estudiante</div>
+      <div class="firma-slot">Visto Bueno del Docente</div>
+    </div>
+
+  </div><!-- /body -->
+</div><!-- /documento -->
+
+<button class="btn-imprimir" onclick="window.print()">⎙ Imprimir / Guardar PDF</button>
+
+<script>
+function previsualizarImagen(input, previewId) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = document.getElementById(previewId);
+    if (img) { img.src = e.target.result; img.style.display = 'block'; }
+  };
+  reader.readAsDataURL(file);
+}
+
+window.addEventListener('load', () => {
+  const now = new Date();
+  const sem = now.getMonth() < 6 ? '1' : '2';
+  document.getElementById('codigoPractica').textContent =
+    `PRÁCTICA FIS-PI-02 · ${now.getFullYear()}-${sem}`;
+  document.querySelectorAll('input[type="date"]').forEach(i => {
+    i.value = now.toISOString().split('T')[0];
+  });
+});
+</script>
+</body>
+</html>

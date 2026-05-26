@@ -1,0 +1,1404 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Práctica de Laboratorio — Ley de Hooke</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>
+  MathJax = {
+    tex: { inlineMath: [['$','$'],['\\(','\\)']], displayMath: [['$$','$$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+  :root {
+    --ink:       #1a1a2e;
+    --ink-soft:  #3d3d5c;
+    --ink-muted: #7a7a9a;
+    --paper:     #faf8f3;
+    --paper-alt: #f2ede3;
+    --rule:      #d4c9b0;
+    --accent:    #1a5276;
+    --accent2:   #c0392b;
+    --gold:      #b8860b;
+    --green:     #1e8449;
+    --mono:      'JetBrains Mono', monospace;
+    --serif:     'Source Serif 4', Georgia, serif;
+    --display:   'Playfair Display', Georgia, serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: #dde3e8;
+    font-family: var(--serif);
+    color: var(--ink);
+    font-size: 15px;
+    line-height: 1.75;
+    min-height: 100vh;
+    padding: 30px 15px 80px;
+  }
+  .documento {
+    max-width: 860px;
+    margin: 0 auto;
+    background: var(--paper);
+    box-shadow: 0 2px 4px rgba(0,0,0,.08), 0 8px 32px rgba(0,0,0,.14), 0 20px 60px rgba(0,0,0,.08);
+    position: relative;
+   overflow-x: hidden; }
+  .documento::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 5px;
+    background: linear-gradient(180deg, var(--accent) 0%, var(--accent2) 50%, var(--gold) 100%);
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--ink);
+    color: #fff;
+    padding: 36px 50px 30px 55px;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::after {
+    content: 'k';
+    font-family: var(--display);
+    font-size: 300px;
+    font-weight: 700;
+    color: rgba(255,255,255,.04);
+    position: absolute;
+    right: -10px; top: -60px;
+    line-height: 1;
+    pointer-events: none;
+    user-select: none;
+  }
+  .header-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    gap: 20px;
+  }
+  .badge-codigo {
+    font-family: var(--mono);
+    font-size: .7em;
+    background: var(--accent);
+    color: #fff;
+    padding: 3px 10px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+  .badge-tipo {
+    font-family: var(--mono);
+    font-size: .7em;
+    color: rgba(255,255,255,.5);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    border: 1px solid rgba(255,255,255,.15);
+    padding: 3px 10px;
+  }
+  .header h1 {
+    font-family: var(--display);
+    font-size: 2.1em;
+    font-weight: 700;
+    line-height: 1.2;
+    color: #fff;
+    margin-bottom: 6px;
+  }
+  .header h1 em {
+    font-style: italic;
+    color: rgba(255,255,255,.65);
+    font-size: .82em;
+  }
+  .header-sub {
+    font-size: .82em;
+    color: rgba(255,255,255,.45);
+    font-weight: 300;
+    letter-spacing: .04em;
+    margin-top: 4px;
+  }
+  .header-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 24px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,.12);
+  }
+  .field-item label {
+    display: block;
+    font-family: var(--mono);
+    font-size: .65em;
+    color: rgba(255,255,255,.4);
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    margin-bottom: 4px;
+  }
+  .field-item input[type="text"],
+  .field-item input[type="date"] {
+    width: 100%;
+    background: rgba(255,255,255,.07);
+    border: none;
+    border-bottom: 1px solid rgba(255,255,255,.25);
+    color: #fff;
+    font-family: var(--serif);
+    font-size: .9em;
+    padding: 4px 0;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .field-item input:focus { border-bottom-color: var(--accent2); }
+  .field-item input::placeholder { color: rgba(255,255,255,.2); }
+
+  /* ── BODY ── */
+  .body { padding: 44px 50px 50px 55px; }
+  .seccion { margin-bottom: 42px; }
+  .seccion-titulo {
+    font-family: var(--display);
+    font-size: 1.15em;
+    font-weight: 600;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--rule);
+  }
+  .seccion-titulo .num {
+    font-family: var(--mono);
+    font-size: .75em;
+    color: var(--accent);
+    background: #e8f0f7;
+    padding: 2px 7px;
+    letter-spacing: .05em;
+    min-width: 36px;
+    text-align: center;
+  }
+  .subseccion-titulo {
+    font-family: var(--display);
+    font-size: 1em;
+    font-weight: 600;
+    color: var(--accent);
+    margin: 22px 0 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .subseccion-titulo::before {
+    content: '';
+    width: 14px; height: 2px;
+    background: var(--accent);
+    display: inline-block;
+    flex-shrink: 0;
+  }
+  p { margin-bottom: 10px; color: var(--ink-soft); font-size: .95em; }
+  p:last-child { margin-bottom: 0; }
+
+  /* ── RESUMEN ── */
+  .resumen-box {
+    background: var(--paper-alt);
+    border-left: 3px solid var(--accent);
+    padding: 16px 20px;
+    font-size: .9em;
+    font-style: italic;
+    color: var(--ink-soft);
+    line-height: 1.7;
+  }
+
+  /* ── OBJETIVOS ── */
+  .objetivos-lista { list-style: none; padding: 0; }
+  .objetivos-lista li {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 8px 0;
+    border-bottom: 1px dashed var(--rule);
+    font-size: .93em;
+    color: var(--ink-soft);
+  }
+  .objetivos-lista li:last-child { border-bottom: none; }
+  .objetivos-lista li .obj-num {
+    font-family: var(--mono);
+    font-size: .75em;
+    color: #fff;
+    background: var(--accent);
+    min-width: 22px; height: 22px;
+    display: flex; align-items: center; justify-content: center;
+    margin-top: 2px; flex-shrink: 0;
+  }
+
+  /* ── FÓRMULAS ── */
+  .formula-box {
+    background: var(--ink);
+    color: #fff;
+    padding: 18px 24px;
+    margin: 18px 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .formula-box::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--accent2);
+  }
+  .formula-box .formula-label {
+    font-family: var(--mono);
+    font-size: .65em;
+    color: rgba(255,255,255,.4);
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    margin-bottom: 10px;
+  }
+  .formula-main { font-size: 1.2em; text-align: center; padding: 6px 0; }
+  .formula-num {
+    font-family: var(--mono);
+    font-size: .65em;
+    color: rgba(255,255,255,.35);
+    text-align: right;
+    margin-top: 6px;
+  }
+
+  /* ── TABLA DATOS ── */
+  .tabla-resultados {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .86em;
+    margin: 14px 0;
+  }
+  .tabla-resultados th {
+    background: var(--ink);
+    color: #fff;
+    font-family: var(--mono);
+    font-size: .7em;
+    letter-spacing: .07em;
+    padding: 9px 12px;
+    text-align: center;
+    font-weight: 500;
+    border: 1px solid #444;
+  }
+  .tabla-resultados td {
+    padding: 7px 10px;
+    border: 1px solid var(--rule);
+    text-align: center;
+    color: var(--ink-soft);
+    vertical-align: middle;
+  }
+  .tabla-resultados td.input-cell { padding: 3px 4px; }
+  .tabla-resultados input[type="text"] {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid var(--rule);
+    background: transparent;
+    font-family: var(--mono);
+    font-size: .88em;
+    color: var(--ink);
+    padding: 4px 4px;
+    text-align: center;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .tabla-resultados input:focus { border-bottom-color: var(--accent); }
+  .tabla-resultados tr:nth-child(even) td { background: var(--paper-alt); }
+  .tabla-resultados .row-label {
+    font-family: var(--mono);
+    font-size: .82em;
+    font-weight: 500;
+    color: var(--accent);
+  }
+
+  /* ── PASOS ── */
+  .paso { display: flex; gap: 16px; margin-bottom: 20px; align-items: flex-start; }
+  .paso-num {
+    font-family: var(--mono); font-size: .8em;
+    background: var(--accent); color: #fff;
+    min-width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 2px;
+  }
+  .paso-content { flex: 1; }
+  .paso-content p { margin-bottom: 6px; }
+
+  /* ── ÁREA DE TRABAJO ── */
+  .trabajo-area {
+    width: 100%; min-height: 110px;
+    border: 1px solid var(--rule);
+    background: #fff;
+    font-family: var(--serif);
+    font-size: .9em; color: var(--ink);
+    padding: 14px 16px; resize: vertical; outline: none;
+    line-height: 1.8; transition: border-color .2s; display: block;
+  }
+  .trabajo-area:focus { border-color: var(--accent); }
+  .trabajo-area::placeholder { color: #bbb; font-style: italic; }
+  .area-label {
+    font-family: var(--mono); font-size: .68em;
+    color: var(--ink-muted); text-transform: uppercase;
+    letter-spacing: .1em; margin-bottom: 5px; margin-top: 14px; display: block;
+  }
+
+  /* ── NOTA ── */
+  .nota {
+    background: #fef9e7;
+    border-left: 3px solid var(--gold);
+    padding: 10px 16px;
+    font-size: .85em; color: #7d6608;
+    margin: 14px 0; font-style: italic;
+  }
+  .nota strong { font-style: normal; color: var(--gold); }
+
+  /* ── CAJAS DE RESULTADO ── */
+  .result-box {
+    background: var(--paper-alt);
+    border: 1px solid var(--rule);
+    padding: 16px 20px; margin: 14px 0;
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  .result-box.col2 { grid-template-columns: 1fr 1fr; }
+  .result-box.col4 { grid-template-columns: repeat(4, 1fr); }
+  .result-box.col5 { grid-template-columns: repeat(5, 1fr); }
+  @media(max-width:600px) {
+    .result-box, .result-box.col2, .result-box.col4, .result-box.col5 { grid-template-columns: 1fr 1fr; }
+  }
+  .res-campo label {
+    font-family: var(--mono); font-size: .63em;
+    color: var(--ink-muted); text-transform: uppercase;
+    letter-spacing: .1em; display: block; margin-bottom: 5px;
+  }
+  .res-campo input[type="text"] {
+    width: 100%; border: none;
+    border-bottom: 2px solid var(--rule);
+    background: transparent; font-family: var(--mono);
+    font-size: 1em; color: var(--ink); padding: 4px 0;
+    outline: none; transition: border-color .2s; text-align: center;
+  }
+  .res-campo input:focus { border-bottom-color: var(--accent); }
+
+  /* ── RANGOS ── */
+  .rango-tabla {
+    width: 100%; border-collapse: collapse;
+    font-size: .85em; margin: 12px 0;
+  }
+  .rango-tabla th {
+    background: var(--ink); color: #fff;
+    font-family: var(--mono); font-size: .68em;
+    padding: 7px 12px; letter-spacing: .08em; text-align: center;
+  }
+  .rango-tabla td {
+    padding: 6px 12px; border: 1px solid var(--rule);
+    text-align: center; font-size: .88em;
+  }
+  .rango-tabla .bueno { color: var(--green); font-weight: 600; }
+  .rango-tabla .medio { color: var(--gold); font-weight: 600; }
+  .rango-tabla .malo  { color: var(--accent2); font-weight: 600; }
+
+  /* ── GRÁFICA ── */
+  .grafica-box {
+    border: 1px solid var(--rule);
+    background: #fff; margin: 14px 0;
+    overflow: hidden;
+  }
+  .grafica-header {
+    background: var(--ink); color: #fff;
+    padding: 8px 16px;
+    font-family: var(--mono); font-size: .68em;
+    letter-spacing: .1em; text-transform: uppercase;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .grafica-canvas {
+    display: block; width: 100%;
+    background: #fafafa;
+  }
+  .grafica-controles {
+    padding: 10px 16px;
+    border-top: 1px solid var(--rule);
+    display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+  }
+  .btn-ctrl {
+    font-family: var(--mono); font-size: .7em;
+    padding: 5px 12px; border: 1px solid var(--rule);
+    background: var(--paper-alt); color: var(--ink-soft);
+    cursor: pointer; transition: all .2s; letter-spacing: .05em;
+  }
+  .btn-ctrl:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-ctrl.activo { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .grafica-info {
+    font-family: var(--mono); font-size: .75em;
+    color: var(--ink-muted); flex: 1; text-align: right;
+  }
+
+  /* ── DIVIDER ── */
+  .divider {
+    display: flex; align-items: center; gap: 12px;
+    margin: 28px 0 18px;
+    font-family: var(--mono); font-size: .68em;
+    color: var(--ink-muted); text-transform: uppercase; letter-spacing: .1em;
+  }
+  .divider::before, .divider::after {
+    content: ''; flex: 1; height: 1px; background: var(--rule);
+  }
+
+  /* ── ADJUNTO ── */
+  .adjunto-slot {
+    border: 2px dashed var(--rule);
+    padding: 24px; text-align: center;
+    cursor: pointer; position: relative;
+    transition: border-color .2s; margin-top: 8px;
+  }
+  .adjunto-slot:hover { border-color: var(--accent); }
+  .adjunto-slot input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%;
+  }
+  .slot-icon { display: block; font-size: 1.8em; margin-bottom: 6px; }
+  .slot-label { display: block; font-family: var(--mono); font-size: .75em; color: var(--ink-soft); }
+  .slot-hint  { display: block; font-size: .72em; color: var(--ink-muted); margin-top: 4px; }
+  .preview-img {
+    display: none; max-width: 100%; margin-top: 14px;
+    border: 1px solid var(--rule);
+  }
+
+  /* ── RETO ── */
+  .reto-header {
+    background: var(--ink); color: #fff;
+    padding: 16px 20px; display: flex; gap: 16px; align-items: flex-start;
+    margin-bottom: 0;
+  }
+  .reto-header h4 { font-family: var(--display); font-size: 1em; margin-bottom: 4px; }
+  .reto-header p  { font-size: .82em; color: rgba(255,255,255,.55); margin: 0; }
+  .reto-badge {
+    font-family: var(--mono); font-size: .65em;
+    background: var(--accent2); color: #fff;
+    padding: 3px 8px; letter-spacing: .1em; white-space: nowrap; margin-top: 3px;
+  }
+  .reto-body { border: 1px solid var(--rule); padding: 20px; border-top: none; }
+
+  /* ── FIRMA ── */
+  .firma-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 30px; }
+  .firma-slot {
+    text-align: center; padding-top: 50px;
+    border-top: 1px solid var(--rule);
+    font-family: var(--mono); font-size: .68em;
+    color: var(--ink-muted); text-transform: uppercase; letter-spacing: .08em;
+  }
+
+  /* ── BTN IMPRIMIR ── */
+  .btn-imprimir {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--accent); color: #fff; border: none;
+    padding: 12px 22px; font-family: var(--mono);
+    font-size: .75em; letter-spacing: .1em; text-transform: uppercase;
+    cursor: pointer; box-shadow: 0 4px 16px rgba(26,82,118,.35);
+    transition: transform .15s, box-shadow .15s; z-index: 100;
+  }
+  .btn-imprimir:hover { transform: translateY(-2px); box-shadow: 0 6px 22px rgba(26,82,118,.45); }
+
+
+  /* ===== RESPONSIVE MOBILE ===== */
+  @media (max-width: 680px) {
+    body { padding: 10px 0 40px; }
+    .documento { border-radius: 0; }
+
+    /* Header */
+    .header { padding: 22px 18px 20px 22px; }
+    .header::after { font-size: 160px; }
+    .header h1 { font-size: 1.4em !important; }
+    .header-meta { flex-direction: column; gap: 8px; }
+    .header-fields { grid-template-columns: 1fr !important; gap: 10px 0; }
+
+    /* Body */
+    .body { padding: 22px 16px 28px 20px; }
+
+    /* Tablas — scroll horizontal */
+    .tabla-resultados,
+    .rango-tabla { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+    /* Result boxes — máx 2 columnas */
+    .result-box,
+    .result-box.col2,
+    .result-box.col4,
+    .result-box.col5,
+    .result-box.col6 { grid-template-columns: 1fr 1fr !important; }
+
+    /* Grids de firma */
+    .firma-grid { grid-template-columns: 1fr !important; gap: 20px; }
+
+    /* Pasos de procedimiento */
+    .paso { gap: 10px; }
+
+    /* Parte headers */
+    .parte-header,
+    .reto-header { padding: 12px 14px; gap: 10px; }
+    .parte-header h4,
+    .reto-header h4 { font-size: 0.9em; }
+    .parte-body,
+    .reto-body { padding: 14px; }
+
+    /* Controles de gráfica */
+    .grafica-controles { gap: 6px; flex-wrap: wrap; }
+    .btn-ctrl { font-size: 0.65em; padding: 4px 8px; }
+
+    /* Section titles */
+    .seccion-titulo { font-size: 1em; gap: 8px; }
+
+    /* Adjunto slot */
+    .adjunto-slot { padding: 16px 10px; }
+
+    /* Trabajo área */
+    .trabajo-area { min-height: 80px; }
+  }
+
+  @media (max-width: 420px) {
+    .header { padding: 18px 14px 16px 18px; }
+    .body { padding: 16px 12px 20px 14px; }
+    .result-box,
+    .result-box.col2,
+    .result-box.col4,
+    .result-box.col5,
+    .result-box.col6 { grid-template-columns: 1fr !important; }
+    .header h1 { font-size: 1.2em !important; }
+    .formula-main { font-size: 1em !important; }
+  }
+
+  @media print {
+    body { background: #fff; padding: 0; }
+    .documento { box-shadow: none; }
+    .btn-imprimir, .grafica-controles { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="documento">
+
+  <!-- ══ ENCABEZADO ══ -->
+  <div class="header">
+    <div class="header-meta">
+      <span class="badge-codigo" id="codigoPractica">PRÁCTICA FIS-HOOKE-01</span>
+      <span class="badge-tipo">Laboratorio de Física · Estática</span>
+    </div>
+    <h1>Ley de Hooke<br><em>Constante elástica de un resorte</em></h1>
+    <div class="header-sub">Fuerza · Elongación · Constante elástica · Análisis gráfico · Propagación de errores</div>
+    <div class="header-fields">
+      <div class="field-item">
+        <label>Nombre del estudiante</label>
+        <input type="text" placeholder="Escriba su nombre completo">
+      </div>
+      <div class="field-item">
+        <label>Código</label>
+        <input type="text" placeholder="Código estudiantil">
+      </div>
+      <div class="field-item">
+        <label>Grupo / Sección</label>
+        <input type="text" placeholder="Ej. Grupo B — Martes 8 am">
+      </div>
+      <div class="field-item">
+        <label>Docente</label>
+        <input type="text" placeholder="Nombre del profesor/a">
+      </div>
+      <div class="field-item">
+        <label>Fecha de realización</label>
+        <input type="date">
+      </div>
+      <div class="field-item">
+        <label>Planeta asignado (Calcular K)</label>
+        <input type="text" placeholder="Ej. Marte · g = 3.71 m/s²">
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ CUERPO ══ -->
+  <div class="body">
+
+    <!-- 00. RESUMEN -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">00</span> Resumen</h2>
+      <div class="resumen-box">
+        En esta práctica se estudia experimentalmente la <strong>Ley de Hooke</strong> mediante un simulador
+        3D interactivo. Se cuelgan masas conocidas de un resorte vertical y se mide la posición del extremo
+        inferior del resorte usando una regla calibrada. A partir de las lecturas de posición $y$ se calcula
+        la elongación $\Delta y$ y la fuerza peso $F = mg$, se construye la gráfica $F$ vs. $\Delta y$,
+        se ajusta una recta y se determina experimentalmente la constante elástica $k$ del resorte.
+        El resultado se compara con el valor real (revelado al aprobar el Reto) mediante el cálculo de
+        incertidumbre relativa (IR) y error relativo (ER).
+      </div>
+      <p style="margin-top:10px;"><strong>Palabras clave:</strong>
+        Ley de Hooke · constante elástica · elongación · fuerza peso · ajuste lineal · propagación de errores · planeta · gravedad
+      </p>
+    </div>
+
+    <!-- 01. OBJETIVOS -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">01</span> Objetivos</h2>
+      <ul class="objetivos-lista">
+        <li><span class="obj-num">1</span>Medir la posición $y$ del extremo del resorte para distintas masas colgadas usando la regla del simulador.</li>
+        <li><span class="obj-num">2</span>Calcular la elongación $\Delta y = y - y_0$ y la fuerza peso $F = mg$ para cada medición.</li>
+        <li><span class="obj-num">3</span>Construir la gráfica $F$ vs. $\Delta y$ e identificar la relación lineal predicha por la Ley de Hooke.</li>
+        <li><span class="obj-num">4</span>Determinar experimentalmente la constante elástica $k$ a partir de la pendiente del ajuste lineal.</li>
+        <li><span class="obj-num">5</span>Evaluar la calidad del resultado mediante la incertidumbre relativa (IR) y el error relativo porcentual (ER).</li>
+        <li><span class="obj-num">6</span>Aplicar el valor de $k$ para predecir la masa que produce una elongación objetivo en el Reto del simulador.</li>
+      </ul>
+    </div>
+
+    <!-- 02. MARCO TEÓRICO -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">02</span> Marco Teórico</h2>
+
+      <div class="subseccion-titulo">2.1 · Ley de Hooke</div>
+      <p>
+        Un resorte ideal obedece la <strong>Ley de Hooke</strong>: la fuerza restauradora es proporcional a
+        la deformación (elongación o compresión) respecto a su longitud natural. Para un resorte colgado
+        verticalmente al que se le suspende una masa $m$, el equilibrio estático impone que la fuerza
+        elástica iguale al peso:
+      </p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 1 — Ley de Hooke (equilibrio estático)</div>
+        <div class="formula-main">$$F = k\,\Delta y \qquad \Longrightarrow \qquad mg = k\,\Delta y$$</div>
+        <div class="formula-num">(1)</div>
+      </div>
+      <p>
+        donde $k$ es la <strong>constante elástica</strong> del resorte (N/m), $m$ la masa colgada (kg),
+        $g$ la aceleración gravitacional (m/s²) y $\Delta y$ la elongación medida en metros.
+      </p>
+
+      <div class="subseccion-titulo">2.2 · Lectura de la regla y cálculo de la elongación</div>
+      <p>
+        La regla del simulador está fijada en el punto de anclaje del resorte: el valor <strong>0.00 m</strong>
+        corresponde al punto de sujeción. La longitud natural del resorte (sin masa) corresponde a
+        $y_0 = L_0 \approx 0.667$ m. Al colgar una masa, la lectura de la regla es:
+      </p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 2 — Elongación a partir de la lectura de la regla</div>
+        <div class="formula-main">$$\Delta y = y - y_0 \qquad \text{con} \quad y_0 \approx 0.667 \text{ m}$$</div>
+        <div class="formula-num">(2)</div>
+      </div>
+      <p>
+        Combinando las ecuaciones (1) y (2) se obtiene la <strong>constante elástica experimental</strong>:
+      </p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 3 — Constante elástica experimental</div>
+        <div class="formula-main">$$k = \frac{mg}{\Delta y} = \frac{mg}{y - y_0}$$</div>
+        <div class="formula-num">(3)</div>
+      </div>
+
+      <div class="subseccion-titulo">2.3 · Análisis gráfico — pendiente de F vs. Δy</div>
+      <p>
+        La gráfica de $F = mg$ (eje $y$) vs. $\Delta y$ (eje $x$) debe resultar una <strong>línea recta</strong>
+        que pasa por el origen con pendiente $k$:
+      </p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 4 — Modelo lineal de la gráfica</div>
+        <div class="formula-main">$$F = k \cdot \Delta y + b \qquad \text{(pendiente } k \text{, intercepto } b \approx 0\text{)}$$</div>
+        <div class="formula-num">(4)</div>
+      </div>
+
+      <div class="subseccion-titulo">2.4 · Propagación de incertidumbre de $k$</div>
+      <p>
+        La mínima división de la regla del simulador es 0.02 m, por lo que la incertidumbre instrumental
+        se asigna como $\Delta y_{\text{inst}} = \tfrac{1}{2} \times 0.02 = 0.01$ m. La incertidumbre de
+        la masa es $\Delta m = \pm\,0.0008$ kg (error del sensor del simulador).
+      </p>
+      <p>
+        Como $k = \dfrac{mg}{\Delta y}$, aplicamos la <strong>regla del cociente</strong> para obtener
+        la derivada parcial respecto a cada variable. Para una función $f = \dfrac{u}{v}$:
+      </p>
+      <div class="formula-box">
+        <div class="formula-label">Regla del cociente aplicada a k = mg / Δy</div>
+        <div class="formula-main">
+          $$\frac{\partial k}{\partial m} = \frac{g \cdot \Delta y - mg \cdot 0}{(\Delta y)^2} = \frac{g}{\Delta y}
+          \qquad\qquad
+          \frac{\partial k}{\partial(\Delta y)} = \frac{0 \cdot \Delta y - mg \cdot 1}{(\Delta y)^2} = -\frac{mg}{(\Delta y)^2}$$
+        </div>
+        <div class="formula-num">(5a)</div>
+      </div>
+      <p>
+        Aplicando propagación lineal (suma de aportes en valor absoluto):
+      </p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 5 — Propagación de incertidumbre de k (regla del cociente)</div>
+        <div class="formula-main">
+          $$\Delta k = \left|\frac{\partial k}{\partial m}\right|\Delta m + \left|\frac{\partial k}{\partial(\Delta y)}\right|\Delta(\Delta y)
+          = \frac{g}{\Delta y}\,\Delta m + \frac{mg}{(\Delta y)^2}\,\Delta(\Delta y)$$
+        </div>
+        <div class="formula-num">(5)</div>
+      </div>
+      <p>
+        Factorizando $k = mg/\Delta y$ se obtiene la forma compacta equivalente:
+      </p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 5b — Forma compacta (errores relativos)</div>
+        <div class="formula-main">
+          $$\Delta k = k\left(\frac{\Delta m}{m} + \frac{\Delta(\Delta y)}{\Delta y}\right)$$
+        </div>
+        <div class="formula-num">(5b)</div>
+      </div>
+
+      <!-- Ejemplo numérico -->
+      <div class="subseccion-titulo">2.5 · Ejemplo numérico de propagación</div>
+      <p>
+        Suponga que en Marte ($g = 3.71$ m/s²) se cuelga una masa $m = 0.500$ kg y la regla marca
+        $y = 0.800$ m. Calculemos $k$ y su incertidumbre paso a paso:
+      </p>
+
+      <div style="background:var(--paper-alt); border:1px solid var(--rule); padding:18px 22px; margin:14px 0; font-size:.9em; line-height:2.2;">
+        <p style="margin:0 0 6px;"><strong style="font-family:var(--mono); color:var(--accent);">PASO 1 — Datos e incertidumbres</strong></p>
+        <p style="margin:0;">$m = 0.500$ kg $\quad\Rightarrow\quad \Delta m = 0.0008$ kg</p>
+        <p style="margin:0;">$y = 0.800$ m, $\quad y_0 = 0.667$ m $\quad\Rightarrow\quad \Delta y = 0.800 - 0.667 = 0.133$ m</p>
+        <p style="margin:0;">$\Delta(\Delta y) = 0.01$ m $\quad$ (incertidumbre de la regla)</p>
+
+        <p style="margin:12px 0 6px;"><strong style="font-family:var(--mono); color:var(--accent);">PASO 2 — Constante elástica</strong></p>
+        <p style="margin:0;">$$k = \frac{mg}{\Delta y} = \frac{0.500 \times 3.71}{0.133} = \frac{1.855}{0.133} \approx 13.95 \text{ N/m}$$</p>
+
+        <p style="margin:12px 0 6px;"><strong style="font-family:var(--mono); color:var(--accent);">PASO 3 — Derivadas parciales (regla del cociente)</strong></p>
+        <p style="margin:0;">$$\frac{\partial k}{\partial m} = \frac{g}{\Delta y} = \frac{3.71}{0.133} = 27.89 \text{ N/(m·kg)}$$</p>
+        <p style="margin:0;">$$\frac{\partial k}{\partial(\Delta y)} = -\frac{mg}{(\Delta y)^2} = -\frac{1.855}{(0.133)^2} = -\frac{1.855}{0.01769} = -104.9 \text{ N/m}^2$$</p>
+
+        <p style="margin:12px 0 6px;"><strong style="font-family:var(--mono); color:var(--accent);">PASO 4 — Incertidumbre total (suma lineal)</strong></p>
+        <p style="margin:0;">$$\Delta k = \left|\frac{\partial k}{\partial m}\right|\Delta m + \left|\frac{\partial k}{\partial(\Delta y)}\right|\Delta(\Delta y)$$</p>
+        <p style="margin:0;">$$\Delta k = 27.89 \times 0.0008 + 104.9 \times 0.01 = 0.022 + 1.049 = 1.071 \approx 1.07 \text{ N/m}$$</p>
+
+        <p style="margin:12px 0 6px;"><strong style="font-family:var(--mono); color:var(--accent);">PASO 5 — Resultado y evaluación</strong></p>
+        <p style="margin:0; font-weight:600; color:var(--ink);">$$k = 13.95 \pm 1.07 \text{ N/m}$$</p>
+        <p style="margin:4px 0 0;">$\text{IR} = \dfrac{1.07}{13.95} \times 100\% = 7.67\%$ $\quad\Rightarrow\quad$ <span style="color:var(--gold); font-weight:600;">Resultado preciso</span></p>
+        <p style="margin:4px 0 0; font-size:.85em; color:var(--ink-muted); font-style:italic;">
+          Nota: el aporte dominante es la regla (1.049 N/m) frente a la masa (0.022 N/m).
+          Mejorar la precisión de la regla reduciría significativamente $\Delta k$.
+        </p>
+      </div>
+
+      <div class="subseccion-titulo">2.6 · Incertidumbre Relativa y Error Relativo</div>
+      <p>
+        La <strong>Incertidumbre Relativa (IR)</strong> evalúa la precisión del instrumento.
+        El <strong>Error Relativo (ER)</strong> compara el resultado experimental con el valor real
+        revelado por el simulador al aprobar el Reto:
+      </p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 6 — IR y ER</div>
+        <div class="formula-main">$$\text{IR} = \frac{\Delta k}{k} \times 100\% \qquad \text{ER} = \frac{|k_{\exp} - k_{\text{real}}|}{k_{\text{real}}} \times 100\%$$</div>
+        <div class="formula-num">(6)</div>
+      </div>
+
+      <table class="rango-tabla" style="margin-top:10px;">
+        <thead>
+          <tr><th>Indicador</th><th>Rango</th><th>Interpretación</th></tr>
+        </thead>
+        <tbody>
+          <tr><td rowspan="3" style="font-family:var(--mono);font-size:.85em;">IR</td>
+            <td class="bueno">IR &lt; 1 %</td><td>Resultado muy preciso</td></tr>
+          <tr><td class="medio">1 % &lt; IR &lt; 10 %</td><td>Resultado preciso</td></tr>
+          <tr><td class="malo">IR &gt; 10 %</td><td>Resultado poco preciso</td></tr>
+          <tr><td rowspan="3" style="font-family:var(--mono);font-size:.85em;">ER</td>
+            <td class="bueno">ER &lt; 1 %</td><td>Resultado muy exacto</td></tr>
+          <tr><td class="medio">1 % &lt; ER &lt; 10 %</td><td>Resultado exacto</td></tr>
+          <tr><td class="malo">ER &gt; 10 %</td><td>Resultado poco exacto</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 03. PROCEDIMIENTO -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">03</span> Procedimiento Experimental</h2>
+
+      <div class="paso">
+        <div class="paso-num">1</div>
+        <div class="paso-content">
+          <p><strong>Configuración inicial.</strong> Abra el simulador. Anote el planeta asignado para los modos
+          <em>Calcular K</em> y <em>Reto</em> (son el mismo). Registre la gravedad $g$ mostrada en el panel.</p>
+          <div class="result-box col2" style="margin-top:8px;">
+            <div class="res-campo">
+              <label>Planeta (Calcular K / Reto)</label>
+              <input type="text" id="planetaCalcK" placeholder="Ej. Marte">
+            </div>
+            <div class="res-campo">
+              <label>Gravedad g (m/s²)</label>
+              <input type="text" id="gravedadCalcK" placeholder="Ej. 3.71">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="paso">
+        <div class="paso-num">2</div>
+        <div class="paso-content">
+          <p><strong>Parte A — Exploración (Modo Abierto).</strong> En el modo <em>🔓 Abierto</em> el simulador
+          usa un planeta diferente. Varíe la masa con el deslizador y observe cualitativamente cómo cambia
+          la longitud del resorte. Registre al menos 5 mediciones en la Tabla 1 usando el botón
+          <em>📋 Registro de Datos</em>.</p>
+        </div>
+      </div>
+
+      <div class="paso">
+        <div class="paso-num">3</div>
+        <div class="paso-content">
+          <p><strong>Parte B — Determinación de K (Modo Calcular K).</strong> Cambie al modo
+          <em>📐 Calcular K</em>. El planeta ahora corresponde al asignado. Para cada masa seleccionada
+          con el deslizador, lea la posición $y$ marcada por la línea azul en la regla y <strong>regístrela
+          manualmente</strong> en la tabla de la guía. Tome al menos 7 mediciones con masas distintas.
+          Calcule $\Delta y$, $F = mg$, $k_i$ para cada fila.</p>
+        </div>
+      </div>
+
+      <div class="paso">
+        <div class="paso-num">4</div>
+        <div class="paso-content">
+          <p><strong>Análisis gráfico.</strong> Ingrese los datos en la gráfica $F$ vs. $\Delta y$,
+          active el ajuste lineal y anote la ecuación, la pendiente $k_{\text{graf}}$ y el coeficiente $R^2$.</p>
+        </div>
+      </div>
+
+      <div class="paso">
+        <div class="paso-num">5</div>
+        <div class="paso-content">
+          <p><strong>Parte C — Reto.</strong> Cambie al modo <em>🎯 Reto</em>. El simulador mostrará
+          una elongación objetivo $\Delta y_{\text{obj}}$. Use su valor de $k$ para calcular la masa necesaria:
+          $m = k \cdot \Delta y_{\text{obj}} / g$. Mueva el deslizador hasta esa masa y presione
+          <em>✅ Verificar</em>. Capture la pantalla con el sello de aprobación.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════ -->
+    <!-- 04. PARTE A — ABIERTO   -->
+    <!-- ════════════════════════ -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">04</span> Parte A — Exploración (Modo Abierto)</h2>
+
+      <div class="nota">
+        <strong>Modo del simulador:</strong> Seleccione <em>🔓 Abierto</em>. El planeta en este modo es
+        <strong>diferente</strong> al de Calcular K. Los datos de esta parte son exploratorios y no se
+        usarán para calcular $k$.
+      </div>
+
+      <div class="result-box col2" style="margin-top:8px; margin-bottom:8px;">
+        <div class="res-campo">
+          <label>Planeta Modo Abierto</label>
+          <input type="text" placeholder="Ej. Venus">
+        </div>
+        <div class="res-campo">
+          <label>Gravedad g Abierto (m/s²)</label>
+          <input type="text" placeholder="Ej. 8.87">
+        </div>
+      </div>
+
+      <div class="subseccion-titulo">Tabla 1 — Registro exploratorio (Modo Abierto)</div>
+      <p style="font-size:.85em;color:var(--ink-muted);font-style:italic;">
+        Tabla 1. Masa nominal y posición de la línea azul para cinco configuraciones en Modo Abierto.
+        Use el botón <em>📋 Registro de Datos</em> del simulador y transcriba aquí los valores.
+      </p>
+      <table class="tabla-resultados" id="tablaAbierto">
+        <thead>
+          <tr>
+            <th>Medición</th>
+            <th>$m$ (kg)</th>
+            <th>$y$ (m)</th>
+            <th>$\Delta y = y - 0.667$ (m)</th>
+            <th>Observación cualitativa</th>
+          </tr>
+        </thead>
+        <tbody id="bodyAbierto"></tbody>
+      </table>
+
+      <span class="area-label">Observaciones generales — Modo Abierto</span>
+      <textarea class="trabajo-area" style="min-height:90px;"
+        placeholder="Describa cualitativamente la relación observada entre la masa y la elongación del resorte. ¿Es lineal? ¿A mayor masa, mayor o menor elongación?"></textarea>
+
+      <span class="area-label">Captura del simulador — Parte A</span>
+      <div class="adjunto-slot">
+        <input type="file" accept="image/*" onchange="previsualizarImagen(this,'prevA')">
+        <span class="slot-icon">📸</span>
+        <span class="slot-label">Adjuntar captura del simulador — Modo Abierto</span>
+        <span class="slot-hint">Haga clic o arrastre la imagen · PNG, JPG</span>
+        <img id="prevA" class="preview-img" alt="">
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════ -->
+    <!-- 05. PARTE B — CALCULAR K      -->
+    <!-- ══════════════════════════════ -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">05</span> Parte B — Determinación de $k$ (Modo Calcular K)</h2>
+
+      <div class="nota">
+        <strong>Modo del simulador:</strong> Seleccione <em>📐 Calcular K</em>. El planeta cambia al
+        asignado para esta práctica. Lea la posición $y$ de la <strong>línea azul</strong> sobre la regla
+        para cada masa e ingrésela manualmente en la tabla. La línea azul marca la posición del extremo
+        inferior del resorte.
+      </div>
+
+      <div class="subseccion-titulo">Tabla 2 — Registro de datos (Modo Calcular K)</div>
+      <p style="font-size:.85em;color:var(--ink-muted);font-style:italic;">
+        Tabla 2. Masa nominal, posición leída en la regla, elongación, fuerza peso y constante elástica individual.
+        $\Delta y = y - 0.667$ m, $\;\; F = m \cdot g$, $\;\; k_i = F / \Delta y$.
+      </p>
+      <table class="tabla-resultados" id="tablaCalcK">
+        <thead>
+          <tr>
+            <th>N°</th>
+            <th>$m$ (kg)</th>
+            <th>$y$ (m)</th>
+            <th>$\Delta y$ (m)</th>
+            <th>$F = mg$ (N)</th>
+            <th>$k_i$ (N/m)</th>
+            <th>$\Delta k_i$ (N/m)</th>
+          </tr>
+        </thead>
+        <tbody id="bodyCalcK"></tbody>
+      </table>
+
+      <div class="divider"><span>Gráfica B — Fuerza vs. Elongación (Ley de Hooke)</span></div>
+      <p>Ingrese los datos de $\Delta y$ (eje $x$) y $F = mg$ (eje $y$) para visualizar la gráfica.
+      Active la regresión lineal para obtener $k$ gráficamente.</p>
+
+      <div class="grafica-box">
+        <div class="grafica-header">
+          <span>Gráfica B: Fuerza $F$ (N) vs. Elongación $\Delta y$ (m) — Ley de Hooke</span>
+          <span id="pendienteHooke" style="color:rgba(255,255,255,.6);font-size:.9em;">pendiente k = —</span>
+        </div>
+        <canvas class="grafica-canvas" id="graficaHooke" height="360"></canvas>
+        <div class="grafica-controles">
+          <button class="btn-ctrl" id="btnRegHooke" onclick="toggleRegHooke()">📈 Ajuste lineal</button>
+          <button class="btn-ctrl" onclick="limpiarGrafica()">🗑 Limpiar datos</button>
+          <span class="grafica-info" id="eqHooke">Ingrese datos en la Tabla 2 para visualizar</span>
+        </div>
+      </div>
+
+      <div class="nota">
+        <strong>Instrucción:</strong> Para graficar, ingrese los valores de $\Delta y$ y $F$ directamente
+        en la Tabla 2. La gráfica se actualiza automáticamente al activar el ajuste lineal.
+      </div>
+
+      <div class="subseccion-titulo">Ecuación de la recta obtenida del ajuste</div>
+      <span class="area-label">Ecuación de la recta: $F(\Delta y) = k \cdot \Delta y + b$</span>
+      <div class="result-box" style="margin-top:6px;">
+        <div class="res-campo">
+          <label>Pendiente = k (N/m)</label>
+          <input type="text" id="hookeK" placeholder="0.000" oninput="calcErroresHooke()">
+        </div>
+        <div class="res-campo">
+          <label>Intercepto b (N)</label>
+          <input type="text" id="hookeB" placeholder="0.000">
+        </div>
+        <div class="res-campo">
+          <label>R² del ajuste</label>
+          <input type="text" id="hookeR2" placeholder="0.000">
+        </div>
+      </div>
+
+      <span class="area-label">Procedimiento de cálculo — k promedio y su incertidumbre</span>
+      <textarea class="trabajo-area" style="min-height:160px;"
+        placeholder="k̄ = Σkᵢ / n = ...&#10;&#10;Δk_i (derivada del cociente, Ec. 5):&#10;  Δm = ± 0.0008 kg&#10;  Δ(Δy) = ± 0.01 m&#10;&#10;  ∂k/∂m   = g / Δy  =  ___ N/(m·kg)&#10;  ∂k/∂(Δy) = mg/(Δy)² = ___ N/m²&#10;&#10;  Δkᵢ = |∂k/∂m|·Δm + |∂k/∂(Δy)|·Δ(Δy)&#10;       = ___ × 0.0008 + ___ × 0.01 = ___ N/m&#10;&#10;Δk̄ = ...&#10;&#10;Resultado: k = ___ ± ___ N/m"></textarea>
+
+      <div class="subseccion-titulo">Análisis de errores — Parte B</div>
+      <div class="result-box col4">
+        <div class="res-campo">
+          <label>k promedio (N/m)</label>
+          <input type="text" id="hookeKprom" placeholder="0.000">
+        </div>
+        <div class="res-campo">
+          <label>Δk promedio (N/m)</label>
+          <input type="text" id="hookeDk" placeholder="± 0.000">
+        </div>
+        <div class="res-campo">
+          <label>IR = (Δk / k) × 100 %</label>
+          <input type="text" id="hookeIR" placeholder="0.00 %">
+        </div>
+        <div class="res-campo">
+          <label>ER = |k_exp − k_real| / k_real × 100 %</label>
+          <input type="text" id="hookeER" placeholder="0.00 %">
+        </div>
+      </div>
+
+      <div class="nota" style="margin-top:6px;">
+        <strong>k real:</strong> Se revela en el simulador al aprobar el Reto (Parte C) o al verificar K con éxito. Anótela aquí:
+        <input type="text" id="hookeKreal" placeholder="k_real = ___ N/m"
+          style="border:none;border-bottom:1px solid var(--gold);background:transparent;font-family:var(--mono);font-size:.9em;width:180px;padding:2px 4px;outline:none;margin-left:8px;">
+      </div>
+
+      <span class="area-label">Captura del simulador — Parte B (K aprobada)</span>
+      <div class="adjunto-slot">
+        <input type="file" accept="image/*" onchange="previsualizarImagen(this,'prevB')">
+        <span class="slot-icon">📸</span>
+        <span class="slot-label">Adjuntar captura del simulador — Calcular K aprobado</span>
+        <span class="slot-hint">Debe verse el sello ✓ APROBADO con K y el planeta · PNG, JPG</span>
+        <img id="prevB" class="preview-img" alt="">
+      </div>
+    </div>
+
+    <!-- ════════════════════════ -->
+    <!-- 06. PARTE C — RETO      -->
+    <!-- ════════════════════════ -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">06</span> Parte C — Reto de Verificación</h2>
+
+      <div>
+        <div class="reto-header">
+          <div><span class="reto-badge">Parte C</span></div>
+          <div>
+            <h4>Reto — Encontrar la masa que produce la elongación objetivo</h4>
+            <p>El simulador muestra una elongación objetivo $\Delta y_{\text{obj}}$. Calcule la masa necesaria
+            usando su $k$ y mueva el deslizador hasta esa masa para verificar.</p>
+          </div>
+        </div>
+        <div class="reto-body">
+
+          <span class="area-label">Datos del reto (anótelos al activar el Modo Reto)</span>
+          <div class="result-box col4" style="margin-top:6px;">
+            <div class="res-campo">
+              <label>Elongación objetivo Δy_obj (m)</label>
+              <input type="text" placeholder="Δy = ___">
+            </div>
+            <div class="res-campo">
+              <label>k calculada (N/m)</label>
+              <input type="text" placeholder="k = ___">
+            </div>
+            <div class="res-campo">
+              <label>g del planeta (m/s²)</label>
+              <input type="text" placeholder="g = ___">
+            </div>
+            <div class="res-campo">
+              <label>Intentos disponibles</label>
+              <input type="text" value="2" readonly style="color:var(--accent2);">
+            </div>
+          </div>
+
+          <span class="area-label">Procedimiento de cálculo — Masa necesaria</span>
+          <textarea class="trabajo-area" style="min-height:180px;"
+            placeholder="De la Ley de Hooke:&#10;  F = k · Δy_obj&#10;  m · g = k · Δy_obj&#10;&#10;  m = (k · Δy_obj) / g&#10;&#10;Sustituyendo valores:&#10;  m = (___ N/m × ___ m) / ___ m/s²&#10;  m = ___ kg&#10;&#10;Masa calculada para el reto: m = ___ kg&#10;Masa más próxima en el deslizador (múltiplo de 0.05 kg): m = ___ kg"></textarea>
+
+          <div class="result-box col2" style="margin-top:4px;">
+            <div class="res-campo">
+              <label>Masa calculada (kg)</label>
+              <input type="text" placeholder="m = ___">
+            </div>
+            <div class="res-campo">
+              <label>Error porcentual obtenido en simulador</label>
+              <input type="text" placeholder="error = ___ %">
+            </div>
+          </div>
+
+          <span class="area-label">Captura de pantalla — Reto</span>
+          <div class="adjunto-slot">
+            <input type="file" accept="image/*" onchange="previsualizarImagen(this,'prevReto')">
+            <span class="slot-icon">🏆</span>
+            <span class="slot-label">Adjuntar captura del resultado del reto</span>
+            <span class="slot-hint">Debe verse el sello ✓ APROBADO o ✗ NO APROBADO · PNG, JPG</span>
+            <img id="prevReto" class="preview-img" alt="">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 07. DISCUSIÓN -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">07</span> Discusión de Resultados</h2>
+
+      <span class="area-label">7.1 · ¿La gráfica $F$ vs. $\Delta y$ resultó una recta? ¿Qué indica la pendiente? ¿Por qué el intercepto debe ser cercano a cero?</span>
+      <textarea class="trabajo-area" placeholder="Escriba su análisis aquí..."></textarea>
+
+      <span class="area-label">7.2 · Compare el valor de $k$ obtenido por promedio de $k_i$ con el valor obtenido de la pendiente del ajuste gráfico. ¿Coinciden? ¿Cuál considera más confiable y por qué?</span>
+      <textarea class="trabajo-area" placeholder="Escriba su análisis aquí..."></textarea>
+
+      <span class="area-label">7.3 · Analice los valores de IR y ER. ¿Cuál fue la principal fuente de incertidumbre: la masa o la lectura de la regla? Justifique con los cálculos.</span>
+      <textarea class="trabajo-area" placeholder="Escriba su análisis aquí..."></textarea>
+
+      <span class="area-label">7.4 · En la Parte A (Modo Abierto) el planeta era diferente al de Calcular K. ¿Cómo afecta la gravedad a la elongación del resorte para una misma masa? ¿Cambia la constante $k$? Explique.</span>
+      <textarea class="trabajo-area" placeholder="Escriba su análisis aquí..."></textarea>
+
+      <span class="area-label">7.5 · En el Reto, el deslizador solo permite masas en pasos de 0.05 kg. ¿Cómo afecta esta limitación al error relativo del Reto? ¿Qué estrategia usó para minimizarlo?</span>
+      <textarea class="trabajo-area" placeholder="Escriba su análisis aquí..."></textarea>
+    </div>
+
+    <!-- 08. CONCLUSIONES -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">08</span> Conclusiones</h2>
+      <p>Redacte tres conclusiones concretas que respondan a los objetivos planteados.</p>
+
+      <span class="area-label">Conclusión 1 — Sobre la linealidad de la Ley de Hooke y el ajuste gráfico</span>
+      <textarea class="trabajo-area" style="min-height:90px;" placeholder="Redacte su primera conclusión..."></textarea>
+
+      <span class="area-label">Conclusión 2 — Sobre el valor de k obtenido y su comparación con el valor real</span>
+      <textarea class="trabajo-area" style="min-height:90px;" placeholder="Redacte su segunda conclusión..."></textarea>
+
+      <span class="area-label">Conclusión 3 — Sobre la calidad de los resultados (IR, ER) y fuentes de error experimentales</span>
+      <textarea class="trabajo-area" style="min-height:90px;" placeholder="Redacte su tercera conclusión..."></textarea>
+    </div>
+
+    <!-- 09. REFERENCIAS -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">09</span> Referencias</h2>
+      <p style="font-size:.88em; line-height:2.1;">
+        [1] Sears, F. W., Zemansky, M. W. &amp; Young, H. D. <em>University Physics</em>. 14ª ed. Pearson, 2016. Cap. 6.<br>
+        [2] Tipler, P. A. &amp; Llewellyn, R. A. <em>Physics for Scientists and Engineers</em>. 6ª ed. W. H. Freeman, 2008. Cap. 5.<br>
+        [3] Serway, R. A. &amp; Jewett, J. W. <em>Physics for Scientists and Engineers</em>. 10ª ed. Cengage Learning, 2019. Cap. 7.<br>
+        [4] Halliday, D., Resnick, R. &amp; Krane, K. S. <em>Physics</em>. 5ª ed. Wiley, 2002. Cap. 7 — Fuerzas y Movimiento II.
+      </p>
+    </div>
+
+    <!-- FIRMAS -->
+    <div class="seccion" style="margin-bottom:0;">
+      <div class="firma-grid">
+        <div class="firma-slot">Firma del estudiante</div>
+        <div class="firma-slot">Vo. Bo. Docente</div>
+      </div>
+    </div>
+
+  </div><!-- /body -->
+</div><!-- /documento -->
+
+<button class="btn-imprimir" onclick="window.print()">🖨 Imprimir / PDF</button>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+//  CONSTRUCCIÓN DE TABLAS
+// ══════════════════════════════════════════════════════════════
+const Y0 = 0.667; // longitud natural en metros (L0/VIS_SCALE)
+
+function buildTablas() {
+  // Tabla 1 — Abierto (5 filas)
+  const bA = document.getElementById('bodyAbierto');
+  for (let i = 1; i <= 5; i++) {
+    bA.insertRow(-1).innerHTML = `
+      <td class="row-label">M${i}</td>
+      <td class="input-cell"><input type="text" placeholder="0.000"></td>
+      <td class="input-cell"><input type="text" placeholder="0.000"></td>
+      <td class="input-cell"><input type="text" placeholder="0.000"></td>
+      <td class="input-cell"><input type="text" placeholder="Observación..."></td>`;
+  }
+
+  // Tabla 2 — Calcular K (8 filas)
+  const bC = document.getElementById('bodyCalcK');
+  for (let i = 1; i <= 8; i++) {
+    const tr = bC.insertRow(-1);
+    tr.dataset.row = i;
+    tr.innerHTML = `
+      <td class="row-label">${i}</td>
+      <td class="input-cell"><input type="text" class="k-m" placeholder="0.000" oninput="actualizarFilaK(${i})"></td>
+      <td class="input-cell"><input type="text" class="k-y" placeholder="0.000" oninput="actualizarFilaK(${i})"></td>
+      <td class="input-cell"><input type="text" class="k-dy" placeholder="—" readonly style="color:var(--accent);"></td>
+      <td class="input-cell"><input type="text" class="k-F"  placeholder="—" readonly style="color:var(--accent);"></td>
+      <td class="input-cell"><input type="text" class="k-ki" placeholder="—" readonly style="color:var(--green);font-weight:600;"></td>
+      <td class="input-cell"><input type="text" class="k-dki" placeholder="—" readonly></td>`;
+  }
+}
+
+// ── Auto-calcular Δy, F, k_i, Δk_i al ingresar m e y ──
+function actualizarFilaK(rowNum) {
+  const rows = document.querySelectorAll('#bodyCalcK tr');
+  const tr   = rows[rowNum - 1];
+  const mRaw  = parseFloat(tr.querySelector('.k-m').value);
+  const yRaw  = parseFloat(tr.querySelector('.k-y').value);
+  const gVal  = parseFloat(document.getElementById('gravedadCalcK').value) || 0;
+
+  if (!isNaN(mRaw) && !isNaN(yRaw) && gVal > 0) {
+    const dy = yRaw - Y0;
+    const F  = mRaw * gVal;
+    const ki = dy > 0 ? F / dy : 0;
+    const dm = 0.0008;
+    const ddy = 0.01;
+    // Propagación por regla del cociente (suma lineal):
+    // ∂k/∂m = g/Δy,  ∂k/∂(Δy) = mg/(Δy)²
+    const dki = dy > 0
+      ? (gVal / dy) * dm + (mRaw * gVal / (dy * dy)) * ddy
+      : 0;
+
+    tr.querySelector('.k-dy').value  = dy.toFixed(4);
+    tr.querySelector('.k-F').value   = F.toFixed(4);
+    tr.querySelector('.k-ki').value  = ki.toFixed(2);
+    tr.querySelector('.k-dki').value = dki.toFixed(2);
+  }
+  dibujarGraficaHooke();
+}
+
+// ══════════════════════════════════════════════════════════════
+//  GRÁFICA F vs Δy — Ley de Hooke
+// ══════════════════════════════════════════════════════════════
+let regHookeOn = false;
+let hookeData  = [];
+
+function toggleRegHooke() {
+  regHookeOn = !regHookeOn;
+  document.getElementById('btnRegHooke').classList.toggle('activo', regHookeOn);
+  dibujarGraficaHooke();
+}
+
+function limpiarGrafica() {
+  document.querySelectorAll('#bodyCalcK .k-m, #bodyCalcK .k-y').forEach(i => i.value = '');
+  document.querySelectorAll('#bodyCalcK .k-dy, #bodyCalcK .k-F, #bodyCalcK .k-ki, #bodyCalcK .k-dki')
+    .forEach(i => i.value = '');
+  dibujarGraficaHooke();
+}
+
+function getHookeData() {
+  const rows = document.querySelectorAll('#bodyCalcK tr');
+  hookeData = [];
+  rows.forEach(tr => {
+    const dy = parseFloat(tr.querySelector('.k-dy').value);
+    const F  = parseFloat(tr.querySelector('.k-F').value);
+    if (!isNaN(dy) && !isNaN(F) && dy > 0 && F > 0)
+      hookeData.push({ dy, F });
+  });
+}
+
+function dibujarGraficaHooke() {
+  getHookeData();
+  const cv  = document.getElementById('graficaHooke');
+  const ctx = cv.getContext('2d');
+  cv.width  = cv.offsetWidth * window.devicePixelRatio || 760;
+  const W = cv.width, H = cv.height;
+  const PAD = { top: 30, right: 30, bottom: 50, left: 65 };
+  const pw = W - PAD.left - PAD.right, ph = H - PAD.top - PAD.bottom;
+
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#fafafa'; ctx.fillRect(0, 0, W, H);
+
+  if (hookeData.length < 2) {
+    ctx.fillStyle = '#bbb';
+    ctx.font = `14px 'Source Serif 4', serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText('Ingrese m e y en la Tabla 2 para visualizar los puntos', W/2, H/2);
+    return;
+  }
+
+  const xVals = hookeData.map(d => d.dy), yVals = hookeData.map(d => d.F);
+  const xMin = 0, xMax = Math.max(...xVals) * 1.15;
+  const yMin = 0, yMax = Math.max(...yVals) * 1.15;
+
+  function cx(x) { return PAD.left + (x - xMin) / (xMax - xMin) * pw; }
+  function cy(y) { return PAD.top + ph - (y - yMin) / (yMax - yMin) * ph; }
+
+  // Cuadrícula
+  ctx.strokeStyle = '#e8e4dc'; ctx.lineWidth = 1;
+  for (let i = 0; i <= 5; i++) {
+    const yy = PAD.top + i * ph/5;
+    ctx.beginPath(); ctx.moveTo(PAD.left, yy); ctx.lineTo(PAD.left + pw, yy); ctx.stroke();
+    const xx = PAD.left + i * pw/5;
+    ctx.beginPath(); ctx.moveTo(xx, PAD.top); ctx.lineTo(xx, PAD.top + ph); ctx.stroke();
+  }
+
+  // Ejes
+  ctx.strokeStyle = '#888'; ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(PAD.left, PAD.top); ctx.lineTo(PAD.left, PAD.top + ph);
+  ctx.lineTo(PAD.left + pw, PAD.top + ph);
+  ctx.stroke();
+
+  // Etiquetas de ejes
+  ctx.fillStyle = '#3d3d5c'; ctx.font = `bold 11px 'JetBrains Mono', monospace`;
+  ctx.textAlign = 'center';
+  ctx.fillText('Δy  (m)', PAD.left + pw/2, H - 4);
+  ctx.save(); ctx.translate(14, PAD.top + ph/2); ctx.rotate(-Math.PI/2);
+  ctx.fillText('F = mg  (N)', 0, 0); ctx.restore();
+
+  // Marcas numéricas
+  ctx.fillStyle = '#888'; ctx.font = `10px 'JetBrains Mono', monospace`;
+  for (let i = 0; i <= 5; i++) {
+    const xv = xMin + i * (xMax - xMin) / 5;
+    ctx.textAlign = 'center';
+    ctx.fillText(xv.toFixed(3), cx(xv), PAD.top + ph + 14);
+    const yv = yMin + i * (yMax - yMin) / 5;
+    ctx.textAlign = 'right';
+    ctx.fillText(yv.toFixed(2), PAD.left - 4, cy(yv) + 4);
+  }
+
+  // Regresión lineal (forzada por el origen: b puede ser libre)
+  if (regHookeOn && hookeData.length >= 2) {
+    const n  = hookeData.length;
+    const Sx = xVals.reduce((a,b)=>a+b,0);
+    const Sy = yVals.reduce((a,b)=>a+b,0);
+    const Sxx= xVals.reduce((a,v)=>a+v*v,0);
+    const Sxy= xVals.reduce((a,v,i)=>a+v*yVals[i],0);
+    const slope = (n*Sxy - Sx*Sy) / (n*Sxx - Sx*Sx);
+    const inter = (Sy - slope*Sx) / n;
+
+    // Línea de regresión
+    ctx.strokeStyle = '#1a5276'; ctx.lineWidth = 2.5; ctx.setLineDash([]);
+    ctx.beginPath();
+    ctx.moveTo(cx(xMin), cy(slope * xMin + inter));
+    ctx.lineTo(cx(xMax), cy(slope * xMax + inter));
+    ctx.stroke();
+
+    // R²
+    const yMean = Sy / n;
+    const ssTot = yVals.reduce((a,v)=>a+(v-yMean)**2, 0);
+    const ssRes = yVals.reduce((a,v,i)=>a+(v-(slope*xVals[i]+inter))**2, 0);
+    const r2 = 1 - ssRes / ssTot;
+
+    const eqStr = `F(Δy) = ${slope.toFixed(2)}·Δy ${inter>=0?'+':'-'} ${Math.abs(inter).toFixed(3)}   |   R² = ${r2.toFixed(4)}`;
+    document.getElementById('eqHooke').textContent = eqStr;
+    document.getElementById('pendienteHooke').textContent = `k = ${slope.toFixed(2)} N/m`;
+
+    // Auto-llenar campo k del ajuste
+    document.getElementById('hookeK').value  = slope.toFixed(3);
+    document.getElementById('hookeB').value  = inter.toFixed(3);
+    document.getElementById('hookeR2').value = r2.toFixed(4);
+    calcErroresHooke();
+  }
+
+  // Puntos
+  const COLORS = ['#1a5276','#c0392b','#1e8449','#b8860b','#6c3483','#117a65','#7b241c'];
+  hookeData.forEach((p, i) => {
+    ctx.fillStyle = COLORS[i % COLORS.length];
+    ctx.beginPath(); ctx.arc(cx(p.dy), cy(p.F), 5, 0, Math.PI*2); ctx.fill();
+    ctx.font = 'bold 10px JetBrains Mono, monospace'; ctx.textAlign = 'left';
+    ctx.fillText('M'+(i+1), cx(p.dy)+8, cy(p.F)-5);
+  });
+}
+
+// ── Cálculo automático de IR (solo con k ingresada, ER requiere k_real) ──
+function calcErroresHooke() {
+  const k   = parseFloat(document.getElementById('hookeK').value);
+  const dk  = parseFloat(document.getElementById('hookeDk').value);
+  if (!isNaN(k) && !isNaN(dk) && k > 0) {
+    document.getElementById('hookeIR').value = ((dk/k)*100).toFixed(2) + ' %';
+  }
+  const kr  = parseFloat(document.getElementById('hookeKreal').value);
+  const kp  = parseFloat(document.getElementById('hookeKprom').value);
+  if (!isNaN(kp) && !isNaN(kr) && kr > 0) {
+    document.getElementById('hookeER').value = ((Math.abs(kp-kr)/kr)*100).toFixed(2) + ' %';
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  ADJUNTOS / IMÁGENES
+// ══════════════════════════════════════════════════════════════
+function previsualizarImagen(input, previewId) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = document.getElementById(previewId);
+    if (img) { img.src = e.target.result; img.style.display = 'block'; }
+  };
+  reader.readAsDataURL(file);
+}
+
+// ══════════════════════════════════════════════════════════════
+//  INICIALIZACIÓN
+// ══════════════════════════════════════════════════════════════
+window.addEventListener('load', () => {
+  buildTablas();
+  dibujarGraficaHooke();
+
+  const now = new Date();
+  const sem = now.getMonth() < 6 ? '1' : '2';
+  document.getElementById('codigoPractica').textContent =
+    `PRÁCTICA FIS-HOOKE-01 · ${now.getFullYear()}-${sem}`;
+  document.querySelectorAll('input[type="date"]').forEach(i =>
+    i.value = now.toISOString().split('T')[0]);
+});
+
+window.addEventListener('resize', () => dibujarGraficaHooke());
+
+// Re-graficar si cambia g
+document.addEventListener('input', e => {
+  if (e.target.id === 'gravedadCalcK') {
+    document.querySelectorAll('#bodyCalcK tr').forEach((tr, i) => actualizarFilaK(i+1));
+  }
+});
+</script>
+</body>
+</html>

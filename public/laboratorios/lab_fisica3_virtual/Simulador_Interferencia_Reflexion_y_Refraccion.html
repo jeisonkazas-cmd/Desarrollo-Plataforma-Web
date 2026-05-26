@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Laboratorio Pro: Ondas Planas y Refracción</title>
+    <style>
+        :root { --bg: #fff; --ui: rgba(255,255,255,0.96); --text: #333; --accent: #007bff; --danger: #dc3545; --success: #28a745; --panel-bg: #f0f4f8; }
+        body.dark-mode { --bg: #050505; --ui: rgba(30,30,30,0.96); --text: #eee; --accent: #00e5ff; --panel-bg: #1a2a3a; }
+        body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; overflow: hidden; touch-action: none; transition: 0.3s; }
+        
+        .top-nav { position: absolute; top: 15px; left: 15px; z-index: 101; display: flex; gap: 10px; }
+        .btn-main { background: var(--accent); color: white; border: none; padding: 12px 18px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 0.9em; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+
+        #ui { 
+            position: absolute; top: 75px; left: 15px; background: var(--ui); 
+            padding: 15px; border-radius: 12px; border: 1px solid var(--accent); 
+            width: 260px; z-index: 100; box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+            transition: all 0.3s ease; max-height: 85vh; overflow-y: auto;
+        }
+        #ui.hidden { opacity: 0; transform: translateX(-120%); pointer-events: none; }
+
+        .data-section { background: var(--panel-bg); padding: 12px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid var(--success); }
+        .data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-family: monospace; font-size: 0.85em; }
+        .data-label { font-weight: bold; font-size: 0.75em; text-transform: uppercase; color: #777; grid-column: span 2; margin-top: 4px; border-bottom: 1px solid rgba(0,0,0,0.1); }
+        .data-val { color: var(--success); font-weight: bold; font-size: 1.1em; }
+
+        .sel-modo { width: 100%; padding: 10px; border-radius: 6px; border: 2px solid var(--accent); background: white; font-weight: bold; margin-bottom: 12px; cursor: pointer; color: #333; }
+        #densityTag { background: var(--accent); color: white; padding: 6px; border-radius: 4px; font-size: 0.8em; text-align: center; margin-bottom: 12px; font-weight: bold; text-transform: uppercase; }
+
+        .control { margin-bottom: 10px; }
+        label { display: block; font-size: 0.8em; font-weight: bold; margin-bottom: 4px; }
+        input { width: 100%; accent-color: var(--accent); cursor: pointer; height: 20px; }
+        .val { float: right; color: var(--accent); font-family: monospace; font-size: 1em; }
+        
+        #photoBtn { background: var(--success); color: white; border: none; width: 100%; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 0.85em; }
+        #resetBtn { background: var(--danger); color: white; border: none; width: 100%; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 5px; font-size: 0.85em; }
+    </style>
+</head>
+<body class="light-mode">
+
+<div class="top-nav">
+    <button id="toggleMenu" class="btn-main">☰ MENÚ</button>
+    <button id="themeBtn" class="btn-main">🌙</button>
+</div>
+
+<div id="ui">
+    <div id="densityTag">Material: Aire</div>
+
+    <div class="data-section">
+        <div class="data-grid">
+            <div class="data-label">Propagación (v)</div>
+            <div><span id="vData" class="data-val">0.00</span> <small>m/s</small></div>
+            <div class="data-label">Longitud (λ)</div>
+            <div><span id="lData" class="data-val">0.00</span> <small>cm</small></div>
+            <div id="refrLabel" class="data-label" style="display:none;">Relación de Índices</div>
+            <div id="refrVal" style="display:none;"><span id="nData" class="data-val">2.00</span></div>
+        </div>
+    </div>
+
+    <label>MODO EXPERIMENTAL:</label>
+    <select id="modo" class="sel-modo">
+        <option value="interferencia">Interferencia</option>
+        <option value="reflexion">Reflexión</option>
+        <option value="refraccion">Refracción (Barra Plana)</option>
+    </select>
+    
+    <div class="control">
+        <label>FRECUENCIA: <span id="fv" class="val">3.0</span> Hz</label>
+        <input type="range" id="fVib" min="1" max="10" step="0.1" value="3">
+    </div>
+    <div class="control">
+        <label>ESTROBOSCOPIO: <span id="fl" class="val">0.0</span> Hz</label>
+        <input type="range" id="fLight" min="0" max="10" step="0.1" value="0">
+    </div>
+    <div class="control" id="distControl">
+        <label>DISTANCIA: <span id="dv" class="val">10</span> cm</label>
+        <input type="range" id="dist" min="2" max="25" step="1" value="10">
+    </div>
+    <div class="control">
+        <label>AMPLITUD: <span id="av" class="val">1.0</span></label>
+        <input type="range" id="amp" min="0.1" max="2.0" step="0.1" value="1.0">
+    </div>
+
+    <button id="photoBtn">📸 CAPTURAR PANTALLA</button>
+    <button id="resetBtn">↻ NUEVO MATERIAL</button>
+</div>
+
+<script type="importmap">
+    { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
+</script>
+
+<script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { DragControls } from 'three/addons/controls/DragControls.js';
+
+    const fluidos = [
+        { nombre: "Aire", visc: 0.05, vel: 1.5, color: 0xdddddd },
+        { nombre: "Agua Dulce", visc: 0.12, vel: 1.1, color: 0x00aaff },
+        { nombre: "Agua Salada", visc: 0.18, vel: 1.0, color: 0x0077ff },
+        { nombre: "Aceite", visc: 0.45, vel: 0.8, color: 0xffcc00 },
+        { nombre: "Glicerina", visc: 0.75, vel: 0.6, color: 0xffeeaa },
+        { nombre: "Mercurio", visc: 0.08, vel: 1.4, color: 0xaaaaaa },
+        { nombre: "Miel", visc: 0.95, vel: 0.4, color: 0xffaa00 },
+        { nombre: "Petróleo", visc: 0.55, vel: 0.7, color: 0x222222 },
+        { nombre: "Jarabe", visc: 0.85, vel: 0.5, color: 0xdddd88 },
+        { nombre: "Alcohol", visc: 0.10, vel: 1.2, color: 0xccffff }
+    ];
+
+    let fluido;
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xffffff);
+    const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 55, 35);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.shadowMap.enabled = true;
+    document.body.appendChild(renderer.domElement);
+
+    const orbit = new OrbitControls(camera, renderer.domElement);
+    const light = new THREE.PointLight(0xffffff, 4500, 300);
+    light.position.set(0, 60, 0);
+    light.castShadow = true;
+    scene.add(light, new THREE.AmbientLight(0xffffff, 0.5));
+
+    const waterGeo = new THREE.PlaneGeometry(60, 60, 300, 300); 
+    waterGeo.rotateX(-Math.PI/2);
+    const waterMat = new THREE.MeshPhongMaterial({ transparent: true, opacity: 0.7, shininess: 250, specular: 0xffffff });
+    const water = new THREE.Mesh(waterGeo, waterMat);
+    scene.add(water);
+
+    const wall = new THREE.Mesh(new THREE.BoxGeometry(2, 4, 30), new THREE.MeshStandardMaterial({ color: 0x555555 }));
+    wall.position.set(15, 2, 0);
+    wall.visible = false;
+    scene.add(wall);
+
+    const floorL = new THREE.Mesh(new THREE.PlaneGeometry(30, 60), new THREE.MeshStandardMaterial({ color: 0xffffff }));
+    const floorR = new THREE.Mesh(new THREE.PlaneGeometry(30, 60), new THREE.MeshStandardMaterial({ color: 0xf0f0f0 }));
+    floorL.rotateX(-Math.PI/2); floorR.rotateX(-Math.PI/2);
+    floorL.position.set(-15, -6.1, 0); floorR.position.set(15, -6.1, 0);
+    scene.add(floorL, floorR);
+
+    // VIBRADORES
+    const vib1 = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 5), new THREE.MeshStandardMaterial({ color: 0x222222 }));
+    const vib2 = vib1.clone();
+    const barVib = new THREE.Mesh(new THREE.BoxGeometry(1, 4, 40), new THREE.MeshStandardMaterial({ color: 0x222222 }));
+    barVib.visible = false;
+    scene.add(vib1, vib2, barVib);
+
+    // REGLA HD
+    const canvasR = document.createElement('canvas'); canvasR.width = 4096; canvasR.height = 512;
+    const ctx = canvasR.getContext('2d');
+    ctx.fillStyle = '#ffcc00'; ctx.fillRect(0,0,4096,512);
+    ctx.fillStyle = '#111'; ctx.textAlign = 'center';
+    for(let i=0; i<=30; i++) {
+        const x = (i/30) * 4096;
+        ctx.fillRect(x-3, 0, 6, 200); 
+        ctx.font = 'bold 90px Arial';
+        if(i%5===0) ctx.fillText(i - 15, x, 350);
+        for(let j=1; j<10; j++) ctx.fillRect(x + (j/300)*4096 - 1, 0, 2, 80);
+    }
+    const texRegla = new THREE.CanvasTexture(canvasR);
+    texRegla.anisotropy = 16;
+    const regla = new THREE.Mesh(new THREE.BoxGeometry(30, 0.6, 3), [
+        new THREE.MeshStandardMaterial({color:0xddaa00}), new THREE.MeshStandardMaterial({color:0xddaa00}),
+        new THREE.MeshStandardMaterial({map:texRegla}), new THREE.MeshStandardMaterial({color:0xddaa00}),
+        new THREE.MeshStandardMaterial({color:0xddaa00}), new THREE.MeshStandardMaterial({color:0xddaa00})
+    ]);
+    regla.position.set(0, 1.2, 12);
+    scene.add(regla);
+
+    const drag = new DragControls([regla], camera, renderer.domElement);
+    drag.addEventListener('dragstart', () => orbit.enabled = false);
+    drag.addEventListener('dragend', (e) => { orbit.enabled = true; e.object.position.y = 1.2; });
+
+    document.getElementById('toggleMenu').onclick = () => document.getElementById('ui').classList.toggle('hidden');
+    
+    const themeBtn = document.getElementById('themeBtn');
+    themeBtn.onclick = () => {
+        const isD = document.body.classList.toggle('dark-mode');
+        scene.background.setHex(isD ? 0x050505 : 0xffffff);
+        floorL.material.color.setHex(isD ? 0x111111 : 0xffffff);
+        floorR.material.color.setHex(isD ? 0x222222 : 0xf0f0f0);
+        themeBtn.innerText = isD ? '☀️' : '🌙';
+    };
+
+    function setRandomFluid() {
+        fluido = fluidos[Math.floor(Math.random() * fluidos.length)];
+        document.getElementById('densityTag').innerText = `Material: ${fluido.nombre}`;
+        waterMat.color.setHex(fluido.color);
+    }
+
+    const selModo = document.getElementById('modo'), fVS = document.getElementById('fVib'), dS = document.getElementById('dist'), aS = document.getElementById('amp'), fLS = document.getElementById('fLight'), rB = document.getElementById('resetBtn');
+
+    setRandomFluid();
+
+    selModo.onchange = () => {
+        const m = selModo.value;
+        wall.visible = (m === 'reflexion');
+        const isInterf = (m === 'interferencia');
+        const isRefr = (m === 'refraccion');
+        
+        vib1.visible = !isRefr;
+        vib2.visible = isInterf;
+        barVib.visible = isRefr;
+
+        document.getElementById('distControl').style.display = isInterf ? 'block' : 'none';
+        document.getElementById('refrLabel').style.display = isRefr ? 'block' : 'none';
+        document.getElementById('refrVal').style.display = isRefr ? 'block' : 'none';
+    };
+
+    document.getElementById('photoBtn').onclick = () => {
+        const link = document.createElement('a');
+        link.download = `onda_lab_${selModo.value}.png`;
+        link.href = renderer.domElement.toDataURL('image/png');
+        link.click();
+    };
+
+    rB.onclick = () => { setRandomFluid(); };
+
+    let time = 0;
+    function animate() {
+        requestAnimationFrame(animate);
+        time += 0.016; 
+        const m = selModo.value;
+        const fv = parseFloat(fVS.value), amp = parseFloat(aS.value), dist = parseFloat(dS.value), fe = parseFloat(fLS.value);
+        
+        const vProp = fluido.vel * 10;
+        document.getElementById('vData').innerText = vProp.toFixed(2);
+        document.getElementById('lData').innerText = (vProp / fv).toFixed(2);
+        document.getElementById('fv').innerText = fv.toFixed(1);
+        document.getElementById('dv').innerText = dist;
+        document.getElementById('av').innerText = amp.toFixed(1);
+        document.getElementById('fl').innerText = fe.toFixed(1);
+
+        if (fe > 0) {
+            const strobePhase = (time * fe) % 1.0;
+            light.intensity = Math.pow(Math.max(0, 1 - Math.abs(strobePhase - 0.5) / 0.1), 2) * 7000;
+        } else {
+            light.intensity = document.body.classList.contains('dark-mode') ? 2500 : 4500;
+        }
+
+        const vY = Math.sin(time * fv * Math.PI * 2) * amp + 2.5;
+        if(m === 'refraccion') {
+            barVib.position.set(-20, vY, 0);
+        } else {
+            vib1.position.set(m === 'interferencia' ? -dist/2 : -20, vY, 0);
+            vib2.position.set(dist/2, vY, 0);
+        }
+
+        const pos = waterGeo.attributes.position.array;
+        const w = 2 * Math.PI * fv;
+        const vBase = fluido.vel;
+        
+        for (let i = 0; i < pos.length; i += 3) {
+            const x = pos[i], z = pos[i+2];
+            let h = 0;
+            const k = (2 * Math.PI) / (18 / (fv * vBase));
+
+            if (m === 'interferencia') {
+                const d1 = Math.sqrt((x + dist/2)**2 + z**2);
+                const d2 = Math.sqrt((x - dist/2)**2 + z**2);
+                h = (Math.sin(k * d1 - w * time) * amp * 0.7) / (1 + d1 * fluido.visc) + 
+                    (Math.sin(k * d2 - w * time) * amp * 0.7) / (1 + d2 * fluido.visc);
+            } 
+            else if (m === 'reflexion') {
+                const d1 = Math.sqrt((x + 20)**2 + z**2);
+                const d2 = Math.sqrt((x - 50)**2 + z**2); 
+                h = ((Math.sin(k * d1 - w * time) * amp) / (1 + d1 * fluido.visc)) + 
+                    (x < 15 ? (Math.sin(k * d2 - w * time) * amp * 0.7) / (1 + d2 * fluido.visc) : 0);
+            }
+            else if (m === 'refraccion') {
+                const v2 = vBase * 0.5;
+                const distBarra = x + 20;
+                if (x < 0) {
+                    h = Math.sin(k * distBarra - w * time) * amp;
+                } else {
+                    const k2 = (2 * Math.PI) / (18 / (fv * v2));
+                    h = Math.sin(k2 * x + k * 20 - w * time) * amp;
+                }
+            }
+            pos[i+1] = h;
+        }
+        waterGeo.attributes.position.needsUpdate = true;
+        waterGeo.computeVertexNormals();
+        renderer.render(scene, camera);
+    }
+    animate();
+</script>
+</body>
+</html>

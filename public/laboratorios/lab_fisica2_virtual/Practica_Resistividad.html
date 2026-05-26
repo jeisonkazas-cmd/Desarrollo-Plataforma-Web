@@ -1,0 +1,1413 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Práctica — Resistividad Eléctrica y Ley de Ohm</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>
+  MathJax = {
+    tex: { inlineMath: [['$','$'],['\\(','\\)']], displayMath: [['$$','$$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+  :root {
+    --ink:       #1a1a2e;
+    --ink-soft:  #3d3d5c;
+    --ink-muted: #7a7a9a;
+    --paper:     #faf8f3;
+    --paper-alt: #f2ede3;
+    --rule:      #d4c9b0;
+    --accent:    #1a5276;
+    --accent2:   #c0392b;
+    --gold:      #b8860b;
+    --green:     #1e8449;
+    --purple:    #6c3483;
+    --mono:      'JetBrains Mono', monospace;
+    --serif:     'Source Serif 4', Georgia, serif;
+    --display:   'Playfair Display', Georgia, serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: #dde3e8;
+    font-family: var(--serif);
+    color: var(--ink);
+    font-size: 15px;
+    line-height: 1.75;
+    min-height: 100vh;
+    padding: 30px 15px 80px;
+  }
+  .documento {
+    max-width: 860px;
+    margin: 0 auto;
+    background: var(--paper);
+    box-shadow: 0 2px 4px rgba(0,0,0,.08), 0 8px 32px rgba(0,0,0,.14), 0 20px 60px rgba(0,0,0,.08);
+    position: relative;
+    overflow-x: hidden;
+  }
+  .documento::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 5px;
+    background: linear-gradient(180deg, var(--accent) 0%, var(--accent2) 35%, var(--gold) 65%, var(--green) 100%);
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--ink);
+    color: #fff;
+    padding: 36px 50px 30px 55px;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::after {
+    content: 'ρ';
+    font-family: var(--display);
+    font-size: 300px;
+    font-weight: 700;
+    color: rgba(255,255,255,.04);
+    position: absolute;
+    right: -10px; top: -60px;
+    line-height: 1;
+    pointer-events: none;
+    user-select: none;
+  }
+  .header-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    gap: 20px;
+  }
+  .badge-codigo {
+    font-family: var(--mono);
+    font-size: .7em;
+    background: var(--accent);
+    color: #fff;
+    padding: 3px 10px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+  .badge-tipo {
+    font-family: var(--mono);
+    font-size: .7em;
+    color: rgba(255,255,255,.5);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    border: 1px solid rgba(255,255,255,.15);
+    padding: 3px 10px;
+  }
+  .header h1 {
+    font-family: var(--display);
+    font-size: 2em;
+    font-weight: 700;
+    line-height: 1.2;
+    color: #fff;
+    margin-bottom: 6px;
+  }
+  .header h1 em {
+    font-style: italic;
+    color: rgba(255,255,255,.65);
+    font-size: .8em;
+  }
+  .header-sub {
+    font-size: .82em;
+    color: rgba(255,255,255,.45);
+    font-weight: 300;
+    letter-spacing: .04em;
+    margin-top: 4px;
+  }
+  .header-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 24px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,.12);
+  }
+  .field-item label {
+    display: block;
+    font-family: var(--mono);
+    font-size: .65em;
+    color: rgba(255,255,255,.4);
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    margin-bottom: 4px;
+  }
+  .field-item input[type="text"],
+  .field-item input[type="date"] {
+    width: 100%;
+    background: rgba(255,255,255,.07);
+    border: none;
+    border-bottom: 1px solid rgba(255,255,255,.25);
+    color: #fff;
+    font-family: var(--serif);
+    font-size: .9em;
+    padding: 4px 0;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .field-item input:focus { border-bottom-color: var(--accent2); }
+  .field-item input::placeholder { color: rgba(255,255,255,.2); }
+
+  /* BODY */
+  .body { padding: 44px 50px 50px 55px; }
+  .seccion { margin-bottom: 44px; }
+  .seccion-titulo {
+    font-family: var(--display);
+    font-size: 1.15em;
+    font-weight: 600;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--rule);
+  }
+  .seccion-titulo .num {
+    font-family: var(--mono);
+    font-size: .75em;
+    color: var(--accent);
+    background: #e8f0f7;
+    padding: 2px 7px;
+    letter-spacing: .05em;
+    min-width: 36px;
+    text-align: center;
+  }
+  .subseccion-titulo {
+    font-family: var(--display);
+    font-size: 1em;
+    font-weight: 600;
+    color: var(--accent);
+    margin: 22px 0 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .subseccion-titulo::before {
+    content: '';
+    width: 14px; height: 2px;
+    background: var(--accent);
+    display: inline-block;
+    flex-shrink: 0;
+  }
+  p { margin-bottom: 10px; color: var(--ink-soft); font-size: .95em; }
+  p:last-child { margin-bottom: 0; }
+
+  /* RESUMEN */
+  .resumen-box {
+    background: var(--paper-alt);
+    border-left: 3px solid var(--accent);
+    padding: 16px 20px;
+    font-size: .9em;
+    font-style: italic;
+    color: var(--ink-soft);
+    line-height: 1.7;
+  }
+
+  /* OBJETIVOS */
+  .objetivos-lista { list-style: none; padding: 0; }
+  .objetivos-lista li {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 8px 0;
+    border-bottom: 1px dashed var(--rule);
+    font-size: .93em;
+    color: var(--ink-soft);
+  }
+  .objetivos-lista li:last-child { border-bottom: none; }
+  .objetivos-lista li .obj-num {
+    font-family: var(--mono);
+    font-size: .75em;
+    color: #fff;
+    background: var(--accent);
+    min-width: 22px; height: 22px;
+    display: flex; align-items: center; justify-content: center;
+    margin-top: 2px; flex-shrink: 0;
+  }
+
+  /* FÓRMULAS */
+  .formula-box {
+    background: var(--ink);
+    color: #fff;
+    padding: 18px 24px;
+    margin: 18px 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .formula-box::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--accent2);
+  }
+  .formula-box .formula-label {
+    font-family: var(--mono);
+    font-size: .65em;
+    color: rgba(255,255,255,.4);
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    margin-bottom: 10px;
+  }
+  .formula-main { font-size: 1.05em; text-align: center; padding: 6px 0; }
+  .formula-num {
+    font-family: var(--mono);
+    font-size: .65em;
+    color: rgba(255,255,255,.35);
+    text-align: right;
+    margin-top: 6px;
+  }
+
+  /* TABLA DATOS */
+  .tabla-resultados {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .86em;
+    margin: 14px 0;
+  }
+  .tabla-resultados th {
+    background: var(--ink);
+    color: #fff;
+    font-family: var(--mono);
+    font-size: .7em;
+    letter-spacing: .07em;
+    padding: 9px 12px;
+    text-align: center;
+    font-weight: 500;
+    border: 1px solid #444;
+  }
+  .tabla-resultados td {
+    padding: 7px 10px;
+    border: 1px solid var(--rule);
+    text-align: center;
+    color: var(--ink-soft);
+    vertical-align: middle;
+  }
+  .tabla-resultados td.input-cell { padding: 3px 4px; }
+  .tabla-resultados input[type="text"] {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid var(--rule);
+    background: transparent;
+    font-family: var(--mono);
+    font-size: .88em;
+    color: var(--ink);
+    padding: 4px 4px;
+    text-align: center;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .tabla-resultados input:focus { border-bottom-color: var(--accent); }
+  .tabla-resultados tr:nth-child(even) td { background: var(--paper-alt); }
+  .tabla-resultados .row-label {
+    font-family: var(--mono);
+    font-size: .82em;
+    font-weight: 500;
+    color: var(--accent);
+  }
+
+  /* PASOS */
+  .paso { display: flex; gap: 16px; margin-bottom: 20px; align-items: flex-start; }
+  .paso-num {
+    font-family: var(--mono); font-size: .8em;
+    background: var(--accent); color: #fff;
+    min-width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 2px;
+  }
+  .paso-content { flex: 1; }
+  .paso-content p { margin-bottom: 6px; }
+
+  /* ÁREA DE TRABAJO */
+  .trabajo-area {
+    width: 100%; min-height: 110px;
+    border: 1px solid var(--rule);
+    background: #fff;
+    font-family: var(--serif);
+    font-size: .9em; color: var(--ink);
+    padding: 14px 16px; resize: vertical; outline: none;
+    line-height: 1.8; transition: border-color .2s; display: block;
+  }
+  .trabajo-area:focus { border-color: var(--accent); }
+  .trabajo-area::placeholder { color: #bbb; font-style: italic; }
+  .area-label {
+    font-family: var(--mono); font-size: .68em;
+    color: var(--ink-muted); text-transform: uppercase;
+    letter-spacing: .1em; margin-bottom: 5px; margin-top: 14px; display: block;
+  }
+
+  /* NOTA */
+  .nota {
+    background: #fef9e7;
+    border-left: 3px solid var(--gold);
+    padding: 10px 16px;
+    font-size: .85em; color: #7d6608;
+    margin: 14px 0; font-style: italic;
+  }
+  .nota strong { font-style: normal; color: var(--gold); }
+
+  /* CAJAS DE RESULTADO */
+  .result-box {
+    background: var(--paper-alt);
+    border: 1px solid var(--rule);
+    padding: 16px 20px; margin: 14px 0;
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  .result-box.col2 { grid-template-columns: 1fr 1fr; }
+  .result-box.col4 { grid-template-columns: repeat(4, 1fr); }
+  .result-box.col5 { grid-template-columns: repeat(5, 1fr); }
+  .res-campo label {
+    font-family: var(--mono); font-size: .63em;
+    color: var(--ink-muted); text-transform: uppercase;
+    letter-spacing: .1em; display: block; margin-bottom: 5px;
+  }
+  .res-campo input[type="text"] {
+    width: 100%; border: none;
+    border-bottom: 2px solid var(--rule);
+    background: transparent; font-family: var(--mono);
+    font-size: 1em; color: var(--ink); padding: 4px 0;
+    outline: none; transition: border-color .2s; text-align: center;
+  }
+  .res-campo input:focus { border-bottom-color: var(--accent); }
+
+  /* GRÁFICA */
+  .grafica-box {
+    border: 1px solid var(--rule);
+    background: #fff; margin: 14px 0;
+    overflow: hidden;
+  }
+  .grafica-header {
+    background: var(--ink); color: #fff;
+    padding: 8px 16px;
+    font-family: var(--mono); font-size: .68em;
+    letter-spacing: .1em; text-transform: uppercase;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .grafica-canvas { display: block; width: 100%; background: #fafafa; }
+  .grafica-controles {
+    padding: 10px 16px;
+    border-top: 1px solid var(--rule);
+    display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+  }
+  .btn-ctrl {
+    font-family: var(--mono); font-size: .7em;
+    padding: 5px 12px; border: 1px solid var(--rule);
+    background: var(--paper-alt); color: var(--ink-soft);
+    cursor: pointer; transition: all .2s; letter-spacing: .05em;
+  }
+  .btn-ctrl:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-ctrl.activo { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .grafica-info {
+    font-family: var(--mono); font-size: .75em;
+    color: var(--ink-muted); flex: 1; text-align: right;
+  }
+
+  /* DIVIDER */
+  .divider {
+    display: flex; align-items: center; gap: 12px;
+    margin: 28px 0 18px;
+    font-family: var(--mono); font-size: .68em;
+    color: var(--ink-muted); text-transform: uppercase; letter-spacing: .1em;
+  }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--rule); }
+
+  /* ADJUNTO */
+  .adjunto-slot {
+    border: 2px dashed var(--rule);
+    padding: 24px; text-align: center;
+    cursor: pointer; position: relative;
+    transition: border-color .2s; margin-top: 8px;
+  }
+  .adjunto-slot:hover { border-color: var(--accent); }
+  .adjunto-slot input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+  .slot-icon { display: block; font-size: 1.8em; margin-bottom: 6px; }
+  .slot-label { display: block; font-family: var(--mono); font-size: .75em; color: var(--ink-soft); }
+  .slot-hint  { display: block; font-size: .72em; color: var(--ink-muted); margin-top: 4px; }
+  .preview-img { display: none; max-width: 100%; margin-top: 14px; border: 1px solid var(--rule); }
+
+  /* PARTE BADGE */
+  .parte-header {
+    display: flex; align-items: flex-start; gap: 14px;
+    background: var(--ink); color: #fff;
+    padding: 14px 18px; margin-bottom: 0;
+  }
+  .parte-badge {
+    font-family: var(--mono); font-size: .65em;
+    padding: 3px 8px; letter-spacing: .1em; white-space: nowrap; margin-top: 3px;
+  }
+  .parte-badge.AB { background: #1a5276; }
+  .parte-badge.R  { background: #6c3483; }
+  .parte-body { border: 1px solid var(--rule); padding: 22px; border-top: none; }
+
+  /* MODO ABIERTO */
+  .config-card { border: 1px solid var(--rule); margin-bottom: 20px; overflow: hidden; }
+  .config-card-header {
+    background: var(--ink);
+    color: #fff;
+    padding: 10px 18px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .config-badge {
+    font-family: var(--mono); font-size: .65em;
+    padding: 3px 8px; letter-spacing: .1em;
+  }
+  .config-badge.acero   { background: #6c7a89; }
+  .config-badge.platino { background: #5d6d7e; }
+  .config-badge.mercurio{ background: #2980b9; }
+  .config-badge.hierro  { background: #7f8c8d; }
+  .config-badge.estano  { background: #778899; }
+  .config-card-header h4 { font-family: var(--display); font-size: .95em; flex: 1; }
+  .config-card-body { padding: 16px 18px; }
+  .capturas-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 14px; margin-top: 10px;
+  }
+  .captura-slot {
+    border: 2px dashed var(--rule); position: relative;
+    text-align: center; padding: 18px 10px;
+    transition: border-color .2s; cursor: pointer;
+  }
+  .captura-slot:hover { border-color: var(--accent); }
+  .captura-slot input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+  .captura-tipo { font-family: var(--mono); font-size: .65em; text-transform: uppercase; letter-spacing: .1em; color: var(--ink-muted); display: block; margin-bottom: 6px; }
+  .captura-icon { font-size: 1.5em; display: block; margin-bottom: 4px; }
+  .captura-desc { font-size: .72em; color: var(--ink-muted); }
+  .captura-preview { display: none; max-width: 100%; border: 1px solid var(--rule); margin-top: 8px; }
+
+  /* TABLA RANGOS */
+  .rango-tabla { width: 100%; border-collapse: collapse; font-size: .85em; margin: 12px 0; }
+  .rango-tabla th { background: var(--ink); color: #fff; font-family: var(--mono); font-size: .68em; padding: 7px 12px; letter-spacing: .08em; text-align: center; }
+  .rango-tabla td { padding: 6px 12px; border: 1px solid var(--rule); text-align: center; font-size: .88em; }
+  .rango-tabla .bueno { color: var(--green); font-weight: 600; }
+  .rango-tabla .medio { color: var(--gold); font-weight: 600; }
+  .rango-tabla .malo  { color: var(--accent2); font-weight: 600; }
+
+  /* FIRMA */
+  .firma-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 30px; }
+  .firma-slot {
+    text-align: center; padding-top: 50px;
+    border-top: 1px solid var(--rule);
+    font-family: var(--mono); font-size: .68em;
+    color: var(--ink-muted); text-transform: uppercase; letter-spacing: .08em;
+  }
+
+  /* BTN IMPRIMIR */
+  .btn-imprimir {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--accent); color: #fff; border: none;
+    padding: 12px 22px; font-family: var(--mono);
+    font-size: .75em; letter-spacing: .1em; text-transform: uppercase;
+    cursor: pointer; box-shadow: 0 4px 16px rgba(26,82,118,.35);
+    transition: transform .15s, box-shadow .15s; z-index: 100;
+  }
+  .btn-imprimir:hover { transform: translateY(-2px); box-shadow: 0 6px 22px rgba(26,82,118,.45); }
+
+  @media (max-width: 680px) {
+    body { padding: 10px 0 40px; }
+    .documento { border-radius: 0; }
+    .header { padding: 22px 18px 20px 22px; }
+    .header::after { font-size: 160px; }
+    .header h1 { font-size: 1.4em !important; }
+    .header-meta { flex-direction: column; gap: 8px; }
+    .header-fields { grid-template-columns: 1fr !important; }
+    .body { padding: 22px 16px 28px 20px; }
+    .tabla-resultados, .rango-tabla { display: block; overflow-x: auto; }
+    .result-box, .result-box.col2, .result-box.col4, .result-box.col5 { grid-template-columns: 1fr 1fr !important; }
+    .firma-grid { grid-template-columns: 1fr !important; }
+    .capturas-grid { grid-template-columns: 1fr !important; }
+  }
+  @media print {
+    body { background: #fff; padding: 0; }
+    .documento { box-shadow: none; }
+    .btn-imprimir, .grafica-controles { display: none; }
+  }
+
+  /* ── IMPRESIÓN: mostrar todo el contenido de respuestas ── */
+  @media print {
+    .print-value {
+      display: block !important;
+      white-space: pre-wrap !important;
+      word-break: break-word !important;
+      font-family: inherit !important;
+      font-size: inherit !important;
+      line-height: 1.75 !important;
+      color: #1a1a2e !important;
+      width: 100% !important;
+      padding: 2px 0 !important;
+      background: transparent !important;
+    }
+    textarea,
+    input[type="text"],
+    input[type="date"] {
+      display: none !important;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="documento">
+
+  <!-- ENCABEZADO -->
+  <div class="header">
+    <div class="header-meta">
+      <span class="badge-codigo" id="codigoPractica">PRÁCTICA FIS-RESIST3D-01</span>
+      <span class="badge-tipo">Laboratorio de Física · Electricidad</span>
+    </div>
+    <h1>Resistividad Eléctrica<br><em>Simulador 3D — Ley de Ohm</em></h1>
+    <div class="header-sub">Resistividad · Corriente · Voltaje · Dimensiones del conductor · Determinación experimental de ρ</div>
+    <div class="header-fields">
+      <div class="field-item"><label>Nombre del estudiante</label><input type="text" placeholder="Escriba su nombre completo"></div>
+      <div class="field-item"><label>Código estudiantil</label><input type="text" placeholder="Código"></div>
+      <div class="field-item"><label>Grupo / Sección</label><input type="text" placeholder="Ej. Grupo A — Lunes 10 am"></div>
+      <div class="field-item"><label>Docente</label><input type="text" placeholder="Nombre del profesor/a"></div>
+      <div class="field-item"><label>Fecha de realización</label><input type="date"></div>
+      <div class="field-item"><label>Material asignado (Modo Abierto)</label><input type="text" placeholder="Ej. Acero — ρ = 7.20×10⁻⁷ Ω·m"></div>
+    </div>
+  </div>
+
+  <div class="body">
+
+    <!-- 00. RESUMEN -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">00</span> Resumen</h2>
+      <div class="resumen-box">
+        En esta práctica se determina experimentalmente la <strong>resistividad eléctrica</strong> $\rho$ de distintos materiales
+        conductores mediante el simulador 3D interactivo. La práctica consta de tres modos: un
+        <em>Modo Abierto</em> de exploración cualitativa donde el estudiante interactúa libremente con los controles;
+        un <em>Modo A</em> en el que se registran pares voltaje–corriente $(V, I)$, se obtiene la resistencia $R$
+        por regresión lineal de la gráfica $V_\text{ef}$ vs. $I$ y se calcula $\rho$ experimentalmente comparándola
+        con el valor del simulador; y un <em>Modo Reto</em> donde el estudiante debe identificar el material,
+        ingresar su valor calculado de $\rho$ y superar la prueba con un error relativo inferior al 20%.
+      </div>
+      <p style="margin-top:10px;"><strong>Palabras clave:</strong>
+        Resistividad · Ley de Ohm · Resistencia eléctrica · Corriente · Sección transversal · Longitud del conductor
+      </p>
+    </div>
+
+    <!-- 01. OBJETIVOS -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">01</span> Objetivos</h2>
+      <ul class="objetivos-lista">
+        <li><span class="obj-num">1</span>Explorar cualitativamente el efecto del voltaje, la longitud y el radio sobre la corriente en el conductor (Modo Abierto).</li>
+        <li><span class="obj-num">2</span>Registrar 12 o más pares $(V_\text{slider},\,I)$ para un material y construir la gráfica $V_\text{ef}$ vs. $I$ (Modo A).</li>
+        <li><span class="obj-num">3</span>Obtener la resistencia simulada $R_\text{sim}$ como pendiente de la regresión lineal de la gráfica $V_\text{ef}$ vs. $I$.</li>
+        <li><span class="obj-num">4</span>Calcular experimentalmente la resistividad $\rho_\text{exp} = R_\text{sim} \cdot \pi(r \cdot 0{,}1)^2 \big/ (L \cdot 10^5)$ y comparar con el valor teórico.</li>
+        <li><span class="obj-num">5</span>Identificar el material desconocido en el Modo Reto, verificar la respuesta y obtener la evidencia de aprobación.</li>
+        <li><span class="obj-num">6</span>Evaluar la calidad del experimento mediante el error relativo porcentual respecto al valor del simulador.</li>
+      </ul>
+    </div>
+
+    <!-- 02. MARCO TEÓRICO -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">02</span> Marco Teórico</h2>
+
+      <div class="subseccion-titulo">2.1 · Ley de Ohm</div>
+      <p>La Ley de Ohm establece que, para un conductor óhmico, la diferencia de potencial $V$ aplicada entre sus extremos
+         es directamente proporcional a la corriente $I$ que circula por él:</p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 1 — Ley de Ohm</div>
+        <div class="formula-main">$$V = R \cdot I \qquad \Longrightarrow \qquad R = \frac{V}{I}$$</div>
+        <div class="formula-num">(1)</div>
+      </div>
+      <p>Graficando $V$ vs. $I$ se obtiene una recta cuya <strong>pendiente es la resistencia</strong> $R$ del conductor.
+         En el simulador, el voltaje efectivo es $V_\text{ef} = V_\text{slider} \times 0{,}1$ V.</p>
+
+      <div class="subseccion-titulo">2.2 · Resistividad eléctrica</div>
+      <p>La resistencia de un conductor homogéneo de longitud $L$ y sección transversal $A$ depende del material mediante la resistividad $\rho$:</p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 2 — Resistencia en función de la geometría</div>
+        <div class="formula-main">$$R = \rho \cdot \frac{L}{A} \qquad \text{donde} \quad A = \pi\, r^2$$</div>
+        <div class="formula-num">(2)</div>
+      </div>
+      <p>Despejando $\rho$ a partir del valor de $R$ medido experimentalmente:</p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 3 — Cálculo de la resistividad experimental</div>
+        <div class="formula-main">$$\rho_\text{exp} = R_\text{sim} \cdot \frac{\pi\,(r \cdot 0{,}1)^2}{L \cdot 10^5} \qquad \text{[Ω·m]}$$</div>
+        <div class="formula-num">(3)</div>
+      </div>
+      <p style="font-size:.88em;color:var(--ink-muted);">
+        Nota: el factor $10^5$ es el factor de escala interno del simulador. Las unidades de $r$ y $L$ son
+        unidades del simulador (u); para pasar $r$ a metros se usa $r_m = r \cdot 0{,}1$.
+      </p>
+
+      <div class="subseccion-titulo">2.3 · Regresión lineal (mínimos cuadrados)</div>
+      <p>Para obtener la pendiente de la recta $V_\text{ef} = R \cdot I$ con varios puntos experimentales $(I_i, V_i)$:</p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 4 — Pendiente por mínimos cuadrados</div>
+        <div class="formula-main">$$R_\text{sim} = \frac{n\sum V_i I_i - \sum V_i \sum I_i}{n \sum I_i^2 - \left(\sum I_i\right)^2}$$</div>
+        <div class="formula-num">(4)</div>
+      </div>
+
+      <div class="subseccion-titulo">2.4 · Error relativo</div>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 5 — Error relativo porcentual</div>
+        <div class="formula-main">$$\text{ER} = \frac{|\rho_\text{exp} - \rho_\text{real}|}{\rho_\text{real}} \times 100\%$$</div>
+        <div class="formula-num">(5)</div>
+      </div>
+      <table class="rango-tabla" style="margin-top:8px;">
+        <thead><tr><th>Indicador</th><th>Rango de ER</th><th>Interpretación</th></tr></thead>
+        <tbody>
+          <tr><td rowspan="3" style="font-family:var(--mono);font-size:.88em;">ER</td>
+            <td class="bueno">ER &lt; 5 %</td><td>Resultado excelente</td></tr>
+          <tr><td class="medio">5 % ≤ ER &lt; 15 %</td><td>Resultado aceptable</td></tr>
+          <tr><td class="malo">ER ≥ 15 %</td><td>Revisar procedimiento</td></tr>
+        </tbody>
+      </table>
+
+      <div class="subseccion-titulo">2.5 · Tabla de resistividades de referencia</div>
+      <p>Valores teóricos para los materiales del simulador a temperatura ambiente (20 °C):</p>
+      <table class="tabla-resultados" style="margin-top:10px;">
+        <thead>
+          <tr>
+            <th>Material</th>
+            <th>ρ (Ω·m)</th>
+            <th>Notación científica</th>
+            <th>Orden de magnitud</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Acero</td><td>7.20 × 10⁻⁷</td><td>7.20e-7</td><td>~10⁻⁷</td></tr>
+          <tr><td>Platino</td><td>1.10 × 10⁻⁷</td><td>1.10e-7</td><td>~10⁻⁷</td></tr>
+          <tr><td>Mercurio</td><td>9.80 × 10⁻⁷</td><td>9.80e-7</td><td>~10⁻⁶</td></tr>
+          <tr><td>Hierro</td><td>9.71 × 10⁻⁸</td><td>9.71e-8</td><td>~10⁻⁸</td></tr>
+          <tr><td>Estaño</td><td>1.15 × 10⁻⁷</td><td>1.15e-7</td><td>~10⁻⁷</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 03. MODO ABIERTO -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">03</span> Modo Abierto — Exploración Cualitativa</h2>
+
+      <div class="nota">
+        <strong>Instrucción:</strong> Abre el simulador en <em>Modo Abierto</em>. Explora libremente los controles,
+        observa cómo el movimiento de los electrones responde al voltaje y cómo cambian la corriente al variar L y r.
+        Usa el botón <strong>"Cambiar Material"</strong> para ver distintos conductores. Toma capturas del simulador
+        y adjúntalas a continuación, describiendo tus observaciones.
+      </div>
+
+      <!-- Configuración 1 -->
+      <div class="config-card">
+        <div class="config-card-header">
+          <span class="config-badge acero">EXPLORACIÓN 1</span>
+          <h4>Voltaje y Corriente — Ley de Ohm</h4>
+        </div>
+        <div class="config-card-body">
+          <p style="font-size:.88em;color:var(--ink-soft);">
+            Mantén L = 80 u, r = 10 u. Varía el voltaje desde −100 hasta +100. Anota cómo cambia la corriente.
+          </p>
+          <div class="result-box col4" style="margin:10px 0 0;">
+            <div class="res-campo"><label>Voltaje V=+50 → I (A)</label><input type="text" placeholder="___"></div>
+            <div class="res-campo"><label>Voltaje V=+100 → I (A)</label><input type="text" placeholder="___"></div>
+            <div class="res-campo"><label>Voltaje V=−50 → I (A)</label><input type="text" placeholder="___"></div>
+            <div class="res-campo"><label>Voltaje V=0 → I (A)</label><input type="text" placeholder="0.000"></div>
+          </div>
+          <span class="area-label">Observación — ¿Qué relación observas entre V e I?</span>
+          <textarea class="trabajo-area" style="min-height:80px;"
+            placeholder="Al duplicar el voltaje, la corriente... (describe la relación V–I que observas)"></textarea>
+          <div class="capturas-grid">
+            <div class="captura-slot">
+              <input type="file" accept="image/*" onchange="prevCaptura(this,'c1a')">
+              <span class="captura-tipo">Captura 1-A</span>
+              <span class="captura-icon">📸</span>
+              <span class="captura-desc">Voltaje positivo alto — electrones fluyendo</span>
+              <img id="c1a" class="captura-preview" alt="">
+            </div>
+            <div class="captura-slot">
+              <input type="file" accept="image/*" onchange="prevCaptura(this,'c1b')">
+              <span class="captura-tipo">Captura 1-B</span>
+              <span class="captura-icon">📸</span>
+              <span class="captura-desc">Voltaje = 0 — movimiento térmico aleatorio</span>
+              <img id="c1b" class="captura-preview" alt="">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Configuración 2 -->
+      <div class="config-card">
+        <div class="config-card-header">
+          <span class="config-badge mercurio">EXPLORACIÓN 2</span>
+          <h4>Efecto de la Longitud y el Radio</h4>
+        </div>
+        <div class="config-card-body">
+          <p style="font-size:.88em;color:var(--ink-soft);">
+            Fija el voltaje en +80. Varía L entre 30 y 120, y r entre 5 y 20. Observa cómo cambia I.
+          </p>
+          <table class="tabla-resultados" style="margin:10px 0;">
+            <thead><tr><th>L (u)</th><th>r (u)</th><th>V_slider</th><th>I medida (A)</th><th>Observación</th></tr></thead>
+            <tbody>
+              <tr><td class="row-label">30</td><td class="row-label">10</td><td>80</td><td class="input-cell"><input type="text" placeholder="___"></td><td class="input-cell"><input type="text" placeholder="L corta →"></td></tr>
+              <tr><td class="row-label">80</td><td class="row-label">10</td><td>80</td><td class="input-cell"><input type="text" placeholder="___"></td><td class="input-cell"><input type="text" placeholder="L media →"></td></tr>
+              <tr><td class="row-label">120</td><td class="row-label">10</td><td>80</td><td class="input-cell"><input type="text" placeholder="___"></td><td class="input-cell"><input type="text" placeholder="L larga →"></td></tr>
+              <tr><td class="row-label">80</td><td class="row-label">5</td><td>80</td><td class="input-cell"><input type="text" placeholder="___"></td><td class="input-cell"><input type="text" placeholder="r pequeño →"></td></tr>
+              <tr><td class="row-label">80</td><td class="row-label">20</td><td>80</td><td class="input-cell"><input type="text" placeholder="___"></td><td class="input-cell"><input type="text" placeholder="r grande →"></td></tr>
+            </tbody>
+          </table>
+          <span class="area-label">Conclusión — ¿Cómo afectan L y r a la resistencia?</span>
+          <textarea class="trabajo-area" style="min-height:80px;"
+            placeholder="Al aumentar L, la corriente... porque R = ρ·L/A aumenta...&#10;Al aumentar r, la corriente... porque el área A = πr² ..."></textarea>
+        </div>
+      </div>
+
+      <!-- Configuración 3 -->
+      <div class="config-card">
+        <div class="config-card-header">
+          <span class="config-badge hierro">EXPLORACIÓN 3</span>
+          <h4>Cambio de Material — Efecto de ρ</h4>
+        </div>
+        <div class="config-card-body">
+          <p style="font-size:.88em;color:var(--ink-soft);">
+            Con L = 80 u, r = 10 u y V = +80, usa <strong>"Cambiar Material"</strong> varias veces.
+            Registra el material, su ρ y la corriente resultante.
+          </p>
+          <table class="tabla-resultados" style="margin:10px 0;">
+            <thead><tr><th>Material</th><th>ρ (Ω·m) — del simulador</th><th>I medida (A)</th><th>R = V_ef/I (Ω)</th></tr></thead>
+            <tbody>
+              <tr><td class="input-cell"><input type="text" placeholder="Ej: Hierro"></td><td class="input-cell"><input type="text" placeholder="___"></td><td class="input-cell"><input type="text" placeholder="___"></td><td class="input-cell"><input type="text" placeholder="___"></td></tr>
+              <tr><td class="input-cell"><input type="text" placeholder="___"></td><td class="input-cell"><input type="text" placeholder="___"></td><td class="input-cell"><input type="text" placeholder="___"></td><td class="input-cell"><input type="text" placeholder="___"></td></tr>
+              <tr><td class="input-cell"><input type="text" placeholder="___"></td><td class="input-cell"><input type="text" placeholder="___"></td><td class="input-cell"><input type="text" placeholder="___"></td><td class="input-cell"><input type="text" placeholder="___"></td></tr>
+            </tbody>
+          </table>
+          <div class="capturas-grid">
+            <div class="captura-slot">
+              <input type="file" accept="image/*" onchange="prevCaptura(this,'c3a')">
+              <span class="captura-tipo">Captura 3-A</span>
+              <span class="captura-icon">📸</span>
+              <span class="captura-desc">Material de menor resistividad (más corriente)</span>
+              <img id="c3a" class="captura-preview" alt="">
+            </div>
+            <div class="captura-slot">
+              <input type="file" accept="image/*" onchange="prevCaptura(this,'c3b')">
+              <span class="captura-tipo">Captura 3-B</span>
+              <span class="captura-icon">📸</span>
+              <span class="captura-desc">Material de mayor resistividad (menos corriente)</span>
+              <img id="c3b" class="captura-preview" alt="">
+            </div>
+          </div>
+          <span class="area-label">Observaciones generales — Modo Abierto</span>
+          <textarea class="trabajo-area" style="min-height:90px;"
+            placeholder="Resume lo que observaste en las tres exploraciones. ¿Qué variables aumentan la resistencia? ¿Cómo se relaciona ρ con la facilidad de conducción eléctrica?"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- 04. MODO A — ANÁLISIS V-I -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">04</span> Modo A — Determinación de ρ por Análisis V–I</h2>
+
+      <div class="parte-header">
+        <div><span class="parte-badge AB">MODO A</span></div>
+        <div>
+          <h4 style="font-family:var(--display);font-size:.95em;margin-bottom:4px;">Determinación experimental de la resistividad $\rho$</h4>
+          <p style="font-size:.82em;color:rgba(255,255,255,.55);margin:0;">
+            Cambia al <em>Modo A</em> en el simulador. La resistividad estará oculta. Registra al menos
+            12 pares $(V_\text{slider}, I)$ variando el voltaje. Exporta los datos y completa la tabla siguiente.
+          </p>
+        </div>
+      </div>
+      <div class="parte-body">
+
+        <div class="subseccion-titulo">Parámetros de la medición</div>
+        <div class="result-box col4">
+          <div class="res-campo">
+            <label>Longitud L (u)</label>
+            <input type="text" id="mA_L" placeholder="80" oninput="calcModoA()">
+          </div>
+          <div class="res-campo">
+            <label>Radio r (u)</label>
+            <input type="text" id="mA_r" placeholder="10" oninput="calcModoA()">
+          </div>
+          <div class="res-campo">
+            <label>A = π(r×0.1)² (m²)</label>
+            <input type="text" id="mA_A" placeholder="—" readonly style="color:var(--accent);">
+          </div>
+          <div class="res-campo">
+            <label>L/A × 10⁵</label>
+            <input type="text" id="mA_ratio" placeholder="—" readonly style="color:var(--ink-muted);">
+          </div>
+        </div>
+
+        <div class="nota">
+          <strong>Procedimiento:</strong> En el simulador (<em>Modo A</em>) deja L = 80 u y r = 10 u.
+          Mueve el voltaje a distintos valores (al menos 6 positivos y 6 negativos).
+          El simulador registra automáticamente los pares. Exporta como CSV o copia los valores en la tabla.
+          Calcula $V_\text{ef} = V_\text{slider} \times 0{,}1$ y $R = V_\text{ef} / I$ para cada fila.
+        </div>
+
+        <div class="subseccion-titulo">Tabla de datos — Medición V–I (mínimo 12 filas)</div>
+        <p style="font-size:.85em;color:var(--ink-muted);font-style:italic;">
+          Completa $V_\text{slider}$ e $I$ desde el simulador. Las columnas $V_\text{ef}$ y $R = V_\text{ef}/I$
+          se calculan automáticamente al ingresar los datos.
+        </p>
+        <table class="tabla-resultados" id="tablaVI">
+          <thead>
+            <tr>
+              <th>N°</th>
+              <th style="color:#8fd6a0;">$V_\text{slider}$ (V) — simulador</th>
+              <th style="color:#8fd6a0;">$I$ (A) — simulador</th>
+              <th>$V_\text{ef} = V \times 0{,}1$ (V)</th>
+              <th>$R = V_\text{ef}/I$ (Ω)</th>
+            </tr>
+          </thead>
+          <tbody id="bodyVI"></tbody>
+        </table>
+
+        <div class="divider"><span>Gráfica 1 — V_ef (V) vs. Corriente I (A) — Pendiente = R_sim</span></div>
+        <div class="grafica-box">
+          <div class="grafica-header">
+            <span>Gráfica 1: $V_\text{ef}$ (V) vs. $I$ (A) — Ley de Ohm</span>
+            <span id="infoG1" style="color:rgba(255,255,255,.6);font-size:.9em;">sin datos</span>
+          </div>
+          <canvas class="grafica-canvas" id="grafVI" height="300"></canvas>
+          <div class="grafica-controles">
+            <button class="btn-ctrl activo" id="btnRegVI" onclick="toggleRegVI()">📈 Ajuste lineal (pendiente = R)</button>
+            <button class="btn-ctrl" onclick="limpiarVI()">🗑 Limpiar</button>
+            <span class="grafica-info" id="eqVI">Ingrese datos en la tabla para visualizar</span>
+          </div>
+        </div>
+
+        <div class="subseccion-titulo">Resultados — Modo A</div>
+        <div class="result-box col4">
+          <div class="res-campo">
+            <label>Pendiente $R_\text{sim}$ (Ω)</label>
+            <input type="text" id="mA_Rsim" placeholder="0.000" oninput="calcModoA()">
+          </div>
+          <div class="res-campo">
+            <label>$R^2$ del ajuste</label>
+            <input type="text" id="mA_R2" placeholder="—">
+          </div>
+          <div class="res-campo">
+            <label>$\rho_\text{exp}$ (Ω·m)</label>
+            <input type="text" id="mA_rhoExp" placeholder="—" readonly style="color:var(--green);font-weight:600;">
+          </div>
+          <div class="res-campo">
+            <label>Puntos usados</label>
+            <input type="text" id="mA_pts" placeholder="—" readonly>
+          </div>
+        </div>
+        <div class="result-box col2" style="margin-top:0;">
+          <div class="res-campo">
+            <label>$\rho_\text{real}$ del simulador (Ω·m)</label>
+            <input type="text" id="mA_rhoReal" placeholder="— (revelar al final)">
+          </div>
+          <div class="res-campo">
+            <label>ER (%) — Error relativo</label>
+            <input type="text" id="mA_ER" placeholder="—" readonly style="color:var(--accent2);">
+          </div>
+        </div>
+
+        <span class="area-label">Procedimiento de cálculo — Modo A</span>
+        <textarea class="trabajo-area" style="min-height:200px;"
+          placeholder="1. De la Gráfica 1 (V_ef vs I):&#10;   Pendiente m = R_sim = ___ Ω  (del ajuste lineal)&#10;   R² = ___&#10;&#10;2. Cálculo de ρ_exp (Ec. 3):&#10;   L = ___ u  |  r = ___ u  |  A = π × (___ × 0.1)² = ___ m²&#10;   ρ_exp = R_sim × A / (L × 10⁵)&#10;        = ___ × ___ / (___ × 100000)&#10;        = ___ Ω·m&#10;&#10;3. Comparación con la tabla de referencia:&#10;   ρ_exp = ___ Ω·m → se parece a ___ (material)&#10;   ρ_real = ___ Ω·m&#10;&#10;4. Error relativo:&#10;   ER = |ρ_exp − ρ_real| / ρ_real × 100% = ___"></textarea>
+
+        <span class="area-label">Captura del simulador — Modo A (tabla de datos exportada)</span>
+        <div class="adjunto-slot">
+          <input type="file" accept="image/*" onchange="prevImg(this,'prevModoA')">
+          <span class="slot-icon">📸</span>
+          <span class="slot-label">Adjuntar captura del simulador en Modo A — con tabla de datos visible</span>
+          <span class="slot-hint">PNG, JPG — debe verse la tabla con las columnas V_slider, V_ef, I</span>
+          <img id="prevModoA" class="preview-img" alt="">
+        </div>
+      </div>
+    </div>
+
+    <!-- 05. MODO RETO -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">05</span> Modo Reto — Identificación del Material</h2>
+
+      <div class="parte-header">
+        <div><span class="parte-badge R">MODO RETO</span></div>
+        <div>
+          <h4 style="font-family:var(--display);font-size:.95em;margin-bottom:4px;">¿Cuál es el material? Determina $\rho$ y demuéstralo</h4>
+          <p style="font-size:.82em;color:rgba(255,255,255,.55);margin:0;">
+            En el Modo Reto el material es desconocido. Aplica el mismo procedimiento del Modo A,
+            calcula $\rho$ con tu tabla y la fórmula, ingresa tu respuesta en el simulador y descarga la evidencia.
+          </p>
+        </div>
+      </div>
+      <div class="parte-body">
+
+        <div class="nota">
+          <strong>Procedimiento:</strong> Cambia al <em>Modo Reto</em> y presiona "Cambiar Material".
+          El nombre y ρ estarán ocultos. Registra al menos <strong>10 pares (V, I)</strong>, calcula R_sim
+          y luego ρ. Ingresa tu resultado en el simulador y, si el error es &lt; 20%, descarga la evidencia PNG.
+          Adjunta la evidencia descargada en el espacio de abajo.
+        </div>
+
+        <div class="subseccion-titulo">Tabla de datos — Modo Reto (mínimo 10 filas)</div>
+        <table class="tabla-resultados" id="tablaReto">
+          <thead>
+            <tr>
+              <th>N°</th>
+              <th style="color:#f0b27a;">$V_\text{slider}$ — simulador</th>
+              <th style="color:#f0b27a;">$I$ (A) — simulador</th>
+              <th>$V_\text{ef} = V \times 0{,}1$ (V)</th>
+              <th>$R = V_\text{ef}/I$ (Ω)</th>
+            </tr>
+          </thead>
+          <tbody id="bodyReto"></tbody>
+        </table>
+
+        <div class="divider"><span>Gráfica 2 — Modo Reto: V_ef vs. I → R_sim</span></div>
+        <div class="grafica-box">
+          <div class="grafica-header">
+            <span>Gráfica 2: $V_\text{ef}$ (V) vs. $I$ (A) — Material Desconocido</span>
+            <span id="infoG2" style="color:rgba(255,255,255,.6);font-size:.9em;">sin datos</span>
+          </div>
+          <canvas class="grafica-canvas" id="grafReto2" height="300"></canvas>
+          <div class="grafica-controles">
+            <button class="btn-ctrl activo" id="btnRegReto2" onclick="toggleRegReto2()">📈 Ajuste lineal</button>
+            <button class="btn-ctrl" onclick="limpiarReto()">🗑 Limpiar</button>
+            <span class="grafica-info" id="eqReto2">Ingrese datos en la tabla para visualizar</span>
+          </div>
+        </div>
+
+        <div class="subseccion-titulo">Cálculo de ρ y verificación</div>
+        <div class="result-box col4">
+          <div class="res-campo">
+            <label>L usado (u)</label>
+            <input type="text" id="mR_L" placeholder="80" oninput="calcModoReto()">
+          </div>
+          <div class="res-campo">
+            <label>r usado (u)</label>
+            <input type="text" id="mR_r" placeholder="10" oninput="calcModoReto()">
+          </div>
+          <div class="res-campo">
+            <label>$R_\text{sim}$ pendiente (Ω)</label>
+            <input type="text" id="mR_Rsim" placeholder="del gráfico" oninput="calcModoReto()">
+          </div>
+          <div class="res-campo">
+            <label>$\rho_\text{calculado}$ (Ω·m)</label>
+            <input type="text" id="mR_rhoCalc" placeholder="—" readonly style="color:var(--purple);font-weight:600;">
+          </div>
+        </div>
+
+        <span class="area-label">Procedimiento — Modo Reto (muestra todos los cálculos)</span>
+        <textarea class="trabajo-area" style="min-height:180px;"
+          placeholder="1. Datos de la gráfica 2:&#10;   R_sim (pendiente) = ___ Ω   |   R² = ___&#10;&#10;2. Cálculo de ρ:&#10;   L = ___ u  |  r = ___ u&#10;   A = π × (r × 0.1)² = π × (___)² = ___ m²&#10;   ρ_calc = R_sim × A / (L × 10⁵)&#10;           = ___ × ___ / (___ × 10⁵)&#10;           = ___ Ω·m&#10;&#10;3. Identificación del material:&#10;   Comparando con la tabla de referencia (Sección 02.5):&#10;   ρ_calc = ___ → Material probable: ___&#10;&#10;4. Verificación en el simulador:&#10;   Valor ingresado: ___  |  Resultado: Aprobado / No aprobado&#10;   Error reportado por el simulador: ___"></textarea>
+
+        <span class="area-label">Evidencia de aprobación — Adjuntar PNG descargado del simulador</span>
+        <div class="adjunto-slot" style="border-color:#f39c12;">
+          <input type="file" accept="image/*" onchange="prevImg(this,'prevEvidencia')">
+          <span class="slot-icon">🏆</span>
+          <span class="slot-label">Adjuntar evidencia PNG descargada del Modo Reto — "PRUEBA SUPERADA"</span>
+          <span class="slot-hint">El archivo PNG generado por el simulador al aprobar</span>
+          <img id="prevEvidencia" class="preview-img" alt="">
+        </div>
+
+        <div class="nota" style="margin-top:14px;">
+          <strong>Nota evaluativa:</strong> La evidencia PNG debe mostrar el material identificado,
+          el ρ calculado por el estudiante, el ρ real, el error relativo y el sello <em>"PRUEBA SUPERADA"</em>.
+          Sin esta evidencia la parte del Modo Reto no se considera completa.
+        </div>
+      </div>
+    </div>
+
+    <!-- 06. ANÁLISIS Y DISCUSIÓN -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">06</span> Análisis y Discusión</h2>
+
+      <div class="subseccion-titulo">6.1 · Calidad de la medición</div>
+      <p>Evalúa la linealidad de tu gráfica $V_\text{ef}$ vs. $I$ y el valor de $R^2$ obtenido.</p>
+      <span class="area-label">Análisis de linealidad y R²</span>
+      <textarea class="trabajo-area" style="min-height:100px;"
+        placeholder="El valor de R² obtenido fue ___. Esto indica que el ajuste lineal es... porque...&#10;La dispersión de los puntos se debe a... (¿hay puntos atípicos? ¿cómo se manejaron?)"></textarea>
+
+      <div class="subseccion-titulo">6.2 · Fuentes de error</div>
+      <span class="area-label">Fuentes de error experimental</span>
+      <textarea class="trabajo-area" style="min-height:110px;"
+        placeholder="1. Error de lectura: al registrar I del panel del simulador, la precisión es...&#10;2. Linealización: si hay puntos con V cercano a 0, la corriente es 0 y pueden causar...&#10;3. Clamping: el simulador limita la corriente máxima a 500 A. Si se excedió este valor...&#10;4. Factor de escala: el factor 10⁵ es exacto en el simulador, por lo que..."></textarea>
+
+      <div class="subseccion-titulo">6.3 · Comparación entre materiales</div>
+      <span class="area-label">Comparación de resultados obtenidos (Modo A vs. referencia)</span>
+      <textarea class="trabajo-area" style="min-height:100px;"
+        placeholder="Material medido en Modo A: ___  |  ρ_exp = ___  |  ρ_real = ___  |  ER = ___&#10;Material del Modo Reto: ___  |  ρ_exp = ___  |  ρ_real = ___  |  ER = ___&#10;&#10;Comparación: el material de mayor resistividad fue ___ con ρ = ___ Ω·m.&#10;Esto implica que a igual voltaje y geometría, conduce ___ corriente que ___"></textarea>
+    </div>
+
+    <!-- 07. CONCLUSIONES -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">07</span> Conclusiones</h2>
+      <span class="area-label">Conclusiones de la práctica (mínimo 4 ideas)</span>
+      <textarea class="trabajo-area" style="min-height:200px;"
+        placeholder="1. Se verificó la Ley de Ohm: al graficar V_ef vs. I se obtuvo una recta con pendiente R_sim = ___ Ω y R² = ___, confirmando que...&#10;&#10;2. La resistividad experimental ρ_exp = ___ Ω·m del material ___ presenta un error de ___% respecto al valor teórico ___ Ω·m, lo cual indica...&#10;&#10;3. La variación de la longitud L afecta la resistencia de forma ___ (proporcional/inversamente proporcional) porque...&#10;&#10;4. La variación del radio r afecta la resistencia de forma ___ porque el área A = πr² cambia...&#10;&#10;5. En el Modo Reto, el material identificado fue ___ con ρ_calc = ___. La prueba fue ___ con un error de ___."></textarea>
+    </div>
+
+    <!-- 08. REFERENCIAS -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">08</span> Referencias</h2>
+      <span class="area-label">Referencias bibliográficas (mínimo 2)</span>
+      <textarea class="trabajo-area" style="min-height:100px;"
+        placeholder="[1] Serway, R. A. & Jewett, J. W. (2021). Physics for Scientists and Engineers. Cengage Learning.&#10;[2] Halliday, D., Resnick, R. & Krane, K. (2002). Física. Vol. 2. CECSA.&#10;[3] Simula3D — Simulador 3D Resistividad [Software]. (2025)."></textarea>
+    </div>
+
+    <!-- FIRMAS -->
+    <div class="seccion">
+      <div class="firma-grid">
+        <div class="firma-slot">Firma del estudiante</div>
+        <div class="firma-slot">Firma del docente / Vo.Bo.</div>
+      </div>
+    </div>
+
+  </div><!-- end .body -->
+</div><!-- end .documento -->
+
+<button class="btn-imprimir" onclick="window.print()">🖨️ Imprimir / PDF</button>
+
+<script>
+// ══════════════════════════════════════════════════════════════════════
+//  AUTO-CÁLCULO DE DIMENSIONES (Modo A)
+// ══════════════════════════════════════════════════════════════════════
+function calcModoA() {
+  const L = parseFloat(document.getElementById('mA_L').value) || 80;
+  const r = parseFloat(document.getElementById('mA_r').value) || 10;
+  const A = Math.PI * (r * 0.1) ** 2;
+  document.getElementById('mA_A').value = A.toExponential(4);
+  document.getElementById('mA_ratio').value = (L / A * 1e5).toExponential(4);
+
+  const Rsim = parseFloat(document.getElementById('mA_Rsim').value);
+  if (!isNaN(Rsim) && Rsim > 0) {
+    const rhoExp = Rsim * A / (L * 1e5);
+    document.getElementById('mA_rhoExp').value = rhoExp.toExponential(4);
+    const rhoReal = parseFloat(document.getElementById('mA_rhoReal').value);
+    if (!isNaN(rhoReal) && rhoReal > 0) {
+      const er = Math.abs(rhoExp - rhoReal) / rhoReal * 100;
+      document.getElementById('mA_ER').value = er.toFixed(2) + '%';
+    }
+  }
+}
+
+function calcModoReto() {
+  const L = parseFloat(document.getElementById('mR_L').value) || 80;
+  const r = parseFloat(document.getElementById('mR_r').value) || 10;
+  const Rsim = parseFloat(document.getElementById('mR_Rsim').value);
+  if (!isNaN(Rsim) && Rsim > 0) {
+    const A = Math.PI * (r * 0.1) ** 2;
+    const rhoCalc = Rsim * A / (L * 1e5);
+    document.getElementById('mR_rhoCalc').value = rhoCalc.toExponential(4);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  CONSTRUIR TABLAS
+// ══════════════════════════════════════════════════════════════════════
+function buildTablas() {
+  const bVI = document.getElementById('bodyVI');
+  for (let i = 1; i <= 14; i++) {
+    const tr = bVI.insertRow(-1);
+    tr.dataset.row = i;
+    tr.innerHTML = `
+      <td class="row-label">${i}</td>
+      <td class="input-cell"><input type="text" class="vi-vslider" placeholder="0.0" style="border-bottom:1.5px solid #1e8449;" oninput="actualizarFilaVI(${i})"></td>
+      <td class="input-cell"><input type="text" class="vi-i"       placeholder="0.000" oninput="actualizarFilaVI(${i})"></td>
+      <td class="input-cell"><input type="text" class="vi-vef"     placeholder="—" readonly style="color:var(--ink-muted);"></td>
+      <td class="input-cell"><input type="text" class="vi-r"       placeholder="—" readonly style="color:var(--accent);"></td>`;
+  }
+
+  const bR = document.getElementById('bodyReto');
+  for (let i = 1; i <= 14; i++) {
+    const tr = bR.insertRow(-1);
+    tr.dataset.row = i;
+    tr.innerHTML = `
+      <td class="row-label">${i}</td>
+      <td class="input-cell"><input type="text" class="reto-vslider" placeholder="0.0" style="border-bottom:1.5px solid #f0b27a;" oninput="actualizarFilaReto(${i})"></td>
+      <td class="input-cell"><input type="text" class="reto-i"       placeholder="0.000" oninput="actualizarFilaReto(${i})"></td>
+      <td class="input-cell"><input type="text" class="reto-vef"     placeholder="—" readonly style="color:var(--ink-muted);"></td>
+      <td class="input-cell"><input type="text" class="reto-r"       placeholder="—" readonly style="color:var(--purple);"></td>`;
+  }
+}
+
+function actualizarFilaVI(n) {
+  const rows = document.querySelectorAll('#bodyVI tr');
+  const tr = rows[n-1];
+  const vs = parseFloat(tr.querySelector('.vi-vslider').value);
+  const i  = parseFloat(tr.querySelector('.vi-i').value);
+  if (!isNaN(vs)) {
+    const vef = vs * 0.1;
+    tr.querySelector('.vi-vef').value = vef.toFixed(4);
+    if (!isNaN(i) && Math.abs(i) > 1e-6) {
+      tr.querySelector('.vi-r').value = (vef / i).toFixed(5);
+    } else { tr.querySelector('.vi-r').value = ''; }
+  } else {
+    tr.querySelector('.vi-vef').value = '';
+    tr.querySelector('.vi-r').value = '';
+  }
+  document.getElementById('mA_pts').value = getDatosVI().length;
+  dibujarGrafVI();
+}
+
+function actualizarFilaReto(n) {
+  const rows = document.querySelectorAll('#bodyReto tr');
+  const tr = rows[n-1];
+  const vs = parseFloat(tr.querySelector('.reto-vslider').value);
+  const i  = parseFloat(tr.querySelector('.reto-i').value);
+  if (!isNaN(vs)) {
+    const vef = vs * 0.1;
+    tr.querySelector('.reto-vef').value = vef.toFixed(4);
+    if (!isNaN(i) && Math.abs(i) > 1e-6) {
+      tr.querySelector('.reto-r').value = (vef / i).toFixed(5);
+    } else { tr.querySelector('.reto-r').value = ''; }
+  } else {
+    tr.querySelector('.reto-vef').value = '';
+    tr.querySelector('.reto-r').value = '';
+  }
+  dibujarGrafReto2();
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  DATA GETTERS
+// ══════════════════════════════════════════════════════════════════════
+function getDatosVI() {
+  const out = [];
+  document.querySelectorAll('#bodyVI tr').forEach(tr => {
+    const vef = parseFloat(tr.querySelector('.vi-vef').value);
+    const i   = parseFloat(tr.querySelector('.vi-i').value);
+    if (!isNaN(vef) && !isNaN(i) && Math.abs(i) > 1e-4 && Math.abs(vef) > 1e-4)
+      out.push({ x: i, y: vef });
+  });
+  return out;
+}
+
+function getDatosReto() {
+  const out = [];
+  document.querySelectorAll('#bodyReto tr').forEach(tr => {
+    const vef = parseFloat(tr.querySelector('.reto-vef').value);
+    const i   = parseFloat(tr.querySelector('.reto-i').value);
+    if (!isNaN(vef) && !isNaN(i) && Math.abs(i) > 1e-4 && Math.abs(vef) > 1e-4)
+      out.push({ x: i, y: vef });
+  });
+  return out;
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  REGRESIÓN LINEAL
+// ══════════════════════════════════════════════════════════════════════
+function linearReg(pts) {
+  const n = pts.length;
+  if (n < 2) return null;
+  let sx=0,sy=0,sxy=0,sx2=0;
+  pts.forEach(p=>{sx+=p.x;sy+=p.y;sxy+=p.x*p.y;sx2+=p.x*p.x;});
+  const m=(n*sxy-sx*sy)/(n*sx2-sx*sx);
+  const b=(sy-m*sx)/n;
+  const ybar=sy/n;
+  let ss_tot=0,ss_res=0;
+  pts.forEach(p=>{ss_tot+=(p.y-ybar)**2;ss_res+=(p.y-(m*p.x+b))**2;});
+  const r2=ss_tot===0?1:Math.max(0,1-ss_res/ss_tot);
+  return {m,b,r2};
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  MOTOR DE GRÁFICAS
+// ══════════════════════════════════════════════════════════════════════
+function dibujarGrafica(canvasId, datos, opts) {
+  const cv = document.getElementById(canvasId);
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  cv.width  = (cv.offsetWidth || 700) * window.devicePixelRatio;
+  const W = cv.width, H = cv.height * window.devicePixelRatio;
+  cv.height = H;
+  const PAD = { top:30, right:30, bottom:55, left:78 };
+  const pw = W-PAD.left-PAD.right, ph = H-PAD.top-PAD.bottom;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#fafafa'; ctx.fillRect(0,0,W,H);
+
+  if (!datos || datos.length < 2) {
+    ctx.fillStyle='#bbb'; ctx.font=`14px Source Serif 4, serif`;
+    ctx.textAlign='center';
+    ctx.fillText('Ingrese datos en la tabla para visualizar', W/2, H/2);
+    return;
+  }
+
+  const xVals=datos.map(d=>d.x), yVals=datos.map(d=>d.y);
+  let xMin=Math.min(...xVals), xMax=Math.max(...xVals);
+  let yMin=Math.min(...yVals), yMax=Math.max(...yVals);
+  const xPad=(xMax-xMin)*.12||.1, yPad=(yMax-yMin)*.15||.1;
+  xMin-=xPad; xMax+=xPad; yMin-=yPad; yMax+=yPad;
+
+  const cx=x=>PAD.left+(x-xMin)/(xMax-xMin)*pw;
+  const cy=y=>PAD.top+ph-(y-yMin)/(yMax-yMin)*ph;
+
+  // Grid
+  ctx.strokeStyle='#e8e4dc'; ctx.lineWidth=1;
+  for(let i=0;i<=5;i++){
+    const yy=PAD.top+i*ph/5; ctx.beginPath(); ctx.moveTo(PAD.left,yy); ctx.lineTo(PAD.left+pw,yy); ctx.stroke();
+    const xx=PAD.left+i*pw/5; ctx.beginPath(); ctx.moveTo(xx,PAD.top); ctx.lineTo(xx,PAD.top+ph); ctx.stroke();
+  }
+  // Axes
+  ctx.strokeStyle='#888'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(PAD.left,PAD.top); ctx.lineTo(PAD.left,PAD.top+ph); ctx.lineTo(PAD.left+pw,PAD.top+ph); ctx.stroke();
+  // Zero lines
+  if(yMin<0&&yMax>0){ctx.strokeStyle='#ccc';ctx.lineWidth=1;ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(PAD.left,cy(0));ctx.lineTo(PAD.left+pw,cy(0));ctx.stroke();ctx.setLineDash([]);}
+  if(xMin<0&&xMax>0){ctx.strokeStyle='#ccc';ctx.lineWidth=1;ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(cx(0),PAD.top);ctx.lineTo(cx(0),PAD.top+ph);ctx.stroke();ctx.setLineDash([]);}
+
+  // Labels
+  ctx.fillStyle='#3d3d5c'; ctx.font=`bold 11px JetBrains Mono, monospace`;
+  ctx.textAlign='center'; ctx.fillText(opts.xLabel||'x', PAD.left+pw/2, H-8);
+  ctx.save(); ctx.translate(14,PAD.top+ph/2); ctx.rotate(-Math.PI/2); ctx.fillText(opts.yLabel||'y',0,0); ctx.restore();
+
+  // Tick labels
+  ctx.font=`9px JetBrains Mono, monospace`; ctx.fillStyle='#777';
+  for(let i=0;i<=5;i++){
+    const v=yMin+i*(yMax-yMin)/5; ctx.textAlign='right'; ctx.fillText(v.toFixed(3),PAD.left-4,cy(v)+3);
+    const u=xMin+i*(xMax-xMin)/5; ctx.textAlign='center'; ctx.fillText(u.toFixed(3),cx(u),PAD.top+ph+14);
+  }
+
+  let slope=null,inter=null,r2=null;
+  if(opts.regression){
+    const reg=linearReg(datos);
+    if(reg){
+      slope=reg.m; inter=reg.b; r2=reg.r2;
+      ctx.strokeStyle='#c0392b'; ctx.lineWidth=2.5;
+      ctx.beginPath();
+      ctx.moveTo(cx(xMin),cy(reg.m*xMin+reg.b));
+      ctx.lineTo(cx(xMax),cy(reg.m*xMax+reg.b));
+      ctx.stroke();
+      if(opts.onRegression) opts.onRegression(reg.m,reg.b,reg.r2);
+    }
+  }
+
+  // Points
+  const COLORS=['#1a5276','#c0392b','#1e8449','#b8860b','#6c3483','#117a65','#7b241c','#145a32',
+                '#1a5276','#c0392b','#1e8449','#b8860b','#6c3483','#117a65'];
+  datos.forEach((p,i)=>{
+    ctx.fillStyle=COLORS[i%COLORS.length];
+    ctx.beginPath(); ctx.arc(cx(p.x),cy(p.y),4.5,0,Math.PI*2); ctx.fill();
+  });
+}
+
+// ── Graph VI ──────────────────────────────────────────────────────────
+let stVI = true;
+function dibujarGrafVI() {
+  const datos = getDatosVI();
+  dibujarGrafica('grafVI', datos, {
+    xLabel: 'I (A)', yLabel: 'V_ef (V)', regression: stVI,
+    onRegression: (m,b,r2) => {
+      document.getElementById('pendienteVI') && (document.getElementById('pendienteVI').textContent = `m = ${m.toFixed(5)}`);
+      document.getElementById('eqVI').textContent = `V_ef = ${m.toFixed(5)}·I + ${b.toFixed(5)}  |  R² = ${r2.toFixed(4)}`;
+      document.getElementById('mA_Rsim').value = m.toFixed(5);
+      document.getElementById('mA_R2').value   = r2.toFixed(4);
+      document.getElementById('mA_pts').value  = datos.length;
+      calcModoA();
+    }
+  });
+  document.getElementById('infoG1').textContent = datos.length + ' punto(s)';
+}
+
+// ── Graph Reto ────────────────────────────────────────────────────────
+let stReto2 = true;
+function dibujarGrafReto2() {
+  const datos = getDatosReto();
+  dibujarGrafica('grafReto2', datos, {
+    xLabel: 'I (A)', yLabel: 'V_ef (V)', regression: stReto2,
+    onRegression: (m,b,r2) => {
+      document.getElementById('eqReto2').textContent = `V_ef = ${m.toFixed(5)}·I + ${b.toFixed(5)}  |  R² = ${r2.toFixed(4)}`;
+      document.getElementById('mR_Rsim').value = m.toFixed(5);
+      calcModoReto();
+    }
+  });
+  document.getElementById('infoG2').textContent = getDatosReto().length + ' punto(s)';
+}
+
+// ── Toggles ───────────────────────────────────────────────────────────
+function toggleRegVI(){
+  stVI=!stVI;
+  document.getElementById('btnRegVI').classList.toggle('activo',stVI);
+  dibujarGrafVI();
+}
+function toggleRegReto2(){
+  stReto2=!stReto2;
+  document.getElementById('btnRegReto2').classList.toggle('activo',stReto2);
+  dibujarGrafReto2();
+}
+
+// ── Limpiar ────────────────────────────────────────────────────────────
+function limpiarVI(){
+  document.querySelectorAll('#bodyVI input').forEach(i=>i.value='');
+  dibujarGrafVI();
+}
+function limpiarReto(){
+  document.querySelectorAll('#bodyReto input').forEach(i=>i.value='');
+  dibujarGrafReto2();
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  IMÁGENES
+// ══════════════════════════════════════════════════════════════════════
+function prevImg(input, id) {
+  const f = input.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = e => { const img=document.getElementById(id); if(img){img.src=e.target.result;img.style.display='block';} };
+  r.readAsDataURL(f);
+}
+function prevCaptura(input, id) { prevImg(input, id); }
+
+// ══════════════════════════════════════════════════════════════════════
+//  INICIALIZACIÓN
+// ══════════════════════════════════════════════════════════════════════
+window.addEventListener('load', () => {
+  buildTablas();
+
+  // Blank graphs
+  ['grafVI','grafReto2'].forEach(id=>{
+    const cv=document.getElementById(id); if(!cv) return;
+    const ctx=cv.getContext('2d');
+    cv.width=(cv.offsetWidth||700)*window.devicePixelRatio;
+    ctx.fillStyle='#fafafa'; ctx.fillRect(0,0,cv.width,cv.height);
+    ctx.fillStyle='#bbb'; ctx.font='14px Source Serif 4, serif'; ctx.textAlign='center';
+    ctx.fillText('Ingrese datos en la tabla para visualizar', cv.width/2, cv.height/2);
+  });
+
+  const now = new Date();
+  const sem = now.getMonth()<6?'1':'2';
+  document.getElementById('codigoPractica').textContent =
+    `PRÁCTICA FIS-RESIST3D-01 · ${now.getFullYear()}-${sem}`;
+  document.querySelectorAll('input[type="date"]').forEach(i=>i.value=now.toISOString().split('T')[0]);
+  calcModoA();
+});
+
+window.addEventListener('resize', () => {
+  dibujarGrafVI();
+  dibujarGrafReto2();
+});
+</script>
+<script>
+/* ── Preparar impresión: volcar valores en divs visibles ── */
+(function () {
+  var snapshots = [];
+
+  function prepararImpresion() {
+    snapshots = [];
+    document.querySelectorAll(
+      'textarea, input[type="text"], input[type="date"]'
+    ).forEach(function (el) {
+      var div = document.createElement('div');
+      div.className = 'print-value';
+      div.textContent = el.value !== '' ? el.value : ' ';
+      /* Copiar estilos de tamaño/posición del campo original */
+      div.style.minHeight = (el.offsetHeight || 24) + 'px';
+      el.parentNode.insertBefore(div, el.nextSibling);
+      snapshots.push({ el: el, div: div });
+    });
+  }
+
+  function restaurar() {
+    snapshots.forEach(function (s) {
+      if (s.div.parentNode) s.div.parentNode.removeChild(s.div);
+    });
+    snapshots = [];
+  }
+
+  window.addEventListener('beforeprint', prepararImpresion);
+  window.addEventListener('afterprint',  restaurar);
+})();
+</script>
+</body>
+</html>

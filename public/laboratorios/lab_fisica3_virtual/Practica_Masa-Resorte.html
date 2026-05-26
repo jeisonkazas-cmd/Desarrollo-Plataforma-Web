@@ -1,0 +1,1427 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Práctica de Laboratorio — Movimiento Armónico Simple con Resorte</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>
+  MathJax = {
+    tex: { inlineMath: [['$','$'],['\\(','\\)']], displayMath: [['$$','$$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+  :root {
+    --ink:       #1a1a2e;
+    --ink-soft:  #3d3d5c;
+    --ink-muted: #7a7a9a;
+    --paper:     #faf8f3;
+    --paper-alt: #f2ede3;
+    --rule:      #d4c9b0;
+    --accent:    #1a5276;
+    --accent2:   #c0392b;
+    --gold:      #b8860b;
+    --green:     #1e8449;
+    --mono:      'JetBrains Mono', monospace;
+    --serif:     'Source Serif 4', Georgia, serif;
+    --display:   'Playfair Display', Georgia, serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: #dde3e8;
+    font-family: var(--serif);
+    color: var(--ink);
+    font-size: 17px;
+    line-height: 1.8;
+    min-height: 100vh;
+    padding: 30px 15px 80px;
+  }
+  .documento {
+    max-width: 860px;
+    margin: 0 auto;
+    background: var(--paper);
+    box-shadow: 0 2px 4px rgba(0,0,0,.08), 0 8px 32px rgba(0,0,0,.14), 0 20px 60px rgba(0,0,0,.08);
+    position: relative;
+    overflow-x: hidden;
+  }
+  .documento::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0; width: 5px;
+    background: linear-gradient(180deg, var(--accent) 0%, var(--accent2) 50%, var(--gold) 100%);
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--ink);
+    color: #fff;
+    padding: 36px 50px 30px 55px;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::after {
+    content: 'k';
+    font-family: var(--display);
+    font-size: 300px;
+    font-weight: 700;
+    font-style: italic;
+    color: rgba(255,255,255,.04);
+    position: absolute;
+    right: -10px; top: -60px;
+    line-height: 1;
+    pointer-events: none;
+    user-select: none;
+  }
+  .header-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    gap: 20px;
+  }
+  .badge-codigo {
+    font-family: var(--mono);
+    font-size: .72em;
+    background: var(--accent);
+    color: #fff;
+    padding: 3px 10px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+  .badge-tipo {
+    font-family: var(--mono);
+    font-size: .72em;
+    color: rgba(255,255,255,.5);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    border: 1px solid rgba(255,255,255,.15);
+    padding: 3px 10px;
+  }
+  .header h1 {
+    font-family: var(--display);
+    font-size: 2.1em;
+    font-weight: 700;
+    line-height: 1.2;
+    color: #fff;
+    margin-bottom: 6px;
+  }
+  .header h1 em {
+    font-style: italic;
+    color: rgba(255,255,255,.65);
+    font-size: .82em;
+  }
+  .header-sub {
+    font-size: .82em;
+    color: rgba(255,255,255,.45);
+    font-weight: 300;
+    letter-spacing: .04em;
+    margin-top: 4px;
+  }
+  .header-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 24px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,.12);
+  }
+  .field-item label {
+    display: block;
+    font-family: var(--mono);
+    font-size: .68em;
+    color: rgba(255,255,255,.4);
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    margin-bottom: 4px;
+  }
+  .field-item input[type="text"],
+  .field-item input[type="date"] {
+    width: 100%;
+    background: rgba(255,255,255,.07);
+    border: none;
+    border-bottom: 1px solid rgba(255,255,255,.25);
+    color: #fff;
+    font-family: var(--serif);
+    font-size: .9em;
+    padding: 4px 0;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .field-item input:focus { border-bottom-color: var(--accent2); }
+  .field-item input::placeholder { color: rgba(255,255,255,.2); }
+
+  /* ── BODY ── */
+  .body { padding: 44px 50px 50px 55px; }
+  .seccion { margin-bottom: 42px; }
+  .seccion-titulo {
+    font-family: var(--display);
+    font-size: 1.1em;
+    font-weight: 600;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--rule);
+  }
+  .seccion-titulo .num {
+    font-family: var(--mono);
+    font-size: .72em;
+    color: var(--accent);
+    background: #e8f0f7;
+    padding: 2px 7px;
+    letter-spacing: .05em;
+    min-width: 36px;
+    text-align: center;
+  }
+  .subseccion-titulo {
+    font-family: var(--display);
+    font-size: .98em;
+    font-weight: 600;
+    color: var(--accent);
+    margin: 22px 0 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .subseccion-titulo::before {
+    content: '';
+    width: 14px; height: 2px;
+    background: var(--accent);
+    display: inline-block;
+    flex-shrink: 0;
+  }
+  p { margin-bottom: 10px; color: var(--ink-soft); font-size: 1em; }
+  p:last-child { margin-bottom: 0; }
+
+  /* ── RESUMEN ── */
+  .resumen-box {
+    background: var(--paper-alt);
+    border-left: 3px solid var(--accent);
+    padding: 16px 20px;
+    font-size: .9em;
+    font-style: italic;
+    color: var(--ink-soft);
+    line-height: 1.7;
+  }
+
+  /* ── OBJETIVOS ── */
+  .objetivos-lista { list-style: none; padding: 0; }
+  .objetivos-lista li {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 8px 0;
+    border-bottom: 1px dashed var(--rule);
+    font-size: .93em;
+    color: var(--ink-soft);
+  }
+  .objetivos-lista li:last-child { border-bottom: none; }
+  .objetivos-lista li .obj-num {
+    font-family: var(--mono);
+    font-size: .75em;
+    color: #fff;
+    background: var(--accent);
+    min-width: 22px; height: 22px;
+    display: flex; align-items: center; justify-content: center;
+    margin-top: 2px; flex-shrink: 0;
+  }
+
+  /* ── FÓRMULAS ── */
+  .formula-box {
+    background: var(--ink);
+    color: #fff;
+    padding: 18px 24px;
+    margin: 18px 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .formula-box::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0; width: 3px;
+    background: var(--accent2);
+  }
+  .formula-box .formula-label {
+    font-family: var(--mono);
+    font-size: .65em;
+    color: rgba(255,255,255,.4);
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    margin-bottom: 10px;
+  }
+  .formula-main { font-size: 1.2em; text-align: center; padding: 6px 0; }
+  .formula-num {
+    font-family: var(--mono);
+    font-size: .65em;
+    color: rgba(255,255,255,.35);
+    text-align: right;
+    margin-top: 6px;
+  }
+
+  /* ── TABLA DATOS ── */
+  .tabla-resultados {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .92em;
+    margin: 14px 0;
+  }
+  .tabla-resultados th {
+    background: var(--ink);
+    color: #fff;
+    font-family: var(--mono);
+    font-size: .72em;
+    letter-spacing: .05em;
+    padding: 10px 8px;
+    text-align: center;
+    font-weight: 500;
+    border: 1px solid #444;
+  }
+  .tabla-resultados td {
+    padding: 8px 8px;
+    border: 1px solid var(--rule);
+    text-align: center;
+    color: var(--ink-soft);
+    vertical-align: middle;
+  }
+  .tabla-resultados td.input-cell { padding: 3px 4px; }
+  .tabla-resultados input[type="text"] {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid var(--rule);
+    background: transparent;
+    font-family: var(--mono);
+    font-size: .88em;
+    color: var(--ink);
+    padding: 4px 4px;
+    text-align: center;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .tabla-resultados input:focus { border-bottom-color: var(--accent); }
+  .tabla-resultados tr:nth-child(even) td { background: var(--paper-alt); }
+  .tabla-resultados .row-label {
+    font-family: var(--mono);
+    font-size: .82em;
+    font-weight: 500;
+    color: var(--accent);
+  }
+
+  /* ── PASOS ── */
+  .paso { display: flex; gap: 16px; margin-bottom: 20px; align-items: flex-start; }
+  .paso-num {
+    font-family: var(--mono); font-size: .8em;
+    background: var(--accent); color: #fff;
+    min-width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 2px;
+  }
+  .paso-content { flex: 1; }
+  .paso-content p { margin-bottom: 6px; }
+
+  /* ── ÁREA DE TRABAJO ── */
+  .trabajo-area {
+    width: 100%; min-height: 110px;
+    border: 1px solid var(--rule);
+    background: #fff;
+    font-family: var(--serif);
+    font-size: .9em; color: var(--ink);
+    padding: 14px 16px; resize: vertical; outline: none;
+    line-height: 1.8; transition: border-color .2s; display: block;
+  }
+  .trabajo-area:focus { border-color: var(--accent); }
+  .trabajo-area::placeholder { color: #bbb; font-style: italic; }
+  .area-label {
+    font-family: var(--mono); font-size: .72em;
+    color: var(--ink-muted); text-transform: uppercase;
+    letter-spacing: .08em; margin-bottom: 5px; margin-top: 14px; display: block;
+    line-height: 1.5;
+  }
+
+  /* ── NOTA ── */
+  .nota {
+    background: #fef9e7;
+    border-left: 3px solid var(--gold);
+    padding: 10px 16px;
+    font-size: .85em; color: #7d6608;
+    margin: 14px 0; font-style: italic;
+  }
+  .nota strong { font-style: normal; color: var(--gold); }
+
+  /* ── CAJAS DE RESULTADO ── */
+  .result-box {
+    background: var(--paper-alt);
+    border: 1px solid var(--rule);
+    padding: 16px 20px; margin: 14px 0;
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  .result-box.col2 { grid-template-columns: 1fr 1fr; }
+  .result-box.col4 { grid-template-columns: 1fr 1fr; } /* 2 columnas en vez de 4 para evitar aplastamiento */
+  .result-box.col5 { grid-template-columns: 1fr 1fr 1fr; }
+  @media(max-width:680px) {
+    .result-box, .result-box.col2, .result-box.col4, .result-box.col5 { grid-template-columns: 1fr; }
+  }
+  .res-campo label {
+    font-family: var(--mono); font-size: .72em;
+    color: var(--ink-muted); text-transform: uppercase;
+    letter-spacing: .08em; display: block; margin-bottom: 6px;
+    line-height: 1.4;
+  }
+  .res-campo input[type="text"] {
+    width: 100%; border: none;
+    border-bottom: 2px solid var(--rule);
+    background: transparent; font-family: var(--mono);
+    font-size: .95em; color: var(--ink); padding: 5px 0;
+    outline: none; transition: border-color .2s; text-align: center;
+  }
+  .res-campo input:focus { border-bottom-color: var(--accent); }
+
+  /* ── RANGOS ── */
+  .rango-tabla {
+    width: 100%; border-collapse: collapse;
+    font-size: .88em; margin: 12px 0;
+  }
+  .rango-tabla th {
+    background: var(--ink); color: #fff;
+    font-family: var(--mono); font-size: .72em;
+    padding: 9px 12px; letter-spacing: .06em; text-align: center;
+  }
+  .rango-tabla td {
+    padding: 8px 12px; border: 1px solid var(--rule);
+    text-align: center; font-size: .9em;
+  }
+  .rango-tabla .bueno { color: var(--green); font-weight: 600; }
+  .rango-tabla .medio { color: var(--gold); font-weight: 600; }
+  .rango-tabla .malo  { color: var(--accent2); font-weight: 600; }
+
+  /* ── GRÁFICA ── */
+  .grafica-box { border: 1px solid var(--rule); background: #fff; margin: 14px 0; overflow: hidden; }
+  .grafica-header {
+    background: var(--ink); color: #fff;
+    padding: 10px 16px; font-family: var(--mono); font-size: .75em;
+    letter-spacing: .08em; text-transform: uppercase;
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 6px;
+  }
+  .grafica-canvas { display: block; width: 100%; background: #fafafa; }
+  .grafica-controles {
+    padding: 10px 16px; border-top: 1px solid var(--rule);
+    display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+  }
+  .btn-ctrl {
+    font-family: var(--mono); font-size: .72em; padding: 6px 13px;
+    border: 1px solid var(--rule); background: var(--paper-alt);
+    color: var(--ink-soft); cursor: pointer; transition: all .2s; letter-spacing: .04em;
+    white-space: nowrap;
+  }
+  .btn-ctrl:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-ctrl.activo { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .grafica-info { font-family: var(--mono); font-size: .72em; color: var(--ink-muted); flex: 1; text-align: right; min-width: 80px; }
+
+  /* ── DIVIDER ── */
+  .divider {
+    display: flex; align-items: center; gap: 12px;
+    margin: 28px 0 18px;
+    font-family: var(--mono); font-size: .68em;
+    color: var(--ink-muted); text-transform: uppercase; letter-spacing: .1em;
+  }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--rule); }
+
+  /* ── ADJUNTO ── */
+  .adjunto-slot {
+    border: 2px dashed var(--rule);
+    padding: 24px; text-align: center;
+    cursor: pointer; position: relative;
+    transition: border-color .2s; margin-top: 8px;
+  }
+  .adjunto-slot:hover { border-color: var(--accent); }
+  .adjunto-slot input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%;
+  }
+  .slot-icon { display: block; font-size: 1.8em; margin-bottom: 6px; }
+  .slot-label { display: block; font-family: var(--mono); font-size: .75em; color: var(--ink-soft); }
+  .slot-hint  { display: block; font-size: .72em; color: var(--ink-muted); margin-top: 4px; }
+  .preview-img { display: none; max-width: 100%; margin-top: 14px; border: 1px solid var(--rule); }
+
+  /* ── RETO ── */
+  .reto-header {
+    background: var(--ink); color: #fff;
+    padding: 16px 20px; display: flex; gap: 16px; align-items: flex-start;
+    margin-bottom: 0;
+  }
+  .reto-header h4 { font-family: var(--display); font-size: 1em; margin-bottom: 4px; }
+  .reto-header p  { font-size: .82em; color: rgba(255,255,255,.55); margin: 0; }
+  .reto-badge {
+    font-family: var(--mono); font-size: .65em;
+    background: var(--accent2); color: #fff;
+    padding: 3px 8px; letter-spacing: .1em; white-space: nowrap; margin-top: 3px;
+  }
+  .reto-body { border: 1px solid var(--rule); padding: 20px; border-top: none; }
+
+  /* ── EJEMPLO ── */
+  .ejemplo-box {
+    background: #f0f7f0; border-left: 3px solid var(--green);
+    padding: 14px 18px; margin: 14px 0; font-size: .9em;
+  }
+  .ejemplo-box .ej-label {
+    font-family: var(--mono); font-size: .65em; color: var(--green);
+    text-transform: uppercase; letter-spacing: .12em;
+    margin-bottom: 8px; display: block; font-weight: 500;
+  }
+
+  /* ── FIRMA ── */
+  .firma-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 30px; }
+  .firma-slot {
+    text-align: center; padding-top: 50px;
+    border-top: 1px solid var(--rule);
+    font-family: var(--mono); font-size: .68em;
+    color: var(--ink-muted); text-transform: uppercase; letter-spacing: .08em;
+  }
+
+  /* ── BTN IMPRIMIR ── */
+  .btn-imprimir {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--accent); color: #fff; border: none;
+    padding: 12px 22px; font-family: var(--mono);
+    font-size: .75em; letter-spacing: .1em; text-transform: uppercase;
+    cursor: pointer; box-shadow: 0 4px 16px rgba(26,82,118,.35);
+    transition: transform .15s, box-shadow .15s; z-index: 100;
+  }
+  .btn-imprimir:hover { transform: translateY(-2px); box-shadow: 0 6px 22px rgba(26,82,118,.45); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 680px) {
+    body { padding: 10px 0 40px; }
+    .documento { border-radius: 0; }
+    .header { padding: 22px 18px 20px 22px; }
+    .header::after { font-size: 160px; }
+    .header h1 { font-size: 1.4em !important; }
+    .header-meta { flex-direction: column; gap: 8px; }
+    .header-fields { grid-template-columns: 1fr !important; gap: 10px 0; }
+    .body { padding: 22px 16px 28px 20px; }
+    .tabla-resultados, .rango-tabla { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .result-box, .result-box.col2, .result-box.col4, .result-box.col5 { grid-template-columns: 1fr 1fr !important; }
+    .firma-grid { grid-template-columns: 1fr !important; gap: 20px; }
+    .paso { gap: 10px; }
+    .reto-header { padding: 12px 14px; gap: 10px; }
+    .reto-header h4 { font-size: 0.9em; }
+    .reto-body { padding: 14px; }
+    .grafica-controles { gap: 6px; flex-wrap: wrap; }
+    .btn-ctrl { font-size: .65em; padding: 4px 8px; }
+    .seccion-titulo { font-size: 1em; gap: 8px; }
+    .adjunto-slot { padding: 16px 10px; }
+    .trabajo-area { min-height: 80px; }
+  }
+  @media (max-width: 420px) {
+    .header { padding: 18px 14px 16px 18px; }
+    .body { padding: 16px 12px 20px 14px; }
+    .result-box, .result-box.col2, .result-box.col4, .result-box.col5 { grid-template-columns: 1fr !important; }
+    .header h1 { font-size: 1.2em !important; }
+    .formula-main { font-size: 1em !important; }
+  }
+  @media print {
+    body { background: #fff; padding: 0; }
+    .documento { box-shadow: none; }
+    .btn-imprimir, .grafica-controles, .adjunto-slot input[type="file"] { display: none; }
+    .grafica-canvas { border: 1px solid var(--rule); }
+  }
+</style>
+</head>
+<body>
+
+<div class="documento">
+
+  <!-- ══ ENCABEZADO ══ -->
+  <div class="header">
+    <div class="header-meta">
+      <span class="badge-codigo" id="codigoPractica">PRÁCTICA FIS-RES-03</span>
+      <span class="badge-tipo">Laboratorio de Física · Simulador Digital</span>
+    </div>
+    <h1>Resorte y Masa<br><em>y determinación experimental de la constante elástica k</em></h1>
+    <div class="header-sub">Simulador 3D · Ley de Hooke · Cronómetro digital · Análisis gráfico T² vs m</div>
+    <div class="header-fields">
+      <div class="field-item">
+        <label>Nombre del estudiante</label>
+        <input type="text" placeholder="Escriba su nombre completo">
+      </div>
+      <div class="field-item">
+        <label>Código estudiantil</label>
+        <input type="text" placeholder="Código">
+      </div>
+      <div class="field-item">
+        <label>Grupo / Sección</label>
+        <input type="text" placeholder="Ej. Grupo A — Lunes 10 am">
+      </div>
+      <div class="field-item">
+        <label>Planeta asignado</label>
+        <input type="text" placeholder="Nombre del planeta en el simulador">
+      </div>
+      <div class="field-item">
+        <label>Fecha de realización</label>
+        <input type="date">
+      </div>
+      <div class="field-item">
+        <label>Docente</label>
+        <input type="text" placeholder="Nombre del profesor/a">
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ CUERPO ══ -->
+  <div class="body">
+
+    <!-- 00. RESUMEN -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">00</span> Resumen</h2>
+      <div class="resumen-box">
+        En esta práctica se utiliza un simulador digital de oscilador masa–resorte para determinar
+        experimentalmente la constante elástica $k$ del resorte asignado. El simulador genera un
+        planeta aleatorio con gravedad $g$ conocida y una constante $k$ oculta. El estudiante
+        mide el período de oscilación $T$ para distintas masas nominales, construye la gráfica
+        $T^2$ vs. $m$ y extrae la pendiente $4\pi^2/k$ para calcular $k$ experimental. En el
+        <em>Modo Reto</em>, la masa del bloque es desconocida y debe inferirse a partir del período
+        medido usando la fórmula inversa de la ley del resorte.
+      </div>
+      <p style="margin-top:10px;"><strong>Palabras clave:</strong>
+        oscilador armónico · resorte · constante elástica · período · masa · Ley de Hooke ·
+        regresión lineal · incertidumbre · análisis gráfico · Modo Reto
+      </p>
+    </div>
+
+    <!-- 01. OBJETIVOS -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">01</span> Objetivos</h2>
+      <ul class="objetivos-lista">
+        <li><span class="obj-num">1</span>Medir el período de oscilación del sistema masa–resorte para distintas masas usando el cronómetro del simulador.</li>
+        <li><span class="obj-num">2</span>Aplicar la relación $T = 2\pi\sqrt{m/k}$ para calcular la constante elástica $k$ a partir de cada medición.</li>
+        <li><span class="obj-num">3</span>Construir la gráfica $T^2$ vs. $m$ e identificar la pendiente como $4\pi^2/k$ para determinar $k$ experimentalmente.</li>
+        <li><span class="obj-num">4</span>Evaluar la calidad del resultado mediante la incertidumbre relativa (IR) y el error relativo porcentual (ER) comparando con el valor real de $k$.</li>
+        <li><span class="obj-num">5</span>En el Modo Reto: inferir la masa oculta del bloque aplicando la fórmula inversa del período del oscilador.</li>
+      </ul>
+    </div>
+
+    <!-- 02. MARCO TEÓRICO -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">02</span> Marco Teórico</h2>
+
+      <div class="subseccion-titulo">2.1 · El oscilador armónico masa–resorte</div>
+      <p>
+        Un bloque de masa $m$ suspendido de un resorte de constante elástica $k$ en un campo
+        gravitacional de aceleración $g$ oscila verticalmente en torno a su posición de equilibrio.
+        Por la segunda ley de Newton, la ecuación de movimiento es:
+      </p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 1 — Ecuación de movimiento del oscilador</div>
+        <div class="formula-main">$$m\ddot{x} = -k\,x$$</div>
+        <div class="formula-num">(1)</div>
+      </div>
+      <p>
+        La solución es un movimiento armónico $x(t) = A\cos(\omega t + \phi)$ con frecuencia
+        angular $\omega = \sqrt{k/m}$, independiente de $g$ y de la amplitud $A$.
+      </p>
+
+      <div class="subseccion-titulo">2.2 · Período y su relación con m y k</div>
+      <p>
+        El período (tiempo de una oscilación completa) resulta:
+      </p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 2 — Período del oscilador masa–resorte</div>
+        <div class="formula-main">$$T = 2\pi\sqrt{\frac{m}{k}} \qquad\Longrightarrow\qquad T^2 = \frac{4\pi^2}{k}\,m$$</div>
+        <div class="formula-num">(2)</div>
+      </div>
+      <p>
+        La relación $T^2$ vs. $m$ es <strong>lineal y pasa por el origen</strong>, con pendiente
+        $m_{\text{pend}} = 4\pi^2/k$.
+      </p>
+
+      <div class="subseccion-titulo">2.3 · Determinación de k</div>
+      <p>
+        Despejando de la pendiente de la gráfica:
+      </p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 3 — Constante elástica a partir de la pendiente</div>
+        <div class="formula-main">$$k = \frac{4\pi^2}{m_{\text{pend}}}$$</div>
+        <div class="formula-num">(3)</div>
+      </div>
+      <p>
+        También puede calcularse $k$ fila a fila a partir de cada par $(m_i,\; T_i)$:
+      </p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 4 — k experimental por fila</div>
+        <div class="formula-main">$$k_i = \frac{4\pi^2\,m_i}{T_i^2}$$</div>
+        <div class="formula-num">(4)</div>
+      </div>
+
+      <div class="ejemplo-box">
+        <span class="ej-label">Nota importante — independencia de g</span>
+        <p>
+          A diferencia del péndulo, el período del resorte <strong>no depende de $g$</strong>.
+          El valor de la gravedad del planeta asignado no interviene en el cálculo de $k$.
+          Esto es una consecuencia directa de que tanto la fuerza restauradora como la inercia
+          del bloque son proporcionales a la masa.
+        </p>
+      </div>
+
+      <div class="subseccion-titulo">2.4 · Masa oculta en el Modo Reto</div>
+      <p>
+        Cuando la masa $m$ del bloque es desconocida, se despeja de la Ec. (2) usando el $k$ real
+        del simulador (revelado al final) y el período promedio medido $\bar{T}$:
+      </p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 5 — Masa del bloque a partir del período (Modo Reto)</div>
+        <div class="formula-main">$$m^{\star} = \frac{k\,\bar{T}^2}{4\pi^2}$$</div>
+        <div class="formula-num">(5)</div>
+      </div>
+      <div class="nota">
+        <strong>Nota:</strong> en el Modo Reto el simulador proporciona el valor de $k$ del resorte.
+        Utilice $m^{\star}$ como resultado final y compárelo con la masa real revelada al verificar.
+      </div>
+
+      <div class="subseccion-titulo">2.5 · Incertidumbre estadística de k̄</div>
+      <p>
+        Cuando se calculan $n$ valores de $k_i$ a partir de distintas masas y períodos, la
+        dispersión entre ellos refleja la <strong>incertidumbre experimental</strong> del método.
+        Se utiliza la <em>desviación estándar del valor medio</em> (también llamada error estándar)
+        como medida de esa incertidumbre:
+      </p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 6 — Promedio y desviación estándar del valor medio</div>
+        <div class="formula-main">$$\bar{k} = \frac{1}{n}\sum_{i=1}^{n} k_i \qquad \Delta k = \frac{s}{\sqrt{n}} = \sqrt{\frac{\displaystyle\sum_{i=1}^{n}(k_i - \bar{k})^2}{n\,(n-1)}}$$</div>
+        <div class="formula-num">(6)</div>
+      </div>
+      <p>
+        El resultado se reporta como $k = \bar{k} \pm \Delta k$ (N/m), donde $\Delta k$ expresa
+        cuánto podría variar $\bar{k}$ si se repitiera el experimento en las mismas condiciones.
+      </p>
+
+      <div class="subseccion-titulo">2.6 · Propagación de incertidumbre en k<sub>i</sub></div>
+      <p>
+        Cada $k_i = 4\pi^2 m_i / T_i^2$ depende de dos magnitudes medidas: la masa $m_i$ y
+        el período $T_i$. Si cada una tiene una incertidumbre instrumental $\delta m$ y $\delta T$
+        respectivamente, la incertidumbre propagada de $k_i$ se obtiene por diferenciación parcial:
+      </p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 7 — Incertidumbre propagada de k<sub>i</sub> (cuadrática)</div>
+        <div class="formula-main">$$\frac{\delta k_i}{k_i} = \sqrt{\left(\frac{\delta m}{m_i}\right)^2 + \left(\frac{2\,\delta T}{T_i}\right)^2}$$</div>
+        <div class="formula-num">(7)</div>
+      </div>
+      <p>
+        Nótese que el período aparece al cuadrado en la fórmula de $k_i$, por lo que su incertidumbre
+        relativa se <strong>multiplica por 2</strong> — el período es la fuente de error más
+        sensible en este experimento.
+      </p>
+      <div class="nota">
+        <strong>Incertidumbre del período:</strong> si se miden $n$ oscilaciones con una
+        resolución de cronómetro de $\delta t = 0{,}001$ s, la incertidumbre del período es
+        $\delta T = \delta t / n$. Medir más oscilaciones reduce directamente $\delta T$.
+      </div>
+
+      <div class="subseccion-titulo">2.7 · Incertidumbre Relativa y Error Relativo</div>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 8 — IR y ER</div>
+        <div class="formula-main">$$\text{IR} = \frac{\Delta k}{\bar{k}} \times 100\% \qquad \text{ER} = \frac{|\bar{k} - k_{\text{real}}|}{k_{\text{real}}} \times 100\%$$</div>
+        <div class="formula-num">(8)</div>
+      </div>
+      <table class="rango-tabla">
+        <thead><tr><th>Indicador</th><th>Rango</th><th>Interpretación</th></tr></thead>
+        <tbody>
+          <tr><td rowspan="3" style="font-family:var(--mono);font-size:.85em;">IR</td>
+            <td class="bueno">IR &lt; 1 %</td><td>Resultado muy preciso</td></tr>
+          <tr><td class="medio">1 % &lt; IR &lt; 10 %</td><td>Resultado preciso</td></tr>
+          <tr><td class="malo">IR &gt; 10 %</td><td>Resultado poco preciso</td></tr>
+          <tr><td rowspan="3" style="font-family:var(--mono);font-size:.85em;">ER</td>
+            <td class="bueno">ER &lt; 1 %</td><td>Resultado muy exacto</td></tr>
+          <tr><td class="medio">1 % &lt; ER &lt; 10 %</td><td>Resultado exacto</td></tr>
+          <tr><td class="malo">ER &gt; 10 %</td><td>Resultado poco exacto</td></tr>
+        </tbody>
+      </table>
+
+      <div class="subseccion-titulo">2.8 · Ejemplo numérico completo</div>
+      <p>
+        El siguiente ejemplo muestra el procedimiento completo con datos ficticios para un resorte
+        con $k_{\text{real}} = 25$ N/m en el planeta Tierra ($g = 9{,}81$ m/s²).
+      </p>
+
+      <div class="ejemplo-box">
+        <span class="ej-label">Paso 1 — Datos medidos (n = 5 masas, 10 oscilaciones cada una)</span>
+        <div style="overflow-x:auto; margin-top:8px;">
+          <table style="width:100%; border-collapse:collapse; font-size:0.88em; font-family:'JetBrains Mono',monospace;">
+            <thead>
+              <tr style="background:#1e8449; color:#fff;">
+                <th style="padding:6px 8px; border:1px solid #ccc;">#</th>
+                <th style="padding:6px 8px; border:1px solid #ccc;">m (kg)</th>
+                <th style="padding:6px 8px; border:1px solid #ccc;">Δt (s)</th>
+                <th style="padding:6px 8px; border:1px solid #ccc;">T = Δt/10 (s)</th>
+                <th style="padding:6px 8px; border:1px solid #ccc;">T² (s²)</th>
+                <th style="padding:6px 8px; border:1px solid #ccc;">k<sub>i</sub> = 4π²m/T² (N/m)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background:#f0f7f0;">
+                <td style="padding:5px 8px; border:1px solid #ccc; text-align:center;">1</td>
+                <td style="padding:5px 8px; border:1px solid #ccc; text-align:center;">0,300</td>
+                <td style="padding:5px 8px; border:1px solid #ccc; text-align:center;">6,877</td>
+                <td style="padding:5px 8px; border:1px solid #ccc; text-align:center;">0,6877</td>
+                <td style="padding:5px 8px; border:1px solid #ccc; text-align:center;">0,4729</td>
+                <td style="padding:5px 8px; border:1px solid #ccc; text-align:center;">25,03</td>
+              </tr>
+              <tr>
+                <td style="padding:5px 8px; border:1px solid #ccc; text-align:center;">2</td>
+                <td style="padding:5px 8px; border:1px solid #ccc; text-align:center;">0,600</td>
+                <td style="padding:5px 8px; border:1px solid #ccc; text-align:center;">9,726</td>
+                <td style="padding:5px 8px; border:1px solid #ccc; text-align:center;">0,9726</td>
+                <td style="padding:5px 8px; border:1px solid #ccc; text-align:center;">0,9460</td>
+                <td style="padding:5px 8px; border:1px solid #ccc; text-align:center;">25,06</td>
+              </tr>
+              <tr style="background:#f0f7f0;">
+                <td style="padding:5px 8px; border:1px solid #ccc; text-align:center;">3</td>
+                <td style="padding:5px 8px; border:1px solid #ccc; text-align:center;">0,900</td>
+                <td style="padding:5px 8px; border:1px solid #ccc; text-align:center;">11,907</td>
+                <td style="padding:5px 8px; border:1px solid #ccc; text-align:center;">1,1907</td>
+                <td style="padding:5px 8px; border:1px solid #ccc; text-align:center;">1,4178</td>
+                <td style="padding:5px 8px; border:1px solid #ccc; text-align:center;">25,08</td>
+              </tr>
+              <tr>
+                <td style="padding:5px 8px; border:1px solid #ccc; text-align:center;">4</td>
+                <td style="padding:5px 8px; border:1px solid #ccc; text-align:center;">1,200</td>
+                <td style="padding:5px 8px; border:1px solid #ccc; text-align:center;">13,762</td>
+                <td style="padding:5px 8px; border:1px solid #ccc; text-align:center;">1,3762</td>
+                <td style="padding:5px 8px; border:1px solid #ccc; text-align:center;">1,8939</td>
+                <td style="padding:5px 8px; border:1px solid #ccc; text-align:center;">25,02</td>
+              </tr>
+              <tr style="background:#f0f7f0;">
+                <td style="padding:5px 8px; border:1px solid #ccc; text-align:center;">5</td>
+                <td style="padding:5px 8px; border:1px solid #ccc; text-align:center;">1,500</td>
+                <td style="padding:5px 8px; border:1px solid #ccc; text-align:center;">15,389</td>
+                <td style="padding:5px 8px; border:1px solid #ccc; text-align:center;">1,5389</td>
+                <td style="padding:5px 8px; border:1px solid #ccc; text-align:center;">2,3682</td>
+                <td style="padding:5px 8px; border:1px solid #ccc; text-align:center;">24,98</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="ejemplo-box">
+        <span class="ej-label">Paso 2 — Promedio y desviación estándar del valor medio</span>
+        <p>$$\bar{k} = \frac{25{,}03 + 25{,}06 + 25{,}08 + 25{,}02 + 24{,}98}{5} = \frac{125{,}17}{5} = 25{,}034 \text{ N/m}$$</p>
+        <p style="margin-top:8px;">Calculamos las desviaciones $(k_i - \bar{k})$: $-0{,}004$; $+0{,}026$; $+0{,}046$; $-0{,}014$; $-0{,}054$</p>
+        <p style="margin-top:6px;">$$s = \sqrt{\frac{(-0{,}004)^2 + (0{,}026)^2 + (0{,}046)^2 + (-0{,}014)^2 + (-0{,}054)^2}{5-1}} = \sqrt{\frac{0{,}005064}{4}} = 0{,}0356 \text{ N/m}$$</p>
+        <p style="margin-top:6px;">$$\Delta k = \frac{s}{\sqrt{n}} = \frac{0{,}0356}{\sqrt{5}} = \frac{0{,}0356}{2{,}236} = 0{,}016 \text{ N/m}$$</p>
+        <p style="margin-top:6px; font-weight:600; color:var(--accent);">Resultado: $k = 25{,}034 \pm 0{,}016$ N/m</p>
+      </div>
+
+      <div class="ejemplo-box">
+        <span class="ej-label">Paso 3 — Propagación para k₁ (verificación)</span>
+        <p>Con $m_1 = 0{,}300$ kg, $T_1 = 0{,}6877$ s, $\delta m = 0{,}001$ kg, $\delta T = 0{,}001/10 = 0{,}0001$ s:</p>
+        <p style="margin-top:6px;">$$\frac{\delta k_1}{k_1} = \sqrt{\left(\frac{0{,}001}{0{,}300}\right)^2 + \left(\frac{2 \times 0{,}0001}{0{,}6877}\right)^2} = \sqrt{(0{,}00333)^2 + (0{,}000291)^2} \approx 0{,}334\%$$</p>
+        <p style="margin-top:6px;">$$\delta k_1 = 0{,}00334 \times 25{,}03 = 0{,}084 \text{ N/m}$$</p>
+        <p style="margin-top:6px; color:var(--ink-muted); font-size:0.9em;">La masa domina la incertidumbre propagada; el período es 10 veces menos influyente gracias a medir 10 oscilaciones.</p>
+      </div>
+
+      <div class="ejemplo-box">
+        <span class="ej-label">Paso 4 — IR y ER</span>
+        <p>$$\text{IR} = \frac{0{,}016}{25{,}034} \times 100\% = 0{,}064\% \quad \Rightarrow \quad \textbf{Muy preciso}$$</p>
+        <p style="margin-top:6px;">$$\text{ER} = \frac{|25{,}034 - 25{,}000|}{25{,}000} \times 100\% = \frac{0{,}034}{25} \times 100\% = 0{,}136\% \quad \Rightarrow \quad \textbf{Muy exacto}$$</p>
+      </div>
+    </div>
+
+    <!-- 03. PROCEDIMIENTO -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">03</span> Procedimiento Experimental</h2>
+      <p>Abra el simulador en el navegador. Al cargar se asigna automáticamente un <strong>planeta</strong> con gravedad conocida y un resorte con constante $k$ <strong>desconocida</strong>. Anote el nombre del planeta en el encabezado.</p>
+
+      <div class="paso">
+        <div class="paso-num">1</div>
+        <div class="paso-content">
+          <p><strong>Seleccione la masa nominal</strong> con el deslizador. Elija un valor entre 0,10 kg y 2,00 kg. El bloque cambia de tamaño visualmente según la masa.</p>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">2</div>
+        <div class="paso-content">
+          <p><strong>Inicie el cronómetro.</strong> Presione <em>▶️ Iniciar Cronómetro</em>. El bloque comenzará a oscilar con amplitud fija. El cronómetro corre en tiempo real.</p>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">3</div>
+        <div class="paso-content">
+          <p><strong>Mida $n$ oscilaciones completas.</strong> Cuente al menos <strong>$n \geq 10$ oscilaciones</strong> completas observando el bloque. Cuando complete exactamente $n$ ciclos, presione <em>⏹️ Detener y Registrar</em>. Divida el tiempo registrado entre $n$ para obtener el período $T$.</p>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">4</div>
+        <div class="paso-content">
+          <p><strong>Repita para al menos 7 masas diferentes</strong> entre 0,10 kg y 2,00 kg. Distribuya los valores uniformemente para obtener una buena regresión. Transcriba los datos a la Tabla 1.</p>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">5</div>
+        <div class="paso-content">
+          <p><strong>Exporte los datos</strong> con el botón <em>📊 Exportar CSV</em> y adjunte el archivo a su informe digital. Recuerde que el CSV incluye $k_{\text{real}}$: <strong>no lo consulte</strong> hasta haber terminado el análisis.</p>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">6</div>
+        <div class="paso-content">
+          <p><strong>Análisis gráfico:</strong> con los datos de la Tabla 1, ingrese los pares $(m,\; T^2)$ en la Sección 5. La herramienta traza la regresión al origen y calcula $k$ con la Ec. (3).</p>
+        </div>
+      </div>
+      <div class="nota">
+        <strong>Consejo:</strong> para reducir el error de reacción humana, mida siempre el tiempo de $n \geq 10$ oscilaciones completas y calcule $T = \Delta t / n$. Un error de 0,1 s al detener afecta mucho menos a $T$ si $n$ es grande.
+      </div>
+    </div>
+
+    <!-- 04. REGISTRO MODO ABIERTO -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">04</span> Registro de Datos — Modo Abierto</h2>
+      <p>
+        Complete la Tabla 1 copiando los valores del simulador. Calcule $T = \Delta t/n$, $T^2$
+        y $k_i$ para cada fila. Use el promedio de los $k_i$ para la evaluación estadística.
+      </p>
+      <p style="margin:8px 0 4px; font-size:.85em; color:var(--ink-muted); font-style:italic;">
+        Tabla 1. Masa, tiempo, período y constante elástica para distintas masas del oscilador.
+      </p>
+
+      <div style="overflow-x:auto; -webkit-overflow-scrolling:touch;">
+        <table class="tabla-resultados" style="min-width:620px;">
+          <thead>
+            <tr>
+              <th rowspan="2">#</th>
+              <th rowspan="2">m nominal (kg)</th>
+              <th rowspan="2">m medida (kg)</th>
+              <th rowspan="2">n osc.</th>
+              <th rowspan="2">Δt (s)</th>
+              <th rowspan="2">T = Δt/n (s)</th>
+              <th rowspan="2">T² (s²)</th>
+              <th rowspan="2">k<sub>i</sub> (N/m)</th>
+            </tr>
+            <tr></tr>
+          </thead>
+          <tbody id="bodyAbierto"></tbody>
+        </table>
+      </div>
+
+      <div class="divider"><span>resumen estadístico</span></div>
+      <p style="margin-bottom:10px;">
+        Con los valores de $k_i$ de la columna anterior, calcule el promedio $\bar{k}$
+        y la desviación estándar del valor medio:
+      </p>
+      <div class="result-box">
+        <div class="res-campo">
+          <label>k̄ promedio (N/m)</label>
+          <input type="text" id="kProm" placeholder="0.000">
+        </div>
+        <div class="res-campo">
+          <label>Δk (desv. est. del medio)</label>
+          <input type="text" id="kInc" placeholder="± 0.000">
+        </div>
+        <div class="res-campo">
+          <label>Resultado: k̄ ± Δk</label>
+          <input type="text" id="kRes" placeholder="0.000 ± 0.000">
+        </div>
+      </div>
+      <div class="result-box col2" style="margin-top:4px;">
+        <div class="res-campo">
+          <label>IR = (Δk / k̄) × 100%</label>
+          <input type="text" id="kIR" placeholder="0.00 %">
+        </div>
+        <div class="res-campo">
+          <label>ER = |k̄ − k_real| / k_real × 100%</label>
+          <input type="text" id="kER" placeholder="0.00 %">
+        </div>
+      </div>
+      <div class="nota">
+        <strong>Recuerde:</strong> el valor de $k_{\text{real}}$ está en el panel del simulador y en el CSV exportado.
+        Úselo solo para calcular el ER al final, no durante el experimento.
+      </div>
+
+      <span class="area-label">Cálculo del promedio, desviación estándar del medio, IR y ER (muestre operaciones — siga el modelo del ejemplo en la Sec. 2.8)</span>
+      <textarea class="trabajo-area" rows="7" placeholder="k̄ = (k₁ + k₂ + … + kₙ) / n = ___&#10;&#10;s  = √[ Σ(kᵢ − k̄)² / (n−1) ] = ___&#10;Δk = s / √n = ___&#10;&#10;Resultado: k̄ ± Δk = ___ ± ___ N/m&#10;IR = Δk / k̄ × 100% = ___&#10;ER = |k̄ − k_real| / k_real × 100% = ___"></textarea>
+    </div>
+
+    <!-- 05. GRÁFICA T² vs m -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">05</span> Gráfica T² vs. m — Herramienta Interactiva</h2>
+      <p>
+        Ingrese los pares $(m,\; T^2)$ de la Tabla 1 en la Tabla 2. La gráfica se actualiza en
+        tiempo real. La pendiente $m_{\text{pend}}$ de la regresión al origen da $k$ con la Ec. (3).
+        También puede trazar su recta manualmente desactivando la regresión automática.
+      </p>
+
+      <p style="margin:8px 0 4px; font-size:.85em; color:var(--ink-muted); font-style:italic;">
+        Tabla 2. Valores para la gráfica T² vs. m.
+      </p>
+      <div style="overflow-x:auto;">
+        <table class="tabla-resultados" style="max-width:440px;">
+          <thead>
+            <tr><th>Punto</th><th>m (kg)</th><th>T² (s²)</th></tr>
+          </thead>
+          <tbody id="bodyGrafica"></tbody>
+        </table>
+      </div>
+
+      <div class="grafica-box">
+        <div class="grafica-header">
+          <span>Gráfica: T² (s²) vs. m (kg)</span>
+          <span id="pendienteLabel" style="color:rgba(255,255,255,.6);font-size:.9em;">pendiente = —</span>
+        </div>
+        <canvas id="graficaCanvas" class="grafica-canvas" height="260"></canvas>
+        <div class="grafica-controles">
+          <button class="btn-ctrl activo" id="btnRegresion" onclick="toggleRegresion()">Regresión al origen</button>
+          <button class="btn-ctrl" onclick="limpiarRecta()">Limpiar recta manual</button>
+          <button class="btn-ctrl" onclick="exportarGrafica()">⬇ Exportar imagen</button>
+          <span class="grafica-info" id="graficaInfo"></span>
+        </div>
+      </div>
+
+      <div class="result-box col2">
+        <div class="res-campo">
+          <label>Pendiente m_pend (s²/kg)</label>
+          <input type="text" id="pendGraf" placeholder="0.0000" readonly>
+        </div>
+        <div class="res-campo">
+          <label>k gráfica = 4π²/m_pend (N/m)</label>
+          <input type="text" id="kGraf" placeholder="0.000" readonly style="color:var(--green);font-weight:600;">
+        </div>
+      </div>
+
+      <span class="area-label">Cálculo de k a partir de la pendiente gráfica — Ec. (3)</span>
+      <textarea class="trabajo-area" style="min-height:120px;"
+        placeholder="De la pendiente de la regresión:&#10;  m_pend = ___ s²/kg&#10;&#10;Aplicando la Ec. (3):&#10;  k = 4π² / m_pend&#10;  k = 4 × (3.14159)² / ___&#10;  k = 39.478 / ___&#10;  k = ___ N/m&#10;&#10;Comparación con k̄ (promedio de filas):&#10;  k̄ = ___ N/m&#10;  Diferencia relativa = ___ %"></textarea>
+
+      <span class="area-label">Captura de pantalla — gráfica del simulador o de esta herramienta</span>
+      <div class="adjunto-slot">
+        <input type="file" accept="image/*" onchange="previsualizarImagen(this,'prevGrafica')">
+        <span class="slot-icon">📈</span>
+        <span class="slot-label">Adjuntar captura de la gráfica T² vs. m</span>
+        <span class="slot-hint">Debe mostrarse la regresión y la pendiente · PNG, JPG</span>
+        <img id="prevGrafica" class="preview-img" alt="">
+      </div>
+    </div>
+
+    <!-- 06. MODO RETO -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">06</span> Modo Reto — Masa Desconocida</h2>
+
+      <div class="reto-header">
+        <div>
+          <span class="reto-badge">MODO RETO</span>
+          <h4>Inferencia de la masa oculta del bloque</h4>
+          <p>En este modo el simulador oculta la masa del bloque. Solo se conoce $k$ (revelado por el simulador). Mide el período varias veces y calcula $m^{\star}$ con la Ec. (5).</p>
+        </div>
+      </div>
+      <div class="reto-body">
+
+        <div class="paso" style="margin-top:14px;">
+          <div class="paso-num">1</div>
+          <div class="paso-content">
+            <p>Active el <strong>Modo Reto</strong> en el simulador. El panel muestra el valor de $k$ pero oculta la masa del bloque.</p>
+          </div>
+        </div>
+        <div class="paso">
+          <div class="paso-num">2</div>
+          <div class="paso-content">
+            <p>Anote el valor de $k$ que muestra el simulador en el campo correspondiente al final de esta sección.</p>
+          </div>
+        </div>
+        <div class="paso">
+          <div class="paso-num">3</div>
+          <div class="paso-content">
+            <p>Mida el período al menos <strong>6 veces</strong> (reiniciando el cronómetro entre ensayos), contando siempre $n \geq 10$ oscilaciones. Registre los datos en la Tabla 3.</p>
+          </div>
+        </div>
+        <div class="paso">
+          <div class="paso-num">4</div>
+          <div class="paso-content">
+            <p>Calcule $\bar{T}$ y aplique la Ec. (5) para obtener $m^{\star}$. Presione <strong>✔ Verificar</strong> en el simulador para conocer el error porcentual.</p>
+          </div>
+        </div>
+
+        <p style="margin:14px 0 4px; font-size:.85em; color:var(--ink-muted); font-style:italic;">
+          Tabla 3. Mediciones de período en el Modo Reto.
+        </p>
+        <div style="overflow-x:auto;">
+          <table class="tabla-resultados" style="max-width:500px;">
+            <thead>
+              <tr><th>#</th><th>n osc.</th><th>Δt (s)</th><th>T = Δt/n (s)</th></tr>
+            </thead>
+            <tbody id="bodyReto"></tbody>
+          </table>
+        </div>
+
+        <div class="result-box col2" style="margin-top:14px;">
+          <div class="res-campo">
+            <label>k del simulador (N/m)</label>
+            <input type="text" placeholder="0.000">
+          </div>
+          <div class="res-campo">
+            <label>T̄ promedio (s)</label>
+            <input type="text" placeholder="0.0000">
+          </div>
+          <div class="res-campo">
+            <label>m★ = kT̄²/(4π²) (kg)</label>
+            <input type="text" placeholder="0.0000">
+          </div>
+          <div class="res-campo">
+            <label>Error vs. m real (%)</label>
+            <input type="text" placeholder="0.00 %">
+          </div>
+        </div>
+
+        <span class="area-label">Cálculo paso a paso de m★ — aplique la Ec. (5)</span>
+        <textarea class="trabajo-area" style="min-height:160px;"
+          placeholder="De la Ec. (5):&#10;  m★ = k · T̄² / (4π²)&#10;&#10;Datos:&#10;  k = ___ N/m (del simulador — Modo Reto)&#10;  T̄ = (___ + ___ + … ) / n = ___ s&#10;&#10;Sustituyendo:&#10;  m★ = ___ × (___²) / (4π²)&#10;  m★ = ___ × ___ / 39.478&#10;  m★ = ___ kg&#10;&#10;Comparación con el valor real (al verificar):&#10;  m_real = ___ kg&#10;  Error = |m★ − m_real| / m_real × 100% = ___ %"></textarea>
+
+        <span class="area-label">Captura de pantalla — resultado del reto</span>
+        <div class="adjunto-slot">
+          <input type="file" accept="image/*" onchange="previsualizarImagen(this,'prevReto')">
+          <span class="slot-icon">🎯</span>
+          <span class="slot-label">Adjuntar captura de pantalla con el resultado del Reto</span>
+          <span class="slot-hint">Debe mostrarse el porcentaje de error obtenido · PNG, JPG</span>
+          <img id="prevReto" class="preview-img" alt="">
+        </div>
+
+      </div><!-- /reto-body -->
+    </div>
+
+    <!-- 07. DISCUSIÓN -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">07</span> Discusión de Resultados</h2>
+
+      <span class="area-label">7.1 · ¿Por qué el período del resorte no depende de la gravedad $g$ del planeta? Explique usando la ecuación de movimiento.</span>
+      <textarea class="trabajo-area" placeholder="Escriba su análisis aquí..."></textarea>
+
+      <span class="area-label">7.2 · Compare el valor de $k$ obtenido por promedio de filas (Tabla 1) con el obtenido de la pendiente gráfica (Sección 5). ¿Coinciden? ¿Cuál considera más confiable y por qué?</span>
+      <textarea class="trabajo-area" placeholder="Escriba su análisis aquí..."></textarea>
+
+      <span class="area-label">7.3 · Analice los valores de IR y ER. ¿Qué factores del procedimiento cree que generaron mayor incertidumbre: la medición de masa, el conteo de oscilaciones o la operación del cronómetro?</span>
+      <textarea class="trabajo-area" placeholder="Escriba su análisis aquí..."></textarea>
+
+      <span class="area-label">7.4 · ¿Qué ventaja tiene medir $n$ oscilaciones en lugar de una sola? Relacione su respuesta con el error de reacción humana y la incertidumbre del período $T$.</span>
+      <textarea class="trabajo-area" placeholder="Escriba su análisis aquí..."></textarea>
+
+      <span class="area-label">7.5 · En el Modo Reto, ¿cuánto se alejó su $m^{\star}$ del valor real? Identifique posibles fuentes de error y cómo podrían reducirse con más mediciones.</span>
+      <textarea class="trabajo-area" placeholder="Escriba su análisis aquí..."></textarea>
+    </div>
+
+    <!-- 08. CONCLUSIONES -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">08</span> Conclusiones</h2>
+      <p>Redacte tres conclusiones concretas que respondan directamente a los objetivos planteados.</p>
+
+      <span class="area-label">Conclusión 1 — Sobre el valor de k obtenido y su comparación con el valor real del resorte</span>
+      <textarea class="trabajo-area" style="min-height:90px;" placeholder="Redacte su primera conclusión..."></textarea>
+
+      <span class="area-label">Conclusión 2 — Sobre la linealidad de T² vs. m y el análisis gráfico como método para determinar k</span>
+      <textarea class="trabajo-area" style="min-height:90px;" placeholder="Redacte su segunda conclusión..."></textarea>
+
+      <span class="area-label">Conclusión 3 — Sobre la calidad de los resultados (IR, ER) y la inferencia de masa en el Modo Reto</span>
+      <textarea class="trabajo-area" style="min-height:90px;" placeholder="Redacte su tercera conclusión..."></textarea>
+    </div>
+
+    <!-- 09. REFERENCIAS -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">09</span> Referencias</h2>
+      <p style="font-size:.88em; line-height:2.1;">
+        [1] Serway, R. A. &amp; Jewett, J. W. <em>Physics for Scientists and Engineers</em>. 10ª ed. Cengage Learning, 2019. Cap. 15 — Movimiento Oscilatorio.<br>
+        [2] Sears, F. W., Zemansky, M. W. &amp; Young, H. D. <em>University Physics</em>. 14ª ed. Pearson, 2016. Cap. 14 — Movimiento Periódico.<br>
+        [3] Tipler, P. A. &amp; Llewellyn, R. A. <em>Physics for Scientists and Engineers</em>. 6ª ed. W. H. Freeman, 2008. Cap. 14 — Oscilaciones.<br>
+        [4] Halliday, D., Resnick, R. &amp; Walker, J. <em>Fundamentals of Physics</em>. 10ª ed. Wiley, 2014. Cap. 15 — Oscilaciones.
+      </p>
+    </div>
+
+    <!-- FIRMAS -->
+    <div class="seccion" style="margin-bottom:0;">
+      <div class="firma-grid">
+        <div class="firma-slot">Firma del estudiante</div>
+        <div class="firma-slot">Vo. Bo. Docente</div>
+      </div>
+    </div>
+
+  </div><!-- /body -->
+</div><!-- /documento -->
+
+<button class="btn-imprimir" onclick="window.print()">🖨 Imprimir / PDF</button>
+
+<script>
+/* ══════════════════════════════════════════
+   TABLA MODO ABIERTO — 8 filas
+══════════════════════════════════════════ */
+const NROWS_A = 8;
+const datosA  = Array.from({length:NROWS_A}, () => ({mn:'',mm:'',n:'',dt:'',T:'',T2:'',ki:''}));
+
+function buildTablaAbierto() {
+  const tb = document.getElementById('bodyAbierto');
+  for (let i = 0; i < NROWS_A; i++) {
+    const tr = tb.insertRow(-1);
+    tr.innerHTML = `
+      <td class="row-label">${i+1}</td>
+      <td class="input-cell"><input type="text" id="aMN${i}" placeholder="0.000" oninput="onA(${i},'mn',this.value)"></td>
+      <td class="input-cell"><input type="text" id="aMM${i}" placeholder="0.0000" oninput="onA(${i},'mm',this.value)"></td>
+      <td class="input-cell"><input type="text" id="aN${i}"  placeholder="10"    oninput="onA(${i},'n',this.value)"></td>
+      <td class="input-cell"><input type="text" id="aDt${i}" placeholder="0.000" oninput="onA(${i},'dt',this.value)"></td>
+      <td class="input-cell"><input type="text" id="aT${i}"  placeholder="—" readonly style="color:var(--accent);font-weight:600;"></td>
+      <td class="input-cell"><input type="text" id="aT2${i}" placeholder="—" readonly style="color:var(--gold);font-weight:600;"></td>
+      <td class="input-cell"><input type="text" id="aKi${i}" placeholder="—" readonly style="color:var(--green);font-weight:600;"></td>`;
+  }
+}
+
+function pN(s) { return parseFloat((s||'').replace(',','.')); }
+function fmt(n, d) { return isNaN(n) ? '—' : n.toFixed(d); }
+
+function onA(i, campo, val) {
+  datosA[i][campo] = val;
+  const m  = pN(datosA[i].mm) || pN(datosA[i].mn);
+  const n  = pN(datosA[i].n) || 1;
+  const dt = pN(datosA[i].dt);
+  if (m > 0 && dt > 0) {
+    const T  = dt / n, T2 = T * T;
+    const ki = 4 * Math.PI**2 * m / T2;
+    datosA[i].T=T; datosA[i].T2=T2; datosA[i].ki=ki;
+    document.getElementById('aT' +i).value = fmt(T,4);
+    document.getElementById('aT2'+i).value = fmt(T2,4);
+    document.getElementById('aKi'+i).value = fmt(ki,3);
+  } else {
+    datosA[i].T=datosA[i].T2=datosA[i].ki='';
+    ['aT','aT2','aKi'].forEach(p => document.getElementById(p+i).value='—');
+  }
+  actualizarResumen();
+  sincGrafica();
+  dibujarGrafica();
+}
+
+function actualizarResumen() {
+  const vals = datosA.map(r=>r.ki).filter(v=>typeof v==='number'&&!isNaN(v));
+  if (!vals.length) return;
+  const n    = vals.length;
+  const prom = vals.reduce((a,b)=>a+b,0)/n;
+  const sig  = n > 1 ? Math.sqrt(vals.reduce((s,v)=>s+(v-prom)**2,0)/(n*(n-1))) : 0;
+  const IR   = sig/prom*100;
+  document.getElementById('kProm').value = fmt(prom,3);
+  document.getElementById('kInc').value  = '± '+fmt(sig,3);
+  document.getElementById('kRes').value  = fmt(prom,3)+' ± '+fmt(sig,3);
+  document.getElementById('kIR').value   = fmt(IR,2)+' %';
+}
+
+/* ══════════════════════════════════════════
+   TABLA GRÁFICA — sincronizada con Tabla 1
+══════════════════════════════════════════ */
+const ptosGraf = Array.from({length:NROWS_A}, ()=>({m:'',T2:''}));
+
+function buildTablaGrafica() {
+  const tb = document.getElementById('bodyGrafica');
+  for (let i = 0; i < NROWS_A; i++) {
+    const tr = tb.insertRow(-1);
+    tr.innerHTML = `
+      <td class="row-label">P${i+1}</td>
+      <td class="input-cell"><input type="text" id="gM${i}"  placeholder="0.000"  oninput="onG(${i},'m',this.value)"></td>
+      <td class="input-cell"><input type="text" id="gT2${i}" placeholder="0.0000" oninput="onG(${i},'T2',this.value)"></td>`;
+  }
+}
+
+function sincGrafica() {
+  for (let i = 0; i < NROWS_A; i++) {
+    const m = pN(datosA[i].mm) || pN(datosA[i].mn);
+    if (!isNaN(m) && m > 0) {
+      document.getElementById('gM'+i).value = fmt(m,3);
+      ptosGraf[i].m = String(m);
+    }
+    if (typeof datosA[i].T2 === 'number') {
+      document.getElementById('gT2'+i).value = fmt(datosA[i].T2,4);
+      ptosGraf[i].T2 = String(datosA[i].T2);
+    }
+  }
+}
+
+function onG(i, campo, val) {
+  ptosGraf[i][campo] = val;
+  dibujarGrafica();
+}
+
+function getPuntos() {
+  return ptosGraf
+    .map(p => ({ m: pN(p.m), T2: pN(p.T2) }))
+    .filter(p => !isNaN(p.m) && !isNaN(p.T2) && p.m > 0 && p.T2 > 0);
+}
+
+/* ══════════════════════════════════════════
+   GRÁFICA
+══════════════════════════════════════════ */
+const COLORS = ['#1a5276','#c0392b','#1e8449','#b8860b','#6c3483','#117a65','#7b241c','#0b5394'];
+let mostrarReg = true, rectaManual = null, dragging = false, dragStart = null;
+
+function toggleRegresion() {
+  mostrarReg = !mostrarReg;
+  document.getElementById('btnRegresion').classList.toggle('activo', mostrarReg);
+  dibujarGrafica();
+}
+function limpiarRecta()  { rectaManual = null; dibujarGrafica(); }
+function exportarGrafica() {
+  const a = document.createElement('a');
+  a.download = 'grafica_T2_m.png';
+  a.href = document.getElementById('graficaCanvas').toDataURL();
+  a.click();
+}
+function regOrigen(pts) {
+  const sXY = pts.reduce((s,p)=>s+p.m*p.T2,0);
+  const sX2 = pts.reduce((s,p)=>s+p.m*p.m,0);
+  return sX2 > 0 ? sXY/sX2 : null;
+}
+
+function dibujarGrafica() {
+  const cv = document.getElementById('graficaCanvas');
+  const ctx = cv.getContext('2d');
+  const W   = cv.offsetWidth || 760;
+  cv.width  = W * window.devicePixelRatio;
+  cv.height = 260 * window.devicePixelRatio;
+  cv.style.width = W+'px'; cv.style.height = '260px';
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  const w=W, h=260;
+  const PAD = {top:30, right:30, bottom:55, left:65};
+  const pw=w-PAD.left-PAD.right, ph=h-PAD.top-PAD.bottom;
+
+  ctx.fillStyle='#fafafa'; ctx.fillRect(0,0,w,h);
+  ctx.fillStyle='#f5f5f5'; ctx.fillRect(PAD.left,PAD.top,pw,ph);
+
+  const pts = getPuntos();
+  let xMax = pts.length>0 ? Math.max(...pts.map(p=>p.m))*1.2  : 2.2;
+  let yMax = pts.length>0 ? Math.max(...pts.map(p=>p.T2))*1.2 : 6;
+  xMax=Math.max(xMax,.5); yMax=Math.max(yMax,1);
+
+  const toX = v => PAD.left + (v/xMax)*pw;
+  const toY = v => PAD.top  + ph - (v/yMax)*ph;
+
+  // grid
+  ctx.strokeStyle='#e8e4dc'; ctx.lineWidth=1;
+  for(let i=0;i<=6;i++){const x=toX(i*xMax/6); ctx.beginPath();ctx.moveTo(x,PAD.top);ctx.lineTo(x,PAD.top+ph);ctx.stroke();}
+  for(let i=0;i<=5;i++){const y=toY(i*yMax/5); ctx.beginPath();ctx.moveTo(PAD.left,y);ctx.lineTo(PAD.left+pw,y);ctx.stroke();}
+
+  // ejes
+  ctx.strokeStyle='#888'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(PAD.left,PAD.top); ctx.lineTo(PAD.left,PAD.top+ph); ctx.lineTo(PAD.left+pw,PAD.top+ph); ctx.stroke();
+
+  // etiquetas
+  ctx.fillStyle='#3d3d5c'; ctx.font=`bold 11px 'JetBrains Mono', monospace`;
+  ctx.textAlign='center';
+  ctx.fillText('Masa  m  (kg)', PAD.left+pw/2, h-4);
+  ctx.save(); ctx.translate(14,PAD.top+ph/2); ctx.rotate(-Math.PI/2);
+  ctx.fillText('Período²  T²  (s²)',0,0); ctx.restore();
+  ctx.fillStyle='#888'; ctx.font=`10px 'JetBrains Mono', monospace`;
+  for(let i=0;i<=6;i++){const v=i*xMax/6; ctx.textAlign='center'; ctx.fillText(v.toFixed(2),toX(v),PAD.top+ph+14);}
+  for(let i=0;i<=5;i++){const v=i*yMax/5; ctx.textAlign='right';  ctx.fillText(v.toFixed(2),PAD.left-4,toY(v)+4);}
+
+  // regresión
+  const slope = pts.length>=2 ? regOrigen(pts) : null;
+  if (mostrarReg && slope!==null) {
+    ctx.strokeStyle='#1a5276'; ctx.lineWidth=2.5; ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(toX(0),toY(0)); ctx.lineTo(toX(xMax),toY(slope*xMax)); ctx.stroke();
+    const kG = 4*Math.PI**2/slope;
+    document.getElementById('pendGraf').value = fmt(slope,4);
+    document.getElementById('kGraf').value    = fmt(kG,3);
+    document.getElementById('pendienteLabel').textContent = 'pendiente = '+fmt(slope,4)+' s²/kg';
+    document.getElementById('graficaInfo').textContent    = `n = ${pts.length} puntos · regresión al origen`;
+  }
+
+  // recta manual
+  if (rectaManual) {
+    ctx.strokeStyle='#c0392b'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(rectaManual.x1,rectaManual.y1); ctx.lineTo(rectaManual.x2,rectaManual.y2); ctx.stroke();
+    const dx=(rectaManual.x2-rectaManual.x1)/pw*xMax, dy=-(rectaManual.y2-rectaManual.y1)/ph*yMax;
+    if(dx!==0){
+      const mM=dy/dx;
+      document.getElementById('pendGraf').value = fmt(mM,4)+' (manual)';
+      document.getElementById('kGraf').value    = fmt(4*Math.PI**2/mM,3);
+    }
+  }
+
+  // puntos
+  pts.forEach((p,i) => {
+    ctx.fillStyle = COLORS[i%COLORS.length];
+    ctx.beginPath(); ctx.arc(toX(p.m),toY(p.T2),5,0,Math.PI*2); ctx.fill();
+    ctx.font='bold 10px JetBrains Mono,monospace'; ctx.textAlign='left';
+    ctx.fillText('P'+(i+1), toX(p.m)+8, toY(p.T2)-5);
+  });
+
+  if(pts.length===0){
+    ctx.fillStyle='#bbb'; ctx.font=`14px 'Source Serif 4',serif`;
+    ctx.textAlign='center';
+    ctx.fillText('Ingrese datos en la Tabla 1 o en la Tabla 2 para ver los puntos', PAD.left+pw/2, PAD.top+ph/2);
+  }
+}
+
+// Interacción mouse / touch
+const canv = document.getElementById('graficaCanvas');
+canv.addEventListener('mousedown',e=>{
+  if(mostrarReg) return;
+  const r=canv.getBoundingClientRect(); dragging=true; dragStart={x:e.clientX-r.left,y:e.clientY-r.top};
+});
+canv.addEventListener('mousemove',e=>{
+  if(!dragging) return;
+  const r=canv.getBoundingClientRect();
+  rectaManual={x1:dragStart.x,y1:dragStart.y,x2:e.clientX-r.left,y2:e.clientY-r.top};
+  dibujarGrafica();
+});
+canv.addEventListener('mouseup',()=>{dragging=false;});
+canv.addEventListener('touchstart',e=>{
+  if(mostrarReg) return;
+  const r=canv.getBoundingClientRect(),t=e.touches[0];
+  dragging=true; dragStart={x:t.clientX-r.left,y:t.clientY-r.top};
+},{passive:true});
+canv.addEventListener('touchmove',e=>{
+  if(!dragging) return;
+  const r=canv.getBoundingClientRect(),t=e.touches[0];
+  rectaManual={x1:dragStart.x,y1:dragStart.y,x2:t.clientX-r.left,y2:t.clientY-r.top};
+  dibujarGrafica();
+},{passive:true});
+canv.addEventListener('touchend',()=>{dragging=false;});
+
+/* ══════════════════════════════════════════
+   TABLA MODO RETO — 6 filas manuales
+══════════════════════════════════════════ */
+function buildTablaReto() {
+  const tb = document.getElementById('bodyReto');
+  for (let i = 1; i <= 6; i++) {
+    tb.insertRow(-1).innerHTML = `
+      <td class="row-label">${i}</td>
+      <td class="input-cell"><input type="text" placeholder="n osc."></td>
+      <td class="input-cell"><input type="text" placeholder="0.000"></td>
+      <td class="input-cell"><input type="text" placeholder="0.0000" style="color:var(--accent);font-weight:600;"></td>`;
+  }
+}
+
+/* ══════════════════════════════════════════
+   ADJUNTO IMAGEN
+══════════════════════════════════════════ */
+function previsualizarImagen(input, previewId) {
+  const file = input.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = document.getElementById(previewId);
+    if (img) { img.src = e.target.result; img.style.display = 'block'; }
+  };
+  reader.readAsDataURL(file);
+}
+
+/* ══════════════════════════════════════════
+   INICIALIZACIÓN
+══════════════════════════════════════════ */
+window.addEventListener('load', () => {
+  buildTablaAbierto();
+  buildTablaGrafica();
+  buildTablaReto();
+  dibujarGrafica();
+  const now = new Date(), sem = now.getMonth()<6?'1':'2';
+  document.getElementById('codigoPractica').textContent =
+    `PRÁCTICA FIS-RES-03 · ${now.getFullYear()}-${sem}`;
+  document.querySelectorAll('input[type="date"]').forEach(i=>i.value=now.toISOString().split('T')[0]);
+});
+window.addEventListener('resize', dibujarGrafica);
+</script>
+</body>
+</html>

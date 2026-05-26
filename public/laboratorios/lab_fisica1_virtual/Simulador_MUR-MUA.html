@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Laboratorio Física: MRU / MUA</title>
+    <style>
+        :root { --bg:#f1f5f9; --card:#ffffff; --text:#0f172a; --primary:#2563eb; --secondary:#10b981; --danger:#ef4444; }
+        body.dark-mode { --bg:#0f172a; --card:#1e293b; --text:#f1f5f9; }
+        body { font-family:'Segoe UI',sans-serif; background:var(--bg); color:var(--text); display:flex; flex-direction:column; align-items:center; padding:10px; margin:0; }
+        .container { width:100%; max-width:1000px; background:var(--card); padding:20px; border-radius:20px; box-shadow:0 10px 40px rgba(0,0,0,.1); box-sizing:border-box; }
+        .header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+        .controls { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:15px; margin-bottom:14px; }
+        .input-group { display:flex; flex-direction:column; gap:4px; }
+        label { font-size:.8rem; font-weight:600; color:#64748b; }
+        select,.v-display { padding:10px; border-radius:8px; border:2px solid #e2e8f0; text-align:center; font-weight:bold; background:transparent; color:var(--text); width:100%; box-sizing:border-box; }
+        select { cursor:pointer; background:var(--bg); }
+
+        .drag-banner { display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:6px; background:linear-gradient(135deg,#fef9c3,#fde68a); border:1.5px solid #fbbf24; border-radius:10px; padding:9px 14px; margin-bottom:12px; font-size:.8rem; font-weight:600; color:#92400e; }
+        .dark-mode .drag-banner { background:linear-gradient(135deg,#1c1408,#2d1f03); color:#fde68a; border-color:#92400e; }
+        .div-badge { background:#92400e; color:#fef9c3; border-radius:6px; padding:2px 8px; font-size:.78rem; font-weight:800; white-space:nowrap; }
+        .dark-mode .div-badge { background:#fbbf24; color:#1c0f00; }
+
+        .actions { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:12px; }
+        .actions button { flex:1 1 calc(50% - 10px); min-width:100px; padding:12px; border:none; border-radius:8px; font-weight:bold; cursor:pointer; color:white; font-size:.82rem; transition:opacity .2s,transform .1s; }
+        .actions button:active { transform:scale(.97); }
+        .actions button:disabled { opacity:.38; cursor:not-allowed; }
+        @media(min-width:600px){ .actions button{ flex:1; } }
+        .btn-start{ background:var(--secondary); } .btn-reset{ background:var(--danger); }
+        .btn-csv  { background:#475569; }          .btn-img  { background:#64748b; }
+
+        /* ── SIMULADOR ─────────────────────────────────────────────────────── */
+        .zoom-controls { display:flex; align-items:center; gap:8px; margin-bottom:6px; justify-content:flex-end; }
+        .zoom-controls button { width:34px; height:34px; border:none; border-radius:8px; background:var(--primary); color:white; font-size:1.2rem; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+        .zoom-controls .zoom-label { font-size:.75rem; font-weight:700; color:#94a3b8; min-width:48px; text-align:center; }
+        .zoom-controls .btn-reset-v { font-size:.72rem; padding:0 10px; width:auto; background:#475569; }
+        .canvas-wrap { position:relative; width:100%; overflow:hidden; border-radius:12px; border:1px solid #cbd5e1; margin-bottom:10px; }
+        .dark-mode .canvas-wrap { border-color:#334155; }
+        #cvs { width:100%; height:auto; aspect-ratio:16/6; background:#fff; display:block; touch-action:none; -webkit-user-select:none; user-select:none; }
+        .dark-mode #cvs { background:#020617; }
+        #cvs.grab { cursor:grab; } #cvs.grabbing { cursor:grabbing; }
+        .zoom-hint { position:absolute; bottom:8px; right:10px; background:rgba(0,0,0,.45); color:white; font-size:.68rem; font-weight:600; padding:3px 8px; border-radius:6px; pointer-events:none; }
+
+        /* ── TABLA ──────────────────────────────────────────────────────────── */
+        .table-container { width:100%; border-radius:12px; overflow:hidden; border:1px solid #e2e8f0; }
+        table { width:100%; border-collapse:collapse; background:var(--card); }
+        th { background:var(--primary); color:white; padding:12px 8px; font-size:.9rem; }
+        td { padding:10px 8px; text-align:center; border-bottom:1px solid rgba(0,0,0,.05); font-size:.9rem; font-weight:500; }
+        td input { width:90%; padding:6px 4px; border:1.5px solid #e2e8f0; border-radius:6px; text-align:center; font-size:.9rem; font-weight:600; background:var(--bg); color:var(--text); }
+        td input:focus { outline:none; border-color:var(--primary); }
+        .add-row-btn { width:100%; padding:10px; background:var(--bg); border:2px dashed #cbd5e1; border-radius:0 0 12px 12px; color:#94a3b8; font-weight:600; font-size:.82rem; cursor:pointer; }
+        .add-row-btn:hover { border-color:var(--primary); color:var(--primary); }
+        @media(max-width:480px){ th,td{ font-size:.8rem; padding:8px 4px; } .container{ padding:12px; } }
+
+        /* ── MODO RETO ──────────────────────────────────────────────────────── */
+        .reto-bar {
+            display:none; flex-direction:column; gap:10px;
+            background:linear-gradient(135deg,#1e3a5f,#1e40af);
+            border-radius:14px; padding:16px 20px; margin-bottom:12px;
+            color:white; box-shadow:0 4px 20px rgba(37,99,235,.35);
+        }
+        .reto-bar.active { display:flex; }
+        .reto-top { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; }
+        .reto-title { font-size:.85rem; font-weight:800; letter-spacing:.06em; opacity:.8; }
+        .reto-objetivo { font-size:1.6rem; font-weight:900; letter-spacing:.04em; color:#fde68a; }
+        .reto-objetivo small { font-size:.7rem; font-weight:600; opacity:.7; display:block; color:white; }
+        .reto-intentos { display:flex; gap:5px; align-items:center; }
+        .reto-dot { width:12px; height:12px; border-radius:50%; background:rgba(255,255,255,.25); transition:background .3s; }
+        .reto-dot.used { background:#ef4444; }
+        .reto-dot.ok   { background:#22c55e; }
+        .reto-feedback {
+            display:none; padding:10px 14px; border-radius:9px;
+            font-size:.88rem; font-weight:700; text-align:center;
+        }
+        .reto-feedback.show { display:block; }
+        .reto-feedback.win  { background:rgba(34,197,94,.25);  color:#bbf7d0; border:1px solid #22c55e; }
+        .reto-feedback.lose { background:rgba(239,68,68,.2);   color:#fecaca; border:1px solid #ef4444; }
+        .reto-feedback.end  { background:rgba(251,191,36,.2);  color:#fde68a; border:1px solid #fbbf24; }
+        .btn-reto   { background:linear-gradient(135deg,#7c3aed,#4f46e5); }
+        .btn-reto.on{ background:linear-gradient(135deg,#dc2626,#b91c1c); }
+        .btn-reto-foto { margin-left:10px; padding:5px 14px; border:none; border-radius:7px;
+            background:#fbbf24; color:#1c0f00; font-weight:800; cursor:pointer; font-size:.82rem; }
+        .btn-reto-foto:hover { background:#f59e0b; }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <div class="header">
+        <h2 style="margin:0">Física: <span id="modeTitle">MRU</span></h2>
+        <button onclick="document.body.classList.toggle('dark-mode'); redraw();"
+                style="background:#334155;color:white;border:none;border-radius:50%;width:36px;height:36px;cursor:pointer;font-size:1rem;">🌙</button>
+    </div>
+
+    <div class="controls">
+        <div class="input-group">
+            <label>Modo de Estudio</label>
+            <select id="simMode" onchange="changeMode()">
+                <option value="mru">MRU (Velocidad constante)</option>
+                <option value="mua">MUA (Movimiento acelerado)</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label id="constLabel">Velocidad Fija</label>
+            <div id="valDisplay" class="v-display">---</div>
+        </div>
+        <div class="input-group" id="v0Box">
+            <label id="v0Label">🚀 v en S1</label>
+            <div id="v0Display" class="v-display">---</div>
+        </div>
+    </div>
+
+    <div class="drag-banner">
+        <span>✋ Arrastra S1 y S2 en el simulador</span>
+        <span>|</span>
+        <span>📏 Mínima división de la regla asignada:</span>
+        <span class="div-badge" id="divBadge">---</span>
+    </div>
+
+    <div class="actions">
+        <button id="run" class="btn-start" onclick="startSim()">&#9654; INICIAR</button>
+        <button id="btnReto" class="btn-reto" onclick="toggleReto()">&#127942; MODO RETO</button>
+        <button class="btn-csv"  onclick="downloadCSV()">&#11015; CSV</button>
+        <button class="btn-img"  onclick="takePhoto()">&#128247; FOTO</button>
+        <button class="btn-reset" onclick="clearAll()">&#128465; BORRAR</button>
+    </div>
+
+    <!-- Panel Modo Reto -->
+    <div class="reto-bar" id="retoBar">
+        <div class="reto-top">
+            <div>
+                <div class="reto-title">🎯 RETO — mueve S2 para lograr el tiempo objetivo:</div>
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:6px;">
+
+                    <!-- S1 fijo -->
+                    <div class="reto-objetivo">
+                        <small>📍 S1 fijo (x₁)</small>
+                        <span id="retoS1pos">---</span> cm
+                    </div>
+
+                    <!-- t objetivo -->
+                    <div class="reto-objetivo">
+                        <small>⏱ t objetivo</small>
+                        <span id="retoTarget">---</span> s
+                    </div>
+
+                    <!-- v0 en S1 — solo MUA -->
+                    <div class="reto-objetivo" id="retoV0Box" style="display:none;">
+                        <small>🚀 v₀ en S1</small>
+                        <span id="retoV0">---</span> cm/s
+                    </div>
+
+                    <!-- Modo y ecuación -->
+                    <div id="retoBadgeModo" style="background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.35);border-radius:8px;padding:6px 12px;text-align:center;">
+                        <div style="font-size:.65rem;opacity:.7;font-weight:700;letter-spacing:.05em;">MODO</div>
+                        <div id="retoModoLabel" style="font-size:1.1rem;font-weight:900;color:#fde68a;">---</div>
+                        <div id="retoEcuacion" style="font-size:.68rem;opacity:.8;margin-top:2px;">---</div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div class="reto-title" style="margin-bottom:6px">Intentos</div>
+                <div class="reto-intentos">
+                    <div class="reto-dot" id="dot1"></div>
+                    <div class="reto-dot" id="dot2"></div>
+                    <div class="reto-dot" id="dot3"></div>
+                </div>
+            </div>
+        </div>
+        <div class="reto-feedback" id="retoFeedback"></div>
+    </div>
+
+    <!-- Simulador con zoom -->
+    <div class="zoom-controls">
+        <button onclick="zoomIn()">+</button>
+        <span class="zoom-label" id="zoomLabel">100%</span>
+        <button onclick="zoomOut()">&minus;</button>
+        <button class="btn-reset-v" onclick="resetView()">&#8634; Reset</button>
+    </div>
+    <div class="canvas-wrap">
+        <canvas id="cvs"></canvas>
+        <div class="zoom-hint">🤏 Pellizca · Scroll · Arrastra</div>
+    </div>
+
+    <!-- Tabla manual editable -->
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>x&#8321; (cm)<br><small style="font-weight:400;font-size:.7em">anota tú</small></th>
+                    <th>x&#8322; (cm)<br><small style="font-weight:400;font-size:.7em">anota tú</small></th>
+                    <th>&#916;x (cm)<br><small style="font-weight:400;font-size:.7em">anota tú</small></th>
+                    <th>&#916;t (s)<br><small style="font-weight:400;font-size:.7em">automático</small></th>
+                </tr>
+            </thead>
+            <tbody id="dataTable"></tbody>
+        </table>
+        <button class="add-row-btn" onclick="addRow()">+ Agregar fila</button>
+    </div>
+
+</div>
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+//  MÍNIMA DIVISIÓN ALEATORIA
+//  subDiv  → tamaño de cada división en metros (determina marcas de la regla)
+//  MIN_STEP → misma medida, usada para snap de sensores y step de la tabla
+//
+//   5 div/m  → marca cada 20 cm  (0.20 m)   — escala más gruesa
+//  10 div/m  → marca cada 10 cm  (0.10 m)   — escala media
+//  20 div/m  → marca cada  5 cm  (0.05 m)   — escala fina
+// ═══════════════════════════════════════════════════════════════════════════
+const OPCIONES = [
+    { subDiv:0.20, label:' 5 unidades/(cm)' },
+    { subDiv:0.10, label:'10 unidades/(cm)' },
+    { subDiv:0.05, label:'20 unidades/(cm)' },
+];
+const ruleCfg  = OPCIONES[Math.floor(Math.random() * OPCIONES.length)];
+const MIN_STEP = ruleCfg.subDiv;   // metros — mínima división de la regla sorteada
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  CANVAS SIMULADOR
+// ═══════════════════════════════════════════════════════════════════════════
+const canvas = document.getElementById('cvs');
+const ctx    = canvas.getContext('2d');
+
+let v_real, a_real;
+let worldMinX, worldMaxX, viewMinX, viewMaxX, pixels;
+let s1x = 2.0, s2x = 10.0;
+let dragging = null, panStartX = null;
+let cartPos  = null, simRunning = false, startTime = null;
+let rowCount = 0;
+let zoomLevel = 1.0;
+const ZOOM_MIN = 1.0, ZOOM_MAX = 200.0;
+
+// Tiempos exactos de cruce (calculados analíticamente al cruzar cada sensor)
+let t_cross_s1 = null, t_cross_s2 = null;
+let s1_crossed = false, s2_crossed = false;
+
+// Posición fija de S1 en modo reto (aleatoria, bloqueada)
+let retoS1x = null;
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  VIEWPORT Y ZOOM DEL SIMULADOR
+// ═══════════════════════════════════════════════════════════════════════════
+function calcWorldBounds() {
+    worldMinX = Math.min(s1x, s2x, 0) - 4;
+    worldMaxX = Math.max(s1x, s2x, 0) + 4;
+}
+
+function clampView() {
+    const span = (worldMaxX - worldMinX) / zoomLevel;
+    // Evitar que la vista salga del mundo
+    if (viewMinX < worldMinX) { viewMinX = worldMinX; viewMaxX = worldMinX + span; }
+    if (viewMaxX > worldMaxX) { viewMaxX = worldMaxX; viewMinX = worldMaxX - span; }
+    pixels = canvas.width / (viewMaxX - viewMinX);
+}
+
+function resetView() {
+    zoomLevel = 1.0;
+    calcWorldBounds();
+    viewMinX = worldMinX;
+    viewMaxX = worldMaxX;
+    pixels   = canvas.width / (viewMaxX - viewMinX);
+    updateZoomLabel();
+    redraw();
+}
+
+function zoomAt(factor, ctrWorld) {
+    if (ctrWorld === undefined) ctrWorld = (viewMinX + viewMaxX) / 2;
+    const nz = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, zoomLevel * factor));
+    if (nz === zoomLevel) return;
+    const ratio = zoomLevel / nz;
+    viewMinX  = ctrWorld - (ctrWorld - viewMinX) * ratio;
+    viewMaxX  = ctrWorld + (viewMaxX - ctrWorld) * ratio;
+    zoomLevel = nz;
+    clampView();
+    updateZoomLabel();
+    redraw();
+}
+
+function zoomIn()  { zoomAt(1.5); }
+function zoomOut() { zoomAt(1 / 1.5); }
+function updateZoomLabel() { document.getElementById('zoomLabel').textContent = Math.round(zoomLevel * 100) + '%'; }
+
+function worldX(x)        { return (x - viewMinX) * pixels; }
+function screenToWorld(s) { return s / pixels + viewMinX; }
+function redraw()         { draw(cartPos !== null ? cartPos : s1x - 1.5); }
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  INTERACCIÓN SIMULADOR (mouse + touch + pinch)
+// ═══════════════════════════════════════════════════════════════════════════
+function setupInteraction() {
+    canvas.addEventListener('mousedown',  onStart,      {passive:false});
+    window.addEventListener('mousemove',  onMove,       {passive:false});
+    window.addEventListener('mouseup',    onEnd);
+    canvas.addEventListener('mousemove',  onHover);
+    canvas.addEventListener('wheel',      onWheel,      {passive:false});
+    canvas.addEventListener('touchstart', onTouchStart, {passive:false});
+    canvas.addEventListener('touchmove',  onTouchMove,  {passive:false});
+    canvas.addEventListener('touchend',   onTouchEnd);
+    canvas.addEventListener('touchcancel',onTouchEnd);
+}
+
+function getX(e) {
+    const r = canvas.getBoundingClientRect();
+    return (e.clientX - r.left) * (canvas.width / r.width);
+}
+function hitRadius() {
+    const r = canvas.getBoundingClientRect();
+    return Math.max(28 * (canvas.width / r.width), pixels * 0.4);
+}
+function whichSensor(ex) {
+    const r = hitRadius();
+    const d1 = Math.abs(ex - worldX(s1x));
+    const d2 = Math.abs(ex - worldX(s2x));
+    if (d1 < r && d1 <= d2) return 's1';
+    if (d2 < r) return 's2';
+    return null;
+}
+
+function onStart(e) {
+    if (simRunning) return;
+    e.preventDefault();
+    const ex  = getX(e);
+    const hit = whichSensor(ex);
+    dragging   = hit || 'pan';
+    panStartX  = hit ? null : screenToWorld(ex);
+    canvas.classList.add('grabbing');
+    canvas.classList.remove('grab');
+}
+
+function onMove(e) {
+    if (!dragging) {
+        canvas.classList.toggle('grab', !!whichSensor(getX(e)));
+        return;
+    }
+    e.preventDefault();
+    const ex = getX(e);
+    if (dragging === 'pan') {
+        const wx   = screenToWorld(ex);
+        const diff = panStartX - wx;
+        const span = viewMaxX - viewMinX;
+        viewMinX = Math.max(worldMinX, Math.min(worldMaxX - span, viewMinX + diff));
+        viewMaxX = viewMinX + span;
+        pixels   = canvas.width / span;
+        redraw();
+        return;
+    }
+    // Mover sensor — snap al MIN_STEP de la regla asignada para ser coherente
+    let wx = Math.round(screenToWorld(ex) / MIN_STEP) * MIN_STEP;
+    if (dragging === 's1') {
+        // En modo reto S1 está bloqueado
+        if (retoS1x !== null) { s1x = retoS1x; }
+        else { s1x = Math.min(wx, s2x - MIN_STEP * 2); }
+        calcWorldBounds(); clampView();
+    } else {
+        s2x = Math.max(wx, s1x + MIN_STEP * 2);
+        calcWorldBounds(); clampView();
+    }
+    redraw();
+}
+
+function onEnd()    { dragging = null; panStartX = null; canvas.classList.remove('grabbing'); }
+function onHover(e) { if (!simRunning && !dragging) canvas.classList.toggle('grab', !!whichSensor(getX(e))); }
+function onWheel(e) {
+    e.preventDefault();
+    const r  = canvas.getBoundingClientRect();
+    const ex = (e.clientX - r.left) * (canvas.width / r.width);
+    zoomAt(e.deltaY < 0 ? 1.25 : 1 / 1.25, screenToWorld(ex));
+}
+
+let lastPinchDist = null, lastPinchMidW = null;
+function pDist(t) { const dx=t[0].clientX-t[1].clientX, dy=t[0].clientY-t[1].clientY; return Math.sqrt(dx*dx+dy*dy); }
+function pMidX(t) { const r=canvas.getBoundingClientRect(); return((t[0].clientX+t[1].clientX)/2-r.left)*(canvas.width/r.width); }
+
+function onTouchStart(e) {
+    e.preventDefault();
+    if (e.touches.length === 2) {
+        dragging  = null;
+        panStartX = null;
+        lastPinchDist = pDist(e.touches);
+        lastPinchMidW = screenToWorld(pMidX(e.touches));
+        return;
+    }
+    if (e.touches.length === 1 && !simRunning) {
+        const r  = canvas.getBoundingClientRect();
+        const ex = (e.touches[0].clientX - r.left) * (canvas.width / r.width);
+        const hit = whichSensor(ex);
+        dragging  = hit || 'pan';
+        panStartX = hit ? null : screenToWorld(ex);
+        canvas.classList.add('grabbing');
+    }
+}
+
+function onTouchMove(e) {
+    e.preventDefault();
+    if (e.touches.length === 2) {
+        const d = pDist(e.touches);
+        zoomAt(d / lastPinchDist, lastPinchMidW);
+        lastPinchDist = d;
+        lastPinchMidW = screenToWorld(pMidX(e.touches));
+        return;
+    }
+    if (e.touches.length === 1 && dragging) {
+        const r  = canvas.getBoundingClientRect();
+        const ex = (e.touches[0].clientX - r.left) * (canvas.width / r.width);
+        if (dragging === 'pan') {
+            const wx   = screenToWorld(ex);
+            const diff = panStartX - wx;
+            const span = viewMaxX - viewMinX;
+            viewMinX = Math.max(worldMinX, Math.min(worldMaxX - span, viewMinX + diff));
+            viewMaxX = viewMinX + span;
+            pixels   = canvas.width / span;
+            redraw();
+            return;
+        }
+        let wx = Math.round(screenToWorld(ex) / MIN_STEP) * MIN_STEP;
+        if (dragging === 's1') {
+            if (retoS1x !== null) { s1x = retoS1x; }
+            else { s1x = Math.min(wx, s2x - MIN_STEP * 2); }
+            calcWorldBounds(); clampView();
+        } else {
+            s2x = Math.max(wx, s1x + MIN_STEP * 2); calcWorldBounds(); clampView();
+        }
+        redraw();
+    }
+}
+
+function onTouchEnd(e) {
+    if (e.touches.length < 2) lastPinchDist = null;
+    if (e.touches.length === 0) { dragging = null; panStartX = null; canvas.classList.remove('grabbing'); }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  DIBUJO SIMULADOR
+// ═══════════════════════════════════════════════════════════════════════════
+function draw(curX) {
+    const isDark = document.body.classList.contains('dark-mode');
+    const W = canvas.width, H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+    const railY = H * 0.78;
+    ctx.save();
+    ctx.translate(0, railY);
+
+    // Riel
+    ctx.fillStyle = isDark ? '#1e293b' : '#475569';
+    ctx.fillRect(0, 0, W, 40);
+    const rg = ctx.createLinearGradient(0, -55, 0, 0);
+    rg.addColorStop(0, isDark ? '#334155' : '#cbd5e1');
+    rg.addColorStop(1, isDark ? '#1e293b' : '#94a3b8');
+    ctx.fillStyle = rg;
+    ctx.beginPath();
+    ctx.moveTo(0, 0); ctx.lineTo(W, 0); ctx.lineTo(W - 70, -55); ctx.lineTo(-90, -55);
+    ctx.fill();
+    ctx.strokeStyle = isDark ? 'rgba(255,255,255,.07)' : 'rgba(0,0,0,.1)';
+    ctx.lineWidth = 1.5;
+    for (let j = 1; j <= 3; j++) {
+        ctx.beginPath();
+        ctx.moveTo(-(j * 18), -j * 16); ctx.lineTo(W - (j * 18), -j * 16);
+        ctx.stroke();
+    }
+
+    // Regla decorativa del simulador — solo metros y 10 cm de referencia
+    const rH = 32, rY = 6;
+    ctx.fillStyle = '#fdd835';
+    ctx.fillRect(0, rY, W, rH);
+    const fz = Math.max(9, Math.min(14, rH * 0.5));
+
+    // Marcas de 1 m
+    const f1m = Math.ceil(viewMinX);
+    for (let v = f1m; v <= viewMaxX + 0.01; v++) {
+        const px = worldX(v);
+        if (px < 0 || px > W) continue;
+        ctx.strokeStyle = '#000'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(px, rY); ctx.lineTo(px, rY + rH * 0.75); ctx.stroke();
+        ctx.fillStyle = '#000';
+        ctx.font = `bold ${fz}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.fillText(v.toFixed(0), px, rY + rH - 2);
+    }
+    // Subdivisiones de la regla sorteada (usa MIN_STEP del sorteo)
+    if (pixels * MIN_STEP >= 4) {
+        const fSub = Math.ceil(viewMinX / MIN_STEP) * MIN_STEP;
+        for (let v = fSub; v <= viewMaxX + MIN_STEP * 0.01; v = Math.round((v + MIN_STEP) * 1e9) / 1e9) {
+            if (Math.abs(v % 1) < MIN_STEP * 0.1) continue;   // saltar marcas de 1 m
+            const px = worldX(v);
+            if (px < 0 || px > W) continue;
+            // isPrincipal = múltiplo de 2*MIN_STEP → marca más alta (p.ej. 10 cm en escala de 5 cm)
+            const isPrincipal = MIN_STEP <= 0.09 && Math.abs(v % (MIN_STEP * 2)) < MIN_STEP * 0.1;
+            ctx.strokeStyle = isPrincipal ? '#222' : '#666';
+            ctx.lineWidth   = isPrincipal ? 1.6 : 0.9;
+            ctx.beginPath();
+            ctx.moveTo(px, rY);
+            ctx.lineTo(px, rY + rH * (isPrincipal ? 0.55 : 0.30));
+            ctx.stroke();
+        }
+    }
+    // Etiqueta "cm" al inicio de la regla
+    ctx.fillStyle = '#555';
+    ctx.font = `bold ${Math.max(8, fz * 0.8)}px Arial`;
+    ctx.textAlign = 'left';
+    ctx.fillText('cm', 4, rY + rH - 2);
+    ctx.textAlign = 'left';
+
+    drawSensor(s1x, 'S1', curX, dragging === 's1', isDark, rY);
+    drawSensor(s2x, 'S2', curX, dragging === 's2', isDark, rY);
+    drawCart(curX, isDark);
+    ctx.restore();
+}
+
+function drawSensor(pos, lab, curX, isDrag, isDark, rY) {
+    const px        = worldX(pos);
+    const triggered = Math.abs(curX - pos) < 0.14;
+    const topY      = -(canvas.height * 0.78 - 20);
+    const ballY     = topY + 6;
+
+    if (isDrag) {
+        const h = ctx.createRadialGradient(px, ballY, 3, px, ballY, 30);
+        h.addColorStop(0, 'rgba(251,191,36,.5)');
+        h.addColorStop(1, 'rgba(251,191,36,0)');
+        ctx.fillStyle = h;
+        ctx.beginPath(); ctx.arc(px, ballY, 30, 0, Math.PI * 2); ctx.fill();
+    }
+
+    ctx.fillStyle = isDark ? '#64748b' : '#334155';
+    ctx.beginPath(); ctx.roundRect(px - 6, rY + 2, 12, 10, 2); ctx.fill();
+
+    ctx.fillStyle = isDark ? '#94a3b8' : '#475569';
+    ctx.fillRect(px - 2.5, topY + 14, 5, Math.abs(topY) - 14 + rY + 2);
+
+    ctx.strokeStyle = isDrag ? '#fbbf24' : (triggered ? '#22c55e' : (isDark ? '#64748b' : '#94a3b8'));
+    ctx.lineWidth   = isDrag ? 3 : 1.8;
+    ctx.setLineDash(isDrag ? [] : [4, 3]);
+    ctx.beginPath(); ctx.arc(px, ballY, 18, 0, Math.PI * 2); ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = triggered ? '#22c55e' : '#ef4444';
+    if (triggered) { ctx.shadowBlur = 18; ctx.shadowColor = '#22c55e'; }
+    ctx.beginPath(); ctx.arc(px, ballY, 10, 0, Math.PI * 2); ctx.fill();
+    ctx.shadowBlur = 0;
+
+    if (!simRunning) {
+        const locked = retoS1x !== null && lab === 'S1';
+        ctx.fillStyle = locked ? '#fbbf24' : (isDark ? 'rgba(255,255,255,.7)' : 'rgba(0,0,0,.45)');
+        ctx.font = `bold ${Math.max(10, canvas.width * .012)}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.fillText(locked ? '🔒' : '↔', px, ballY + 34);
+    }
+    ctx.fillStyle = isDark ? '#f1f5f9' : '#0f172a';
+    ctx.font = `bold ${Math.max(11, canvas.width * .013)}px Arial`;
+    ctx.textAlign = 'center';
+    ctx.fillText(lab, px, topY - 18);
+    // Posición en cm debajo del nombre del sensor
+    ctx.font = `${Math.max(9, canvas.width * .011)}px Arial`;
+    ctx.fillStyle = isDark ? '#94a3b8' : '#475569';
+    ctx.fillText(pos.toFixed(2) + ' cm', px, topY - 5);
+    ctx.textAlign = 'left';
+}
+
+function drawCart(curX, isDark) {
+    const cp = worldX(curX);
+    ctx.save();
+    ctx.translate(cp - 25, -50);
+    // Sombra
+    ctx.fillStyle = 'rgba(0,0,0,.12)';
+    ctx.beginPath(); ctx.ellipse(25, 48, 33, 6, 0, 0, Math.PI * 2); ctx.fill();
+    // Morro
+    ctx.fillStyle = '#154360';
+    ctx.beginPath(); ctx.moveTo(44,0); ctx.lineTo(54,-11); ctx.lineTo(54,19); ctx.lineTo(44,30); ctx.fill();
+    // Techo
+    ctx.fillStyle = '#2e86c1';
+    ctx.beginPath(); ctx.moveTo(-4,0); ctx.lineTo(7,-11); ctx.lineTo(54,-11); ctx.lineTo(44,0); ctx.fill();
+    // Cuerpo
+    const cg = ctx.createLinearGradient(0, 0, 0, 30);
+    cg.addColorStop(0, '#3498db'); cg.addColorStop(1, '#1f618d');
+    ctx.fillStyle = cg;
+    ctx.beginPath(); ctx.roundRect(-4, 0, 48, 30, 5); ctx.fill();
+    // Ruedas
+    [[5, 30], [34, 30]].forEach(([x, y]) => {
+        ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(x, y, 8, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#555'; ctx.beginPath(); ctx.arc(x, y, 3.5, 0, Math.PI * 2); ctx.fill();
+    });
+    ctx.restore();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  RESIZE
+// ═══════════════════════════════════════════════════════════════════════════
+function resize() {
+    const rect    = canvas.getBoundingClientRect();
+    const cw      = rect.width > 10 ? rect.width : 800;
+    canvas.width  = cw;
+    canvas.height = cw * 0.37;
+
+    calcWorldBounds();
+    // Inicializar viewport solo la primera vez
+    if (viewMinX === undefined) {
+        viewMinX = worldMinX;
+        viewMaxX = worldMaxX;
+    }
+    clampView();
+    redraw();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  SIMULACIÓN
+// ═══════════════════════════════════════════════════════════════════════════
+const OFFSET_M = 0.20; // metros antes de S1 donde arranca el carro (20 cm)
+
+function startSim() {
+    if (s2x <= s1x) return alert('S2 debe estar a la derecha de S1');
+    simRunning = true;
+    t_cross_s1 = null; t_cross_s2 = null;
+    s1_crossed = false; s2_crossed = false;
+    document.getElementById('run').disabled = true;
+    cartPos   = s1x - OFFSET_M * 100;   // posición visual (cm) del carro al inicio
+    startTime = null;
+    requestAnimationFrame(loop);
+}
+
+function loop(t) {
+    if (startTime === null) startTime = t;
+    const el   = (t - startTime) / 1000;
+    const mode = document.getElementById('simMode').value;
+
+    // Convertir posiciones de sensores a metros para los cálculos físicos
+    const s1m = s1x / 100;
+    const s2m = s2x / 100;
+    const offset = OFFSET_M; // metros antes de S1 donde arranca el carro
+
+    // Posición actual del carro en metros (para física), luego convertir a cm para dibujo
+    let cartM;
+    if (mode === 'mru') {
+        cartM = (s1m - offset) + v_real * el;
+    } else {
+        cartM = (s1m - offset) + 0.5 * a_real * el * el;
+    }
+    cartPos = cartM * 100; // convertir a cm para el dibujo
+
+    // Capturar cruce exacto de S1
+    if (!s1_crossed && cartM >= s1m) {
+        s1_crossed = true;
+        if (mode === 'mru') {
+            t_cross_s1 = offset / v_real;
+        } else {
+            t_cross_s1 = Math.sqrt(2 * offset / a_real);
+        }
+    }
+
+    // Capturar cruce exacto de S2
+    if (!s2_crossed && cartM >= s2m) {
+        s2_crossed = true;
+        if (mode === 'mru') {
+            const dx_total = s2m - (s1m - offset);
+            t_cross_s2 = dx_total / v_real;
+        } else {
+            const dx_total = s2m - (s1m - offset);
+            t_cross_s2 = Math.sqrt(2 * dx_total / a_real);
+        }
+    }
+
+    redraw();
+
+    if (cartM < s2m + offset) {
+        requestAnimationFrame(loop);
+    } else {
+        simRunning = false;
+        document.getElementById('run').disabled = false;
+        record();
+    }
+}
+
+function record() {
+    let dt;
+    if (t_cross_s1 !== null && t_cross_s2 !== null) {
+        // Δt real entre S1 y S2
+        dt = t_cross_s2 - t_cross_s1;
+    } else {
+        // Fallback analítico
+        const s1m = s1x / 100;
+        const s2m = s2x / 100;
+        const dx   = Math.abs(s2m - s1m);
+        const mode = document.getElementById('simMode').value;
+        if (mode === 'mru') {
+            dt = dx / v_real;
+        } else {
+            const t1 = Math.sqrt(2 * OFFSET_M / a_real);
+            const t2 = Math.sqrt(2 * (OFFSET_M + dx) / a_real);
+            dt = t2 - t1;
+        }
+    }
+    // Añadir pequeño ruido de medición (±7.5 ms) para simular incertidumbre del sensor
+    const dtFinal = parseFloat((dt + (Math.random() - 0.5) * 0.015).toFixed(3));
+    fillDt(dtFinal.toFixed(3));
+    evaluarReto(dtFinal);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  TABLA
+// ═══════════════════════════════════════════════════════════════════════════
+function addRow() {
+    rowCount++;
+    const tr = document.createElement('tr');
+    tr.id = `row-${rowCount}`;
+    tr.innerHTML = `
+        <td>${rowCount}</td>
+        <td><input type="number" step="${MIN_STEP}" placeholder="—" id="r${rowCount}-x1"></td>
+        <td><input type="number" step="${MIN_STEP}" placeholder="—" id="r${rowCount}-x2"></td>
+        <td><input type="number" step="${MIN_STEP}" placeholder="—" id="r${rowCount}-dx"></td>
+        <td><input type="number" step="0.001"       placeholder="—" id="r${rowCount}-dt" readonly
+            style="background:rgba(37,99,235,.07);color:var(--primary);border-color:#bfdbfe;cursor:default;"></td>`;
+    document.getElementById('dataTable').appendChild(tr);
+    return rowCount;
+}
+
+function fillDt(dt) {
+    // Llenar la primera fila con Δt vacío; si todas tienen valor, crear nueva fila
+    for (let i = 1; i <= rowCount; i++) {
+        const el = document.getElementById(`r${i}-dt`);
+        if (el && el.value === '') { el.value = dt; return; }
+    }
+    const id = addRow();
+    document.getElementById(`r${id}-dt`).value = dt;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  INIT Y UTILIDADES
+// ═══════════════════════════════════════════════════════════════════════════
+function init() {
+    randomize();
+    document.getElementById('divBadge').textContent = ruleCfg.label;
+    setupInteraction();
+    window.addEventListener('resize', resize);
+    resize();
+    addRow();
+}
+
+function randomize() {
+    v_real = parseFloat((Math.random() * 0.09 + 0.03).toFixed(3)); // 3–12 cm/s
+    // a limitada para que v₀ = a·√(2·OFFSET_M/a) ≤ 0.12 m/s → a ≤ 0.036 m/s²
+    a_real = parseFloat((Math.random() * 0.027 + 0.009).toFixed(3)); // v₀ resultante: ~3–12 cm/s
+    updateDisplay();
+}
+
+function changeMode() {
+    const m = document.getElementById('simMode').value;
+    document.getElementById('modeTitle').textContent  = m.toUpperCase();
+    document.getElementById('constLabel').textContent = m === 'mru' ? 'Velocidad Fija' : 'Aceleración Fija';
+    updateDisplay();
+    redraw();
+}
+
+function updateDisplay() {
+    const m = document.getElementById('simMode').value;
+    // Mostrar velocidad en cm/s para facilitar lectura en la regla (internamente sigue en m/s)
+    document.getElementById('valDisplay').textContent = m === 'mru'
+        ? (v_real * 100).toFixed(1) + ' cm/s'
+        : a_real + ' m/s²';
+
+    // Mostrar v en S1
+    const v0Box = document.getElementById('v0Box');
+    const v0Lbl = document.getElementById('v0Label');
+    const v0Dis = document.getElementById('v0Display');
+    if (m === 'mru') {
+        v0Lbl.textContent = '🚀 v en S1';
+        v0Dis.textContent = (v_real * 100).toFixed(1) + ' cm/s';
+    } else {
+        const t1 = Math.sqrt(2 * OFFSET_M / a_real);
+        const v0cm = (a_real * t1 * 100).toFixed(1);
+        v0Lbl.textContent = '🚀 v₀ en S1';
+        v0Dis.textContent = v0cm + ' cm/s';
+    }
+}
+
+function clearAll() {
+    if (!confirm('¿Borrar todo?')) return;
+    rowCount   = 0;
+    cartPos    = null;
+    t_cross_s1 = null; t_cross_s2 = null;
+    s1_crossed = false; s2_crossed = false;
+    document.getElementById('dataTable').innerHTML = '';
+    randomize();
+    resetView();
+    addRow();
+    if (retoActive) {
+        document.getElementById('valDisplay').textContent = '???';
+        retoIntentos = 0; actualizarDots(); ocultarFeedback(); generarTarget();
+    }
+}
+
+function takePhoto() {
+    // Si estamos en modo reto, generar imagen con parámetros superpuestos
+    if (retoLastDt !== null) {
+        const oc  = document.createElement('canvas');
+        oc.width  = canvas.width;
+        oc.height = canvas.height;
+        const oc_ctx = oc.getContext('2d');
+
+        // 1. Dibujar el simulador actual
+        oc_ctx.drawImage(canvas, 0, 0);
+
+        // 2. Panel de parámetros en la esquina superior izquierda
+        const esMRU  = retoMode === 'mru';
+        const param  = esMRU ? `v = ${(v_real * 100).toFixed(1)} cm/s` : `a = ${a_real} m/s²`;
+        const modo   = esMRU ? 'MRU' : 'MUA';
+        const aprobado = retoLastError <= RETO_TOL;
+        const dx_foto  = Math.abs(s2x - s1x);
+
+        // Parámetros específicos por modo
+        let lineasModo = [];
+        if (esMRU) {
+            // MRU: v = Δx / t  →  mostrar la verificación
+            const v_calc = (dx_foto / retoLastDt * 100).toFixed(1);  // en cm/s
+            lineasModo = [
+                `Ecuación:      x₂ = x₁ + v · t`,
+                `──────────────────────────`,
+                `Posición S1 (x₁): ${s1x.toFixed(2)} cm`,
+                `Posición S2 (x₂): ${s2x.toFixed(2)} cm`,
+                `Δx = x₂ - x₁:    ${dx_foto.toFixed(2)} cm`,
+                `t objetivo:       ${retoTarget.toFixed(3)} s`,
+                `t medido:         ${retoLastDt.toFixed(3)} s`,
+                `──────────────────────────`,
+                `v calculada = Δx/t: ${v_calc} cm/s`,
+                `v real:             ${(v_real * 100).toFixed(1)} cm/s`,
+                `Error:              ${(retoLastError * 100).toFixed(1)} %`,
+            ];
+        } else {
+            // MUA: Δx = v₀·t + ½·a·t²  →  mostrar v0, a y verificación
+            const t1   = Math.sqrt(2 * OFFSET_M / a_real);
+            const v0   = (a_real * t1).toFixed(3);
+            const v0cm = (a_real * t1 * 100).toFixed(1);  // en cm/s
+            const t    = retoLastDt;
+            const dx_v = (parseFloat(v0) * t + 0.5 * a_real * t * t).toFixed(3);
+            lineasModo = [
+                `Ecuación:  x₂ = x₁ + v₀·t + ½·a·t²`,
+                `──────────────────────────`,
+                `Posición S1 (x₁): ${s1x.toFixed(2)} cm`,
+                `Posición S2 (x₂): ${s2x.toFixed(2)} cm`,
+                `Δx = x₂ - x₁:    ${dx_foto.toFixed(2)} cm`,
+                `v₀ en S1:         ${v0cm} cm/s`,
+                `t objetivo:       ${retoTarget.toFixed(3)} s`,
+                `t medido:         ${retoLastDt.toFixed(3)} s`,
+                `──────────────────────────`,
+                `Δx verificado:    ${parseFloat(dx_v).toFixed(2)} cm`,
+                `a real:           ${a_real.toFixed(3)} m/s²`,
+                `Error:            ${(retoLastError * 100).toFixed(1)} %`,
+            ];
+        }
+
+        const lines = [
+            `🎯 MODO RETO — ${modo}`,
+            ...lineasModo,
+            `──────────────────────────`,
+            aprobado ? '✅ APROBADO' : '❌ No aprobado',
+        ];
+
+        const pad   = 14, lineH = 21, fz = 12;
+        const boxW  = 360, boxH  = pad * 2 + lines.length * lineH;
+        const bx    = 10,  by   = 10;
+
+        // Fondo semitransparente
+        oc_ctx.fillStyle = 'rgba(15,23,42,0.82)';
+        oc_ctx.beginPath();
+        oc_ctx.roundRect(bx, by, boxW, boxH, 10);
+        oc_ctx.fill();
+
+        // Borde color según resultado
+        oc_ctx.strokeStyle = aprobado ? '#22c55e' : '#ef4444';
+        oc_ctx.lineWidth   = 2;
+        oc_ctx.beginPath();
+        oc_ctx.roundRect(bx, by, boxW, boxH, 10);
+        oc_ctx.stroke();
+
+        // Texto línea a línea
+        lines.forEach((line, i) => {
+            const y = by + pad + (i + 0.8) * lineH;
+            if (i === 0) {
+                oc_ctx.fillStyle = '#fde68a';
+                oc_ctx.font      = `bold ${fz + 1}px Arial`;
+            } else if (i === lines.length - 1) {
+                oc_ctx.fillStyle = aprobado ? '#86efac' : '#fca5a5';
+                oc_ctx.font      = `bold ${fz}px Arial`;
+            } else {
+                oc_ctx.fillStyle = '#e2e8f0';
+                oc_ctx.font      = `${fz}px Arial`;
+            }
+            oc_ctx.fillText(line, bx + pad, y);
+        });
+
+        const a = document.createElement('a');
+        a.download = `reto_${modo}_evidencia.png`;
+        a.href     = oc.toDataURL();
+        a.click();
+    } else {
+        // Foto normal sin reto
+        const a = document.createElement('a');
+        a.download = 'laboratorio.png';
+        a.href     = canvas.toDataURL();
+        a.click();
+    }
+}
+
+function downloadCSV() {
+    let csv = '#,x1(cm),x2(cm),Dx(cm),Dt(s)\n';
+    for (let i = 1; i <= rowCount; i++) {
+        const x1 = document.getElementById(`r${i}-x1`)?.value || '';
+        const x2 = document.getElementById(`r${i}-x2`)?.value || '';
+        const dx = document.getElementById(`r${i}-dx`)?.value || '';
+        const dt = document.getElementById(`r${i}-dt`)?.value || '';
+        csv += `${i},${x1},${x2},${dx},${dt}\n`;
+    }
+    const blob = new Blob(['\uFEFF' + csv], {type:'text/csv;charset=utf-8;'});
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = 'datos_laboratorio.csv';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  MODO RETO INVERSO
+// ═══════════════════════════════════════════════════════════════════════════
+let retoActive    = false;
+let retoTarget    = 0;      // Δt objetivo en segundos
+let retoIntentos  = 0;
+let retoMode      = 'mru';  // modo sorteado para este reto
+let retoLastDt    = null;   // último Δt medido en el reto
+let retoLastError = null;   // último error %
+const RETO_MAX    = 3;
+const RETO_TOL    = 0.05;   // 5 % de tolerancia para ganar
+
+function toggleReto() {
+    retoActive = !retoActive;
+    const bar = document.getElementById('retoBar');
+    const btn = document.getElementById('btnReto');
+    if (retoActive) {
+        bar.classList.add('active');
+        btn.classList.add('on');
+        btn.textContent = '✖ SALIR DEL RETO';
+        document.getElementById('valDisplay').textContent = '???';
+        document.getElementById('v0Display').textContent = '???';
+        iniciarReto();
+    } else {
+        bar.classList.remove('active');
+        btn.classList.remove('on');
+        btn.textContent = '🏆 MODO RETO';
+        retoS1x = null;
+        updateDisplay();
+        ocultarFeedback();
+    }
+}
+
+function iniciarReto() {
+    retoIntentos = 0;
+    actualizarDots();
+    ocultarFeedback();
+    // Borrar tabla
+    rowCount = 0;
+    document.getElementById('dataTable').innerHTML = '';
+    addRow();
+    // Generar Δt objetivo realista según el modo actual
+    generarTarget();
+}
+
+function generarTarget() {
+    // Sortear MRU o MUA al azar para este reto
+    retoMode = Math.random() < 0.5 ? 'mru' : 'mua';
+
+    // Aplicar modo al simulador
+    const sel = document.getElementById('simMode');
+    sel.value = retoMode;
+    document.getElementById('modeTitle').textContent  = retoMode.toUpperCase();
+    document.getElementById('constLabel').textContent = retoMode === 'mru' ? 'Velocidad Fija' : 'Aceleración Fija';
+    document.getElementById('valDisplay').textContent = '???';
+
+    // ── S1 FIJO ALEATORIO (entre 0.15 y 0.50 m, snap a MIN_STEP)
+    const s1min  = Math.ceil(0.15 / MIN_STEP) * MIN_STEP;
+    const s1max  = Math.floor(0.50 / MIN_STEP) * MIN_STEP;
+    const steps  = Math.round((s1max - s1min) / MIN_STEP);
+    retoS1x = parseFloat((s1min + Math.floor(Math.random() * steps) * MIN_STEP).toFixed(4));
+    s1x = retoS1x;
+
+    // S2 se deja en s1x + 0.20 m como posición inicial orientativa
+    s2x = parseFloat((s1x + 0.20).toFixed(4));
+
+    calcWorldBounds();
+    clampView();
+    redraw();
+
+    // Mostrar posición de S1 en el panel
+    document.getElementById('retoS1pos').textContent = retoS1x.toFixed(2);
+
+    // ── CALCULAR t OBJETIVO — Δx limitado a x₂ ≤ 200 cm Y t ≤ 1.5 s
+    const T_MAX = 1.5; // segundos
+    const dxMin = 0.05; // 5 cm mínimo
+
+    let dxMax;
+    if (retoMode === 'mru') {
+        // MRU: Δx = v · t  →  Δx_max por tiempo = v · T_MAX
+        dxMax = Math.min(2.00 - retoS1x, v_real * T_MAX);
+    } else {
+        // MUA: t = √(2(OFFSET+Δx)/a) - √(2·OFFSET/a) ≤ T_MAX
+        // Δx_max = 0.5·a·(t1+T_MAX)² - OFFSET, donde t1 = √(2·OFFSET/a)
+        const t1 = Math.sqrt(2 * OFFSET_M / a_real);
+        const dxByTime = 0.5 * a_real * Math.pow(t1 + T_MAX, 2) - OFFSET_M;
+        dxMax = Math.min(2.00 - retoS1x, dxByTime);
+    }
+    dxMax = Math.max(dxMin, parseFloat(dxMax.toFixed(2)));
+    const dx = parseFloat((Math.random() * (dxMax - dxMin) + dxMin).toFixed(2));
+    let tObj;
+
+    if (retoMode === 'mru') {
+        tObj = dx / v_real;
+    } else {
+        const t1 = Math.sqrt(2 * OFFSET_M / a_real);
+        const t2 = Math.sqrt(2 * (OFFSET_M + dx) / a_real);
+        tObj = t2 - t1;
+    }
+    retoTarget = parseFloat(tObj.toFixed(3));
+    document.getElementById('retoTarget').textContent = retoTarget.toFixed(3);
+
+    // ── v0 EN S1 (solo MUA) — velocidad del carro al pasar por S1
+    const v0Box = document.getElementById('retoV0Box');
+    if (retoMode === 'mua') {
+        const t1    = Math.sqrt(2 * OFFSET_M / a_real);
+        const v0    = parseFloat((a_real * t1 * 100).toFixed(1));  // cm/s
+        document.getElementById('retoV0').textContent = v0.toFixed(1);
+        v0Box.style.display = '';
+    } else {
+        v0Box.style.display = 'none';
+    }
+
+    // ── MODO Y ECUACIÓN
+    const esMRU = retoMode === 'mru';
+    document.getElementById('retoModoLabel').textContent = esMRU ? 'MRU' : 'MUA';
+    document.getElementById('retoEcuacion').textContent  = esMRU
+        ? 'x₂ = x₁ + v · t'
+        : 'x₂ = x₁ + v₀·t + ½·a·t²';
+}
+
+function evaluarReto(dtMedido) {
+    if (!retoActive) return;
+    retoIntentos++;
+    const error = Math.abs(dtMedido - retoTarget) / retoTarget;
+    retoLastDt    = dtMedido;
+    retoLastError = error;
+    const fb    = document.getElementById('retoFeedback');
+
+    if (error <= RETO_TOL) {
+        // ✅ Ganó — revelar valor real y detener el reto
+        marcarDot(retoIntentos - 1, 'ok');
+        const esMRU = retoMode === 'mru';
+        const valorReal = esMRU ? `v = ${(v_real * 100).toFixed(1)} cm/s` : `a = ${a_real} m/s²`;
+        let extraInfo = '';
+        if (!esMRU) {
+            const t1 = Math.sqrt(2 * OFFSET_M / a_real);
+            const v0 = (a_real * t1 * 100).toFixed(1);
+            extraInfo = ` &nbsp;|&nbsp; v₀ en S1 = ${v0} cm/s`;
+        }
+        document.getElementById('valDisplay').textContent = esMRU ? (v_real * 100).toFixed(1) + ' cm/s' : a_real + ' m/s²';
+        // Revelar también v en S1
+        updateDisplay();
+        fb.className = 'reto-feedback show win';
+        fb.innerHTML = `✅ ¡Reto superado en ${retoIntentos} intento${retoIntentos>1?'s':''}! &nbsp;|&nbsp; t = ${dtMedido.toFixed(3)} s &nbsp;|&nbsp; Error = ${(error*100).toFixed(1)} %${extraInfo} &nbsp;|&nbsp; <strong>${valorReal}</strong> <button class="btn-reto-foto" onclick="takePhoto()">📷 Guardar evidencia</button>`;
+        // Guardar evidencia automáticamente al aprobar
+        setTimeout(() => takePhoto(), 400);
+        retoActive = false;
+        retoS1x = null;
+        document.getElementById('btnReto').classList.remove('on');
+        document.getElementById('btnReto').textContent = '🏆 MODO RETO';
+    } else if (retoIntentos >= RETO_MAX) {
+        // ❌ Agotó intentos
+        marcarDot(retoIntentos - 1, 'used');
+        const dtCorrecto = retoTarget.toFixed(3);
+        const modoTxt    = document.getElementById('simMode').value;
+        // Calcular la posición de sensores que daría el Δt exacto (solo informativo)
+        fb.className = 'reto-feedback show end';
+        fb.innerHTML = `⏱ Tu Δt = ${dtMedido.toFixed(3)} s &nbsp;|&nbsp; Objetivo = ${dtCorrecto} s &nbsp;|&nbsp; Error = ${(error*100).toFixed(1)} % — Se acabaron los intentos. <button class="btn-reto-foto" onclick="takePhoto()">📷 Guardar evidencia</button> <button onclick="nuevoReto()" style="margin-left:6px;padding:5px 12px;border:none;border-radius:7px;background:#fbbf24;color:#1c0f00;font-weight:800;cursor:pointer;">Nuevo reto</button>`;
+    } else {
+        // ⚠ Intento fallido, puede seguir
+        marcarDot(retoIntentos - 1, 'used');
+        const restantes = RETO_MAX - retoIntentos;
+        fb.className = 'reto-feedback show lose';
+        fb.innerHTML = `❌ Tu Δt = ${dtMedido.toFixed(3)} s &nbsp;|&nbsp; Error = ${(error*100).toFixed(1)} % — ${dtMedido < retoTarget ? 'Muy poco tiempo → aleja los sensores' : 'Demasiado tiempo → acerca los sensores'}. Quedan ${restantes} intento${restantes>1?'s':''}.`;
+    }
+}
+
+function nuevoReto() {
+    retoIntentos = 0;
+    retoS1x = null;
+    actualizarDots();
+    ocultarFeedback();
+    randomize();
+    document.getElementById('valDisplay').textContent = '???';
+    rowCount = 0;
+    document.getElementById('dataTable').innerHTML = '';
+    addRow();
+    generarTarget();
+}
+
+function marcarDot(idx, cls) {
+    const dot = document.getElementById(`dot${idx + 1}`);
+    if (dot) { dot.className = 'reto-dot ' + cls; }
+}
+
+function actualizarDots() {
+    [1, 2, 3].forEach(i => {
+        document.getElementById(`dot${i}`).className = 'reto-dot';
+    });
+}
+
+function ocultarFeedback() {
+    const fb = document.getElementById('retoFeedback');
+    fb.className = 'reto-feedback';
+    fb.textContent = '';
+}
+
+window.onload = init;
+</script>
+</body>
+</html>

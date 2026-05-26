@@ -1,0 +1,2290 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Simulación Electrostática 3D</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
+
+  :root {
+    --bg: #050a12;
+    --panel: rgba(8, 20, 40, 0.92);
+    --border: rgba(0, 160, 200, 0.25);
+    --accent: #0099cc;
+    --accent2: #ff4060;
+    --text: #90b8d8;
+    --dim: #4a7090;
+    --green: #00cc88;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: rgba(0,0,0,0.5);
+  }
+
+  header h1 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 19px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+
+  header .tag {
+    font-size: 13px;
+    color: var(--dim);
+    letter-spacing: 2px;
+  }
+
+  body.day header h1 { color: #003a7a; }
+  body.day header .tag { color: #004a90; font-weight: bold; }
+
+  .main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  #canvas-container {
+    flex: 1;
+    position: relative;
+  }
+
+  canvas#three {
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  /* Overlay info on canvas */
+  .canvas-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+  }
+
+  /* Right panel */
+  .panel {
+    width: 300px;
+    background: var(--panel);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    padding: 16px;
+    gap: 14px;
+  }
+
+  .section-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 14px;
+    color: #ffffff;
+    letter-spacing: 2px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 6px;
+    margin-bottom: 4px;
+  }
+
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(0,200,255,0.07);
+  }
+
+  .info-label {
+    font-size: 14px;
+    color: var(--dim);
+    letter-spacing: 1px;
+  }
+
+  .info-value {
+    font-size: 15px;
+    color: var(--green);
+    font-weight: bold;
+  }
+
+  .info-value.red { color: #ff6688; }
+  .info-value.blue { color: #66aaff; }
+  .info-value.yellow { color: #ffdd55; }
+  .info-value.orange { color: #ffaa44; }
+
+  /* Charge cards */
+  .charge-card {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 10px;
+  }
+
+  .charge-card .charge-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .charge-dot {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    box-shadow: 0 0 8px currentColor;
+  }
+
+  .charge-dot.pos { background: #ff4455; color: #ff4455; }
+  .charge-dot.neg { background: #4488ff; color: #4488ff; }
+
+  .charge-name {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 11px;
+    color: var(--text);
+  }
+
+  /* Slider */
+  .slider-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .slider-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    color: var(--dim);
+  }
+
+  input[type=range] {
+    width: 100%;
+    accent-color: var(--accent);
+    height: 4px;
+  }
+
+  /* Big result */
+  .result-box {
+    background: rgba(0, 200, 100, 0.06);
+    border: 1px solid rgba(0, 255, 170, 0.25);
+    border-radius: 4px;
+    padding: 12px;
+    text-align: center;
+  }
+
+  .result-label {
+    font-size: 14px;
+    color: #a0c8e8;
+    letter-spacing: 2px;
+    margin-bottom: 4px;
+  }
+
+  .result-value {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 22px;
+    color: var(--green);
+    word-break: break-all;
+  }
+
+  .result-unit {
+    font-size: 13px;
+    color: var(--dim);
+    margin-top: 2px;
+  }
+
+  /* Buttons */
+  .btn {
+    background: transparent;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 13px;
+    letter-spacing: 2px;
+    padding: 12px 12px;
+    cursor: pointer;
+    width: 100%;
+    transition: all 0.2s;
+    border-radius: 2px;
+  }
+
+  .btn:hover {
+    background: var(--accent);
+    color: #000;
+  }
+
+  .btn.danger {
+    border-color: var(--accent2);
+    color: var(--accent2);
+  }
+  .btn.danger:hover {
+    background: var(--accent2);
+    color: #fff;
+  }
+
+  /* Log table */
+  .log-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  .log-table th {
+    color: var(--dim);
+    text-align: left;
+    padding: 6px 6px;
+    border-bottom: 1px solid var(--border);
+    letter-spacing: 1px;
+    font-size: 13px;
+  }
+
+  .log-table td {
+    padding: 6px 6px;
+    border-bottom: 1px solid rgba(0,200,255,0.05);
+    color: var(--text);
+  }
+
+  .log-table tr:hover td {
+    background: rgba(0,200,255,0.05);
+  }
+
+  .log-table td input[type=number] {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    width: 72px;
+    padding: 1px 2px;
+    outline: none;
+  }
+  body.day .log-table td input[type=number] {
+    color: #08192e;
+    border-bottom-color: rgba(0,100,180,0.4);
+  }
+
+  /* Permittivity badge */
+  .perm-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    background: rgba(0,200,255,0.1);
+    border: 1px solid rgba(0,200,255,0.3);
+    border-radius: 2px;
+    font-size: 14px;
+    color: var(--accent);
+  }
+
+  /* Ruler indicator */
+  .ruler-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    background: rgba(255,200,0,0.1);
+    border: 1px solid rgba(255,200,0,0.3);
+    border-radius: 2px;
+    font-size: 14px;
+    color: #ffcc00;
+  }
+
+  /* Grid lines on canvas */
+  .hud-corner {
+    position: absolute;
+    font-size: 13px;
+    color: rgba(0,200,255,0.6);
+    letter-spacing: 1px;
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  .hud-tl { top: 10px; left: 12px; }
+  .hud-tr { top: 10px; right: 12px; text-align: right; }
+  .hud-bl { bottom: 10px; left: 12px; }
+
+  .scroll-note {
+    font-size: 13px;
+    color: var(--dim);
+    text-align: center;
+    letter-spacing: 1px;
+  }
+
+
+
+  /* Glow pulse on results */
+  @keyframes glow-pulse {
+    0%, 100% { text-shadow: 0 0 6px rgba(0,255,170,0.4); }
+    50% { text-shadow: 0 0 18px rgba(0,255,170,0.9); }
+  }
+  .result-value { animation: glow-pulse 2s ease-in-out infinite; }
+
+  .error-note {
+    font-size: 14px;
+    color: #ffaa44;
+    letter-spacing: 1px;
+  }
+
+  /* ── MODO DÍA ── */
+  body.day {
+    --bg: #ddeaf8;
+    --panel: rgba(200,220,245,0.97);
+    --border: rgba(0,100,180,0.3);
+    --accent: #005fa8;
+    --accent2: #c0001e;
+    --text: #08192e;
+    --dim: #456070;
+    --green: #006838;
+  }
+  body.day .section-title { color: #003a6e; }
+  body.day .result-label  { color: #004a80; }
+  body.day .panel     { background: rgba(200,220,245,0.97); }
+  body.day .charge-card { background: rgba(255,255,255,0.5); }
+  body.day .info-value.yellow { color: #7a5500; }
+  body.day .info-value.orange { color: #8a3800; }
+
+  /* ── RESPONSIVO ── */
+  header { flex-shrink: 0; }
+  .main  { min-height: 0; }
+  #canvas-container { min-width: 0; min-height: 0; }
+  .panel { flex-shrink: 0; }
+
+  #btn-theme {
+    margin-left: auto;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 20px;
+    padding: 4px 10px;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    -webkit-appearance: none;
+  }
+  #btn-theme:hover { opacity: 0.8; }
+
+  @media (max-width: 640px) {
+    .main  { flex-direction: column; }
+    #canvas-container { flex: 0 0 40vh; }
+    .panel { width: 100% !important; border-left: none; border-top: 1px solid var(--border); }
+    .hud-corner.hud-bl { display: none; }
+  }
+  @media (min-width: 641px) and (max-width: 900px) {
+    .panel { width: 260px; }
+  }
+
+  /* ══ PESTAÑAS DE MODO ══ */
+  #mode-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 2px solid var(--border);
+    background: var(--panel);
+    flex-shrink: 0;
+  }
+  .tab-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: var(--dim);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 12px;
+    letter-spacing: 1px;
+    padding: 10px 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    -webkit-appearance: none;
+    margin-bottom: -2px;
+  }
+  .tab-btn:hover { color: var(--accent); }
+  .tab-btn.active {
+    color: var(--accent);
+    border-bottom: 3px solid var(--accent);
+    background: rgba(0,200,255,0.05);
+  }
+
+  /* ══ REGLA VISUAL PARTE A ══ */
+  #ruler-canvas-wrap {
+    position: relative;
+    height: 90px;
+    cursor: ew-resize;
+    user-select: none;
+    -webkit-user-select: none;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  #ruler-canvas { width: 100%; height: 100%; display: block; }
+
+  /* ══ OVERLAY ZOOM PARTE A (igual a zoom-overlay de Simulador_Medidas) ══ */
+  #a-zoom-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.90);
+    z-index: 60;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(6px);
+  }
+  #a-zoom-box {
+    position: relative;
+    border: 2px solid #2a4060;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #08101e;
+  }
+  #a-zoom-canvas { display: block; }
+  #a-zoom-close {
+    position: absolute;
+    top: 8px; right: 12px;
+    background: rgba(0,0,0,.80);
+    border: 1px solid #304060;
+    color: #90b8d8;
+    border-radius: 4px;
+    padding: 3px 10px;
+    cursor: pointer;
+    font-family: 'Orbitron', sans-serif;
+    font-size: .75rem;
+    z-index: 2;
+  }
+  #a-zoom-footer {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    padding: 5px 12px;
+    background: rgba(0,0,0,.80);
+    font-size: .68rem;
+    color: #6a9aba;
+    text-align: center;
+    pointer-events: none;
+  }
+
+  /* ══ PARTE B – indicadores de intento ══ */
+  .attempt-counter {
+    text-align: center;
+    font-size: 13px;
+    color: var(--dim);
+    letter-spacing: 1px;
+    padding: 4px 0;
+  }
+  .attempt-dot {
+    display: inline-block;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    margin: 0 3px;
+    border: 1.5px solid var(--dim);
+    background: transparent;
+    vertical-align: middle;
+    transition: background .3s;
+  }
+  .attempt-dot.used  { background: #ff4460; border-color: #ff4460; }
+  .attempt-dot.ok    { background: #00ffaa; border-color: #00ffaa; }
+  .dist-indicator.blocked { color: #ff4460; background: rgba(255,40,60,0.10); border: 1px solid rgba(255,40,60,0.35); }
+  .dist-indicator.approved { color: #00ffaa; background: rgba(0,255,170,0.12); border: 1px solid rgba(0,255,170,0.40); }
+  .ruler-readout {
+    font-size: 16px;
+    color: var(--green);
+    text-align: center;
+    letter-spacing: 1px;
+    margin-top: 6px;
+    font-weight: bold;
+  }
+  .ruler-zoom-btns {
+    display: flex;
+    gap: 6px;
+    margin-top: 4px;
+  }
+  .ruler-zoom-btns button {
+    flex: 1;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--accent);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 13px;
+    padding: 7px;
+    cursor: pointer;
+    border-radius: 2px;
+  }
+  .ruler-zoom-btns button:hover { background: var(--border); }
+
+  /* campo verificar Parte B */
+  .verify-wrap {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .verify-wrap input[type=number] {
+    flex: 1;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 15px;
+    padding: 9px 8px;
+    border-radius: 3px;
+    outline: none;
+    width: 0;
+  }
+  body.day .verify-wrap input[type=number] {
+    background: rgba(255,255,255,0.6);
+    color: #08192e;
+  }
+  .verify-wrap button {
+    background: var(--accent);
+    border: none;
+    color: #000;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 12px;
+    letter-spacing: 1px;
+    padding: 10px 12px;
+    cursor: pointer;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+
+  /* evidencia */
+  #evidence-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  #evidence-modal.show { display: flex; }
+  #evidence-canvas-wrap {
+    position: relative;
+    max-width: 600px;
+    width: 100%;
+  }
+  #evidence-canvas { width: 100%; border-radius: 6px; display: block; }
+  .evidence-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+  }
+  .evidence-actions button {
+    flex: 1;
+    background: transparent;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 13px;
+    letter-spacing: 1px;
+    padding: 12px;
+    cursor: pointer;
+    border-radius: 3px;
+  }
+  .evidence-actions button:hover { background: var(--accent); color: #000; }
+
+  /* ══ PARTE B RETO ══ */
+  .challenge-box {
+    background: rgba(255,160,0,0.07);
+    border: 1px solid rgba(255,160,0,0.3);
+    border-radius: 4px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .challenge-box .section-title { color: #ffaa44; border-color: rgba(255,160,0,0.3); }
+  body.day .challenge-box .section-title { color: #8a4400; }
+  .chall-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    padding: 5px 0;
+    border-bottom: 1px solid rgba(255,160,0,0.1);
+  }
+  .chall-lbl { color: var(--dim); }
+  .chall-val { color: #ffcc44; font-weight: bold; }
+  body.day .chall-val { color: #7a4400; }
+
+  .dist-indicator {
+    text-align: center;
+    font-size: 14px;
+    padding: 9px;
+    border-radius: 3px;
+    letter-spacing: 1px;
+    margin-top: 2px;
+  }
+  .dist-indicator.far  { color: #ff6644; background: rgba(255,80,0,0.08); border: 1px solid rgba(255,80,0,0.2); }
+  .dist-indicator.near { color: #ffcc44; background: rgba(255,200,0,0.08); border: 1px solid rgba(255,200,0,0.2); }
+  .dist-indicator.hit  { color: #00ffaa; background: rgba(0,255,170,0.1); border: 1px solid rgba(0,255,170,0.3); }
+
+  /* (success-modal removed - integrated into panel indicator) */
+</style>
+</head>
+<body class="day">
+
+<header>
+  <h1>⚡ Simulación Electrostática 3D</h1>
+  <span class="tag">LEY DE COULOMB</span>
+  <button id="btn-theme">☀️</button>
+</header>
+
+<div id="mode-tabs">
+  <button class="tab-btn active" data-mode="open">🔬 MODO ABIERTO</button>
+  <button class="tab-btn"        data-mode="partA">📏 PARTE A</button>
+  <button class="tab-btn"        data-mode="partB">🎯 PARTE B — RETO</button>
+</div>
+
+<div class="main">
+  <div id="canvas-container">
+    <canvas id="three"></canvas>
+    <div class="canvas-overlay">
+      <div class="hud-corner hud-tl" id="hud-medium"></div>
+      <div class="hud-corner hud-tr" id="hud-force-live"></div>
+      <div class="hud-corner hud-bl">DRAG: ROTAR · SCROLL: ZOOM</div>
+    </div>
+  </div>
+
+  <div class="panel">
+
+    <!-- MEDIO -->
+    <div>
+      <div class="section-title">MEDIO / PERMITIVIDAD</div>
+      <div class="info-row">
+        <span class="info-label">MEDIO:</span>
+        <span class="info-value yellow" id="med-name">—</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">ε_r (relativa):</span>
+        <span class="perm-badge" id="med-er">—</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">ε (F/m):</span>
+        <span class="info-value" id="med-eps">—</span>
+      </div>
+    </div>
+
+    <!-- REGLA -->
+    <div>
+      <div class="section-title">INSTRUMENTO DE MEDICIÓN</div>
+      <div class="info-row">
+        <span class="info-label">REGLA:</span>
+        <span class="ruler-badge" id="ruler-name">—</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">ERROR ALEATORIO:</span>
+        <span class="info-value orange" id="ruler-err">—</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">DIST. REAL (m):</span>
+        <span class="info-value" id="dist-real">—</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">DIST. MEDIDA (m):</span>
+        <span class="info-value yellow" id="dist-meas">—</span>
+      </div>
+      <div class="error-note" id="error-dir">—</div>
+    </div>
+
+    <!-- CARGA 1 -->
+    <div class="charge-card">
+      <div class="charge-header">
+        <div class="charge-dot" id="dot1"></div>
+        <span class="charge-name">CARGA Q₁</span>
+      </div>
+      <div class="slider-wrap">
+        <div class="slider-label">
+          <span>Valor (μC)</span>
+          <span id="q1-val">0</span>
+        </div>
+        <input type="range" id="q1" min="-10" max="10" step="0.5" value="3">
+      </div>
+      <div class="info-row" style="margin-top:6px">
+        <span class="info-label">TIPO:</span>
+        <span class="info-value" id="q1-type">—</span>
+      </div>
+    </div>
+
+    <!-- CARGA 2 -->
+    <div class="charge-card">
+      <div class="charge-header">
+        <div class="charge-dot" id="dot2"></div>
+        <span class="charge-name">CARGA Q₂</span>
+      </div>
+      <div class="slider-wrap">
+        <div class="slider-label">
+          <span>Valor (μC)</span>
+          <span id="q2-val">0</span>
+        </div>
+        <input type="range" id="q2" min="-10" max="10" step="0.5" value="-5">
+      </div>
+      <div class="info-row" style="margin-top:6px">
+        <span class="info-label">TIPO:</span>
+        <span class="info-value" id="q2-type">—</span>
+      </div>
+    </div>
+
+    <!-- DISTANCIA SLIDER -->
+    <div>
+      <div class="section-title">POSICIÓN DE CARGAS</div>
+      <div class="slider-wrap">
+        <div class="slider-label">
+          <span>Separación (m)</span>
+          <span id="sep-val">—</span>
+        </div>
+        <input type="range" id="sep" min="0.5" max="5" step="0.1" value="2">
+      </div>
+    </div>
+
+    <!-- RESULTADO FUERZA -->
+    <div class="result-box">
+      <div class="result-label">FUERZA ELÉCTRICA</div>
+      <div class="result-value" id="force-val">—</div>
+      <div class="result-unit">Newtons (N)</div>
+    </div>
+
+    <!-- RESULTADO DISTANCIA -->
+    <div class="result-box" style="background:rgba(255,200,0,0.06); border-color:rgba(255,200,0,0.25);">
+      <div class="result-label">DISTANCIA MEDIDA</div>
+      <div class="result-value" style="color:#ffcc00;animation:none;" id="dist-big">—</div>
+      <div class="result-unit">metros (m) · con error instrumental</div>
+    </div>
+
+    <!-- BOTONES -->
+    <button class="btn" id="btn-new">↻ NUEVO ESCENARIO</button>
+    <button class="btn" id="btn-cam">⊙ REINICIAR CÁMARA</button>
+    <button class="btn" id="btn-log">📋 REGISTRAR MEDICIÓN</button>
+    <button class="btn danger" id="btn-clear">✕ LIMPIAR REGISTRO</button>
+
+    <!-- REGISTRO -->
+    <div>
+      <div class="section-title">REGISTRO DE MEDICIONES</div>
+      <div style="overflow-x:auto;">
+        <table class="log-table" id="log-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>d_med (m)</th>
+              <th>F (N)</th>
+            </tr>
+          </thead>
+          <tbody id="log-body"></tbody>
+        </table>
+      </div>
+      <div class="scroll-note" style="margin-top:6px;">SCROLL PARA VER REGISTRO</div>
+    </div>
+
+    <button class="btn" id="btn-export">⬇ EXPORTAR CSV</button>
+
+  </div>
+</div>
+
+<!-- OVERLAY ZOOM PARTE A -->
+<div id="a-zoom-overlay" onclick="if(event.target===this)closeAZoom()">
+  <div id="a-zoom-box">
+    <canvas id="a-zoom-canvas"></canvas>
+    <button id="a-zoom-close" onclick="closeAZoom()">✕ Cerrar</button>
+    <div id="a-zoom-footer"></div>
+  </div>
+</div>
+
+<!-- MODAL EVIDENCIA -->
+<div id="evidence-modal">
+  <div id="evidence-canvas-wrap">
+    <canvas id="evidence-canvas"></canvas>
+    <div class="evidence-actions">
+      <button id="btn-evidence-download">⬇ DESCARGAR IMAGEN</button>
+      <button id="btn-evidence-close">✕ CERRAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- THREE.JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<script>
+// =====================
+// CONSTANTS & DATA
+// =====================
+const EPS0 = 8.854187817e-12; // F/m
+const K0 = 8.98755e9;         // N·m²/C²
+
+const MEDIA = [
+  { name: "VACÍO",          er: 1.0,   color: "#1a3a5c" },
+  { name: "AIRE SECO",      er: 1.0006,color: "#1a4060" },
+  { name: "ACEITE MINERAL", er: 2.2,   color: "#2a3010" },
+  { name: "AGUA PURA",      er: 80.4,  color: "#102050" },
+  { name: "VIDRIO COMÚN",   er: 7.5,   color: "#1a2a1a" },
+];
+
+const RULER_ERRORS = [0.01, 0.02, 0.05];
+
+// =====================
+// STATE
+// =====================
+let medium = MEDIA[0];
+let rulerError = 0.01;
+let errorSign  = 1;
+let logCount = 0;
+let lastQ1 = 3e-6;   // espejo de los sliders, accesible desde cualquier modo
+let lastQ2 = -5e-6;
+
+function pickRandom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function randomizeScenario() {
+  medium = pickRandom(MEDIA);
+  rulerError = pickRandom(RULER_ERRORS);
+  errorSign  = Math.random() < 0.5 ? 1 : -1;
+  updateAll();
+  updateBackground();
+}
+
+// =====================
+// THREE.JS SETUP
+// =====================
+const container = document.getElementById('canvas-container');
+const canvas = document.getElementById('three');
+
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x050a12);
+scene.fog = new THREE.FogExp2(0x050a12, 0.04);
+
+const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 200);
+camera.position.set(0, 4, 10);
+camera.lookAt(0, 0, 0);
+
+// Lighting
+const ambient = new THREE.AmbientLight(0x112233, 1.5);
+scene.add(ambient);
+
+const dirLight = new THREE.DirectionalLight(0x4499ff, 2);
+dirLight.position.set(5, 10, 5);
+dirLight.castShadow = true;
+scene.add(dirLight);
+
+const pointLight1 = new THREE.PointLight(0xff3355, 3, 20);
+scene.add(pointLight1);
+const pointLight2 = new THREE.PointLight(0x3366ff, 3, 20);
+scene.add(pointLight2);
+
+// Grid
+const gridHelper = new THREE.GridHelper(20, 20, 0x112233, 0x0a1828);
+// scene.add(gridHelper); // cuadrícula oculta
+
+// Axes helper (small)
+const axesHelper = new THREE.AxesHelper(2);
+axesHelper.position.set(-8, 0, -6);
+scene.add(axesHelper);
+
+// Charge spheres
+function makeSphere(color, radius) {
+  const geo = new THREE.SphereGeometry(radius, 64, 64);
+  const mat = new THREE.MeshPhysicalMaterial({
+    color: color,
+    emissive: color,
+    emissiveIntensity: 0.4,
+    metalness: 0.1,
+    roughness: 0.15,
+    transparent: true,
+    opacity: 0.92,
+  });
+  return new THREE.Mesh(geo, mat);
+}
+
+let sphere1 = makeSphere(0xff3344, 0.5);
+let sphere2 = makeSphere(0x3366ff, 0.5);
+sphere1.castShadow = true;
+sphere2.castShadow = true;
+scene.add(sphere1);
+scene.add(sphere2);
+
+// Glow rings
+function makeGlowRing(color) {
+  const geo = new THREE.TorusGeometry(0.7, 0.04, 8, 64);
+  const mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.4 });
+  return new THREE.Mesh(geo, mat);
+}
+
+let ring1 = makeGlowRing(0xff3344);
+let ring2 = makeGlowRing(0x3366ff);
+scene.add(ring1);
+scene.add(ring2);
+
+// Force arrow line
+const arrowMat = new THREE.LineBasicMaterial({ color: 0x00ffaa, linewidth: 2 });
+let arrowLine = null;
+
+// Distance ruler line
+const rulerMat = new THREE.LineBasicMaterial({ color: 0xffcc00, linewidth: 2 });
+let rulerLine = null;
+
+// Field lines (decorative arcs)
+let fieldLines = [];
+
+function clearFieldLines() {
+  fieldLines.forEach(l => {
+    l.geometry.dispose();
+    l.material.dispose();
+    scene.remove(l);
+  });
+  fieldLines = [];
+}
+
+function makeFieldLines(pos1, pos2, q1, q2) {
+  clearFieldLines();
+  const mid = new THREE.Vector3().addVectors(pos1, pos2).multiplyScalar(0.5);
+  const same = (q1 > 0 && q2 > 0) || (q1 < 0 && q2 < 0);
+
+  const n = 6;
+  for (let i = 0; i < n; i++) {
+    const angle = (i / n) * Math.PI * 2;
+    const pts = [];
+    const r = 0.6;
+    for (let t = 0; t <= 1; t += 0.02) {
+      const x = pos1.x + (pos2.x - pos1.x) * t;
+      const y = pos1.y + (pos2.y - pos1.y) * t + Math.sin(t * Math.PI) * r * (same ? -1 : 1);
+      const z = pos1.z + (pos2.z - pos1.z) * t + Math.cos(angle) * Math.sin(t * Math.PI) * r * (same ? -1 : 1);
+      pts.push(new THREE.Vector3(x, y, z));
+    }
+    const geo = new THREE.BufferGeometry().setFromPoints(pts);
+    const mat = new THREE.LineBasicMaterial({
+      color: same ? 0xff5566 : 0x55aaff,
+      transparent: true,
+      opacity: 0.25,
+    });
+    const line = new THREE.Line(geo, mat);
+    scene.add(line);
+    fieldLines.push(line);
+  }
+}
+
+// Orbit controls (manual)
+let isDragging = false;
+let prevMouse = { x: 0, y: 0 };
+let spherical = { theta: 0.3, phi: 1.0, r: 11 };
+
+canvas.addEventListener('mousedown', e => { if(currentMode!=='open')return; isDragging = true; prevMouse = { x: e.clientX, y: e.clientY }; });
+canvas.addEventListener('mouseup', () => { isDragging = false; });
+canvas.addEventListener('mousemove', e => {
+  if (!isDragging || currentMode!=='open') return;
+  const dx = e.clientX - prevMouse.x;
+  const dy = e.clientY - prevMouse.y;
+  spherical.theta -= dx * 0.005;
+  spherical.phi = Math.max(0.2, Math.min(Math.PI - 0.2, spherical.phi + dy * 0.005));
+  prevMouse = { x: e.clientX, y: e.clientY };
+});
+canvas.addEventListener('wheel', e => {
+  if(currentMode!=='open') return;
+  spherical.r = Math.max(4, Math.min(25, spherical.r + e.deltaY * 0.01));
+});
+
+// Touch support
+canvas.addEventListener('touchstart', e => {
+  if(currentMode!=='open') return;
+  isDragging = true;
+  prevMouse = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+});
+canvas.addEventListener('touchend', () => { isDragging = false; });
+canvas.addEventListener('touchmove', e => {
+  if (!isDragging || currentMode!=='open') return;
+  const dx = e.touches[0].clientX - prevMouse.x;
+  const dy = e.touches[0].clientY - prevMouse.y;
+  spherical.theta -= dx * 0.005;
+  spherical.phi = Math.max(0.2, Math.min(Math.PI - 0.2, spherical.phi + dy * 0.005));
+  prevMouse = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+});
+
+// Resize
+function resize() {
+  const w = container.clientWidth;
+  const h = container.clientHeight;
+  renderer.setSize(w, h);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+}
+window.addEventListener('resize', resize);
+resize();
+
+// =====================
+// PHYSICS
+// =====================
+function getValues() {
+  const q1 = parseFloat(document.getElementById('q1').value) * 1e-6;
+  const q2 = parseFloat(document.getElementById('q2').value) * 1e-6;
+  const sep = parseFloat(document.getElementById('sep').value);
+  return { q1, q2, sep };
+}
+
+function coulombForce(q1, q2, r, er) {
+  const eps = er * EPS0;
+  const k = 1 / (4 * Math.PI * eps);
+  return k * Math.abs(q1 * q2) / (r * r);
+}
+
+function measuredDistance(real, err) {
+  const sign = Math.random() < 0.5 ? 1 : -1;
+  return real + sign * err;
+}
+
+let currentMeasured = 0;
+let currentForce = 0;
+
+function updateAll() {
+  const { q1, q2, sep } = getValues();
+  lastQ1 = q1; lastQ2 = q2;
+
+  // Measured distance
+  currentMeasured = sep + errorSign * rulerError;
+  currentForce = coulombForce(q1, q2, sep, medium.er);
+
+  // Update UI labels
+  const q1uc = (q1 * 1e6).toFixed(1);
+  const q2uc = (q2 * 1e6).toFixed(1);
+  document.getElementById('q1-val').textContent = q1uc;
+  document.getElementById('q2-val').textContent = q2uc;
+  document.getElementById('sep-val').textContent = sep.toFixed(1) + ' m';
+
+  // Charge types
+  const t1 = q1 > 0 ? 'POSITIVA (+)' : q1 < 0 ? 'NEGATIVA (−)' : 'NEUTRA';
+  const t2 = q2 > 0 ? 'POSITIVA (+)' : q2 < 0 ? 'NEGATIVA (−)' : 'NEUTRA';
+  document.getElementById('q1-type').textContent = t1;
+  document.getElementById('q1-type').className = 'info-value ' + (q1 > 0 ? 'red' : q1 < 0 ? 'blue' : '');
+  document.getElementById('q2-type').textContent = t2;
+  document.getElementById('q2-type').className = 'info-value ' + (q2 > 0 ? 'red' : q2 < 0 ? 'blue' : '');
+
+  // Dot colors
+  document.getElementById('dot1').className = 'charge-dot ' + (q1 >= 0 ? 'pos' : 'neg');
+  document.getElementById('dot2').className = 'charge-dot ' + (q2 >= 0 ? 'pos' : 'neg');
+
+  // Medium
+  document.getElementById('med-name').textContent = medium.name;
+  document.getElementById('med-er').textContent = medium.er;
+  document.getElementById('med-eps').textContent = (medium.er * EPS0).toExponential(4);
+
+  // Ruler
+  document.getElementById('ruler-name').textContent = 'REGLA MÉTRICA';
+  document.getElementById('ruler-err').textContent = '± ' + rulerError + ' m';
+  document.getElementById('dist-real').textContent = sep.toFixed(3);
+  document.getElementById('dist-meas').textContent = currentMeasured.toFixed(3);
+
+  const diff = currentMeasured - sep;
+  document.getElementById('error-dir').textContent =
+    diff > 0 ? `▲ Sobreestimación: +${Math.abs(diff).toFixed(3)} m` :
+    diff < 0 ? `▼ Subestimación: −${Math.abs(diff).toFixed(3)} m` : `= Sin error esta vez`;
+
+  // Force
+  const fStr = currentForce.toExponential(4);
+  document.getElementById('force-val').textContent = fStr;
+  document.getElementById('dist-big').textContent = currentMeasured.toFixed(3) + ' m';
+
+  // HUD
+  document.getElementById('hud-medium').textContent = `MEDIO: ${medium.name} | ε_r=${medium.er}`;
+  document.getElementById('hud-force-live').innerHTML =
+    `F = ${currentForce.toExponential(3)} N<br>d = ${currentMeasured.toFixed(3)} m`;
+
+  // 3D scene
+  update3D(q1, q2, sep);
+}
+
+function update3D(q1, q2, sep) {
+  const half = sep / 2;
+  const x1 = -half;
+  const x2 = half;
+
+  // Sphere sizes (scale with charge magnitude, clamped)
+  const r1 = Math.max(0.15, Math.min(1.0, 0.2 + Math.abs(q1) * 1e6 * 0.07));
+  const r2 = Math.max(0.15, Math.min(1.0, 0.2 + Math.abs(q2) * 1e6 * 0.07));
+
+  // Update sphere positions
+  sphere1.position.set(x1, 0, 0);
+  sphere2.position.set(x2, 0, 0);
+
+  // Update sphere size
+  sphere1.scale.setScalar(r1 / 0.5);
+  sphere2.scale.setScalar(r2 / 0.5);
+
+  // Colors
+  const col1 = q1 >= 0 ? 0xff3344 : 0x3366ff;
+  const col2 = q2 >= 0 ? 0xff3344 : 0x3366ff;
+  sphere1.material.color.setHex(col1);
+  sphere1.material.emissive.setHex(col1);
+  sphere2.material.color.setHex(col2);
+  sphere2.material.emissive.setHex(col2);
+
+  // Point lights follow spheres
+  pointLight1.position.copy(sphere1.position);
+  pointLight1.color.setHex(col1);
+  pointLight2.position.copy(sphere2.position);
+  pointLight2.color.setHex(col2);
+
+  // Rings
+  ring1.position.copy(sphere1.position);
+  ring2.position.copy(sphere2.position);
+  ring1.scale.setScalar(r1 / 0.5);
+  ring2.scale.setScalar(r2 / 0.5);
+  ring1.material.color.setHex(col1);
+  ring2.material.color.setHex(col2);
+
+  // Force arrow / ruler line between spheres
+  if (rulerLine) { rulerLine.geometry.dispose(); scene.remove(rulerLine); rulerLine = null; }
+  const pts = [sphere1.position.clone(), sphere2.position.clone()];
+  const geo = new THREE.BufferGeometry().setFromPoints(pts);
+  rulerLine = new THREE.Line(geo, rulerMat);
+  scene.add(rulerLine);
+
+  // Field lines
+  // makeFieldLines(sphere1.position.clone(), sphere2.position.clone(), q1, q2);
+}
+
+function updateBackground() {
+  if (document.body.classList.contains('day')) {
+    scene.background = new THREE.Color(0xc0d8f0);
+    scene.fog = new THREE.FogExp2(0xc0d8f0, 0.03);
+  } else {
+    const c = new THREE.Color(medium.color || '#050a12');
+    c.lerp(new THREE.Color(0x050a12), 0.7);
+    scene.background = c;
+    scene.fog = new THREE.FogExp2(c.getHex(), 0.04);
+  }
+}
+
+// =====================
+// ANIMATION LOOP
+// =====================
+let time = 0;
+function animate() {
+  requestAnimationFrame(animate);
+  time += 0.016;
+
+  // Camera orbit
+  camera.position.x = spherical.r * Math.sin(spherical.phi) * Math.sin(spherical.theta);
+  camera.position.y = spherical.r * Math.cos(spherical.phi);
+  camera.position.z = spherical.r * Math.sin(spherical.phi) * Math.cos(spherical.theta);
+  camera.lookAt(0, 0, 0);
+
+  // Pulse rings
+  ring1.rotation.x = time * 0.8;
+  ring1.rotation.y = time * 0.5;
+  ring2.rotation.x = -time * 0.8;
+  ring2.rotation.z = time * 0.5;
+
+  // Pulse emissive
+  const pulse = (Math.sin(time * 2) * 0.2 + 0.4);
+  sphere1.material.emissiveIntensity = pulse;
+  sphere2.material.emissiveIntensity = pulse;
+
+  renderer.render(scene, camera);
+}
+animate();
+
+// =====================
+// EVENTS
+// =====================
+['q1', 'q2', 'sep'].forEach(id => {
+  document.getElementById(id).addEventListener('input', updateAll);
+});
+
+document.getElementById('btn-new').addEventListener('click', randomizeScenario);
+
+document.getElementById('btn-cam').addEventListener('click', () => {
+  spherical.theta = 0.3;
+  spherical.phi   = 1.0;
+  spherical.r     = 11;
+});
+
+document.getElementById('btn-log').addEventListener('click', () => {
+  logCount++;
+  const tbody = document.getElementById('log-body');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td>${logCount}</td>
+    <td>${currentMeasured.toFixed(3)}</td>
+    <td>${currentForce.toExponential(3)}</td>
+  `;
+  tbody.appendChild(tr);
+  // flash
+  tr.style.background = 'rgba(0,255,170,0.15)';
+  setTimeout(() => tr.style.background = '', 600);
+});
+
+document.getElementById('btn-clear').addEventListener('click', () => {
+  document.getElementById('log-body').innerHTML = '';
+  logCount = 0;
+});
+
+// =====================
+// INIT
+// =====================
+randomizeScenario();
+// Arrancar escena en modo día (body inicia con class="day")
+scene.background = new THREE.Color(0xc0d8f0);
+scene.fog = new THREE.FogExp2(0xc0d8f0, 0.03);
+
+// Botón día/noche
+document.getElementById('btn-theme').addEventListener('click', () => {
+  const day = document.body.classList.toggle('day');
+  document.getElementById('btn-theme').textContent = day ? '☀️' : '🌙';
+  if (day) {
+    scene.background = new THREE.Color(0xc0d8f0);
+    scene.fog = new THREE.FogExp2(0xc0d8f0, 0.03);
+  } else {
+    updateBackground();
+  }
+});
+
+// Exportar CSV (separador ; decimal , para Excel español, BOM UTF-8)
+document.getElementById('btn-export').addEventListener('click', () => {
+  const rows = document.getElementById('log-body').querySelectorAll('tr');
+  if (rows.length === 0) { alert('No hay mediciones para exportar.'); return; }
+  const dec = v => (v || '').replace('.', ',');
+  let csv = '#;d_med (m);F (N)\r\n';
+  rows.forEach(tr => {
+    const cells = Array.from(tr.querySelectorAll('td'));
+    csv += cells.map((td, i) => i === 0 ? td.textContent.trim() : dec(td.textContent.trim())).join(';') + '\r\n';
+  });
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'mediciones_electrostatica.csv';
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+});
+
+// =============================================
+// SISTEMA DE MODOS (PESTAÑAS)
+// =============================================
+let currentMode = 'open'; // 'open' | 'partA' | 'partB'
+
+// ── Referencias al panel original ──
+const panelEl       = document.querySelector('.panel');
+const originalPanel = panelEl.innerHTML; // guardamos el HTML original completo
+
+// ── Pestaña activa ──
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    switchMode(btn.dataset.mode);
+  });
+});
+
+function switchMode(mode) {
+  currentMode = mode;
+  if (mode === 'open') activateModeOpen();
+  else if (mode === 'partA') activateModeA();
+  else if (mode === 'partB') activateModeB();
+}
+
+// ─────────────────────────────────────────────
+// MODO ABIERTO — restaura panel original
+// ─────────────────────────────────────────────
+function activateModeOpen() {
+  panelEl.innerHTML = originalPanel;
+  rebindOriginalEvents();
+  randomizeScenario();
+}
+
+function rebindOriginalEvents() {
+  ['q1','q2','sep'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', updateAll);
+  });
+  const bNew   = document.getElementById('btn-new');
+  const bCam   = document.getElementById('btn-cam');
+  const bLog   = document.getElementById('btn-log');
+  const bClr   = document.getElementById('btn-clear');
+  const bExp   = document.getElementById('btn-export');
+
+  if (bNew) bNew.addEventListener('click', randomizeScenario);
+  if (bCam) bCam.addEventListener('click', () => { spherical.theta=0.3; spherical.phi=1.0; spherical.r=11; });
+  if (bLog) bLog.addEventListener('click', () => {
+    logCount++;
+    const tbody = document.getElementById('log-body');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${logCount}</td><td>${currentMeasured.toFixed(3)}</td><td>${currentForce.toExponential(3)}</td>`;
+    tbody.appendChild(tr);
+    tr.style.background = 'rgba(0,255,170,0.15)';
+    setTimeout(() => tr.style.background = '', 600);
+  });
+  if (bClr) bClr.addEventListener('click', () => { document.getElementById('log-body').innerHTML=''; logCount=0; });
+  if (bExp) bExp.addEventListener('click', () => {
+    const rows = document.getElementById('log-body').querySelectorAll('tr');
+    if (!rows.length) { alert('No hay mediciones.'); return; }
+    const dec = v => (v || '').replace('.', ',');
+    let csv = '#;d_med (m);F (N)\r\n';
+    rows.forEach(tr => {
+      const cells = Array.from(tr.querySelectorAll('td'));
+      csv += cells.map((td,i) => i===0 ? td.textContent.trim() : dec(td.textContent.trim())).join(';') + '\r\n';
+    });
+    const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href=url; a.download='mediciones_electrostatica.csv';
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
+  });
+}
+
+// ─────────────────────────────────────────────
+// PARTE A — Regla dorada estilo Simulador_Medidas
+// ─────────────────────────────────────────────
+let partA_logCount = 0;
+let a3dGroup = null;
+
+function activateModeA() {
+  const q1 = lastQ1, q2 = lastQ2;
+
+  // ── Panel HTML ──
+  panelEl.innerHTML = `
+    <div class="section-title">PARTE A — MEDICIÓN</div>
+
+    <div>
+      <div class="info-row"><span class="info-label">MEDIO:</span><span class="info-value yellow">${medium.name}</span></div>
+      <div class="info-row"><span class="info-label">ε_r:</span><span class="perm-badge">${medium.er}</span></div>
+      <div class="info-row"><span class="info-label">ERROR REGLA:</span><span class="info-value orange">± ${rulerError} m</span></div>
+      <div class="info-row"><span class="info-label">Q₁ (en x=0):</span><span class="info-value red">${(q1*1e6).toFixed(1)} μC</span></div>
+      <div class="info-row"><span class="info-label">Q₂ (móvil):</span><span class="info-value blue">${(q2*1e6).toFixed(1)} μC</span></div>
+    </div>
+
+    <div>
+      <div class="section-title" style="font-size:12px;margin-bottom:6px;">REGLA AMPLIFICADA</div>
+      <div id="ruler-canvas-wrap"><canvas id="ruler-canvas"></canvas></div>
+      <div class="ruler-zoom-btns">
+        <button id="a-ampliar" style="background:rgba(180,130,0,0.18);border:1px solid #b09000;color:#ffdd44;font-family:'Orbitron',sans-serif;font-size:12px;letter-spacing:1px;padding:8px;cursor:pointer;border-radius:2px;flex:1;">🔍 AMPLIAR</button>
+        <button id="a-zoom-in">🔍+ ZOOM</button>
+        <button id="a-zoom-out">🔍− ZOOM</button>
+        <button id="a-zoom-fit">↔ TODO</button>
+      </div>
+      <div style="display:none;">
+        <div style="font-size:12px;color:var(--dim);letter-spacing:1px;">LEE LA LÍNEA ROJA — DISTANCIA</div>
+        <div id="a-dist-big" style="font-family:'Orbitron',sans-serif;font-size:26px;color:#ffcc00;margin-top:2px;">—</div>
+        <div style="font-size:12px;color:var(--dim);">metros · con error ± ${rulerError} m</div>
+      </div>
+    </div>
+
+    <div class="result-box">
+      <div class="result-label">FUERZA COULOMB</div>
+      <div class="result-value" id="a-force">—</div>
+      <div class="result-unit">Newtons (N)</div>
+    </div>
+
+    <button class="btn" id="a-btn-log">📋 REGISTRAR</button>
+    <button class="btn danger" id="a-btn-clr">✕ LIMPIAR</button>
+
+    <div>
+      <div class="section-title" style="font-size:12px;">REGISTRO</div>
+      <div style="overflow-x:auto;">
+        <table class="log-table">
+          <thead><tr><th>#</th><th>d (m) — llenar</th><th>F (N)</th></tr></thead>
+          <tbody id="a-log-body"></tbody>
+        </table>
+      </div>
+      <div class="scroll-note" style="margin-top:4px;">SCROLL PARA VER REGISTRO</div>
+    </div>
+
+    <button class="btn" id="a-btn-export">⬇ EXPORTAR CSV</button>
+    <button class="btn" style="border-color:#00ffaa;color:#00ffaa;" id="a-btn-evidence">📸 EVIDENCIA</button>
+    <button class="btn" id="a-btn-cam">⊙ REINICIAR CÁMARA</button>
+  `;
+
+  // ── Estado 3D ──
+  const ZMAX = 5.0;
+  let userX = 2.0;
+  let measuredX = userX + (Math.random()<0.5?1:-1)*rulerError;
+
+  const col1 = q1 >= 0 ? 0xff3344 : 0x3366ff;
+  const col2 = q2 >= 0 ? 0xff3344 : 0x3366ff;
+  const r1s = Math.max(0.15, Math.min(0.9, 0.2 + Math.abs(q1)*1e6*0.07));
+  const r2s = Math.max(0.15, Math.min(0.9, 0.2 + Math.abs(q2)*1e6*0.07));
+
+  // ── Regla 3D ──
+  if (a3dGroup) { scene.remove(a3dGroup); }
+  a3dGroup = new THREE.Group();
+  scene.add(a3dGroup);
+
+  const rulerBodyGeo = new THREE.BoxGeometry(ZMAX + 0.5, 0.06, 0.06);
+  const rulerBodyMat = new THREE.MeshBasicMaterial({ color: 0xddcc44, transparent:true, opacity:0.35 });
+  const rulerBody = new THREE.Mesh(rulerBodyGeo, rulerBodyMat);
+  rulerBody.position.set((ZMAX+0.5)/2 - 0.25, 0, 0);
+  a3dGroup.add(rulerBody);
+
+  const axLinePts = [new THREE.Vector3(-0.3,0,0), new THREE.Vector3(ZMAX+0.3,0,0)];
+  const axLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints(axLinePts),
+    new THREE.LineBasicMaterial({color:0xffdd44, linewidth:2}));
+  a3dGroup.add(axLine);
+
+  function makeLabel(text, color) {
+    const cv = document.createElement('canvas');
+    cv.width = 128; cv.height = 64;
+    const ctx = cv.getContext('2d');
+    ctx.clearRect(0,0,128,64);
+    ctx.font = 'bold 28px monospace';
+    ctx.fillStyle = color || '#ffee88';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(text, 64, 32);
+    const tex = new THREE.CanvasTexture(cv);
+    const mat = new THREE.SpriteMaterial({map:tex, transparent:true, depthTest:false});
+    const sp = new THREE.Sprite(mat);
+    sp.scale.set(0.8, 0.4, 1);
+    return sp;
+  }
+
+  for (let x = 0; x <= ZMAX; x += 0.1) {
+    const xR = Math.round(x * 100) / 100;
+    const isM    = Math.abs(xR - Math.round(xR)) < 0.001;
+    const isHalf = Math.abs((xR * 10) % 5) < 0.01 && !isM;
+    const hw = isM ? 0.35 : isHalf ? 0.22 : 0.12;
+    const tickPts = [new THREE.Vector3(xR,-hw,0), new THREE.Vector3(xR,hw,0)];
+    const tickCol = isM ? 0xffdd44 : isHalf ? 0xaacc44 : 0x668833;
+    const tick = new THREE.Line(new THREE.BufferGeometry().setFromPoints(tickPts),
+      new THREE.LineBasicMaterial({color:tickCol}));
+    a3dGroup.add(tick);
+    if (isM) {
+      const lbl = makeLabel(xR.toFixed(0) + 'm', '#ffee88');
+      lbl.position.set(xR, 0.55, 0);
+      a3dGroup.add(lbl);
+    }
+  }
+
+  const endArr = [new THREE.Vector3(ZMAX+0.05,0,0), new THREE.Vector3(ZMAX+0.3,0,0)];
+  a3dGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(endArr),
+    new THREE.LineBasicMaterial({color:0xffdd44})));
+
+  let distLineGeo = new THREE.BufferGeometry().setFromPoints([
+    new THREE.Vector3(0,0,0), new THREE.Vector3(userX,0,0)]);
+  const distLineMat = new THREE.LineBasicMaterial({color:0xffcc00, linewidth:3});
+  let distLine3D = new THREE.Line(distLineGeo, distLineMat);
+  a3dGroup.add(distLine3D);
+
+  sphere1.position.set(0, 0, 0);
+  sphere2.position.set(userX, 0, 0);
+  sphere1.scale.setScalar(r1s/0.5); sphere2.scale.setScalar(r2s/0.5);
+  sphere1.material.color.setHex(col1); sphere1.material.emissive.setHex(col1);
+  sphere2.material.color.setHex(col2); sphere2.material.emissive.setHex(col2);
+  pointLight1.position.copy(sphere1.position); pointLight1.color.setHex(col1);
+  pointLight2.position.copy(sphere2.position); pointLight2.color.setHex(col2);
+  ring1.position.copy(sphere1.position); ring1.scale.setScalar(r1s/0.5); ring1.material.color.setHex(col1);
+  ring2.position.copy(sphere2.position); ring2.scale.setScalar(r2s/0.5); ring2.material.color.setHex(col2);
+  if (rulerLine) { rulerLine.geometry.dispose(); scene.remove(rulerLine); rulerLine = null; }
+
+  document.getElementById('hud-medium').textContent = `MEDIO: ${medium.name} | ε_r=${medium.er}`;
+  document.getElementById('hud-force-live').style.display = 'none';
+  document.querySelector('.hud-bl').textContent = 'ARRASTRA Q₂ → EJE X · SCROLL:ZOOM · SHIFT:ROTAR';
+
+  // ══════════════════════════════════════════════
+  //  RENDERIZADO DORADO — igual al Simulador_Medidas
+  // ══════════════════════════════════════════════
+  function renderRulerA(ctx, W, H, panM, pxPerM) {
+    const viewM  = W / pxPerM;
+    const startM = Math.max(-0.3, panM - viewM * 0.5);
+    const toX    = m => (m - startM) * pxPerM;
+
+    ctx.clearRect(0, 0, W, H);
+
+    // Fondo dorado idéntico al Simulador_Medidas
+    const bg = ctx.createLinearGradient(0, 0, 0, H);
+    bg.addColorStop(0,   '#f6e970');
+    bg.addColorStop(0.5, '#eee040');
+    bg.addColorStop(1,   '#d8c428');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = 'rgba(0,0,0,0.09)';
+    ctx.fillRect(0, 0, W, 4);
+    ctx.fillRect(0, H - 4, W, 4);
+    ctx.strokeStyle = '#8a6a00'; ctx.lineWidth = 1.5;
+    ctx.strokeRect(0.5, 0.5, W - 1, H - 1);
+
+    // Ticks adaptativos — orden fino→grueso para seleccionar el tick más detallado posible
+    const mSteps = [0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2];
+    const tickStep = mSteps.find(s => viewM / s <= 80) || 0.001;
+    const firstTick = Math.ceil(startM / tickStep) * tickStep;
+
+    for (let m = firstTick; m <= startM + viewM + tickStep; m = Math.round((m + tickStep) * 1e7) / 1e7) {
+      const x = toX(m);
+      if (x < -2 || x > W + 2) continue;
+      const e = 0.00005;
+      const isM    = Math.abs(m - Math.round(m))                                          < e;
+      const is50cm = !isM    && Math.abs(m*2   - Math.round(m*2))                         < e*2;
+      const is10cm = !isM    && !is50cm && Math.abs(m*10  - Math.round(m*10))             < e*10;
+      const is5cm  = !isM    && !is50cm && !is10cm && Math.abs(m*20  - Math.round(m*20))  < e*20;
+      const is1cm  = !isM    && !is50cm && !is10cm && !is5cm  && Math.abs(m*100 - Math.round(m*100)) < e*100;
+      const is5mm  = !isM    && !is50cm && !is10cm && !is5cm  && !is1cm && Math.abs(m*200 - Math.round(m*200)) < e*200;
+
+      let tickH, lw, tCol;
+      if      (isM)    { tickH = H*0.65; lw = 2.5; tCol = '#2a1800'; }
+      else if (is50cm) { tickH = H*0.50; lw = 2.0; tCol = '#3a2200'; }
+      else if (is10cm) { tickH = H*0.40; lw = 1.8; tCol = '#3a2800'; }
+      else if (is5cm)  { tickH = H*0.30; lw = 1.4; tCol = '#5a3e20'; }
+      else if (is1cm)  { tickH = H*0.22; lw = 1.2; tCol = '#6a5030'; }
+      else if (is5mm)  { tickH = H*0.15; lw = 1.0; tCol = '#8a7050'; }
+      else             { tickH = H*0.10; lw = 0.8; tCol = '#a08858'; }
+
+      ctx.strokeStyle = tCol; ctx.lineWidth = lw;
+      ctx.beginPath(); ctx.moveTo(x, H - 3); ctx.lineTo(x, H - 3 - tickH); ctx.stroke();
+    }
+
+    // Números adaptativos
+    const numStep = mSteps.find(s => viewM / s <= 8) || tickStep;
+    const decimals = numStep >= 1 ? 0 : numStep >= 0.1 ? 1 : numStep >= 0.01 ? 2 : 3;
+    const fs = Math.max(8, Math.min(16, Math.floor(pxPerM * numStep * 0.35)));
+    ctx.font = `bold ${fs}px Share Tech Mono, monospace`;
+    ctx.textBaseline = 'bottom'; ctx.fillStyle = '#3a2800';
+    const numFirst = Math.ceil(startM / numStep) * numStep;
+    for (let m = numFirst; m <= startM + viewM + numStep; m = Math.round((m + numStep) * 1e7) / 1e7) {
+      const x = toX(m);
+      if (x < 2 || x > W - 2) continue;
+      const e2 = 0.0001;
+      const isM2    = Math.abs(m - Math.round(m))                              < e2;
+      const is50c2  = !isM2   && Math.abs(m*2  - Math.round(m*2))             < e2*2;
+      const is10c2  = !isM2   && !is50c2 && Math.abs(m*10 - Math.round(m*10)) < e2*10;
+      const tH = isM2 ? H*0.65 : is50c2 ? H*0.50 : is10c2 ? H*0.40 : H*0.22;
+      // Etiqueta en mm cuando el paso es muy fino, en cm para pasos intermedios, en m para pasos grandes
+      const lbl = numStep < 0.005
+        ? (m * 1000).toFixed(0) + 'mm'
+        : numStep < 0.1
+          ? (m * 100).toFixed(numStep < 0.01 ? 0 : 1) + 'cm'
+          : m.toFixed(decimals) + 'm';
+      ctx.fillText(lbl, x + 2, H - 3 - tH - 1);
+    }
+
+    // Zona sombreada Q1 → Q2
+    const xq1 = toX(0);
+    const xq2 = toX(userX);
+    const xLeft  = Math.min(xq1, xq2);
+    const xRight = Math.max(xq1, xq2);
+    if (xRight > xLeft) {
+      ctx.fillStyle = 'rgba(255,30,0,0.10)';
+      ctx.fillRect(Math.max(0, xLeft), 0, Math.min(xRight, W) - Math.max(0, xLeft), H);
+    }
+
+    // Línea roja Q2 — idéntica a la línea roja de la cinta
+    if (xq2 >= -4 && xq2 <= W + 4) {
+      ctx.strokeStyle = '#ee0808'; ctx.lineWidth = 3.5;
+      ctx.beginPath(); ctx.moveTo(xq2, 0); ctx.lineTo(xq2, H); ctx.stroke();
+      ctx.fillStyle = '#ee0808';
+      ctx.beginPath(); ctx.moveTo(xq2, H); ctx.lineTo(xq2-7, H-16); ctx.lineTo(xq2+7, H-16); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(xq2, 0); ctx.lineTo(xq2-5, 12); ctx.lineTo(xq2+5, 12); ctx.fill();
+    }
+
+    // Línea azul discontinua Q1 en x=0
+    if (xq1 >= -4 && xq1 <= W + 4) {
+      ctx.strokeStyle = '#1144ff'; ctx.lineWidth = 2.5;
+      ctx.setLineDash([5, 3]);
+      ctx.beginPath(); ctx.moveTo(xq1, 0); ctx.lineTo(xq1, H); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = '#1144ff';
+      ctx.beginPath(); ctx.moveTo(xq1, H); ctx.lineTo(xq1-5, H-12); ctx.lineTo(xq1+5, H-12); ctx.fill();
+    }
+
+    // Etiqueta Q1
+    if (xq1 >= -20 && xq1 <= W + 20) {
+      ctx.fillStyle = 'rgba(17,68,255,0.88)';
+      ctx.fillRect(xq1 - 14, 3, 28, 15);
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 9px monospace';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('Q₁', xq1, 10);
+    }
+
+    // Etiqueta Q2
+    if (xq2 >= -20 && xq2 <= W + 20) {
+      ctx.fillStyle = 'rgba(238,8,8,0.88)';
+      ctx.fillRect(xq2 - 14, 3, 28, 15);
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 9px monospace';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('Q₂', xq2, 10);
+    }
+
+    // Etiqueta distancia medida
+    const midX  = (xq1 + xq2) / 2;
+    const safeX = Math.max(55, Math.min(W - 55, midX));
+    ctx.fillStyle = 'rgba(0,0,0,0.55)';
+    ctx.fillRect(safeX - 52, Math.round(H * 0.20), 104, 18);
+    ctx.fillStyle = '#ffeeaa';
+    ctx.font = `bold ${Math.min(13, Math.max(9, fs))}px Share Tech Mono, monospace`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(measuredX.toFixed(3) + ' m', safeX, Math.round(H * 0.20) + 9);
+
+    // Info zoom (esquina)
+    ctx.fillStyle = 'rgba(0,0,0,0.50)';
+    ctx.fillRect(2, 2, 190, 13);
+    ctx.fillStyle = '#ffeeaa';
+    ctx.font = '8px Share Tech Mono, monospace';
+    ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+    ctx.fillText(`${(viewM*100).toFixed(0)} cm visibles · arrastra/pellizca zoom`, 5, 3);
+  }
+
+  // ── Canvas del panel pequeño ──
+  const rWrap   = document.getElementById('ruler-canvas-wrap');
+  const rCanvas = document.getElementById('ruler-canvas');
+  const rCtx    = rCanvas.getContext('2d');
+
+  let smallPanM   = userX;       // centro de la vista (metros)
+  let smallPxPerM = 200;          // px por metro (muestra ticks de 10cm por defecto)
+
+  function redrawSmall() {
+    renderRulerA(rCtx, rCanvas.width, rCanvas.height, smallPanM, smallPxPerM);
+  }
+
+  function resizeRuler() {
+    rCanvas.width  = rWrap.clientWidth  || 260;
+    rCanvas.height = rWrap.clientHeight || 90;
+    redrawSmall();
+  }
+  new ResizeObserver(resizeRuler).observe(rWrap);
+  resizeRuler();
+
+  // Drag del panel pequeño
+  rCanvas.style.cursor = 'ew-resize';
+  let sDrag = false, sDragX = 0;
+  rCanvas.onmousedown = e => { sDrag = true; sDragX = e.clientX; };
+  rCanvas.onmousemove = e => {
+    if (!sDrag) return;
+    const dx = e.clientX - sDragX; sDragX = e.clientX;
+    smallPanM -= dx / smallPxPerM;
+    smallPanM = Math.max(0, Math.min(ZMAX + 1, smallPanM));
+    redrawSmall();
+  };
+  rCanvas.onmouseup = rCanvas.onmouseleave = () => { sDrag = false; };
+  rCanvas.onwheel = e => {
+    e.preventDefault();
+    smallPxPerM = Math.max(20, Math.min(600, smallPxPerM * (e.deltaY < 0 ? 1.15 : 0.87)));
+    redrawSmall();
+  };
+  // Touch del panel pequeño
+  let st1 = null, stDist = null;
+  rCanvas.addEventListener('touchstart', e => {
+    e.preventDefault();
+    if (e.touches.length === 1) { st1 = e.touches[0].clientX; stDist = null; }
+    else if (e.touches.length === 2) {
+      st1 = null;
+      stDist = Math.hypot(e.touches[1].clientX-e.touches[0].clientX, e.touches[1].clientY-e.touches[0].clientY);
+    }
+  }, {passive:false});
+  rCanvas.addEventListener('touchmove', e => {
+    e.preventDefault();
+    if (e.touches.length===1 && st1!==null) {
+      const dx = e.touches[0].clientX - st1; st1 = e.touches[0].clientX;
+      smallPanM -= dx / smallPxPerM;
+      smallPanM = Math.max(0, Math.min(ZMAX+1, smallPanM));
+      redrawSmall();
+    } else if (e.touches.length===2 && stDist!==null) {
+      const d = Math.hypot(e.touches[1].clientX-e.touches[0].clientX, e.touches[1].clientY-e.touches[0].clientY);
+      smallPxPerM = Math.max(20, Math.min(600, smallPxPerM*(d/stDist)));
+      stDist = d; redrawSmall();
+    }
+  }, {passive:false});
+  rCanvas.addEventListener('touchend', e=>{ e.preventDefault(); st1=null; stDist=null; },{passive:false});
+
+  // ── Overlay zoom GRANDE ──
+  let bigPanM   = userX;
+  let bigPxPerM = 200;
+
+  function openAZoom() {
+    const ov = document.getElementById('a-zoom-overlay');
+    const zc = document.getElementById('a-zoom-canvas');
+    const ft = document.getElementById('a-zoom-footer');
+    const mobile = window.innerWidth <= 640;
+    const maxW = mobile ? window.innerWidth : Math.min(window.innerWidth - 60, 960);
+    const H = mobile ? Math.round(window.innerHeight * 0.82) : 150;
+
+    ov.style.display = 'flex';
+    const zbox = document.getElementById('a-zoom-box');
+    if (mobile) {
+      zbox.style.cssText = 'width:100vw;height:100vh;border-radius:0;border:none;';
+    } else {
+      zbox.style.cssText = `width:${maxW}px;border-radius:10px;border:2px solid #2a4060;`;
+    }
+    zc.width = maxW; zc.height = H;
+    bigPanM   = userX;
+    bigPxPerM = mobile ? Math.round(maxW * 2.0) : 2000;
+    ft.textContent = mobile
+      ? '👆 Un dedo: desplazar · Dos dedos: zoom · Línea ROJA = Q₂'
+      : 'Arrastra ← → · Rueda del mouse = zoom · Línea ROJA = posición Q₂ · Lee la distancia';
+
+    const zCtx = zc.getContext('2d');
+    function redrawBig() { renderRulerA(zCtx, zc.width, zc.height, bigPanM, bigPxPerM); }
+    redrawBig();
+
+    zc.style.cursor = 'ew-resize';
+    let zDrag = false, zDragX = 0;
+    zc.onmousedown = e => { zDrag = true; zDragX = e.clientX; };
+    zc.onmousemove = e => {
+      if (!zDrag) return;
+      bigPanM -= (e.clientX - zDragX) / bigPxPerM; zDragX = e.clientX;
+      bigPanM = Math.max(0, Math.min(ZMAX + 1, bigPanM));
+      redrawBig();
+    };
+    zc.onmouseup = zc.onmouseleave = () => { zDrag = false; };
+    zc.onwheel = e => {
+      e.preventDefault();
+      bigPxPerM = Math.max(30, Math.min(3000, bigPxPerM * (e.deltaY < 0 ? 1.15 : 0.87)));
+      redrawBig();
+    };
+    let zt1 = null, ztDist = null;
+    zc.addEventListener('touchstart', e => {
+      e.preventDefault();
+      if (e.touches.length===1) { zt1=e.touches[0].clientX; ztDist=null; }
+      else if (e.touches.length===2) {
+        zt1=null;
+        ztDist=Math.hypot(e.touches[1].clientX-e.touches[0].clientX, e.touches[1].clientY-e.touches[0].clientY);
+      }
+    }, {passive:false});
+    zc.addEventListener('touchmove', e => {
+      e.preventDefault();
+      if (e.touches.length===1 && zt1!==null) {
+        bigPanM -= (e.touches[0].clientX-zt1)/bigPxPerM; zt1=e.touches[0].clientX;
+        bigPanM=Math.max(0,Math.min(ZMAX+1,bigPanM)); redrawBig();
+      } else if (e.touches.length===2 && ztDist!==null) {
+        const d=Math.hypot(e.touches[1].clientX-e.touches[0].clientX, e.touches[1].clientY-e.touches[0].clientY);
+        bigPxPerM=Math.max(30,Math.min(3000,bigPxPerM*(d/ztDist))); ztDist=d; redrawBig();
+      }
+    }, {passive:false});
+    zc.addEventListener('touchend', e=>{ e.preventDefault(); zt1=null; ztDist=null; },{passive:false});
+  }
+
+  window.closeAZoom = () => { document.getElementById('a-zoom-overlay').style.display='none'; };
+  document.getElementById('a-zoom-close').onclick = window.closeAZoom;
+
+  // ── updateA: refresca todo cuando cambia userX ──
+  function updateA() {
+    measuredX = Math.max(0.05, userX + (Math.random()<0.5?1:-1)*rulerError);
+    const force = coulombForce(q1, q2, userX, medium.er);
+
+    sphere2.position.set(userX, 0, 0);
+    ring2.position.set(userX, 0, 0);
+    pointLight2.position.set(userX, 0, 0);
+
+    a3dGroup.remove(distLine3D);
+    distLine3D.geometry.dispose();
+    distLineGeo = new THREE.BufferGeometry().setFromPoints([
+      new THREE.Vector3(0, 0.12, 0), new THREE.Vector3(userX, 0.12, 0)]);
+    distLine3D = new THREE.Line(distLineGeo, distLineMat);
+    a3dGroup.add(distLine3D);
+
+    document.getElementById('hud-force-live').innerHTML = `Q₂ en x=${userX.toFixed(3)} m<br>F=${force.toExponential(3)} N`;
+
+    const fEl = document.getElementById('a-force');
+    if (fEl) fEl.textContent = force.toExponential(4);
+    const dEl = document.getElementById('a-dist-big');
+    if (dEl) dEl.textContent = measuredX.toFixed(3) + ' m';
+
+    // Actualizar panel pequeño (centrado en Q2)
+    smallPanM = userX;
+    redrawSmall();
+
+    currentForce = force;
+    currentMeasured = measuredX;
+  }
+
+  // Botones zoom del panel pequeño
+  document.getElementById('a-zoom-in').addEventListener('click',  ()=>{ smallPxPerM=Math.min(600,smallPxPerM*2); redrawSmall(); });
+  document.getElementById('a-zoom-out').addEventListener('click', ()=>{ smallPxPerM=Math.max(20,smallPxPerM*0.5); redrawSmall(); });
+  document.getElementById('a-zoom-fit').addEventListener('click', ()=>{ smallPanM=Math.max(0.5,userX*1.4)/2; smallPxPerM=60; redrawSmall(); });
+  document.getElementById('a-ampliar').addEventListener('click',  openAZoom);
+
+  // Drag Q2 en canvas 3D
+  let a_drag=false, a_px=0, a_mode='x';
+  function a_screenToX(dx){ return dx/container.clientWidth*ZMAX*1.2; }
+  function a_onDown(x,y,shiftKey){ a_drag=true; a_px=x; a_mode=shiftKey?'orbit':'x'; }
+  function a_onUp(){ a_drag=false; }
+  function a_onMove(x,y){
+    if(!a_drag)return;
+    const dx=x-a_px, dy=y-a_py||0;
+    if(a_mode==='orbit'){
+      spherical.theta-=dx*0.005;
+      spherical.phi=Math.max(0.2,Math.min(Math.PI-0.2,spherical.phi+dy*0.005));
+    } else {
+      userX=Math.max(0.1,Math.min(ZMAX,userX+a_screenToX(dx)));
+      updateA();
+    }
+    a_px=x;
+  }
+  let a_py=0;
+  canvas._a_dn=e=>{a_onDown(e.clientX,e.clientY,e.shiftKey); a_py=e.clientY;};
+  canvas._a_up=()=>a_onUp();
+  canvas._a_mv=e=>a_onMove(e.clientX,e.clientY);
+  canvas._a_wh=e=>{spherical.r=Math.max(4,Math.min(25,spherical.r+e.deltaY*0.01));};
+  canvas._a_ts=e=>{ a_onDown(e.touches[0].clientX,e.touches[0].clientY,false); a_py=e.touches[0].clientY; e.preventDefault(); };
+  canvas._a_te=()=>a_onUp();
+  canvas._a_tm=e=>{ a_onMove(e.touches[0].clientX,e.touches[0].clientY); e.preventDefault(); };
+  canvas.addEventListener('mousedown',  canvas._a_dn);
+  canvas.addEventListener('mouseup',    canvas._a_up);
+  canvas.addEventListener('mousemove',  canvas._a_mv);
+  canvas.addEventListener('wheel',      canvas._a_wh);
+  canvas.addEventListener('touchstart', canvas._a_ts, {passive:false});
+  canvas.addEventListener('touchend',   canvas._a_te);
+  canvas.addEventListener('touchmove',  canvas._a_tm, {passive:false});
+
+  function removeAListeners(){
+    canvas.removeEventListener('mousedown',  canvas._a_dn);
+    canvas.removeEventListener('mouseup',    canvas._a_up);
+    canvas.removeEventListener('mousemove',  canvas._a_mv);
+    canvas.removeEventListener('wheel',      canvas._a_wh);
+    canvas.removeEventListener('touchstart', canvas._a_ts);
+    canvas.removeEventListener('touchend',   canvas._a_te);
+    canvas.removeEventListener('touchmove',  canvas._a_tm);
+    const bl=document.querySelector('.hud-bl');
+    if(bl) bl.textContent='DRAG: ROTAR · SCROLL: ZOOM';
+    document.getElementById('hud-force-live').style.display = '';
+    if(a3dGroup){ scene.remove(a3dGroup); a3dGroup=null; }
+    window.closeAZoom();
+  }
+  document.querySelectorAll('.tab-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{ if(currentMode!=='partA') removeAListeners(); },{once:true});
+  });
+
+  // Botones del panel
+  document.getElementById('a-btn-log').addEventListener('click',()=>{
+    partA_logCount++;
+    const tbody=document.getElementById('a-log-body');
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${partA_logCount}</td><td><input type="number" step="0.001" min="0" placeholder="—" title="Escribe la distancia leída en la regla"></td><td>${currentForce.toExponential(3)}</td>`;
+    tbody.appendChild(tr);
+    tr.style.background='rgba(0,255,170,0.15)';
+    setTimeout(()=>tr.style.background='',600);
+  });
+  document.getElementById('a-btn-clr').addEventListener('click',()=>{
+    document.getElementById('a-log-body').innerHTML=''; partA_logCount=0;
+  });
+  document.getElementById('a-btn-cam').addEventListener('click',()=>{ spherical.theta=0.0; spherical.phi=1.05; spherical.r=14; });
+  document.getElementById('a-btn-export').addEventListener('click',()=>{
+    const rows=document.getElementById('a-log-body').querySelectorAll('tr');
+    if(!rows.length){alert('No hay mediciones.');return;}
+    const dec=v=>(v||'').replace('.',',');
+    let csv='#;d_usuario (m);F (N)\r\n';
+    rows.forEach(tr=>{
+      const cells=Array.from(tr.querySelectorAll('td'));
+      const num  = cells[0].textContent.trim();
+      const inp  = cells[1].querySelector('input');
+      const dist = inp ? dec(inp.value.trim()) : '';
+      const force= dec(cells[2].textContent.trim());
+      csv+=`${num};${dist};${force}\r\n`;
+    });
+    const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a'); a.href=url; a.download='parteA_mediciones.csv';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+  });
+  document.getElementById('a-btn-evidence').addEventListener('click',()=>{
+    const rows=document.getElementById('a-log-body').querySelectorAll('tr');
+    const tableData=Array.from(rows).map(tr=>Array.from(tr.querySelectorAll('td')).map((td,i)=>{
+      if(i===1){ const inp=td.querySelector('input'); return inp ? inp.value.trim() : ''; }
+      return td.textContent.trim();
+    }));
+    generateEvidence({
+      mode:'PARTE A — MEDICIÓN CON REGLA (EJE X)',
+      lines:[
+        `Medio: ${medium.name}  |  ε_r: ${medium.er}`,
+        `Q₁: ${(q1*1e6).toFixed(1)} μC  (fija en x=0)`,
+        `Q₂: ${(q2*1e6).toFixed(1)} μC  (arrastrada en eje X)`,
+        `Error regla: ± ${rulerError} m`,
+        `Última distancia medida: ${measuredX.toFixed(3)} m`,
+        `Fuerza calculada: ${currentForce.toExponential(3)} N`,
+      ],
+      approved:true,
+      table:{headers:['#','d_usuario (m)','F (N)'],rows:tableData}
+    });
+  });
+
+  updateA();
+}
+
+// ─────────────────────────────────────────────
+// PARTE B — RETO: escribe distancia + valida
+// ─────────────────────────────────────────────
+let challengeSep   = 2.0;
+let challengeForce = 0;
+let challengeMed   = null;
+let challengeQ1    = 0;
+let challengeQ2    = 0;
+
+function activateModeB() {
+  challengeMed   = pickRandom(MEDIA);
+  challengeQ1    = pickRandom([1,2,3,4,5,6,7,8,-1,-2,-3,-4,-5,-6,-7,-8]) * 1e-6;
+  challengeQ2    = pickRandom([1,2,3,4,5,6,7,8,-1,-2,-3,-4,-5,-6,-7,-8]) * 1e-6;
+  challengeSep   = parseFloat((0.5 + Math.random() * 4.0).toFixed(2));
+  challengeForce = coulombForce(challengeQ1, challengeQ2, challengeSep, challengeMed.er);
+
+  let userSep  = 1.0;
+  const MAX_ATTEMPTS = 3;
+  let attempts = 0;      // intentos usados
+  let locked   = false;  // true cuando bloqueado (fallo o éxito)
+  let approved = false;
+
+  medium = challengeMed;
+  updateBackground();
+
+  // ── Render 3D ──
+  function renderB() {
+    const r1s = Math.max(0.15, Math.min(1.0, 0.2 + Math.abs(challengeQ1)*1e6*0.07));
+    const r2s = Math.max(0.15, Math.min(1.0, 0.2 + Math.abs(challengeQ2)*1e6*0.07));
+    const col1 = challengeQ1 >= 0 ? 0xff3344 : 0x3366ff;
+    const col2 = challengeQ2 >= 0 ? 0xff3344 : 0x3366ff;
+    sphere1.position.set(0, 0, 0);
+    sphere2.position.set(userSep, 0, 0);
+    sphere1.scale.setScalar(r1s/0.5); sphere2.scale.setScalar(r2s/0.5);
+    sphere1.material.color.setHex(col1); sphere1.material.emissive.setHex(col1);
+    sphere2.material.color.setHex(col2); sphere2.material.emissive.setHex(col2);
+    pointLight1.position.copy(sphere1.position); pointLight1.color.setHex(col1);
+    pointLight2.position.copy(sphere2.position); pointLight2.color.setHex(col2);
+    ring1.position.copy(sphere1.position); ring1.scale.setScalar(r1s/0.5); ring1.material.color.setHex(col1);
+    ring2.position.copy(sphere2.position); ring2.scale.setScalar(r2s/0.5); ring2.material.color.setHex(col2);
+    if (rulerLine) { rulerLine.geometry.dispose(); scene.remove(rulerLine); rulerLine = null; }
+    rulerLine = new THREE.Line(
+      new THREE.BufferGeometry().setFromPoints([sphere1.position.clone(), sphere2.position.clone()]),
+      rulerMat
+    );
+    scene.add(rulerLine);
+    document.getElementById('hud-medium').textContent = `MEDIO: ${challengeMed.name} | ε_r=${challengeMed.er}`;
+    document.getElementById('hud-force-live').innerHTML = `RETO · Q₂ en: ${userSep.toFixed(2)} m`;
+  }
+
+  // ── Actualiza los puntos de intento ──
+  function renderAttemptDots() {
+    const dots = document.getElementById('b-dots');
+    if (!dots) return;
+    let html = '';
+    for (let i = 0; i < MAX_ATTEMPTS; i++) {
+      if (i < attempts) {
+        html += approved && i === attempts - 1
+          ? `<span class="attempt-dot ok" title="Correcto"></span>`
+          : `<span class="attempt-dot used" title="Intento ${i+1}: incorrecto"></span>`;
+      } else {
+        html += `<span class="attempt-dot" title="Intento ${i+1} disponible"></span>`;
+      }
+    }
+    dots.innerHTML = html;
+    const lbl = document.getElementById('b-attempt-lbl');
+    if (lbl) {
+      if (locked && approved)    lbl.textContent = '✔ APROBADO';
+      else if (locked)           lbl.textContent = '✘ BLOQUEADO';
+      else                       lbl.textContent = `Intento ${attempts + 1} / ${MAX_ATTEMPTS}`;
+    }
+  }
+
+  // ── Verifica el intento actual ──
+  function verifyAttempt() {
+    if (locked) return;
+    const v = parseFloat(document.getElementById('b-input').value);
+    if (isNaN(v) || v < 0.1 || v > 5) { alert('Ingresa un valor entre 0.1 y 5 metros.'); return; }
+    userSep = v;
+    renderB();
+
+    attempts++;
+    const diff = Math.abs(userSep - challengeSep);
+    const ind  = document.getElementById('b-ind');
+    const hint = document.getElementById('b-hint');
+
+    if (diff <= 0.05) {
+      // ✅ APROBADO
+      approved = true;
+      locked   = true;
+      removeBListeners();
+      renderAttemptDots();
+      if (ind) { ind.className = 'dist-indicator approved'; ind.textContent = `✅ APROBADO RETO — ${userSep.toFixed(3)} m`; }
+      if (hint) hint.textContent = '';
+      // Actualizar el último punto a verde
+      const dots = document.querySelectorAll('#b-dots .attempt-dot');
+      if (dots[attempts-1]) { dots[attempts-1].classList.remove('used'); dots[attempts-1].classList.add('ok'); }
+      document.getElementById('b-verify-btn').disabled = true;
+      document.getElementById('b-verify-btn').style.opacity = '0.4';
+      const evidBtn = document.getElementById('b-evidence-btn');
+      if (evidBtn) { evidBtn.style.display = ''; }
+      document.getElementById('b-btn-nuevo').style.display = '';
+    } else {
+      // ❌ Incorrecto
+      renderAttemptDots();
+      if (attempts >= MAX_ATTEMPTS) {
+        // BLOQUEADO
+        locked = true;
+        removeBListeners();
+        if (ind) { ind.className = 'dist-indicator blocked'; ind.textContent = `🔒 BLOQUEADO — respuesta correcta: ${challengeSep.toFixed(2)} m`; }
+        if (hint) hint.textContent = `Tu respuesta: ${userSep.toFixed(2)} m · diferencia: ${diff.toFixed(3)} m`;
+        document.getElementById('b-verify-btn').disabled = true;
+        document.getElementById('b-verify-btn').style.opacity = '0.4';
+        document.getElementById('b-btn-nuevo').style.display = '';
+      } else {
+        const remaining = MAX_ATTEMPTS - attempts;
+        if (diff <= 0.4) {
+          if (ind) { ind.className = 'dist-indicator near'; ind.textContent = `↔ Cerca — diferencia: ${diff.toFixed(3)} m`; }
+          if (hint) hint.textContent = (userSep > challengeSep ? '◀ Mueve Q₂ hacia la izquierda' : '▶ Mueve Q₂ hacia la derecha') + ` · quedan ${remaining} intento${remaining!==1?'s':''}`;
+        } else {
+          if (ind) { ind.className = 'dist-indicator far'; ind.textContent = `↔ Diferencia: ${diff.toFixed(3)} m`; }
+          if (hint) hint.textContent = (userSep > challengeSep ? '◀ Mueve Q₂ hacia la izquierda' : '▶ Mueve Q₂ hacia la derecha') + ` · quedan ${remaining} intento${remaining!==1?'s':''}`;
+        }
+      }
+    }
+  }
+
+  // Drag Q2 (preview, no cuenta como intento)
+  let b_drag = false, b_px = 0;
+  canvas._b_dn = e => { if (!locked) { b_drag = true; b_px = e.clientX; } };
+  canvas._b_up = () => { b_drag = false; };
+  canvas._b_mv = e => {
+    if (!b_drag || locked) return;
+    userSep = Math.max(0.1, Math.min(5, userSep + (e.clientX - b_px) / container.clientWidth * 5));
+    b_px = e.clientX;
+    renderB();
+    const inp = document.getElementById('b-input');
+    if (inp) inp.value = userSep.toFixed(2);
+  };
+  canvas._b_ts = e => { if (!locked) { b_drag = true; b_px = e.touches[0].clientX; } e.preventDefault(); };
+  canvas._b_te = () => { b_drag = false; };
+  canvas._b_tm = e => {
+    if (!b_drag || locked) return;
+    userSep = Math.max(0.1, Math.min(5, userSep + (e.touches[0].clientX - b_px) / container.clientWidth * 5));
+    b_px = e.touches[0].clientX;
+    renderB();
+    const inp = document.getElementById('b-input');
+    if (inp) inp.value = userSep.toFixed(2);
+    e.preventDefault();
+  };
+  canvas.addEventListener('mousedown',  canvas._b_dn);
+  canvas.addEventListener('mouseup',    canvas._b_up);
+  canvas.addEventListener('mousemove',  canvas._b_mv);
+  canvas.addEventListener('touchstart', canvas._b_ts, {passive:false});
+  canvas.addEventListener('touchend',   canvas._b_te);
+  canvas.addEventListener('touchmove',  canvas._b_tm, {passive:false});
+
+  function removeBListeners() {
+    canvas.removeEventListener('mousedown',  canvas._b_dn);
+    canvas.removeEventListener('mouseup',    canvas._b_up);
+    canvas.removeEventListener('mousemove',  canvas._b_mv);
+    canvas.removeEventListener('touchstart', canvas._b_ts);
+    canvas.removeEventListener('touchend',   canvas._b_te);
+    canvas.removeEventListener('touchmove',  canvas._b_tm);
+  }
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => { if (currentMode !== 'partB') removeBListeners(); }, {once:true});
+  });
+
+  // ── Panel HTML ──
+  panelEl.innerHTML = `
+    <div class="section-title">PARTE B — RETO</div>
+    <p style="font-size:12px;color:var(--dim);line-height:1.8;letter-spacing:0.5px;">
+      Con los datos calcula la distancia y<br>
+      <strong style="color:var(--accent)">arrastra Q₂</strong> o escribe la distancia.<br>
+      Luego pulsa <strong style="color:var(--accent)">VERIFICAR</strong> para comprobar.<br>
+      Q₁ está fija en el origen (x = 0). Tienes <strong style="color:#ffcc44">${MAX_ATTEMPTS} intentos</strong>.
+    </p>
+
+    <div class="challenge-box">
+      <div class="section-title" style="font-size:10px;">DATOS DEL RETO</div>
+      <div class="chall-row"><span class="chall-lbl">FUERZA F:</span><span class="chall-val">${challengeForce.toExponential(4)} N</span></div>
+      <div class="chall-row"><span class="chall-lbl">MEDIO:</span><span class="chall-val">${challengeMed.name}</span></div>
+      <div class="chall-row"><span class="chall-lbl">ε_r:</span><span class="chall-val">${challengeMed.er}</span></div>
+      <div class="chall-row"><span class="chall-lbl">ε (F/m):</span><span class="chall-val">${(challengeMed.er*EPS0).toExponential(3)}</span></div>
+      <div class="chall-row"><span class="chall-lbl">Q₁:</span><span class="chall-val">${(challengeQ1*1e6).toFixed(1)} μC</span></div>
+      <div class="chall-row"><span class="chall-lbl">Q₂:</span><span class="chall-val">${(challengeQ2*1e6).toFixed(1)} μC</span></div>
+    </div>
+
+    <div>
+      <div class="section-title" style="font-size:10px;">TU RESPUESTA</div>
+      <p style="font-size:11px;color:var(--dim);margin-bottom:6px;">Escribe la distancia calculada o arrastra Q₂:</p>
+      <div class="verify-wrap">
+        <input type="number" id="b-input" placeholder="ej: 1.50" step="0.01" min="0.1" max="5" value="${userSep.toFixed(2)}">
+        <button id="b-verify-btn" style="background:var(--accent);border:none;color:#000;font-family:'Orbitron',sans-serif;font-size:12px;letter-spacing:1px;padding:10px 12px;cursor:pointer;border-radius:3px;white-space:nowrap;">✔ VERIFICAR</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="attempt-counter">
+        <span id="b-attempt-lbl">Intento 1 / ${MAX_ATTEMPTS}</span>
+        &nbsp;
+        <span id="b-dots"></span>
+      </div>
+      <div id="b-ind" class="dist-indicator far" style="display:none;">Arrastra Q₂ o escribe la distancia, luego verifica</div>
+      <div id="b-hint" style="display:none;font-size:11px;color:var(--dim);text-align:center;margin-top:4px;letter-spacing:0.5px;"></div>
+    </div>
+
+    <button class="btn" id="b-evidence-btn" style="border-color:#00ffaa;color:#00ffaa;display:none;">📸 TOMAR EVIDENCIA</button>
+    <button class="btn" id="b-btn-nuevo" style="display:none;">↻ NUEVO RETO</button>
+    <button class="btn" id="b-btn-cam">⊙ REINICIAR CÁMARA</button>
+  `;
+
+  renderAttemptDots();
+
+  document.getElementById('b-verify-btn').addEventListener('click', verifyAttempt);
+  document.getElementById('b-input').addEventListener('keydown', e => { if (e.key === 'Enter') verifyAttempt(); });
+  document.getElementById('b-btn-cam').addEventListener('click', () => { spherical.theta=0.3; spherical.phi=1.0; spherical.r=11; });
+  document.getElementById('b-btn-nuevo').addEventListener('click', () => { removeBListeners(); activateModeB(); });
+
+  document.getElementById('b-evidence-btn').addEventListener('click', () => {
+    generateEvidence({
+      mode: 'PARTE B — RETO',
+      lines: [
+        `Medio: ${challengeMed.name}  |  ε_r: ${challengeMed.er}`,
+        `Q₁: ${(challengeQ1*1e6).toFixed(1)} μC   Q₂: ${(challengeQ2*1e6).toFixed(1)} μC`,
+        `Fuerza dada: ${challengeForce.toExponential(3)} N`,
+        `Distancia correcta: ${challengeSep.toFixed(2)} m`,
+        `Tu respuesta: ${userSep.toFixed(2)} m`,
+        `Estado: APROBADO ✔`,
+      ],
+      approved: true,
+      table: null
+    });
+  });
+
+  renderB();
+}
+
+// ─────────────────────────────────────────────
+// GENERADOR DE EVIDENCIA (canvas 2D con captura 3D)
+// ─────────────────────────────────────────────
+function generateEvidence(info) {
+  // Forzamos un render del simulador para capturarlo
+  renderer.preserveDrawingBuffer = true;
+  renderer.render(scene, camera);
+  const sim3d = canvas.toDataURL('image/png');
+  renderer.preserveDrawingBuffer = false;
+
+  const ev = document.getElementById('evidence-canvas');
+  const W = 700, H = 520;
+  ev.width = W; ev.height = H;
+  const ctx = ev.getContext('2d');
+
+  const isDay = document.body.classList.contains('day');
+  const BG    = isDay ? '#ddeaf8' : '#050a12';
+  const FG    = isDay ? '#08192e' : '#c8e8ff';
+  const ACC   = isDay ? '#005fa8' : '#00c8ff';
+  const GREEN = isDay ? '#006838' : '#00ffaa';
+
+  // Fondo
+  ctx.fillStyle = BG;
+  ctx.fillRect(0, 0, W, H);
+
+  // Borde
+  ctx.strokeStyle = GREEN;
+  ctx.lineWidth = 3;
+  ctx.strokeRect(4, 4, W-8, H-8);
+
+  // Header
+  ctx.fillStyle = GREEN;
+  ctx.fillRect(0, 0, W, 46);
+  ctx.fillStyle = BG;
+  ctx.font = 'bold 14px Orbitron, monospace';
+  ctx.textAlign = 'left';
+  ctx.fillText('⚡ SIMULACIÓN ELECTROSTÁTICA 3D', 16, 30);
+  ctx.font = '11px Share Tech Mono, monospace';
+  ctx.textAlign = 'right';
+  ctx.fillText(new Date().toLocaleString('es-CO'), W-16, 30);
+
+  // Modo
+  ctx.fillStyle = ACC;
+  ctx.font = 'bold 12px Orbitron, monospace';
+  ctx.textAlign = 'left';
+  ctx.fillText(info.mode, 16, 65);
+
+  // Captura 3D (izquierda)
+  const img = new Image();
+  img.onload = () => {
+    ctx.drawImage(img, 12, 76, 330, 200);
+    ctx.strokeStyle = ACC;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(12, 76, 330, 200);
+
+    // Datos del ejercicio (derecha)
+    const DX = 358, DY = 76;
+    ctx.fillStyle = isDay ? 'rgba(0,80,160,0.06)' : 'rgba(0,200,255,0.05)';
+    ctx.fillRect(DX-4, DY-4, W-DX, 210);
+    ctx.strokeStyle = isDay ? 'rgba(0,80,160,0.2)' : 'rgba(0,200,255,0.15)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(DX-4, DY-4, W-DX, 210);
+
+    ctx.font = 'bold 10px Orbitron, monospace';
+    ctx.fillStyle = ACC;
+    ctx.textAlign = 'left';
+    ctx.fillText('DATOS DEL EJERCICIO', DX, DY+12);
+
+    ctx.font = '12px Share Tech Mono, monospace';
+    info.lines.forEach((line, i) => {
+      ctx.fillStyle = i % 2 === 0 ? FG : isDay ? '#005fa8' : '#00c8ff';
+      ctx.fillText(line, DX, DY + 34 + i * 20);
+    });
+
+    // Tabla si existe
+    if (info.table && info.table.rows.length > 0) {
+      const TY = 296;
+      ctx.font = 'bold 10px Orbitron, monospace';
+      ctx.fillStyle = ACC;
+      ctx.fillText('REGISTRO DE MEDICIONES', 16, TY);
+      const cols = info.table.headers.length;
+      const colW = (W - 32) / cols;
+      ctx.font = 'bold 10px Share Tech Mono, monospace';
+      ctx.fillStyle = isDay ? 'rgba(0,80,160,0.1)' : 'rgba(0,200,255,0.08)';
+      ctx.fillRect(16, TY+6, W-32, 18);
+      info.table.headers.forEach((h, i) => {
+        ctx.fillStyle = ACC;
+        ctx.fillText(h, 20 + i * colW, TY+18);
+      });
+      info.table.rows.slice(0, 6).forEach((row, ri) => {
+        if (ri % 2 === 0) {
+          ctx.fillStyle = isDay ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.02)';
+          ctx.fillRect(16, TY+24+ri*18, W-32, 18);
+        }
+        row.forEach((cell, ci) => {
+          ctx.fillStyle = FG;
+          ctx.font = '11px Share Tech Mono, monospace';
+          ctx.fillText(cell, 20 + ci * colW, TY+36+ri*18);
+        });
+      });
+    }
+
+    // SELLO APROBADO
+    if (info.approved) {
+      const SX = W - 130, SY = H - 110;
+      ctx.save();
+      ctx.translate(SX, SY);
+      ctx.rotate(-0.3);
+      ctx.strokeStyle = GREEN;
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.roundRect(-55, -24, 110, 48, 6);
+      ctx.stroke();
+      ctx.fillStyle = GREEN;
+      ctx.font = 'bold 20px Orbitron, monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('APROBADO', 0, 7);
+      ctx.font = '10px Share Tech Mono, monospace';
+      ctx.fillText('✔ EJERCICIO COMPLETADO', 0, 24);
+      ctx.restore();
+    }
+
+    // Footer
+    ctx.fillStyle = isDay ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.06)';
+    ctx.fillRect(0, H-28, W, 28);
+    ctx.fillStyle = isDay ? '#456070' : '#4a7090';
+    ctx.font = '9px Share Tech Mono, monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('Simulación Electrostática 3D — Ley de Coulomb', W/2, H-10);
+
+    // Mostrar modal
+    document.getElementById('evidence-modal').classList.add('show');
+  };
+  img.src = sim3d;
+
+  // Botones del modal de evidencia
+  document.getElementById('btn-evidence-download').onclick = () => {
+    const a = document.createElement('a');
+    a.download = 'evidencia_electrostatica.png';
+    a.href = ev.toDataURL('image/png');
+    a.click();
+  };
+  document.getElementById('btn-evidence-close').onclick = () => {
+    document.getElementById('evidence-modal').classList.remove('show');
+  };
+}
+
+</script>
+</body>
+</html>

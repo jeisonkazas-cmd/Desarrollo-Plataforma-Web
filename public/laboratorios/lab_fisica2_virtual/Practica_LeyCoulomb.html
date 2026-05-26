@@ -1,0 +1,1485 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Práctica de Laboratorio — Ley de Coulomb</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>
+  MathJax = {
+    tex: { inlineMath: [['$','$'],['\\(','\\)']], displayMath: [['$$','$$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+  :root {
+    --ink:       #1a1a2e;
+    --ink-soft:  #3d3d5c;
+    --ink-muted: #7a7a9a;
+    --paper:     #faf8f3;
+    --paper-alt: #f2ede3;
+    --rule:      #d4c9b0;
+    --accent:    #1a5276;
+    --accent2:   #c0392b;
+    --gold:      #b8860b;
+    --green:     #1e8449;
+    --mono:      'JetBrains Mono', monospace;
+    --serif:     'Source Serif 4', Georgia, serif;
+    --display:   'Playfair Display', Georgia, serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: #dde3e8;
+    font-family: var(--serif);
+    color: var(--ink);
+    font-size: 15px;
+    line-height: 1.75;
+    min-height: 100vh;
+    padding: 30px 15px 80px;
+  }
+  .documento {
+    max-width: 860px;
+    margin: 0 auto;
+    background: var(--paper);
+    box-shadow: 0 2px 4px rgba(0,0,0,.08), 0 8px 32px rgba(0,0,0,.14), 0 20px 60px rgba(0,0,0,.08);
+    position: relative;
+    overflow-x: hidden;
+  }
+  .documento::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 5px;
+    background: linear-gradient(180deg, var(--accent) 0%, var(--accent2) 50%, var(--gold) 100%);
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--ink);
+    color: #fff;
+    padding: 36px 50px 30px 55px;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::after {
+    content: 'F';
+    font-family: var(--display);
+    font-size: 300px;
+    font-weight: 700;
+    color: rgba(255,255,255,.04);
+    position: absolute;
+    right: -10px; top: -60px;
+    line-height: 1;
+    pointer-events: none;
+    user-select: none;
+  }
+  .header-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    gap: 20px;
+  }
+  .badge-codigo {
+    font-family: var(--mono);
+    font-size: .7em;
+    background: var(--accent);
+    color: #fff;
+    padding: 3px 10px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+  .badge-tipo {
+    font-family: var(--mono);
+    font-size: .7em;
+    color: rgba(255,255,255,.5);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    border: 1px solid rgba(255,255,255,.15);
+    padding: 3px 10px;
+  }
+  .header h1 {
+    font-family: var(--display);
+    font-size: 2.1em;
+    font-weight: 700;
+    line-height: 1.2;
+    color: #fff;
+    margin-bottom: 6px;
+  }
+  .header h1 em {
+    font-style: italic;
+    color: rgba(255,255,255,.65);
+    font-size: .82em;
+  }
+  .header-sub {
+    font-size: .82em;
+    color: rgba(255,255,255,.45);
+    font-weight: 300;
+    letter-spacing: .04em;
+    margin-top: 4px;
+  }
+  .header-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 24px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,.12);
+  }
+  .field-item label {
+    display: block;
+    font-family: var(--mono);
+    font-size: .65em;
+    color: rgba(255,255,255,.4);
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    margin-bottom: 4px;
+  }
+  .field-item input[type="text"],
+  .field-item input[type="date"] {
+    width: 100%;
+    background: rgba(255,255,255,.07);
+    border: none;
+    border-bottom: 1px solid rgba(255,255,255,.25);
+    color: #fff;
+    font-family: var(--serif);
+    font-size: .9em;
+    padding: 4px 0;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .field-item input:focus { border-bottom-color: var(--accent2); }
+  .field-item input::placeholder { color: rgba(255,255,255,.2); }
+
+  /* ── BODY ── */
+  .body { padding: 44px 50px 50px 55px; }
+  .seccion { margin-bottom: 42px; }
+  .seccion-titulo {
+    font-family: var(--display);
+    font-size: 1.15em;
+    font-weight: 600;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--rule);
+  }
+  .seccion-titulo .num {
+    font-family: var(--mono);
+    font-size: .75em;
+    color: var(--accent);
+    background: #e8f0f7;
+    padding: 2px 7px;
+    letter-spacing: .05em;
+    min-width: 36px;
+    text-align: center;
+  }
+  .subseccion-titulo {
+    font-family: var(--display);
+    font-size: 1em;
+    font-weight: 600;
+    color: var(--accent);
+    margin: 22px 0 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .subseccion-titulo::before {
+    content: '';
+    width: 14px; height: 2px;
+    background: var(--accent);
+    display: inline-block;
+    flex-shrink: 0;
+  }
+  p { margin-bottom: 10px; color: var(--ink-soft); font-size: .95em; }
+  p:last-child { margin-bottom: 0; }
+
+  /* ── RESUMEN ── */
+  .resumen-box {
+    background: var(--paper-alt);
+    border-left: 3px solid var(--accent);
+    padding: 16px 20px;
+    font-size: .9em;
+    font-style: italic;
+    color: var(--ink-soft);
+    line-height: 1.7;
+  }
+
+  /* ── OBJETIVOS ── */
+  .objetivos-lista { list-style: none; padding: 0; }
+  .objetivos-lista li {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 8px 0;
+    border-bottom: 1px dashed var(--rule);
+    font-size: .93em;
+    color: var(--ink-soft);
+  }
+  .objetivos-lista li:last-child { border-bottom: none; }
+  .objetivos-lista li .obj-num {
+    font-family: var(--mono);
+    font-size: .75em;
+    color: #fff;
+    background: var(--accent);
+    min-width: 22px; height: 22px;
+    display: flex; align-items: center; justify-content: center;
+    margin-top: 2px; flex-shrink: 0;
+  }
+
+  /* ── FÓRMULAS ── */
+  .formula-box {
+    background: var(--ink);
+    color: #fff;
+    padding: 18px 24px;
+    margin: 18px 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .formula-box::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--accent2);
+  }
+  .formula-box .formula-label {
+    font-family: var(--mono);
+    font-size: .65em;
+    color: rgba(255,255,255,.4);
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    margin-bottom: 10px;
+  }
+  .formula-main { font-size: 1.2em; text-align: center; padding: 6px 0; }
+  .formula-num {
+    font-family: var(--mono);
+    font-size: .65em;
+    color: rgba(255,255,255,.35);
+    text-align: right;
+    margin-top: 6px;
+  }
+
+  /* ── TABLA DATOS ── */
+  .tabla-resultados {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .86em;
+    margin: 14px 0;
+  }
+  .tabla-resultados th {
+    background: var(--ink);
+    color: #fff;
+    font-family: var(--mono);
+    font-size: .7em;
+    letter-spacing: .07em;
+    padding: 9px 12px;
+    text-align: center;
+    font-weight: 500;
+    border: 1px solid #444;
+  }
+  .tabla-resultados td {
+    padding: 7px 10px;
+    border: 1px solid var(--rule);
+    text-align: center;
+    color: var(--ink-soft);
+    vertical-align: middle;
+  }
+  .tabla-resultados td.input-cell { padding: 3px 4px; }
+  .tabla-resultados input[type="text"] {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid var(--rule);
+    background: transparent;
+    font-family: var(--mono);
+    font-size: .88em;
+    color: var(--ink);
+    padding: 4px 4px;
+    text-align: center;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .tabla-resultados input:focus { border-bottom-color: var(--accent); }
+  .tabla-resultados tr:nth-child(even) td { background: var(--paper-alt); }
+  .tabla-resultados .row-label {
+    font-family: var(--mono);
+    font-size: .82em;
+    font-weight: 500;
+    color: var(--accent);
+  }
+
+  /* ── PASOS ── */
+  .paso { display: flex; gap: 16px; margin-bottom: 20px; align-items: flex-start; }
+  .paso-num {
+    font-family: var(--mono); font-size: .8em;
+    background: var(--accent); color: #fff;
+    min-width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 2px;
+  }
+  .paso-content { flex: 1; }
+  .paso-content p { margin-bottom: 6px; }
+
+  /* ── ÁREA DE TRABAJO ── */
+  .trabajo-area {
+    width: 100%; min-height: 110px;
+    border: 1px solid var(--rule);
+    background: #fff;
+    font-family: var(--serif);
+    font-size: .9em; color: var(--ink);
+    padding: 14px 16px; resize: vertical; outline: none;
+    line-height: 1.8; transition: border-color .2s; display: block;
+  }
+  .trabajo-area:focus { border-color: var(--accent); }
+  .trabajo-area::placeholder { color: #bbb; font-style: italic; }
+  .area-label {
+    font-family: var(--mono); font-size: .68em;
+    color: var(--ink-muted); text-transform: uppercase;
+    letter-spacing: .1em; margin-bottom: 5px; margin-top: 14px; display: block;
+  }
+
+  /* ── NOTA ── */
+  .nota {
+    background: #fef9e7;
+    border-left: 3px solid var(--gold);
+    padding: 10px 16px;
+    font-size: .85em; color: #7d6608;
+    margin: 14px 0; font-style: italic;
+  }
+  .nota strong { font-style: normal; color: var(--gold); }
+
+  /* ── CAJAS DE RESULTADO ── */
+  .result-box {
+    background: var(--paper-alt);
+    border: 1px solid var(--rule);
+    padding: 16px 20px; margin: 14px 0;
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  .result-box.col2 { grid-template-columns: 1fr 1fr; }
+  .result-box.col4 { grid-template-columns: repeat(4, 1fr); }
+  .result-box.col5 { grid-template-columns: repeat(5, 1fr); }
+  @media(max-width:600px) {
+    .result-box, .result-box.col2, .result-box.col4, .result-box.col5 { grid-template-columns: 1fr 1fr; }
+  }
+  .res-campo label {
+    font-family: var(--mono); font-size: .63em;
+    color: var(--ink-muted); text-transform: uppercase;
+    letter-spacing: .1em; display: block; margin-bottom: 5px;
+  }
+  .res-campo input[type="text"] {
+    width: 100%; border: none;
+    border-bottom: 2px solid var(--rule);
+    background: transparent; font-family: var(--mono);
+    font-size: 1em; color: var(--ink); padding: 4px 0;
+    outline: none; transition: border-color .2s; text-align: center;
+  }
+  .res-campo input:focus { border-bottom-color: var(--accent); }
+
+  /* ── RANGOS ── */
+  .rango-tabla {
+    width: 100%; border-collapse: collapse;
+    font-size: .85em; margin: 12px 0;
+  }
+  .rango-tabla th {
+    background: var(--ink); color: #fff;
+    font-family: var(--mono); font-size: .68em;
+    padding: 7px 12px; letter-spacing: .08em; text-align: center;
+  }
+  .rango-tabla td {
+    padding: 6px 12px; border: 1px solid var(--rule);
+    text-align: center; font-size: .88em;
+  }
+  .rango-tabla .bueno { color: var(--green); font-weight: 600; }
+  .rango-tabla .medio { color: var(--gold); font-weight: 600; }
+  .rango-tabla .malo  { color: var(--accent2); font-weight: 600; }
+
+  /* ── GRÁFICA ── */
+  .grafica-box {
+    border: 1px solid var(--rule);
+    background: #fff; margin: 14px 0;
+    overflow: hidden;
+  }
+  .grafica-header {
+    background: var(--ink); color: #fff;
+    padding: 8px 16px;
+    font-family: var(--mono); font-size: .68em;
+    letter-spacing: .1em; text-transform: uppercase;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .grafica-canvas {
+    display: block; width: 100%;
+    background: #fafafa;
+  }
+  .grafica-controles {
+    padding: 10px 16px;
+    border-top: 1px solid var(--rule);
+    display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+  }
+  .btn-ctrl {
+    font-family: var(--mono); font-size: .7em;
+    padding: 5px 12px; border: 1px solid var(--rule);
+    background: var(--paper-alt); color: var(--ink-soft);
+    cursor: pointer; transition: all .2s; letter-spacing: .05em;
+  }
+  .btn-ctrl:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-ctrl.activo { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .grafica-info {
+    font-family: var(--mono); font-size: .75em;
+    color: var(--ink-muted); flex: 1; text-align: right;
+  }
+
+  /* ── DIVIDER ── */
+  .divider {
+    display: flex; align-items: center; gap: 12px;
+    margin: 28px 0 18px;
+    font-family: var(--mono); font-size: .68em;
+    color: var(--ink-muted); text-transform: uppercase; letter-spacing: .1em;
+  }
+  .divider::before, .divider::after {
+    content: ''; flex: 1; height: 1px; background: var(--rule);
+  }
+
+  /* ── ADJUNTO ── */
+  .adjunto-slot {
+    border: 2px dashed var(--rule);
+    padding: 24px; text-align: center;
+    cursor: pointer; position: relative;
+    transition: border-color .2s; margin-top: 8px;
+  }
+  .adjunto-slot:hover { border-color: var(--accent); }
+  .adjunto-slot input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%;
+  }
+  .slot-icon { display: block; font-size: 1.8em; margin-bottom: 6px; }
+  .slot-label { display: block; font-family: var(--mono); font-size: .75em; color: var(--ink-soft); }
+  .slot-hint  { display: block; font-size: .72em; color: var(--ink-muted); margin-top: 4px; }
+  .preview-img {
+    display: none; max-width: 100%; margin-top: 14px;
+    border: 1px solid var(--rule);
+  }
+
+  /* ── RETO ── */
+  .reto-header {
+    background: var(--ink); color: #fff;
+    padding: 16px 20px; display: flex; gap: 16px; align-items: flex-start;
+    margin-bottom: 0;
+  }
+  .reto-header h4 { font-family: var(--display); font-size: 1em; margin-bottom: 4px; }
+  .reto-header p  { font-size: .82em; color: rgba(255,255,255,.55); margin: 0; }
+  .reto-badge {
+    font-family: var(--mono); font-size: .65em;
+    background: var(--accent2); color: #fff;
+    padding: 3px 8px; letter-spacing: .1em; white-space: nowrap; margin-top: 3px;
+  }
+  .reto-body { border: 1px solid var(--rule); padding: 20px; border-top: none; }
+
+  /* ── FIRMA ── */
+  .firma-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 30px; }
+  .firma-slot {
+    text-align: center; padding-top: 50px;
+    border-top: 1px solid var(--rule);
+    font-family: var(--mono); font-size: .68em;
+    color: var(--ink-muted); text-transform: uppercase; letter-spacing: .08em;
+  }
+
+  /* ── BTN IMPRIMIR ── */
+  .btn-imprimir {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--accent); color: #fff; border: none;
+    padding: 12px 22px; font-family: var(--mono);
+    font-size: .75em; letter-spacing: .1em; text-transform: uppercase;
+    cursor: pointer; box-shadow: 0 4px 16px rgba(26,82,118,.35);
+    transition: transform .15s, box-shadow .15s; z-index: 100;
+  }
+  .btn-imprimir:hover { transform: translateY(-2px); box-shadow: 0 6px 22px rgba(26,82,118,.45); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 680px) {
+    body { padding: 10px 0 40px; }
+    .documento { border-radius: 0; }
+    .header { padding: 22px 18px 20px 22px; }
+    .header::after { font-size: 160px; }
+    .header h1 { font-size: 1.4em !important; }
+    .header-meta { flex-direction: column; gap: 8px; }
+    .header-fields { grid-template-columns: 1fr !important; gap: 10px 0; }
+    .body { padding: 22px 16px 28px 20px; }
+    .tabla-resultados, .rango-tabla { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .result-box, .result-box.col2, .result-box.col4, .result-box.col5 { grid-template-columns: 1fr 1fr !important; }
+    .firma-grid { grid-template-columns: 1fr !important; gap: 20px; }
+    .paso { gap: 10px; }
+    .reto-header { padding: 12px 14px; gap: 10px; }
+    .reto-header h4 { font-size: .9em; }
+    .reto-body { padding: 14px; }
+    .grafica-controles { gap: 6px; flex-wrap: wrap; }
+    .btn-ctrl { font-size: .65em; padding: 4px 8px; }
+    .seccion-titulo { font-size: 1em; gap: 8px; }
+    .adjunto-slot { padding: 16px 10px; }
+    .trabajo-area { min-height: 80px; }
+  }
+  @media (max-width: 420px) {
+    .header { padding: 18px 14px 16px 18px; }
+    .body { padding: 16px 12px 20px 14px; }
+    .result-box, .result-box.col2, .result-box.col4, .result-box.col5 { grid-template-columns: 1fr !important; }
+    .header h1 { font-size: 1.2em !important; }
+    .formula-main { font-size: 1em !important; }
+  }
+
+  @media print {
+    body { background: #fff; padding: 0; }
+    .documento { box-shadow: none; }
+    .btn-imprimir, .grafica-controles { display: none; }
+  }
+
+  /* ── IMPRESIÓN: mostrar todo el contenido de respuestas ── */
+  @media print {
+    .print-value {
+      display: block !important;
+      white-space: pre-wrap !important;
+      word-break: break-word !important;
+      font-family: inherit !important;
+      font-size: inherit !important;
+      line-height: 1.75 !important;
+      color: #1a1a2e !important;
+      width: 100% !important;
+      padding: 2px 0 !important;
+      background: transparent !important;
+    }
+    textarea,
+    input[type="text"],
+    input[type="date"] {
+      display: none !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="documento">
+
+  <!-- ══ ENCABEZADO ══ -->
+  <div class="header">
+    <div class="header-meta">
+      <span class="badge-codigo" id="codigoPractica">PRÁCTICA FIS-COULOMB-01</span>
+      <span class="badge-tipo">Laboratorio de Física · Electrostática</span>
+    </div>
+    <h1>Ley de Coulomb<br><em>Fuerza entre cargas eléctricas puntuales</em></h1>
+    <div class="header-sub">Fuerza eléctrica · Permitividad · Distancia · Análisis gráfico · Propagación de errores</div>
+    <div class="header-fields">
+      <div class="field-item">
+        <label>Nombre del estudiante</label>
+        <input type="text" placeholder="Escriba su nombre completo">
+      </div>
+      <div class="field-item">
+        <label>Código</label>
+        <input type="text" placeholder="Código estudiantil">
+      </div>
+      <div class="field-item">
+        <label>Grupo / Sección</label>
+        <input type="text" placeholder="Ej. Grupo B — Martes 8 am">
+      </div>
+      <div class="field-item">
+        <label>Docente</label>
+        <input type="text" placeholder="Nombre del profesor/a">
+      </div>
+      <div class="field-item">
+        <label>Fecha de realización</label>
+        <input type="date">
+      </div>
+      <div class="field-item">
+        <label>Medio asignado (Parte A / Reto)</label>
+        <input type="text" placeholder="Ej. Agua pura · ε_r = 80.4">
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ CUERPO ══ -->
+  <div class="body">
+
+    <!-- 00. RESUMEN -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">00</span> Resumen</h2>
+      <div class="resumen-box">
+        En esta práctica se estudia experimentalmente la <strong>Ley de Coulomb</strong> mediante un simulador
+        3D interactivo. Se trabaja con dos cargas puntuales $Q_1$ y $Q_2$ separadas por una distancia $r$
+        en distintos medios dieléctricos. A partir de las lecturas de la regla amplificada se mide $r$ y
+        se registra la fuerza $F$ calculada por el simulador. Se construye la gráfica linealizada
+        $F$ vs. $1/r^2$, se obtiene la pendiente experimental y se compara con el valor teórico
+        $C = K_0 \,|Q_1 Q_2| / \varepsilon_r$. El resultado se evalúa mediante la incertidumbre relativa
+        (IR) y el error relativo (ER). Finalmente, el Reto exige calcular la distancia que produce
+        una fuerza dada con tres intentos.
+      </div>
+      <p style="margin-top:10px;"><strong>Palabras clave:</strong>
+        Ley de Coulomb · constante electrostática · permitividad · fuerza eléctrica · linealización · propagación de errores · medio dieléctrico
+      </p>
+    </div>
+
+    <!-- 01. OBJETIVOS -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">01</span> Objetivos</h2>
+      <ul class="objetivos-lista">
+        <li><span class="obj-num">1</span>Explorar cualitativamente la relación entre la fuerza eléctrica y las variables $Q_1$, $Q_2$, $r$ y el medio dieléctrico en el Modo Abierto.</li>
+        <li><span class="obj-num">2</span>Medir la distancia $r$ entre cargas usando la regla amplificada del simulador y registrar la fuerza $F$ correspondiente en la Parte A.</li>
+        <li><span class="obj-num">3</span>Construir la gráfica linealizada $F$ vs. $1/r^2$ e identificar la relación de ley inversa al cuadrado predicha por la Ley de Coulomb.</li>
+        <li><span class="obj-num">4</span>Determinar experimentalmente la constante $C = K_0\,|Q_1 Q_2|/\varepsilon_r$ a partir de la pendiente del ajuste lineal.</li>
+        <li><span class="obj-num">5</span>Evaluar la calidad del resultado mediante la incertidumbre relativa (IR) y el error relativo porcentual (ER) respecto al valor teórico.</li>
+        <li><span class="obj-num">6</span>Aplicar la Ley de Coulomb para calcular la distancia que produce una fuerza objetivo y verificarla en el Reto del simulador.</li>
+      </ul>
+    </div>
+
+    <!-- 02. MARCO TEÓRICO -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">02</span> Marco Teórico</h2>
+
+      <div class="subseccion-titulo">2.1 · Ley de Coulomb</div>
+      <p>
+        La <strong>Ley de Coulomb</strong> establece que la fuerza eléctrica entre dos cargas puntuales
+        $Q_1$ y $Q_2$ separadas una distancia $r$ en un medio de permitividad relativa $\varepsilon_r$ es:
+      </p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 1 — Ley de Coulomb</div>
+        <div class="formula-main">$$F = \frac{K_0\,|Q_1\,Q_2|}{\varepsilon_r\,r^2}
+          \qquad \text{con} \quad K_0 = \frac{1}{4\pi\varepsilon_0} = 8.9876 \times 10^9 \;\text{N·m}^2/\text{C}^2$$</div>
+        <div class="formula-num">(1)</div>
+      </div>
+      <p>
+        donde $\varepsilon_0 = 8.854 \times 10^{-12}$ F/m es la permitividad del vacío y
+        $\varepsilon_r \geq 1$ la permitividad relativa del medio. La fuerza es <strong>repulsiva</strong>
+        si las cargas tienen el mismo signo y <strong>atractiva</strong> si tienen signos opuestos.
+      </p>
+
+      <div class="subseccion-titulo">2.2 · Permitividad del medio</div>
+      <p>
+        La permitividad absoluta del medio es $\varepsilon = \varepsilon_r \cdot \varepsilon_0$.
+        Al aumentar $\varepsilon_r$, la fuerza disminuye: el medio dieléctrico <em>apantalla</em> la
+        interacción entre las cargas. El simulador dispone de cinco medios:
+      </p>
+      <table class="rango-tabla" style="margin:10px 0;">
+        <thead>
+          <tr><th>Medio</th><th>$\varepsilon_r$</th><th>$\varepsilon$ (F/m)</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Vacío</td><td>1.000</td><td>$8.854 \times 10^{-12}$</td></tr>
+          <tr><td>Aire seco</td><td>1.0006</td><td>$8.859 \times 10^{-12}$</td></tr>
+          <tr><td>Aceite mineral</td><td>2.2</td><td>$1.948 \times 10^{-11}$</td></tr>
+          <tr><td>Vidrio común</td><td>7.5</td><td>$6.641 \times 10^{-11}$</td></tr>
+          <tr><td>Agua pura</td><td>80.4</td><td>$7.119 \times 10^{-10}$</td></tr>
+        </tbody>
+      </table>
+
+      <div class="subseccion-titulo">2.3 · Linealización — Gráfica $F$ vs. $1/r^2$</div>
+      <p>
+        Definiendo $u = 1/r^2$, la Ley de Coulomb adopta la forma de una función lineal sin intercepto:
+      </p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 2 — Forma linealizada</div>
+        <div class="formula-main">$$F = C \cdot \frac{1}{r^2} \qquad \text{donde} \quad C = \frac{K_0\,|Q_1\,Q_2|}{\varepsilon_r}$$</div>
+        <div class="formula-num">(2)</div>
+      </div>
+      <p>
+        La gráfica $F$ (eje $y$) vs. $1/r^2$ (eje $x$) debe ser una <strong>recta que pasa por el origen</strong>
+        con pendiente $C$. Una desviación del intercepto de cero indica errores sistemáticos en la lectura de $r$.
+      </p>
+
+      <div class="subseccion-titulo">2.4 · Constante experimental por medición individual</div>
+      <p>
+        Para cada par $(r_i, F_i)$ medido se puede calcular la constante individual:
+      </p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 3 — Constante experimental individual</div>
+        <div class="formula-main">$$C_i = F_i \cdot r_i^2 \qquad \Rightarrow \qquad K_{0,\text{exp}} = \frac{C_i \cdot \varepsilon_r}{|Q_1\,Q_2|}$$</div>
+        <div class="formula-num">(3)</div>
+      </div>
+
+      <div class="subseccion-titulo">2.5 · Propagación de incertidumbre de $C$</div>
+      <p>
+        El error instrumental de la regla del simulador es $\Delta r$ (el simulador asigna aleatoriamente
+        uno de los valores: $\pm\,0.01$ m, $\pm\,0.02$ m o $\pm\,0.05$ m). Como $C_i = F_i \cdot r_i^2$,
+        la derivada parcial respecto a $r$ es:
+      </p>
+      <div class="formula-box">
+        <div class="formula-label">Derivada parcial de C respecto a r</div>
+        <div class="formula-main">$$\frac{\partial C}{\partial r} = F \cdot 2r = 2\,\frac{C}{r}$$</div>
+        <div class="formula-num">(4a)</div>
+      </div>
+      <p>
+        Aplicando propagación lineal (incertidumbre solo en $r$, pues $F$ es calculada por el simulador):
+      </p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 4 — Propagación de incertidumbre de C</div>
+        <div class="formula-main">$$\Delta C_i = \left|\frac{\partial C}{\partial r}\right| \Delta r = 2\,F_i\,r_i\,\Delta r \qquad \Rightarrow \qquad \frac{\Delta C_i}{C_i} = 2\,\frac{\Delta r}{r_i}$$</div>
+        <div class="formula-num">(4)</div>
+      </div>
+      <p>
+        La incertidumbre relativa de $C$ es el <strong>doble</strong> de la incertidumbre relativa
+        en la lectura de $r$. Este resultado es consecuencia directa de la dependencia cuadrática $r^2$.
+      </p>
+
+      <!-- Ejemplo numérico -->
+      <div class="subseccion-titulo">2.6 · Ejemplo numérico de propagación</div>
+      <p>
+        Suponga que en aceite mineral ($\varepsilon_r = 2.2$) se tienen $Q_1 = 3\;\mu\text{C}$ y
+        $Q_2 = -5\;\mu\text{C}$, y se lee en la regla $r = 1.500$ m con $\Delta r = 0.02$ m.
+        La fuerza indicada por el simulador es $F = 0.2448$ N. Calculemos $C_i$ y su incertidumbre:
+      </p>
+      <div style="background:var(--paper-alt); border:1px solid var(--rule); padding:18px 22px; margin:14px 0; font-size:.9em; line-height:2.2;">
+        <p style="margin:0 0 6px;"><strong style="font-family:var(--mono); color:var(--accent);">PASO 1 — Datos e incertidumbre</strong></p>
+        <p style="margin:0;">$r = 1.500$ m $\quad\Rightarrow\quad \Delta r = 0.02$ m (error de la regla del simulador)</p>
+        <p style="margin:0;">$F = 0.2448$ N (valor mostrado por el simulador)</p>
+
+        <p style="margin:12px 0 6px;"><strong style="font-family:var(--mono); color:var(--accent);">PASO 2 — Constante experimental individual</strong></p>
+        <p style="margin:0;">$$C_i = F \cdot r^2 = 0.2448 \times (1.500)^2 = 0.2448 \times 2.25 = 0.5508 \;\text{N·m}^2$$</p>
+
+        <p style="margin:12px 0 6px;"><strong style="font-family:var(--mono); color:var(--accent);">PASO 3 — Derivada parcial</strong></p>
+        <p style="margin:0;">$$\frac{\partial C}{\partial r} = 2\,F\,r = 2 \times 0.2448 \times 1.500 = 0.7344 \;\text{N·m}$$</p>
+
+        <p style="margin:12px 0 6px;"><strong style="font-family:var(--mono); color:var(--accent);">PASO 4 — Incertidumbre total</strong></p>
+        <p style="margin:0;">$$\Delta C_i = 0.7344 \times 0.02 = 0.01469 \;\text{N·m}^2$$</p>
+
+        <p style="margin:12px 0 6px;"><strong style="font-family:var(--mono); color:var(--accent);">PASO 5 — Resultado y evaluación</strong></p>
+        <p style="margin:0; font-weight:600; color:var(--ink);">$C_i = 0.5508 \pm 0.0147 \;\text{N·m}^2$</p>
+        <p style="margin:4px 0 0;">$\text{IR} = \dfrac{0.0147}{0.5508} \times 100\% = 2.67\%$ $\;\Rightarrow\;$ <span style="color:var(--gold); font-weight:600;">Resultado preciso</span></p>
+
+        <p style="margin:12px 0 6px;"><strong style="font-family:var(--mono); color:var(--accent);">Verificación con valor teórico</strong></p>
+        <p style="margin:0;">$$C_{\text{teo}} = \frac{K_0\,|Q_1 Q_2|}{\varepsilon_r} = \frac{8.9876\times10^9 \times 3\times10^{-6} \times 5\times10^{-6}}{2.2} = \frac{0.13481}{2.2} = 0.06128 \;\text{N·m}^2$$</p>
+        <p style="margin:4px 0 0; font-size:.85em; color:var(--ink-muted); font-style:italic;">
+          Nota: en este ejemplo $C_i \neq C_{\text{teo}}$ porque los valores numéricos son ilustrativos.
+          En sus datos reales los valores deben coincidir dentro del margen de error.
+        </p>
+      </div>
+
+      <div class="subseccion-titulo">2.7 · Cálculo de la distancia desconocida (Reto)</div>
+      <p>
+        Dados $F$, $Q_1$, $Q_2$ y el medio, se despeja $r$ de la Ley de Coulomb:
+      </p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 5 — Distancia a partir de la fuerza (Reto)</div>
+        <div class="formula-main">$$r = \sqrt{\frac{K_0\,|Q_1\,Q_2|}{\varepsilon_r\,F}}$$</div>
+        <div class="formula-num">(5)</div>
+      </div>
+
+      <div class="subseccion-titulo">2.8 · Incertidumbre Relativa y Error Relativo</div>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 6 — IR y ER</div>
+        <div class="formula-main">$$\text{IR} = \frac{\Delta C}{C} \times 100\% \qquad \text{ER} = \frac{|C_{\exp} - C_{\text{teo}}|}{C_{\text{teo}}} \times 100\%$$</div>
+        <div class="formula-num">(6)</div>
+      </div>
+      <table class="rango-tabla" style="margin-top:10px;">
+        <thead>
+          <tr><th>Indicador</th><th>Rango</th><th>Interpretación</th></tr>
+        </thead>
+        <tbody>
+          <tr><td rowspan="3" style="font-family:var(--mono);font-size:.85em;">IR</td>
+            <td class="bueno">IR &lt; 1 %</td><td>Resultado muy preciso</td></tr>
+          <tr><td class="medio">1 % &lt; IR &lt; 10 %</td><td>Resultado preciso</td></tr>
+          <tr><td class="malo">IR &gt; 10 %</td><td>Resultado poco preciso</td></tr>
+          <tr><td rowspan="3" style="font-family:var(--mono);font-size:.85em;">ER</td>
+            <td class="bueno">ER &lt; 1 %</td><td>Resultado muy exacto</td></tr>
+          <tr><td class="medio">1 % &lt; ER &lt; 10 %</td><td>Resultado exacto</td></tr>
+          <tr><td class="malo">ER &gt; 10 %</td><td>Resultado poco exacto</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 03. PROCEDIMIENTO -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">03</span> Procedimiento Experimental</h2>
+
+      <div class="paso">
+        <div class="paso-num">1</div>
+        <div class="paso-content">
+          <p><strong>Configuración inicial.</strong> Abra el simulador en <em>🔬 Modo Abierto</em>.
+          Anote el medio dieléctrico que aparece, las cargas $Q_1$ y $Q_2$, y el error de la regla.
+          Estos datos son la base de toda la práctica.</p>
+          <div class="result-box col4" style="margin-top:8px;">
+            <div class="res-campo">
+              <label>Medio dieléctrico</label>
+              <input type="text" placeholder="Ej. Aceite mineral">
+            </div>
+            <div class="res-campo">
+              <label>ε_r del medio</label>
+              <input type="text" placeholder="Ej. 2.2">
+            </div>
+            <div class="res-campo">
+              <label>Q₁ (μC)</label>
+              <input type="text" placeholder="Ej. +3.0">
+            </div>
+            <div class="res-campo">
+              <label>Q₂ (μC)</label>
+              <input type="text" placeholder="Ej. −5.0">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="paso">
+        <div class="paso-num">2</div>
+        <div class="paso-content">
+          <p><strong>Parte A — Exploración (Modo Abierto).</strong> Varíe la separación con el deslizador
+          y los valores de $Q_1$ y $Q_2$. Observe cualitativamente cómo cambia la fuerza al modificar
+          cada variable. Registre al menos 5 mediciones con el botón <em>📋 Registrar Medición</em>.
+          El simulador guarda la fuerza calculada y la distancia medida (con error instrumental).</p>
+        </div>
+      </div>
+
+      <div class="paso">
+        <div class="paso-num">3</div>
+        <div class="paso-content">
+          <p><strong>Parte B — Medición con regla (Parte A del simulador).</strong> Cambie a la pestaña
+          <em>📏 Parte A</em>. Las cargas y el medio quedan fijos. Arrastre $Q_2$ a distintas posiciones
+          y lea la distancia directamente en la <strong>regla amplificada</strong> (línea roja = posición de $Q_2$).
+          Use el botón <em>🔍 Ampliar</em> para mayor precisión. Registre al menos 7 pares $(r, F)$.
+          Escriba $r$ en la tabla de la guía; la fuerza $F$ aparece en la tabla del simulador.</p>
+        </div>
+      </div>
+
+      <div class="paso">
+        <div class="paso-num">4</div>
+        <div class="paso-content">
+          <p><strong>Análisis gráfico.</strong> Ingrese los datos $(r, F)$ en la sección de gráfica
+          de esta guía. La tabla calcula automáticamente $1/r^2$ y $C_i = F \cdot r^2$.
+          Active el ajuste lineal para obtener la pendiente $C_{\text{graf}}$ y el coeficiente $R^2$.
+          Compare con el valor teórico $C_{\text{teo}} = K_0\,|Q_1 Q_2| / \varepsilon_r$.</p>
+        </div>
+      </div>
+
+      <div class="paso">
+        <div class="paso-num">5</div>
+        <div class="paso-content">
+          <p><strong>Parte C — Reto.</strong> Cambie a la pestaña <em>🎯 Parte B — Reto</em>.
+          El simulador mostrará $F_{\text{reto}}$, $Q_1$, $Q_2$ y el medio. Use la Ecuación (5)
+          para calcular $r$ y escríbalo en el campo de la guía. Ingrese su respuesta en el simulador
+          y presione <em>✔ Verificar</em>. Dispone de <strong>3 intentos</strong>.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════ -->
+    <!-- 04. PARTE A — ABIERTO   -->
+    <!-- ════════════════════════ -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">04</span> Parte A — Exploración (Modo Abierto)</h2>
+
+      <div class="nota">
+        <strong>Modo del simulador:</strong> Seleccione <em>🔬 Modo Abierto</em>. Varíe $Q_1$, $Q_2$
+        y la separación. El simulador registra automáticamente la fuerza calculada y la distancia medida
+        (con error instrumental) al presionar <em>📋 Registrar Medición</em>. Transcriba los valores aquí.
+      </div>
+
+      <div class="result-box col4" style="margin-top:8px; margin-bottom:8px;">
+        <div class="res-campo">
+          <label>Medio Modo Abierto</label>
+          <input type="text" placeholder="Ej. Vacío">
+        </div>
+        <div class="res-campo">
+          <label>ε_r</label>
+          <input type="text" placeholder="1.000">
+        </div>
+        <div class="res-campo">
+          <label>Error regla Δr (m)</label>
+          <input type="text" placeholder="± 0.01 / 0.02 / 0.05">
+        </div>
+        <div class="res-campo">
+          <label>K₀ (N·m²/C²)</label>
+          <input type="text" value="8.9876 × 10⁹" readonly style="color:var(--accent);">
+        </div>
+      </div>
+
+      <div class="subseccion-titulo">Tabla 1 — Registro exploratorio (Modo Abierto)</div>
+      <p style="font-size:.85em;color:var(--ink-muted);font-style:italic;">
+        Tabla 1. Cargas y distancia medida registradas por el simulador (5 mediciones). Transcriba desde
+        el registro del simulador. Varíe al menos uno de los parámetros ($Q_1$, $Q_2$, $r$, medio) entre mediciones.
+      </p>
+      <table class="tabla-resultados" id="tablaAbierto">
+        <thead>
+          <tr>
+            <th>M°</th>
+            <th>$Q_1$ (μC)</th>
+            <th>$Q_2$ (μC)</th>
+            <th>$d_{\text{med}}$ (m)</th>
+            <th>$F$ (N)</th>
+            <th>Observación cualitativa</th>
+          </tr>
+        </thead>
+        <tbody id="bodyAbierto"></tbody>
+      </table>
+
+      <span class="area-label">Observaciones generales — Modo Abierto</span>
+      <textarea class="trabajo-area" style="min-height:90px;"
+        placeholder="Describa cualitativamente cómo varía la fuerza al cambiar: (a) la distancia, (b) la magnitud de las cargas, (c) el signo de las cargas, (d) el medio dieléctrico. ¿Qué variable tiene mayor efecto?"></textarea>
+
+      <span class="area-label">Captura del simulador — Parte A</span>
+      <div class="adjunto-slot">
+        <input type="file" accept="image/*" onchange="previsualizarImagen(this,'prevA')">
+        <span class="slot-icon">📸</span>
+        <span class="slot-label">Adjuntar captura del simulador — Modo Abierto con registro</span>
+        <span class="slot-hint">Haga clic o arrastre la imagen · PNG, JPG</span>
+        <img id="prevA" class="preview-img" alt="">
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════ -->
+    <!-- 05. PARTE B — MEDICIÓN CON REGLA -->
+    <!-- ════════════════════════════════ -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">05</span> Parte B — Medición con Regla (Pestaña Parte A)</h2>
+
+      <div class="nota">
+        <strong>Modo del simulador:</strong> Seleccione la pestaña <em>📏 Parte A</em>. Las cargas $Q_1$ y $Q_2$
+        se fijan con los valores del Modo Abierto. Arrastre $Q_2$ y lea $r$ en la <strong>línea roja</strong>
+        de la regla amplificada. Ingrese manualmente el valor de $r$ en la tabla de la guía.
+        La fuerza $F$ del simulador se registra automáticamente al hacer clic en <em>📋 Registrar</em>.
+      </div>
+
+      <div class="result-box col4" style="margin-bottom:10px;">
+        <div class="res-campo">
+          <label>Medio (Parte A)</label>
+          <input type="text" placeholder="Ej. Aceite mineral">
+        </div>
+        <div class="res-campo">
+          <label>ε_r</label>
+          <input type="text" id="erParteB" placeholder="2.2" oninput="actualizarCTeo()">
+        </div>
+        <div class="res-campo">
+          <label>Q₁ (μC)</label>
+          <input type="text" id="q1ParteB" placeholder="Ej. 3.0" oninput="actualizarCTeo()">
+        </div>
+        <div class="res-campo">
+          <label>Q₂ (μC)</label>
+          <input type="text" id="q2ParteB" placeholder="Ej. -5.0" oninput="actualizarCTeo()">
+        </div>
+      </div>
+
+      <div class="subseccion-titulo">Tabla 2 — Registro con regla (Parte A del simulador)</div>
+      <p style="font-size:.85em;color:var(--ink-muted);font-style:italic;">
+        Tabla 2. Distancia leída en la regla, fuerza registrada por el simulador, linealización $1/r^2$
+        y constante individual $C_i = F \cdot r^2$. El estudiante escribe $r$ (columna verde); $F$ se transcribe
+        del simulador; $1/r^2$ y $C_i$ se calculan manualmente.
+      </p>
+      <table class="tabla-resultados" id="tablaParteB">
+        <thead>
+          <tr>
+            <th>N°</th>
+            <th style="color:#8fd6a0;">$r$ (m) — <em>leer regla</em></th>
+            <th>$F$ (N) — simulador</th>
+            <th>$1/r^2$ (m⁻²)</th>
+            <th>$C_i = F \cdot r^2$ (N·m²)</th>
+            <th>$\Delta C_i$ (N·m²)</th>
+          </tr>
+        </thead>
+        <tbody id="bodyParteB"></tbody>
+      </table>
+
+      <div class="divider"><span>Gráfica B — Fuerza vs. Inverso al cuadrado de la distancia</span></div>
+      <p>Ingrese los pares $(r, F)$ en la tabla anterior. La gráfica muestra $F$ vs. $1/r^2$.
+      Active la regresión lineal para obtener la pendiente $C_{\text{graf}}$ y el coeficiente $R^2$.</p>
+
+      <div class="grafica-box">
+        <div class="grafica-header">
+          <span>Gráfica B: Fuerza $F$ (N) vs. $1/r^2$ (m⁻²) — Ley de Coulomb linealizada</span>
+          <span id="pendienteCoulomb" style="color:rgba(255,255,255,.6);font-size:.9em;">pendiente C = —</span>
+        </div>
+        <canvas class="grafica-canvas" id="graficaCoulomb" height="360"></canvas>
+        <div class="grafica-controles">
+          <button class="btn-ctrl" id="btnRegCoulomb" onclick="toggleRegCoulomb()">📈 Ajuste lineal</button>
+          <button class="btn-ctrl" onclick="limpiarGraficaCoulomb()">🗑 Limpiar datos</button>
+          <span class="grafica-info" id="eqCoulomb">Ingrese datos en la Tabla 2 para visualizar</span>
+        </div>
+      </div>
+
+      <div class="nota">
+        <strong>Instrucción:</strong> Para que la gráfica se actualice, ingrese los valores de $r$ y $F$
+        directamente en la Tabla 2 (columnas 2 y 3). La gráfica calcula $1/r^2$ automáticamente.
+      </div>
+
+      <div class="subseccion-titulo">Ecuación de la recta obtenida del ajuste</div>
+      <span class="area-label">Ecuación: $F(1/r^2) = C \cdot (1/r^2) + b$</span>
+      <div class="result-box col4" style="margin-top:6px;">
+        <div class="res-campo">
+          <label>Pendiente = C_graf (N·m²)</label>
+          <input type="text" id="coulombC" placeholder="0.000" oninput="calcErroresCoulomb()">
+        </div>
+        <div class="res-campo">
+          <label>Intercepto b (N)</label>
+          <input type="text" id="coulombB" placeholder="0.000">
+        </div>
+        <div class="res-campo">
+          <label>R² del ajuste</label>
+          <input type="text" id="coulombR2" placeholder="0.000">
+        </div>
+        <div class="res-campo">
+          <label>C_teórica (N·m²)</label>
+          <input type="text" id="coulombCTeo" placeholder="—" readonly style="color:var(--accent);">
+        </div>
+      </div>
+
+      <span class="area-label">Procedimiento de cálculo — C promedio y su incertidumbre</span>
+      <textarea class="trabajo-area" style="min-height:200px;"
+        placeholder="C̄ = Σ Cᵢ / n = ...&#10;&#10;Error instrumental de la regla: Δr = ± ___ m&#10;&#10;Para cada fila i (aplique Ec. 4):&#10;  ∂C/∂r = 2·Fᵢ·rᵢ = 2 × ___ × ___ = ___ N·m&#10;  ΔCᵢ = |∂C/∂r| · Δr = ___ × ___ = ___ N·m²&#10;&#10;ΔC̄ = Σ ΔCᵢ / n = ...&#10;&#10;Resultado: C = ___ ± ___ N·m²&#10;&#10;C teórica:&#10;  C_teo = K₀ · |Q₁ · Q₂| / ε_r&#10;  C_teo = 8.9876×10⁹ × |___ × ___| × 10⁻¹² / ___&#10;  C_teo = ___ N·m²"></textarea>
+
+      <div class="subseccion-titulo">Análisis de errores — Parte B</div>
+      <div class="result-box col4">
+        <div class="res-campo">
+          <label>C promedio (N·m²)</label>
+          <input type="text" id="coulombCprom" placeholder="0.000">
+        </div>
+        <div class="res-campo">
+          <label>ΔC promedio (N·m²)</label>
+          <input type="text" id="coulombDC" placeholder="± 0.000" oninput="calcErroresCoulomb()">
+        </div>
+        <div class="res-campo">
+          <label>IR = (ΔC / C) × 100 %</label>
+          <input type="text" id="coulombIR" placeholder="0.00 %">
+        </div>
+        <div class="res-campo">
+          <label>ER = |C_exp − C_teo| / C_teo × 100 %</label>
+          <input type="text" id="coulombER" placeholder="0.00 %">
+        </div>
+      </div>
+
+      <div class="nota" style="margin-top:6px;">
+        <strong>C teórica:</strong> Calcúlela con la Ecuación (3) usando $K_0 = 8.9876 \times 10^9$ N·m²/C²,
+        los valores de $Q_1$, $Q_2$ y $\varepsilon_r$ de su sesión. Anótela aquí:
+        <input type="text" id="coulombCTeoManual" placeholder="C_teo = ___ N·m²"
+          style="border:none;border-bottom:1px solid var(--gold);background:transparent;font-family:var(--mono);font-size:.9em;width:200px;padding:2px 4px;outline:none;margin-left:8px;" oninput="calcErroresCoulomb()">
+      </div>
+
+      <span class="area-label">Captura del simulador — Parte B (regla amplificada)</span>
+      <div class="adjunto-slot">
+        <input type="file" accept="image/*" onchange="previsualizarImagen(this,'prevB')">
+        <span class="slot-icon">📸</span>
+        <span class="slot-label">Adjuntar captura del simulador — Parte A con medición en regla</span>
+        <span class="slot-hint">Debe verse la regla amplificada con la línea roja y la fuerza · PNG, JPG</span>
+        <img id="prevB" class="preview-img" alt="">
+      </div>
+    </div>
+
+    <!-- ════════════════════════ -->
+    <!-- 06. PARTE C — RETO      -->
+    <!-- ════════════════════════ -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">06</span> Parte C — Reto de Verificación</h2>
+
+      <div>
+        <div class="reto-header">
+          <div><span class="reto-badge">Parte C</span></div>
+          <div>
+            <h4>Reto — Encontrar la distancia que produce la fuerza objetivo</h4>
+            <p>El simulador muestra $F_{\text{reto}}$, $Q_1$, $Q_2$ y el medio. Calcule la distancia $r$
+            usando la Ecuación (5) y escríbala en el campo del simulador. Tiene 3 intentos; el margen
+            de tolerancia es $\pm\,0.05$ m.</p>
+          </div>
+        </div>
+        <div class="reto-body">
+
+          <span class="area-label">Datos del reto (anótelos al activar la pestaña Parte B — Reto)</span>
+          <div class="result-box col4" style="margin-top:6px;">
+            <div class="res-campo">
+              <label>Fuerza objetivo F_reto (N)</label>
+              <input type="text" id="retoF" placeholder="F = ___" oninput="calcRetoR()">
+            </div>
+            <div class="res-campo">
+              <label>Q₁ (C) — valor exacto</label>
+              <input type="text" id="retoQ1" placeholder="Ej. 3×10⁻⁶" oninput="calcRetoR()">
+            </div>
+            <div class="res-campo">
+              <label>Q₂ (C) — valor exacto</label>
+              <input type="text" id="retoQ2" placeholder="Ej. −5×10⁻⁶" oninput="calcRetoR()">
+            </div>
+            <div class="res-campo">
+              <label>ε_r del medio</label>
+              <input type="text" id="retoEr" placeholder="Ej. 2.2" oninput="calcRetoR()">
+            </div>
+          </div>
+
+          <span class="area-label">Procedimiento de cálculo — Distancia necesaria (Ecuación 5)</span>
+          <textarea class="trabajo-area" style="min-height:200px;"
+            placeholder="De la Ley de Coulomb (Ec. 1):&#10;  F = K₀ · |Q₁·Q₂| / (ε_r · r²)&#10;&#10;Despejando r:&#10;  r² = K₀ · |Q₁·Q₂| / (ε_r · F)&#10;  r  = √[ K₀ · |Q₁·Q₂| / (ε_r · F) ]   ← Ecuación (5)&#10;&#10;Sustituyendo valores:&#10;  Numerador = K₀ · |Q₁·Q₂| = 8.9876×10⁹ × |___ × ___| = ___ N·m²&#10;  Denominador = ε_r · F = ___ × ___ = ___ N&#10;&#10;  r² = ___ N·m² / ___ N = ___ m²&#10;  r  = √(___ m²) = ___ m&#10;&#10;Distancia calculada: r = ___ m"></textarea>
+
+          <div class="result-box col2" style="margin-top:4px;">
+            <div class="res-campo">
+              <label>Distancia calculada r (m)</label>
+              <input type="text" id="retoRCalc" placeholder="r = ___" readonly style="color:var(--accent);">
+            </div>
+            <div class="res-campo">
+              <label>Resultado en el simulador</label>
+              <input type="text" placeholder="APROBADO / BLOQUEADO">
+            </div>
+          </div>
+
+          <span class="area-label">Captura de pantalla — Reto</span>
+          <div class="adjunto-slot">
+            <input type="file" accept="image/*" onchange="previsualizarImagen(this,'prevReto')">
+            <span class="slot-icon">🏆</span>
+            <span class="slot-label">Adjuntar captura del resultado del reto</span>
+            <span class="slot-hint">Debe verse el sello ✅ APROBADO RETO o 🔒 BLOQUEADO · PNG, JPG</span>
+            <img id="prevReto" class="preview-img" alt="">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 07. DISCUSIÓN -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">07</span> Discusión de Resultados</h2>
+
+      <span class="area-label">7.1 · ¿La gráfica $F$ vs. $1/r^2$ resultó una recta? ¿Qué confirma esto sobre la Ley de Coulomb? ¿Por qué el intercepto debe ser cercano a cero?</span>
+      <textarea class="trabajo-area" placeholder="Escriba su análisis aquí..."></textarea>
+
+      <span class="area-label">7.2 · Compare el valor de $C$ obtenido por promedio de $C_i$ con el valor de la pendiente del ajuste gráfico. ¿Coinciden? ¿Cuál considera más confiable y por qué?</span>
+      <textarea class="trabajo-area" placeholder="Escriba su análisis aquí..."></textarea>
+
+      <span class="area-label">7.3 · Analice los valores de IR y ER. Dado que $\Delta C / C = 2\,\Delta r / r$, ¿cómo afecta mejorar la precisión de la regla (reducir $\Delta r$) a la calidad del resultado?</span>
+      <textarea class="trabajo-area" placeholder="Escriba su análisis aquí..."></textarea>
+
+      <span class="area-label">7.4 · En el Modo Abierto las cargas y el medio cambiaban. ¿Cómo afectan el signo de las cargas y la permitividad $\varepsilon_r$ a la magnitud de $F$? Use sus datos de la Tabla 1 para justificar.</span>
+      <textarea class="trabajo-area" placeholder="Escriba su análisis aquí..."></textarea>
+
+      <span class="area-label">7.5 · En el Reto, el simulador acepta una tolerancia de $\pm\,0.05$ m. ¿El error instrumental de la regla pudo afectar su respuesta en el Reto? ¿Qué estrategia utilizó para minimizar el error?</span>
+      <textarea class="trabajo-area" placeholder="Escriba su análisis aquí..."></textarea>
+    </div>
+
+    <!-- 08. CONCLUSIONES -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">08</span> Conclusiones</h2>
+      <p>Redacte tres conclusiones concretas que respondan a los objetivos planteados.</p>
+
+      <span class="area-label">Conclusión 1 — Sobre la linealidad de la gráfica $F$ vs. $1/r^2$ y la verificación experimental de la Ley de Coulomb</span>
+      <textarea class="trabajo-area" style="min-height:90px;" placeholder="Redacte su primera conclusión..."></textarea>
+
+      <span class="area-label">Conclusión 2 — Sobre el valor de $C$ obtenido y su comparación con el valor teórico $C_{\text{teo}} = K_0 |Q_1 Q_2| / \varepsilon_r$</span>
+      <textarea class="trabajo-area" style="min-height:90px;" placeholder="Redacte su segunda conclusión..."></textarea>
+
+      <span class="area-label">Conclusión 3 — Sobre la calidad de los resultados (IR, ER), fuentes de error y el efecto del medio dieléctrico</span>
+      <textarea class="trabajo-area" style="min-height:90px;" placeholder="Redacte su tercera conclusión..."></textarea>
+    </div>
+
+    <!-- 09. REFERENCIAS -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">09</span> Referencias</h2>
+      <p style="font-size:.88em; line-height:2.1;">
+        [1] Sears, F. W., Zemansky, M. W. &amp; Young, H. D. <em>University Physics</em>. 14ª ed. Pearson, 2016. Cap. 21 — Carga eléctrica y campo eléctrico.<br>
+        [2] Serway, R. A. &amp; Jewett, J. W. <em>Physics for Scientists and Engineers</em>. 10ª ed. Cengage Learning, 2019. Cap. 23 — Campos eléctricos.<br>
+        [3] Halliday, D., Resnick, R. &amp; Krane, K. S. <em>Physics</em>. 5ª ed. Wiley, 2002. Cap. 22 — Carga eléctrica.<br>
+        [4] Griffiths, D. J. <em>Introduction to Electrodynamics</em>. 4ª ed. Cambridge University Press, 2017. Cap. 2 — Electrostática.
+      </p>
+    </div>
+
+    <!-- FIRMAS -->
+    <div class="seccion" style="margin-bottom:0;">
+      <div class="firma-grid">
+        <div class="firma-slot">Firma del estudiante</div>
+        <div class="firma-slot">Vo. Bo. Docente</div>
+      </div>
+    </div>
+
+  </div><!-- /body -->
+</div><!-- /documento -->
+
+<button class="btn-imprimir" onclick="window.print()">🖨 Imprimir / PDF</button>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+//  CONSTANTE
+// ══════════════════════════════════════════════════════════════
+const K0 = 8.9876e9; // N·m²/C²
+
+// ══════════════════════════════════════════════════════════════
+//  CONSTRUCCIÓN DE TABLAS
+// ══════════════════════════════════════════════════════════════
+function buildTablas() {
+  // Tabla 1 — Abierto (5 filas)
+  const bA = document.getElementById('bodyAbierto');
+  for (let i = 1; i <= 5; i++) {
+    bA.insertRow(-1).innerHTML = `
+      <td class="row-label">M${i}</td>
+      <td class="input-cell"><input type="text" placeholder="0.0"></td>
+      <td class="input-cell"><input type="text" placeholder="0.0"></td>
+      <td class="input-cell"><input type="text" placeholder="0.000"></td>
+      <td class="input-cell"><input type="text" placeholder="0.000"></td>
+      <td class="input-cell"><input type="text" placeholder="Observación..."></td>`;
+  }
+
+  // Tabla 2 — Parte B (8 filas)
+  const bB = document.getElementById('bodyParteB');
+  for (let i = 1; i <= 8; i++) {
+    const tr = bB.insertRow(-1);
+    tr.dataset.row = i;
+    tr.innerHTML = `
+      <td class="row-label">${i}</td>
+      <td class="input-cell"><input type="text" class="pb-r" placeholder="0.000" style="border-bottom:1.5px solid #1e8449;" oninput="actualizarFilaB(${i})"></td>
+      <td class="input-cell"><input type="text" class="pb-F" placeholder="0.000" oninput="actualizarFilaB(${i})"></td>
+      <td class="input-cell"><input type="text" class="pb-inv" placeholder="—" readonly style="color:var(--accent);"></td>
+      <td class="input-cell"><input type="text" class="pb-Ci" placeholder="—" readonly style="color:var(--green);font-weight:600;"></td>
+      <td class="input-cell"><input type="text" class="pb-dCi" placeholder="—" readonly></td>`;
+  }
+}
+
+// ── Auto-calcular 1/r², Cᵢ, ΔCᵢ al ingresar r y F ──
+function actualizarFilaB(rowNum) {
+  const rows = document.querySelectorAll('#bodyParteB tr');
+  const tr   = rows[rowNum - 1];
+  const r    = parseFloat(tr.querySelector('.pb-r').value);
+  const F    = parseFloat(tr.querySelector('.pb-F').value);
+
+  if (!isNaN(r) && !isNaN(F) && r > 0 && F > 0) {
+    const inv = 1 / (r * r);
+    const Ci  = F * r * r;
+    // Δr: leer del campo de error de la guía (si está lleno), si no 0.02
+    const drEl = document.querySelector('.result-box input[placeholder*="0.01"]');
+    const Dr   = 0.02; // valor por defecto
+    const dCi  = 2 * F * r * Dr;
+
+    tr.querySelector('.pb-inv').value = inv.toFixed(4);
+    tr.querySelector('.pb-Ci').value  = Ci.toExponential(4);
+    tr.querySelector('.pb-dCi').value = dCi.toExponential(3);
+  } else {
+    tr.querySelector('.pb-inv').value = '';
+    tr.querySelector('.pb-Ci').value  = '';
+    tr.querySelector('.pb-dCi').value = '';
+  }
+  dibujarGraficaCoulomb();
+}
+
+// ── Calcular C teórica cuando se llenan Q1, Q2, er ──
+function actualizarCTeo() {
+  const er  = parseFloat(document.getElementById('erParteB').value);
+  const q1  = parseFloat(document.getElementById('q1ParteB').value) * 1e-6; // μC → C
+  const q2  = parseFloat(document.getElementById('q2ParteB').value) * 1e-6;
+  if (!isNaN(er) && !isNaN(q1) && !isNaN(q2) && er > 0) {
+    const Cteo = K0 * Math.abs(q1 * q2) / er;
+    document.getElementById('coulombCTeo').value = Cteo.toExponential(4);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  GRÁFICA F vs 1/r² — Ley de Coulomb linealizada
+// ══════════════════════════════════════════════════════════════
+let regCoulombOn = false;
+let coulombData  = [];
+
+function toggleRegCoulomb() {
+  regCoulombOn = !regCoulombOn;
+  document.getElementById('btnRegCoulomb').classList.toggle('activo', regCoulombOn);
+  dibujarGraficaCoulomb();
+}
+
+function limpiarGraficaCoulomb() {
+  document.querySelectorAll('#bodyParteB .pb-r, #bodyParteB .pb-F').forEach(i => i.value = '');
+  document.querySelectorAll('#bodyParteB .pb-inv, #bodyParteB .pb-Ci, #bodyParteB .pb-dCi').forEach(i => i.value = '');
+  dibujarGraficaCoulomb();
+}
+
+function getCoulombData() {
+  const rows = document.querySelectorAll('#bodyParteB tr');
+  coulombData = [];
+  rows.forEach(tr => {
+    const inv = parseFloat(tr.querySelector('.pb-inv').value);
+    const F   = parseFloat(tr.querySelector('.pb-F').value);
+    if (!isNaN(inv) && !isNaN(F) && inv > 0 && F > 0)
+      coulombData.push({ inv, F });
+  });
+}
+
+function dibujarGraficaCoulomb() {
+  getCoulombData();
+  const cv  = document.getElementById('graficaCoulomb');
+  const ctx = cv.getContext('2d');
+  cv.width  = cv.offsetWidth * window.devicePixelRatio || 760;
+  const W = cv.width, H = cv.height;
+  const PAD = { top: 30, right: 30, bottom: 55, left: 75 };
+  const pw = W - PAD.left - PAD.right, ph = H - PAD.top - PAD.bottom;
+
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#fafafa'; ctx.fillRect(0, 0, W, H);
+
+  if (coulombData.length < 2) {
+    ctx.fillStyle = '#bbb';
+    ctx.font = `14px 'Source Serif 4', serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText('Ingrese r y F en la Tabla 2 para visualizar los puntos', W/2, H/2);
+    return;
+  }
+
+  const xVals = coulombData.map(d => d.inv);
+  const yVals = coulombData.map(d => d.F);
+  const xMin = 0, xMax = Math.max(...xVals) * 1.15;
+  const yMin = 0, yMax = Math.max(...yVals) * 1.15;
+
+  function cx(x) { return PAD.left + (x - xMin) / (xMax - xMin) * pw; }
+  function cy(y) { return PAD.top + ph - (y - yMin) / (yMax - yMin) * ph; }
+
+  // Cuadrícula
+  ctx.strokeStyle = '#e8e4dc'; ctx.lineWidth = 1;
+  for (let i = 0; i <= 5; i++) {
+    const yy = PAD.top + i * ph/5;
+    ctx.beginPath(); ctx.moveTo(PAD.left, yy); ctx.lineTo(PAD.left + pw, yy); ctx.stroke();
+    const xx = PAD.left + i * pw/5;
+    ctx.beginPath(); ctx.moveTo(xx, PAD.top); ctx.lineTo(xx, PAD.top + ph); ctx.stroke();
+  }
+
+  // Ejes
+  ctx.strokeStyle = '#888'; ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(PAD.left, PAD.top); ctx.lineTo(PAD.left, PAD.top + ph);
+  ctx.lineTo(PAD.left + pw, PAD.top + ph);
+  ctx.stroke();
+
+  // Etiquetas de ejes
+  ctx.fillStyle = '#3d3d5c'; ctx.font = `bold 11px 'JetBrains Mono', monospace`;
+  ctx.textAlign = 'center';
+  ctx.fillText('1/r²  (m⁻²)', PAD.left + pw/2, H - 4);
+  ctx.save(); ctx.translate(14, PAD.top + ph/2); ctx.rotate(-Math.PI/2);
+  ctx.fillText('F  (N)', 0, 0); ctx.restore();
+
+  // Marcas numéricas
+  ctx.fillStyle = '#888'; ctx.font = `10px 'JetBrains Mono', monospace`;
+  for (let i = 0; i <= 5; i++) {
+    const xv = xMin + i * (xMax - xMin) / 5;
+    ctx.textAlign = 'center';
+    ctx.fillText(xv.toFixed(3), cx(xv), PAD.top + ph + 14);
+    const yv = yMin + i * (yMax - yMin) / 5;
+    ctx.textAlign = 'right';
+    ctx.fillText(yv.toExponential(2), PAD.left - 4, cy(yv) + 4);
+  }
+
+  // Regresión lineal
+  if (regCoulombOn && coulombData.length >= 2) {
+    const n   = coulombData.length;
+    const Sx  = xVals.reduce((a,b)=>a+b,0);
+    const Sy  = yVals.reduce((a,b)=>a+b,0);
+    const Sxx = xVals.reduce((a,v)=>a+v*v,0);
+    const Sxy = xVals.reduce((a,v,i)=>a+v*yVals[i],0);
+    const slope = (n*Sxy - Sx*Sy) / (n*Sxx - Sx*Sx);
+    const inter = (Sy - slope*Sx) / n;
+
+    ctx.strokeStyle = '#1a5276'; ctx.lineWidth = 2.5; ctx.setLineDash([]);
+    ctx.beginPath();
+    ctx.moveTo(cx(xMin), cy(slope * xMin + inter));
+    ctx.lineTo(cx(xMax), cy(slope * xMax + inter));
+    ctx.stroke();
+
+    const yMean = Sy / n;
+    const ssTot = yVals.reduce((a,v)=>a+(v-yMean)**2, 0);
+    const ssRes = yVals.reduce((a,v,i)=>a+(v-(slope*xVals[i]+inter))**2, 0);
+    const r2 = 1 - ssRes / ssTot;
+
+    const eqStr = `F = ${slope.toExponential(3)}·(1/r²) ${inter>=0?'+':''} ${inter.toExponential(3)}   |   R² = ${r2.toFixed(4)}`;
+    document.getElementById('eqCoulomb').textContent = eqStr;
+    document.getElementById('pendienteCoulomb').textContent = `C = ${slope.toExponential(3)} N·m²`;
+
+    document.getElementById('coulombC').value  = slope.toExponential(4);
+    document.getElementById('coulombB').value  = inter.toExponential(4);
+    document.getElementById('coulombR2').value = r2.toFixed(4);
+    calcErroresCoulomb();
+  }
+
+  // Puntos
+  const COLORS = ['#1a5276','#c0392b','#1e8449','#b8860b','#6c3483','#117a65','#7b241c','#145a32'];
+  coulombData.forEach((p, i) => {
+    ctx.fillStyle = COLORS[i % COLORS.length];
+    ctx.beginPath(); ctx.arc(cx(p.inv), cy(p.F), 5, 0, Math.PI*2); ctx.fill();
+    ctx.font = 'bold 10px JetBrains Mono, monospace'; ctx.textAlign = 'left';
+    ctx.fillText(''+(i+1), cx(p.inv)+8, cy(p.F)-5);
+  });
+}
+
+// ── Cálculo automático de IR y ER ──
+function calcErroresCoulomb() {
+  const C   = parseFloat(document.getElementById('coulombC').value);
+  const dC  = parseFloat(document.getElementById('coulombDC').value);
+  if (!isNaN(C) && !isNaN(dC) && C > 0) {
+    document.getElementById('coulombIR').value = ((Math.abs(dC)/C)*100).toFixed(2) + ' %';
+  }
+  const Cteo = parseFloat(document.getElementById('coulombCTeoManual').value) ||
+               parseFloat(document.getElementById('coulombCTeo').value);
+  const Cp   = parseFloat(document.getElementById('coulombCprom').value) ||
+               parseFloat(document.getElementById('coulombC').value);
+  if (!isNaN(Cp) && !isNaN(Cteo) && Cteo > 0) {
+    document.getElementById('coulombER').value = ((Math.abs(Cp-Cteo)/Cteo)*100).toFixed(2) + ' %';
+  }
+}
+
+// ── Cálculo automático de r en el Reto ──
+function calcRetoR() {
+  const F  = parseFloat(document.getElementById('retoF').value);
+  const q1 = parseFloat(document.getElementById('retoQ1').value);
+  const q2 = parseFloat(document.getElementById('retoQ2').value);
+  const er = parseFloat(document.getElementById('retoEr').value);
+  if (!isNaN(F) && !isNaN(q1) && !isNaN(q2) && !isNaN(er) && F > 0 && er > 0) {
+    // Los campos pueden estar en μC o en C; detectamos por magnitud
+    const absQ1 = Math.abs(q1) > 1 ? Math.abs(q1)*1e-6 : Math.abs(q1); // si > 1 asumimos μC
+    const absQ2 = Math.abs(q2) > 1 ? Math.abs(q2)*1e-6 : Math.abs(q2);
+    const r = Math.sqrt(K0 * absQ1 * absQ2 / (er * F));
+    document.getElementById('retoRCalc').value = r.toFixed(4) + ' m';
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  ADJUNTOS / IMÁGENES
+// ══════════════════════════════════════════════════════════════
+function previsualizarImagen(input, previewId) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = document.getElementById(previewId);
+    if (img) { img.src = e.target.result; img.style.display = 'block'; }
+  };
+  reader.readAsDataURL(file);
+}
+
+// ══════════════════════════════════════════════════════════════
+//  INICIALIZACIÓN
+// ══════════════════════════════════════════════════════════════
+window.addEventListener('load', () => {
+  buildTablas();
+  dibujarGraficaCoulomb();
+
+  const now = new Date();
+  const sem = now.getMonth() < 6 ? '1' : '2';
+  document.getElementById('codigoPractica').textContent =
+    `PRÁCTICA FIS-COULOMB-01 · ${now.getFullYear()}-${sem}`;
+  document.querySelectorAll('input[type="date"]').forEach(i =>
+    i.value = now.toISOString().split('T')[0]);
+});
+
+window.addEventListener('resize', () => dibujarGraficaCoulomb());
+</script>
+<script>
+/* ── Preparar impresión: volcar valores en divs visibles ── */
+(function () {
+  var snapshots = [];
+
+  function prepararImpresion() {
+    snapshots = [];
+    document.querySelectorAll(
+      'textarea, input[type="text"], input[type="date"]'
+    ).forEach(function (el) {
+      var div = document.createElement('div');
+      div.className = 'print-value';
+      div.textContent = el.value !== '' ? el.value : ' ';
+      /* Copiar estilos de tamaño/posición del campo original */
+      div.style.minHeight = (el.offsetHeight || 24) + 'px';
+      el.parentNode.insertBefore(div, el.nextSibling);
+      snapshots.push({ el: el, div: div });
+    });
+  }
+
+  function restaurar() {
+    snapshots.forEach(function (s) {
+      if (s.div.parentNode) s.div.parentNode.removeChild(s.div);
+    });
+    snapshots = [];
+  }
+
+  window.addEventListener('beforeprint', prepararImpresion);
+  window.addEventListener('afterprint',  restaurar);
+})();
+</script>
+</body>
+</html>

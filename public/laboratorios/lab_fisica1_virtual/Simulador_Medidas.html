@@ -1,0 +1,2099 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Simulador de Medición</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#07090e;color:#c8d8e8;font-family:'Rajdhani',sans-serif;overflow:hidden;height:100vh;}
+#canvas3d{display:block;position:fixed;top:0;left:0;}
+
+#topbar{position:fixed;top:0;left:0;right:0;height:50px;background:rgba(5,10,20,.96);
+  border-bottom:1px solid #1a2e44;display:flex;align-items:center;padding:0 16px;gap:12px;
+  backdrop-filter:blur(10px);z-index:30;}
+.logo{font-size:.95rem;font-weight:700;letter-spacing:.2em;color:#7ab4e8;}
+.tbtn{background:#0a1828;border:1px solid #1e3a5a;color:#80aece;padding:4px 12px;
+  border-radius:4px;cursor:pointer;font-family:'Rajdhani';font-size:.85rem;font-weight:600;transition:all .2s;}
+.tbtn:hover{border-color:#3a8aff;color:#b0d8ff;}
+.tbtn.act{background:#0f2a4a;border-color:#3a8aff;color:#70c0ff;}
+
+#sidepanel{position:fixed;top:50px;right:0;bottom:0;width:330px;
+  background:rgba(4,8,16,.97);border-left:1px solid #152030;
+  display:flex;flex-direction:column;z-index:20;overflow:hidden;}
+#sp-tabs{display:flex;border-bottom:1px solid #152030;}
+.sp-tab{flex:1;padding:8px;text-align:center;cursor:pointer;font-family:'Rajdhani';
+  font-size:.8rem;font-weight:600;letter-spacing:.1em;color:#4a7a9a;
+  border-bottom:2px solid transparent;transition:all .2s;}
+.sp-tab:hover{color:#80b8d8;}
+.sp-tab.act{color:#70c0ff;border-bottom-color:#3a8aff;background:rgba(20,50,80,.25);}
+#sp-content{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:11px;}
+h3{font-size:.72rem;font-weight:700;letter-spacing:.2em;color:#3a7aaa;text-transform:uppercase;
+  padding-bottom:4px;border-bottom:1px solid #152030;margin:0;}
+
+#rdv-box{background:#030609;border:1px solid #1a3050;border-radius:7px;padding:11px;}
+.rl{font-size:.68rem;color:#3a6a8a;letter-spacing:.1em;margin-bottom:3px;}
+.rv{font-size:.92rem;color:#4a8a6a;font-family:'Rajdhani';}
+.rs{font-size:.68rem;color:#235535;margin-top:3px;}
+
+#tape-panel{display:none;flex-direction:column;gap:5px;
+  background:#f2e8a0;border:2px solid #a07a00;border-radius:8px;padding:8px;}
+#vernier-panel{display:none;flex-direction:column;gap:5px;
+  background:#e8eef8;border:2px solid #5870c8;border-radius:8px;padding:8px;}
+.ph{display:flex;justify-content:space-between;align-items:center;
+  font-size:.7rem;font-weight:700;font-family:'Rajdhani';}
+.ph.tape{color:#5a3600;}
+.ph.vern{color:#1a2860;}
+.zbtn{cursor:pointer;color:#fff;border:none;border-radius:3px;
+  padding:2px 8px;font-size:.68rem;font-family:'Rajdhani';font-weight:700;}
+.phint{font-size:.63rem;text-align:center;}
+#tape-canvas{display:block;border-radius:4px;border:1px solid #b09000;}
+#vernier-canvas{display:block;border-radius:4px;border:1px solid #8890c8;}
+
+#zoom-overlay{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:60;
+  display:none;align-items:center;justify-content:center;backdrop-filter:blur(6px);}
+#zoom-box{position:relative;border:2px solid #2a4060;border-radius:10px;overflow:hidden;background:#08101e;}
+#zoom-canvas{display:block;}
+#zoom-close{position:absolute;top:8px;right:12px;background:rgba(0,0,0,.8);
+  border:1px solid #304060;color:#90b8d8;border-radius:4px;padding:3px 10px;
+  cursor:pointer;font-family:'Rajdhani';font-size:.78rem;z-index:2;}
+#zoom-footer{position:absolute;bottom:0;left:0;right:0;padding:5px 12px;
+  background:rgba(0,0,0,.8);font-size:.68rem;color:#6a9aba;text-align:center;pointer-events:none;}
+
+.circle-btns{display:flex;gap:5px;flex-wrap:wrap;}
+.cbtn{background:#0a1828;border:1px solid #1e3a5a;color:#5a8aaa;padding:4px 9px;
+  border-radius:4px;cursor:pointer;font-family:'Rajdhani';font-size:.8rem;transition:all .2s;}
+.cbtn:hover{border-color:#3a8aff;}  
+.cbtn.act{background:#0a2040;border-color:#3a8aff;color:#70c0ff;}
+
+table{width:100%;border-collapse:collapse;font-size:.78rem;}
+th{background:#0a1828;color:#4a8aaa;padding:5px 4px;text-align:center;
+  font-weight:600;border:1px solid #152030;font-size:.7rem;}
+td{padding:4px;text-align:center;border:1px solid #0e1a28;font-family:'Share Tech Mono';font-size:.78rem;}
+.tdi{background:transparent;border:none;outline:none;color:#60d890;width:100%;
+  text-align:center;font-family:'Share Tech Mono';font-size:.78rem;}
+.treg{background:#081e14;border:1px solid #154530;color:#35b060;padding:2px 6px;
+  border-radius:3px;cursor:pointer;font-family:'Rajdhani';font-size:.74rem;font-weight:600;}
+
+#instrs{background:#050c18;border:1px solid #111e30;border-radius:6px;padding:9px;
+  font-size:.75rem;line-height:1.7;color:#4a7a9a;}
+.step{display:flex;gap:6px;margin-bottom:4px;align-items:flex-start;}
+.sn{background:#152840;color:#50a0d8;border-radius:50%;width:16px;height:16px;min-width:16px;
+  display:flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:700;margin-top:1px;}
+
+#hint{position:fixed;bottom:12px;left:calc(50% - 160px);width:320px;
+  background:rgba(4,10,22,.93);border:1px solid #1a3050;border-radius:6px;
+  padding:6px 14px;font-size:.78rem;color:#4a8aaa;pointer-events:none;z-index:25;text-align:center;}
+
+/* ── MODO DÍA / NOCHE ── */
+:root {
+  --sbg: #07090e; --sbar: rgba(5,10,20,.96); --spanel: rgba(4,8,16,.97);
+  --sborder: #1a2e44; --spborder: #152030; --stext: #c8d8e8; --slogo: #7ab4e8;
+  --sbtn-bg: #0a1828; --sbtn-bd: #1e3a5a; --sbtn-cl: #80aece;
+  --sbtn-act-bg: #0f2a4a; --sbtn-act-bd: #3a8aff; --sbtn-act-cl: #70c0ff;
+  --stab-cl: #4a7a9a; --stab-act-cl: #70c0ff; --stab-act-bd: #3a8aff;
+  --srdv-bg: #030609; --srdv-bd: #1a3050; --srl: #3a6a8a; --srv: #4a8a6a; --srs: #235535;
+  --sh3: #3a7aaa; --sh3bd: #152030;
+  --scbtn-bg: #0a1828; --scbtn-bd: #1e3a5a; --scbtn-cl: #5a8aaa; --scbtn-act-bg: #0a2040;
+  --sth-bg: #0a1828; --sth-cl: #4a8aaa; --std-bd: #0e1a28; --stdi-cl: #60d890;
+  --streg-bg: #081e14; --streg-bd: #154530; --streg-cl: #35b060;
+  --sinstr-bg: #050c18; --sinstr-bd: #111e30; --sinstr-cl: #4a7a9a;
+  --shint-bg: rgba(4,10,22,.93); --shint-bd: #1a3050; --shint-cl: #4a8aaa;
+  --sscene: #050710;
+}
+body.day {
+  --sbg: #e8eef8; --sbar: rgba(230,238,252,.97); --spanel: rgba(235,242,255,.98);
+  --sborder: #a0b8d8; --spborder: #b0c8e0; --stext: #1a2840; --slogo: #1a4a90;
+  --sbtn-bg: #d0e0f4; --sbtn-bd: #80a8d0; --sbtn-cl: #1a4070;
+  --sbtn-act-bg: #b8d0ee; --sbtn-act-bd: #2060d0; --sbtn-act-cl: #082880;
+  --stab-cl: #2a5a8a; --stab-act-cl: #082880; --stab-act-bd: #2060d0;
+  --srdv-bg: #f0f5ff; --srdv-bd: #90b8d8; --srl: #2a5a80; --srv: #1a6a30; --srs: #0a5020;
+  --sh3: #1a5090; --sh3bd: #a8c4e0;
+  --scbtn-bg: #d0e0f4; --scbtn-bd: #80a8d0; --scbtn-cl: #0a3060; --scbtn-act-bg: #b0ccec;
+  --sth-bg: #c0d8f0; --sth-cl: #0a2860; --std-bd: #a0c0dc; --stdi-cl: #0a5020;
+  --streg-bg: #c8e8d8; --streg-bd: #3a9060; --streg-cl: #084020;
+  --sinstr-bg: #eef4ff; --sinstr-bd: #a0bcdc; --sinstr-cl: #1a3a60;
+  --shint-bg: rgba(220,235,255,.95); --shint-bd: #80a8d0; --shint-cl: #1a3a70;
+  --sscene: #b8cce0;
+}
+
+/* Aplicar variables a los elementos */
+body { background: var(--sbg); color: var(--stext); transition: background .3s, color .3s; }
+#topbar { background: var(--sbar); border-bottom-color: var(--sborder); }
+.logo { color: var(--slogo); }
+.tbtn { background: var(--sbtn-bg); border-color: var(--sbtn-bd); color: var(--sbtn-cl); }
+.tbtn:hover { border-color: var(--sbtn-act-bd); color: var(--sbtn-act-cl); }
+.tbtn.act { background: var(--sbtn-act-bg); border-color: var(--sbtn-act-bd); color: var(--sbtn-act-cl); }
+#sidepanel { background: var(--spanel); border-left-color: var(--spborder); }
+#sp-tabs { border-bottom-color: var(--spborder); }
+.sp-tab { color: var(--stab-cl); }
+.sp-tab.act { color: var(--stab-act-cl); border-bottom-color: var(--stab-act-bd); }
+#sp-content h3 { color: var(--sh3); border-bottom-color: var(--sh3bd); }
+#rdv-box { background: var(--srdv-bg); border-color: var(--srdv-bd); }
+.rl { color: var(--srl); }
+.rv { color: var(--srv); }
+.rs { color: var(--srs); }
+.cbtn { background: var(--scbtn-bg); border-color: var(--scbtn-bd); color: var(--scbtn-cl); }
+.cbtn.act { background: var(--scbtn-act-bg); border-color: var(--sbtn-act-bd); color: var(--sbtn-act-cl); }
+th { background: var(--sth-bg); color: var(--sth-cl); border-color: var(--spborder); }
+td { border-color: var(--std-bd); }
+.tdi { color: var(--stdi-cl); }
+.treg { background: var(--streg-bg); border-color: var(--streg-bd); color: var(--streg-cl); }
+#instrs { background: var(--sinstr-bg); border-color: var(--sinstr-bd); color: var(--sinstr-cl); }
+#hint { background: var(--shint-bg); border-color: var(--shint-bd); color: var(--shint-cl); }
+
+/* ── BOTÓN MODO DÍA/NOCHE ── */
+#btn-theme {
+  background: var(--sbtn-bg);
+  border: 1px solid var(--sbtn-bd);
+  color: var(--sbtn-cl);
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: 'Rajdhani';
+  font-size: .85rem;
+  font-weight: 600;
+  transition: all .2s;
+  white-space: nowrap;
+}
+#btn-theme:hover { border-color: var(--sbtn-act-bd); color: var(--sbtn-act-cl); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 700px) {
+  #sidepanel { width: 100%; top: auto; bottom: 0; height: 44vh; border-left: none; border-top: 2px solid var(--spborder); }
+  #canvas3d { width: 100% !important; height: 56vh !important; }
+  #topbar { padding: 0 8px; gap: 6px; flex-wrap: wrap; height: auto; min-height: 44px; }
+  .logo { font-size: .78rem; letter-spacing: .1em; }
+  .tbtn, #btn-theme { font-size: .75rem; padding: 3px 8px; }
+  #hint { left: 4px; right: 4px; width: auto; bottom: calc(44vh + 6px); font-size: .72rem; }
+  #tape-canvas, #vernier-canvas { width: 100% !important; height: auto !important; }
+  /* Zoom modal pantalla completa en móvil */
+  #zoom-overlay { padding: 0; }
+  #zoom-box { border-radius: 0 !important; border: none !important; }
+  #zoom-close { top: 10px; right: 10px; font-size: .9rem; padding: 6px 14px; background: rgba(0,0,0,.85); }
+  #zoom-footer { font-size: .7rem; padding: 8px 10px; }
+  #zoom-canvas { width: 100% !important; }
+}
+@media (max-width: 420px) {
+  .logo { display: none; }
+  #topbar { gap: 4px; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="canvas3d"></canvas>
+
+<div id="topbar">
+  <div class="logo">📐 SIMULADOR DE MEDICIÓN</div>
+  <span style="font-size:.75rem;color:#3a6a90;">INSTRUMENTO:</span>
+  <button class="tbtn act" id="btn-tape" onclick="switchInstr('tape')">📏 Cinta Métrica</button>
+  <button class="tbtn"     id="btn-cal"  onclick="switchInstr('caliper')">🔩 Calibrador</button>
+  <button id="btn-theme" onclick="toggleTheme()" title="Modo día / noche">🌙 Noche</button>
+  <div style="flex:1"></div>
+  <button class="tbtn" onclick="resetCamera()">↺ Cámara</button>
+  <span style="font-size:.72rem;color:#2a5a7a;font-family:'Share Tech Mono';">C:<span id="sel-lbl" style="color:#5aacee">—</span></span>
+</div>
+
+<div id="sidepanel">
+  <div id="sp-tabs">
+    <div class="sp-tab act" id="tab-m" onclick="showTab('m')">MEDICIÓN</div>
+    <div class="sp-tab"     id="tab-t" onclick="showTab('t')">TABLA</div>
+    <div class="sp-tab"     id="tab-h" onclick="showTab('h')">AYUDA</div>
+  </div>
+  <div id="sp-content">
+
+    <div id="tc-m" style="display:flex;flex-direction:column;gap:11px;">
+      <h3>Instrumento activo</h3>
+      <div id="instr-badge" style="font-size:.75rem;color:#5a8aaa;padding:4px 0;"></div>
+
+      <h3>Estado</h3>
+      <div id="rdv-box">
+        <div class="rl">INSTRUCCIÓN</div>
+        <div class="rv" id="rdv">Selecciona una circunferencia</div>
+        <div class="rs" id="rds"></div>
+      </div>
+
+      <div id="meas-status" style="display:none;border-radius:7px;padding:10px 12px;font-size:.88rem;font-weight:700;font-family:'Rajdhani';letter-spacing:.05em;text-align:center;"></div>
+
+      <div id="tape-panel">
+        <div class="ph tape">
+          <span>📏 Cinta — Lee la línea ROJA</span>
+          <button class="zbtn" style="background:#7a5800;" onclick="openZoom()">🔍 Ampliar</button>
+        </div>
+        <canvas id="tape-canvas" width="306" height="74"></canvas>
+        <div class="phint" style="color:#7a5000;">🔍 Ampliar para leer con exactitud · La línea roja marca el perímetro</div>
+      </div>
+
+      <div id="vernier-panel">
+        <div class="ph vern">
+          <span>🔩 Nonio del calibrador</span>
+          <button class="zbtn" style="background:#3a50a0;" onclick="openZoom()">🔍 Ampliar</button>
+        </div>
+        <canvas id="vernier-canvas" width="306" height="160"></canvas>
+        <div class="phint" style="color:#3a4a90;">🔍 Ampliar · Arrastra y rueda del mouse para acercar · La línea ROJA marca la coincidencia</div>
+      </div>
+
+      <h3>Circunferencias</h3>
+      <div class="circle-btns" id="circle-btns"></div>
+    </div>
+
+    <div id="tc-t" style="display:none;flex-direction:column;gap:10px;">
+      <h3>Registro de Medidas</h3>
+      <p style="font-size:.72rem;color:#3a6a8a;">Escribe los valores leídos en los instrumentos</p>
+      <table>
+        <thead><tr><th>#</th><th>Diám. (mm)</th><th>Perímet. (mm)</th><th>P/D ≈ π</th><th></th></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+      <div id="pi-result" style="background:#061220;border:1px solid #1a3050;border-radius:5px;padding:8px;font-size:.75rem;color:#4a8aaa;display:none;"></div>
+      <button class="tbtn" style="background:#0a2040;border-color:#3a8aff;color:#70d8a0;font-size:.78rem;padding:6px 10px;" onclick="exportCSV()">⬇ Exportar CSV</button>
+    </div>
+
+    <div id="tc-h" style="display:none;flex-direction:column;gap:10px;">
+      <h3>Cómo usar</h3>
+      <div id="instrs"></div>
+    </div>
+
+  </div>
+</div>
+
+<div id="zoom-overlay" onclick="closeZoomBg(event)">
+  <div id="zoom-box">
+    <canvas id="zoom-canvas"></canvas>
+    <button id="zoom-close" onclick="closeZoom()">✕ Cerrar</button>
+    <div id="zoom-footer"></div>
+  </div>
+</div>
+
+<div id="hint">Selecciona un instrumento y haz clic en una circunferencia</div>
+
+<!-- Three.js FIRST, then our code -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ════════════════════════════════════════════════
+//  CONSTANTS  (no THREE calls here)
+// ════════════════════════════════════════════════
+const SCALE    = 0.05;   // 1 mm → 0.05 THREE units
+const TAPE_LEN = 1000;   // 1 metre in mm
+
+// ════════════════════════════════════════════════
+//  UNA SOLA FUENTE DE VERDAD: el diámetro
+//  1. DIAMS: múltiplos exactos de 0.05 mm (resolución del calibrador)
+//  2. RADII: radio = DIAMS/2  → lo que el cilindro 3D usa para su geometría
+//  3. PERIMS: perímetro = π × DIAMS  → lo que la cinta muestra
+//
+//  Así: calibrador 3D abre exactamente DIAMS[i]*SCALE,
+//       nonio muestra DIAMS[i], cinta muestra PERIMS[i].
+//  No hay conversión ni redondeo intermedio.
+// ════════════════════════════════════════════════
+const DIAMS = Array.from({length:5}, () => {
+  // Diámetro entre 70 y 150 mm, múltiplo exacto de 0.05 mm
+  const steps = Math.floor(Math.random() * ((150 - 70) / 0.05 + 1));
+  return 70 + steps * 0.05;
+});
+const RADII  = DIAMS.map(d => d / 2);          // radio en mm (para cilindro 3D: r3d = r*SCALE)
+const PERIMS = DIAMS.map(d => Math.PI * d);    // perímetro exacto en mm
+
+// ════════════════════════════════════════════════
+//  GLOBALS  (all undefined/null at this point)
+// ════════════════════════════════════════════════
+let scene, camera, renderer, raycaster, animId;
+let circles = [];
+let instrMode = 'tape';
+let selIdx    = -1;
+let tapeGroup = null, caliperGroup = null;
+
+// Camera — initialised inside initThree()
+let camTheta = 0.4, camPhi = 1.05, camR = 26;
+let camTarget;   // THREE.Vector3 — set in initThree()
+
+// Mouse
+let mDown = false, mBtn = 0;
+let mPrev  = {x:0, y:0};
+let mDown0 = {x:0, y:0};
+let draggingInstr = false;
+
+// Tape wrap animation
+let wrapT = 0, wrapDir = 0;
+let wrapMesh = null, tailMesh = null, tapeTex = null;
+
+// Caliper jaw animation
+let caliperDiamMM  = 0;
+let caliperTargetX = null;
+let caliperCurX    = null;
+let caliperMeasured = false;   // true cuando las mordazas han tocado el cilindro
+
+// Zoom/pan for tape zoom overlay
+let tapeZoomPanMM  = 0;
+let tapeZoomPxPerMM = 18;
+let tapeZoomDragging = false;
+let tapeZoomDragX    = 0;
+
+// Zoom/pan for caliper zoom overlay
+let caliperZoomPanMM   = 0;   // center of view in mm on main scale
+let caliperZoomPxPerMM = 32;  // zoom level
+let caliperZoomDragging = false;
+let caliperZoomDragX    = 0;
+
+// Table
+let tableData = Array.from({length:5}, () => ({d:'', p:''}));
+
+// ════════════════════════════════════════════════
+//  BOOT  — only after page + Three.js are ready
+// ════════════════════════════════════════════════
+window.addEventListener('load', () => {
+  camTarget = new THREE.Vector3(0, 0, 0);
+  initThree();
+  buildUI();
+  animate();
+});
+
+// ════════════════════════════════════════════════
+//  THREE.JS INIT
+// ════════════════════════════════════════════════
+function initThree() {
+  const cv = document.getElementById('canvas3d');
+  const mobile = window.innerWidth <= 700;
+  const W  = window.innerWidth - (mobile ? 0 : 330);
+  const H  = mobile ? window.innerHeight * 0.56 : window.innerHeight;
+
+  // Scene
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x050710);
+  scene.fog = new THREE.FogExp2(0x050710, 0.011);
+
+  // Camera
+  camera = new THREE.PerspectiveCamera(50, W / H, 0.1, 400);
+  updateCam();
+
+  // Renderer
+  renderer = new THREE.WebGLRenderer({canvas: cv, antialias: true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(W, H);
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+  raycaster = new THREE.Raycaster();
+
+  // Lights
+  scene.add(new THREE.AmbientLight(0x182030, 1.4));
+
+  const sun = new THREE.DirectionalLight(0xc8e0ff, 2.0);
+  sun.position.set(20, 35, 15);
+  sun.castShadow = true;
+  sun.shadow.mapSize.width  = 2048;
+  sun.shadow.mapSize.height = 2048;
+  scene.add(sun);
+
+  const fill = new THREE.PointLight(0x4060e0, 1.0, 100);
+  fill.position.set(-12, 12, 12);
+  scene.add(fill);
+
+  const rim = new THREE.PointLight(0x8090ff, 0.4, 60);
+  rim.position.set(8, 6, -14);
+  scene.add(rim);
+
+  // Floor
+  const floor = new THREE.Mesh(
+    new THREE.PlaneGeometry(120, 120),
+    new THREE.MeshPhongMaterial({color: 0x050810, shininess: 3})
+  );
+  floor.rotation.x = -Math.PI / 2;
+  floor.position.y = -1.02;
+  floor.receiveShadow = true;
+  scene.add(floor);
+
+  const grid = new THREE.GridHelper(80, 60, 0x0a1e38, 0x060d1c);
+  grid.position.y = -1.01;
+  scene.add(grid);
+
+  // Objects
+  buildCircles();
+  buildTapeInstrument();
+  buildCaliperInstrument();
+  caliperGroup.visible = false;
+
+  // Events
+  cv.addEventListener('mousedown',   onDown);
+  cv.addEventListener('mousemove',   onMove);
+  cv.addEventListener('mouseup',     onUp);
+  cv.addEventListener('wheel',       onWheel, {passive: true});
+  cv.addEventListener('contextmenu', e => e.preventDefault());
+  window.addEventListener('resize',  onResize);
+
+  // ── Touch events ──
+  cv.addEventListener('touchstart',  onTouchStart,  {passive: false});
+  cv.addEventListener('touchmove',   onTouchMove,   {passive: false});
+  cv.addEventListener('touchend',    onTouchEnd,    {passive: false});
+}
+
+// ════════════════════════════════════════════════
+//  CIRCLES
+// ════════════════════════════════════════════════
+function buildCircles() {
+  const COLS = [0x1e5ce0, 0xd03020, 0x18a038, 0xb87800, 0x7820c0];
+  const sp   = 9.5;
+  const sx   = -((5 - 1) * sp) / 2;
+
+  RADII.forEach((rmm, i) => {
+    const r3d = rmm * SCALE;
+    const h   = 1.0 + r3d * 0.5;
+    const grp = new THREE.Group();
+
+    // Main cylinder
+    const mesh = new THREE.Mesh(
+      new THREE.CylinderGeometry(r3d, r3d, h, 80, 1),
+      new THREE.MeshPhongMaterial({
+        color:    COLS[i],
+        shininess: 110,
+        specular: new THREE.Color(0.2, 0.2, 0.3)
+      })
+    );
+    mesh.castShadow    = true;
+    mesh.receiveShadow = true;
+    grp.add(mesh);
+
+    // Top face
+    const top = new THREE.Mesh(
+      new THREE.CircleGeometry(r3d, 80),
+      new THREE.MeshPhongMaterial({
+        color:    new THREE.Color(COLS[i]).multiplyScalar(1.4),
+        shininess: 160
+      })
+    );
+    top.rotation.x = -Math.PI / 2;
+    top.position.y = h / 2 + 0.003;
+    grp.add(top);
+
+    // Edge ring
+    const ring = new THREE.Mesh(
+      new THREE.TorusGeometry(r3d, 0.055, 8, 80),
+      new THREE.MeshPhongMaterial({color: 0xffffff, emissive: 0x707070, shininess: 220})
+    );
+    ring.rotation.x = Math.PI / 2;
+    ring.position.y = h / 2 + 0.015;
+    grp.add(ring);
+
+    const px = sx + i * sp;
+    grp.position.set(px, -1 + h / 2, 0);
+    grp.userData = {isCircle: true, idx: i};
+    scene.add(grp);
+
+    circles.push({group: grp, mesh, r: rmm, r3d, h, cx: px, cz: 0, topY: -1 + h});
+  });
+}
+
+// ════════════════════════════════════════════════
+//  TAPE INSTRUMENT (3D housing)
+// ════════════════════════════════════════════════
+function buildTapeInstrument() {
+  tapeGroup = new THREE.Group();
+  tapeGroup.position.set(-14, 5, 10);
+
+  // Body
+  const body = new THREE.Mesh(
+    new THREE.BoxGeometry(2.0, 1.2, 0.65),
+    new THREE.MeshPhongMaterial({color: 0xf08820, shininess: 90})
+  );
+  tapeGroup.add(body);
+
+  // Grip ridges
+  [-0.5, 0, 0.5].forEach(ox => {
+    const r = new THREE.Mesh(
+      new THREE.BoxGeometry(0.18, 1.1, 0.10),
+      new THREE.MeshPhongMaterial({color: 0xc84010})
+    );
+    r.position.set(ox, 0, 0.37);
+    tapeGroup.add(r);
+  });
+
+  // Spring button
+  const btn = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.14, 0.14, 0.16, 14),
+    new THREE.MeshPhongMaterial({color: 0xcc1818, shininess: 130})
+  );
+  btn.rotation.z = Math.PI / 2;
+  btn.position.set(1.1, 0.22, 0.35);
+  tapeGroup.add(btn);
+
+  // Label plate
+  const lbl = new THREE.Mesh(
+    new THREE.BoxGeometry(1.0, 0.55, 0.02),
+    new THREE.MeshPhongMaterial({color: 0x181820})
+  );
+  lbl.position.set(0, 0, 0.34);
+  tapeGroup.add(lbl);
+
+  tapeGroup.userData.isInstrument = true;
+  scene.add(tapeGroup);
+}
+
+// ════════════════════════════════════════════════
+//  CALIPER INSTRUMENT (3D detailed)
+// ════════════════════════════════════════════════
+function buildCaliperInstrument() {
+  caliperGroup = new THREE.Group();
+  caliperGroup.position.set(-14, 5, 10);
+
+  const matSteel = new THREE.MeshPhongMaterial({color: 0xccd8ec, shininess: 240, specular: new THREE.Color(1,1,1)});
+  const matDark  = new THREE.MeshPhongMaterial({color: 0x4a5468, shininess: 80});
+  const matBlack = new THREE.MeshPhongMaterial({color: 0x181e28, shininess: 30});
+
+  // Beam
+  const beam = new THREE.Mesh(new THREE.BoxGeometry(13, 0.48, 0.18), matSteel.clone());
+  beam.position.set(2.5, 0, 0);
+  caliperGroup.add(beam);
+
+  // Beam scale texture — dynamic, updated per measurement
+  const bsMat = new THREE.MeshBasicMaterial({map: makeBeamTex(0)});
+  const bs = new THREE.Mesh(new THREE.BoxGeometry(12.5, 0.36, 0.01), bsMat);
+  bs.position.set(2.5, 0.07, 0.1);
+  caliperGroup.add(bs);
+
+  // Fixed lower jaw
+  const fjL = new THREE.Mesh(new THREE.BoxGeometry(0.65, 2.0, 0.18), matSteel.clone());
+  fjL.position.set(-4.2, -1.0, 0);
+  caliperGroup.add(fjL);
+
+  // Fixed jaw face
+  const fjF = new THREE.Mesh(new THREE.BoxGeometry(0.14, 2.0, 0.18), matDark.clone());
+  fjF.position.set(-3.875, -1.0, 0);
+  caliperGroup.add(fjF);
+
+  // Fixed upper jaw
+  const fjU = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.9, 0.18), matSteel.clone());
+  fjU.position.set(-4.2, 0.68, 0);
+  caliperGroup.add(fjU);
+
+  // Sliding jaw body
+  const sx0 = -2.0;
+  const sB = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.58, 0.24), matDark.clone());
+  sB.position.set(sx0, 0, 0.03);
+  caliperGroup.add(sB);
+
+  const sL = new THREE.Mesh(new THREE.BoxGeometry(0.9, 2.0, 0.22), matDark.clone());
+  sL.position.set(sx0, -1.0, 0.02);
+  caliperGroup.add(sL);
+
+  const sU = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.9, 0.22), matDark.clone());
+  sU.position.set(sx0, 0.68, 0.02);
+  caliperGroup.add(sU);
+
+  const sF = new THREE.Mesh(new THREE.BoxGeometry(0.14, 2.0, 0.22), matBlack.clone());
+  sF.position.set(sx0 - 0.5, -1.0, 0.02);
+  caliperGroup.add(sF);
+
+  // Vernier plate — dynamic texture updated per measurement
+  const vMat = new THREE.MeshBasicMaterial({map: makeVernierTex3D(0)});
+  const vP = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.32, 0.01), vMat);
+  vP.position.set(sx0, 0.06, 0.145);
+  caliperGroup.add(vP);
+
+  // Lock screw
+  const lock = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.30, 12), matSteel.clone());
+  lock.rotation.z = Math.PI / 2;
+  lock.position.set(sx0, 0.32, 0.15);
+  caliperGroup.add(lock);
+
+  // Depth rod
+  const rod = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.06, 1.8), matSteel.clone());
+  rod.position.set(-4.2, -0.18, 1.0);
+  caliperGroup.add(rod);
+
+  // Store refs for animation and texture updates
+  caliperGroup.userData = {isInstrument: true, sB, sL, sU, sF, vP, lock, sx0, bsMat, vMat};
+  scene.add(caliperGroup);
+}
+
+function makeBeamTex(diamMM) {
+  // Beam mesh = 12.5 THREE units = 250mm (escala SCALE=0.05)
+  // Resolución alta para que se vea nítido
+  const BEAM_MM  = 250;
+  const W = 2500, H = 100;   // 10px/mm para buena resolución
+  const pxPerMM  = W / BEAM_MM;   // 10 px/mm
+
+  const cv = document.createElement('canvas');
+  cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d');
+
+  // Fondo
+  ctx.fillStyle = '#c8d8ec';
+  ctx.fillRect(0, 0, W, H);
+
+  // Ticks — solo cada 1mm, con alturas diferenciadas
+  ctx.lineWidth = 1.5;
+  for (let m = 0; m <= BEAM_MM; m++) {
+    const x = m * pxPerMM;
+    let tH, lw;
+    if      (m % 20 === 0) { tH = H*0.70; lw = 2.5; }
+    else if (m % 10 === 0) { tH = H*0.50; lw = 1.8; }
+    else if (m %  5 === 0) { tH = H*0.35; lw = 1.2; }
+    else                   { tH = H*0.20; lw = 0.8; }
+    ctx.strokeStyle = '#1a2848';
+    ctx.lineWidth = lw;
+    ctx.beginPath(); ctx.moveTo(x, H); ctx.lineTo(x, H - tH); ctx.stroke();
+  }
+
+  // Números solo cada 20mm — espaciado suficiente para no montarse
+  const fontSize = Math.floor(pxPerMM * 2.8);  // más grande y visible en 3D
+  ctx.fillStyle = '#0a1830';
+  ctx.font = `bold ${fontSize}px Share Tech Mono`;
+  ctx.textBaseline = 'bottom';
+  ctx.textAlign = 'left';
+  for (let m = 0; m <= BEAM_MM; m += 20) {
+    const x = m * pxPerMM;
+    const tH = H * 0.70;
+    // Fondo blanco detrás del número para máximo contraste
+    const lbl = String(m);
+    const tw = ctx.measureText(lbl).width;
+    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    ctx.fillRect(x + 1, H - tH - fontSize - 4, tw + 6, fontSize + 4);
+    ctx.fillStyle = '#0a1830';
+    ctx.fillText(lbl, x + 4, H - tH - 3);
+  }
+
+  // Flecha roja en el mm entero del diámetro
+  if (diamMM > 0) {
+    const mainMM = Math.floor(diamMM);
+    const rx = mainMM * pxPerMM;
+    ctx.strokeStyle = '#ee1010'; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.moveTo(rx, 0); ctx.lineTo(rx, H); ctx.stroke();
+    // Triángulo indicador arriba
+    ctx.fillStyle = '#ee1010';
+    ctx.beginPath();
+    ctx.moveTo(rx, 0);
+    ctx.lineTo(rx - 8, 18);
+    ctx.lineTo(rx + 8, 18);
+    ctx.fill();
+  }
+  return new THREE.CanvasTexture(cv);
+}
+
+function makeVernierTex3D(diamMM) {
+  // Vernier nonio plate: 20 divisions, labels 0–10.
+  // The coinciding division for diamMM is coincDiv = round(frac / 0.05).
+  // We highlight that division in red so the 3D view matches the 2D panel.
+  const fracMM   = (diamMM || 0) - Math.floor(diamMM || 0);
+  const coincDiv = Math.round(fracMM / 0.05);   // 0..19
+
+  const W = 440, H = 90;
+  const cv = document.createElement('canvas');
+  cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d');
+  ctx.fillStyle = '#8a9ec8';
+  ctx.fillRect(0, 0, W, H);
+  const pD = W / 20;
+  const labelFs = Math.floor(pD * 1.5);
+  ctx.textBaseline = 'top';
+  for (let n = 0; n <= 20; n++) {
+    const x  = n * pD;
+    const isCoincide = (n === coincDiv && diamMM > 0);
+    const tH = n % 10 === 0 ? H*0.65 : n % 2 === 0 ? H*0.46 : H*0.28;
+    ctx.strokeStyle = isCoincide ? '#ee1010' : '#0a1638';
+    ctx.lineWidth   = isCoincide ? 4 : 1.5;
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, tH); ctx.stroke();
+    if (n % 2 === 0) {
+      const lbl = String(n / 2);
+      ctx.font = `bold ${labelFs}px Share Tech Mono`;
+      const tw = ctx.measureText(lbl).width;
+      // Fondo detrás del número
+      ctx.fillStyle = isCoincide ? 'rgba(255,220,220,0.92)' : 'rgba(255,255,255,0.80)';
+      ctx.fillRect(x - tw/2 - 3, tH + 2, tw + 6, labelFs + 3);
+      ctx.fillStyle = isCoincide ? '#cc0000' : '#0a1638';
+      ctx.fillText(lbl, x - tw/2, tH + 3);
+    }
+  }
+  return new THREE.CanvasTexture(cv);
+}
+
+// ════════════════════════════════════════════════
+//  TAPE TEXTURE (1m ribbon, 6px/mm)
+// ════════════════════════════════════════════════
+function createTapeTexture() {
+  const PX = 6;
+  const W  = TAPE_LEN * PX;
+  const H  = 80;
+  const cv = document.createElement('canvas');
+  cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d');
+
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0,   '#f5e872');
+  g.addColorStop(0.5, '#ede048');
+  g.addColorStop(1,   '#d6c228');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.strokeStyle = '#8a6a00'; ctx.lineWidth = 2.5;
+  ctx.strokeRect(1, 1, W-2, H-2);
+
+  for (let mm = 0; mm <= TAPE_LEN; mm++) {
+    const x = mm * PX;
+    let tH, lw;
+    if      (mm % 10 === 0) { tH = H*0.62; lw = 2.0; }
+    else if (mm %  5 === 0) { tH = H*0.44; lw = 1.5; }
+    else                    { tH = H*0.26; lw = 1.0; }
+    ctx.strokeStyle = '#4a3000'; ctx.lineWidth = lw;
+    ctx.beginPath(); ctx.moveTo(x, H); ctx.lineTo(x, H-tH); ctx.stroke();
+    if (mm % 10 === 0 && mm > 0) {
+      ctx.fillStyle    = '#4a3000';
+      ctx.font         = `bold ${PX*4}px Share Tech Mono`;
+      ctx.textBaseline = 'top';
+      ctx.fillText(`${mm}`, x+2, H-tH);
+    }
+  }
+
+  const tex = new THREE.CanvasTexture(cv);
+  tex.wrapS = THREE.ClampToEdgeWrapping;
+  tex.wrapT = THREE.ClampToEdgeWrapping;
+  return tex;
+}
+
+// ════════════════════════════════════════════════
+//  WRAP RIBBON  (rebuilt each animation frame)
+// ════════════════════════════════════════════════
+function clearWrap() {
+  [wrapMesh, tailMesh].forEach(m => {
+    if (m) { scene.remove(m); m.geometry.dispose(); }
+  });
+  wrapMesh = null; tailMesh = null;
+}
+
+function buildWrapRibbon(ci, t) {
+  clearWrap();
+  if (!ci || t <= 0) return;
+  if (!tapeTex) tapeTex = createTapeTexture();
+
+  const r      = ci.r3d + 0.09;   // visual radius (3D offset for ribbon thickness)
+  const topY   = ci.topY;
+  const RH     = 0.44;
+  const ang0   = Math.PI / 2;
+  const totAng = t * Math.PI * 2;
+  const SEGS   = Math.max(8, Math.ceil(totAng * 55));
+
+  // EXACT perimeter in mm (same value shown by the red line on the tape)
+  const exactPerimMM = PERIMS[circles.indexOf(ci)];
+
+  const pos = [], uv = [], idx = [];
+  for (let s = 0; s <= SEGS; s++) {
+    const f    = s / SEGS;
+    const a    = ang0 - f * totAng;
+    const px   = ci.cx + Math.cos(a) * r;
+    const pz   = ci.cz + Math.sin(a) * r;
+    // UV uses the exact measurement value so ribbon end aligns with red line
+    const arcMM = f * exactPerimMM;
+    pos.push(px, topY - RH, pz,  px, topY + 0.06, pz);
+    uv.push(arcMM / TAPE_LEN, 0,  arcMM / TAPE_LEN, 1);
+  }
+  for (let s = 0; s < SEGS; s++) {
+    const a = s*2; idx.push(a, a+1, a+2,  a+1, a+3, a+2);
+  }
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  geo.setAttribute('uv',       new THREE.Float32BufferAttribute(uv,  2));
+  geo.setIndex(idx);
+  geo.computeVertexNormals();
+
+  const mat = new THREE.MeshPhongMaterial({map: tapeTex, side: THREE.DoubleSide, shininess: 80});
+  wrapMesh = new THREE.Mesh(geo, mat);
+  scene.add(wrapMesh);
+
+  // Tail from reel exit to arc start
+  const ax = ci.cx + Math.cos(ang0) * r;
+  const az = ci.cz + Math.sin(ang0) * r;
+  const rx = tapeGroup.position.x + 1.02;
+  const ry = topY;
+  const rz = tapeGroup.position.z;
+
+  if (Math.hypot(ax-rx, az-rz) > 0.05) {
+    const tp = [rx, ry-RH, rz,  rx, ry+0.06, rz,  ax, ry-RH, az,  ax, ry+0.06, az];
+    const tg = new THREE.BufferGeometry();
+    tg.setAttribute('position', new THREE.Float32BufferAttribute(tp, 3));
+    tg.setAttribute('uv',       new THREE.Float32BufferAttribute([0,0, 0,1, 0.003,0, 0.003,1], 2));
+    tg.setIndex([0,1,2, 1,3,2]);
+    tg.computeVertexNormals();
+    tailMesh = new THREE.Mesh(tg, new THREE.MeshPhongMaterial({map: tapeTex, side: THREE.DoubleSide}));
+    scene.add(tailMesh);
+  }
+}
+
+// ════════════════════════════════════════════════
+//  CALIPER JAW ANIMATION
+// ════════════════════════════════════════════════
+// Geometry reference:
+//   Fixed jaw face (fjF): BoxGeometry width 0.14, centred at X = -3.875
+//     → inner (right) face at X = -3.875 + 0.07 = -3.805
+//   Sliding jaw face (sF): BoxGeometry width 0.14, centred at (sx - 0.5)
+//     → inner (left) face at X = (sx - 0.5) - 0.07 = sx - 0.57
+//   Visual gap = (sx - 0.57) - (-3.805) = sx + 3.235
+//   To set gap = diamMM * SCALE  →  sx = diamMM * SCALE - 3.235
+function setCaliperTarget() {
+  if (!caliperGroup || selIdx < 0) return;
+
+  const ci = circles[selIdx];
+
+  // caliperDiamMM = diámetro real del cilindro en mm
+  caliperDiamMM = Math.round((ci.r3d * 2 / SCALE) / 0.05) * 0.05;
+
+  // Posición inicial alejada del cilindro — el usuario debe moverlo manualmente
+  caliperGroup.position.set(ci.cx - 12, ci.topY + 3, ci.cz + ci.r3d + 6);
+  caliperGroup.rotation.y = 0;
+
+  caliperTargetX = -3.2 + caliperDiamMM * SCALE;
+
+  // Actualizar texturas
+  const cd = caliperGroup.userData;
+  if (cd.bsMat) {
+    if (cd.bsMat.map) cd.bsMat.map.dispose();
+    cd.bsMat.map = makeBeamTex(caliperDiamMM);
+    cd.bsMat.needsUpdate = true;
+  }
+  if (cd.vMat) {
+    if (cd.vMat.map) cd.vMat.map.dispose();
+    cd.vMat.map = makeVernierTex3D(caliperDiamMM);
+    cd.vMat.needsUpdate = true;
+  }
+}
+
+function updateCaliperAnim() {
+  if (!caliperGroup || caliperTargetX === null || caliperCurX === null) return;
+
+  const diff    = caliperTargetX - caliperCurX;
+  const reached = Math.abs(diff) <= 0.006;
+
+  if (!reached)
+    caliperCurX += diff * 0.08;
+  else
+    caliperCurX = caliperTargetX;
+
+  const cd = caliperGroup.userData;
+  const x  = caliperCurX;
+  cd.sB.position.x   = x;
+  cd.sL.position.x   = x;
+  cd.sU.position.x   = x;
+  cd.sF.position.x   = x - 0.5;
+  cd.vP.position.x   = x;
+  cd.lock.position.x = x;
+
+  // Las mordazas terminan su animación de apertura inicial — NO revelar medida automáticamente.
+  // La aprobación solo ocurre cuando el usuario arrastra el calibrador sobre el cilindro.
+}
+
+// ════════════════════════════════════════════════
+//  CAMERA
+// ════════════════════════════════════════════════
+function updateCam() {
+  camera.position.set(
+    camTarget.x + camR * Math.sin(camPhi) * Math.sin(camTheta),
+    camTarget.y + camR * Math.cos(camPhi),
+    camTarget.z + camR * Math.sin(camPhi) * Math.cos(camTheta)
+  );
+  camera.lookAt(camTarget);
+}
+
+function resetCamera() {
+  camTheta = 0.4; camPhi = 1.05; camR = 26;
+  camTarget.set(0, 0, 0);
+  updateCam();
+}
+
+// ════════════════════════════════════════════════
+//  MOUSE
+// ════════════════════════════════════════════════
+function getNDC(e) {
+  const r = renderer.domElement.getBoundingClientRect();
+  return {
+    x:  ((e.clientX - r.left) / r.width)  * 2 - 1,
+    y: -((e.clientY - r.top)  / r.height) * 2 + 1
+  };
+}
+
+function getCamRight() {
+  const r   = new THREE.Vector3();
+  const fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
+  r.crossVectors(fwd, new THREE.Vector3(0, 1, 0)).normalize();
+  return r;
+}
+
+function onDown(e) {
+  mDown = true; mBtn = e.button;
+  mPrev  = {x: e.clientX, y: e.clientY};
+  mDown0 = {x: e.clientX, y: e.clientY};
+  draggingInstr = false;
+
+  if (e.button === 0) {
+    const n = getNDC(e);
+    raycaster.setFromCamera(new THREE.Vector2(n.x, n.y), camera);
+    const G = instrMode === 'tape' ? tapeGroup : caliperGroup;
+    if (G && G.visible && raycaster.intersectObjects(G.children, true).length > 0)
+      draggingInstr = true;
+  }
+}
+
+function onMove(e) {
+  if (!mDown) return;
+  const dx = e.clientX - mPrev.x;
+  const dy = e.clientY - mPrev.y;
+  mPrev = {x: e.clientX, y: e.clientY};
+
+  if (draggingInstr) {
+    const G = instrMode === 'tape' ? tapeGroup : caliperGroup;
+    if (G) {
+      G.position.addScaledVector(getCamRight(), dx * 0.04);
+      G.position.y -= dy * 0.04;
+    }
+    if (instrMode === 'caliper') checkCaliperContact();
+    return;
+  }
+
+  if (mBtn === 0) {
+    camTheta -= dx * 0.008;
+    camPhi    = Math.max(0.06, Math.min(Math.PI * 0.88, camPhi + dy * 0.008));
+    updateCam();
+  } else if (mBtn === 2) {
+    camTarget.addScaledVector(getCamRight(), -dx * 0.03);
+    camTarget.y += dy * 0.03;
+    updateCam();
+  }
+}
+
+function checkCaliperContact() {
+  const st = document.getElementById('meas-status');
+  if (!caliperGroup || selIdx < 0 || instrMode !== 'caliper' || !draggingInstr) {
+    return;
+  }
+
+  const ci = circles[selIdx];
+
+  // Apertura actual de las mordazas en mm
+  const aperturaActualMM = (caliperCurX + 3.235) / SCALE;
+
+  // Centro geométrico del gap entre mordazas (en coordenadas mundo)
+  // Mordaza fija interior en X_local = -3.805; mordaza móvil interior en X_local = caliperCurX - 0.57
+  // Centro del gap = promedio de ambas caras interiores
+  const gapCenterXlocal = (-3.805 + (caliperCurX - 0.57)) / 2;
+  const gapCenterX = caliperGroup.position.x + gapCenterXlocal;
+  const gapCenterZ = caliperGroup.position.z;
+
+  // Distancia entre el centro del gap y el centro del cilindro
+  const distCentros = Math.hypot(gapCenterX - ci.cx, gapCenterZ - ci.cz);
+
+  // Condición 1: apertura ≈ diámetro real (±5%)
+  const aperturaTol = caliperDiamMM * 0.05;
+  const aperturaOk  = Math.abs(aperturaActualMM - caliperDiamMM) <= aperturaTol;
+
+  // Condición 2: el centro del gap debe estar sobre el centro del cilindro (±30% del radio)
+  const centradoTol = ci.r3d * 0.5;
+  const centradoOk  = distCentros <= centradoTol;
+
+  // Condición 3: el calibrador a la altura del cilindro
+  const altY    = caliperGroup.position.y;
+  const alturaOk = altY >= -2 && altY <= ci.topY + 2;
+
+  st.style.display = 'block';
+
+  if (aperturaOk && centradoOk && alturaOk) {
+    st.style.background = '#061a0e';
+    st.style.border     = '1px solid #1a6030';
+    st.style.color      = '#30e880';
+    st.innerHTML        = '✅ MEDIDA APROBADA<br><span style="font-size:.72rem;font-weight:400;color:#50c870;">Las mordazas tocan el borde del cilindro</span>';
+    if (!caliperMeasured) {
+      caliperMeasured = true;
+      document.getElementById('vernier-panel').style.display = 'flex';
+      drawVernierPanel();
+      updateRdv();
+    }
+  } else {
+    let motivo = '';
+    if (!centradoOk)    motivo = 'Centra el calibrador sobre el cilindro';
+    else if (!alturaOk) motivo = 'Ajusta la altura del calibrador';
+    else                motivo = 'Las mordazas no rodean el cilindro correctamente';
+
+    st.style.background = '#1a0608';
+    st.style.border     = '1px solid #601a1a';
+    st.style.color      = '#ee4040';
+    st.innerHTML        = `❌ SIN CONTACTO<br><span style="font-size:.72rem;font-weight:400;color:#c04040;">${motivo}</span>`;
+    // Si se pierde el contacto, ocultar nonio y resetear aprobación
+    if (caliperMeasured) {
+      caliperMeasured = false;
+      document.getElementById('vernier-panel').style.display = 'none';
+      updateRdv();
+    }
+  }
+}
+
+function onUp(e) {
+  const dist = Math.hypot(e.clientX - mDown0.x, e.clientY - mDown0.y);
+  if (dist < 7 && mBtn === 0 && !draggingInstr) {
+    const n = getNDC(e);
+    raycaster.setFromCamera(new THREE.Vector2(n.x, n.y), camera);
+    const hits = raycaster.intersectObjects(circles.map(c => c.mesh));
+    if (hits.length > 0) {
+      const i = circles.findIndex(c => c.mesh === hits[0].object);
+      if (i >= 0) selectCircle(i);
+    }
+  }
+  mDown = false; draggingInstr = false;
+}
+
+function onWheel(e) {
+  camR = Math.max(5, Math.min(60, camR + e.deltaY * 0.035));
+  updateCam();
+}
+
+function onResize() {
+  const mobile = window.innerWidth <= 700;
+  const panelW = mobile ? 0 : 330;
+  const W = window.innerWidth - panelW;
+  const H = mobile ? window.innerHeight * 0.56 : window.innerHeight;
+  camera.aspect = W / H;
+  camera.updateProjectionMatrix();
+  renderer.setSize(W, H);
+}
+
+// ════════════════════════════════════════════════
+//  TOUCH  (móvil / tablet)
+// ════════════════════════════════════════════════
+let tPrev1    = null;   // posición del primer dedo (frame anterior)
+let tDown0    = null;   // posición inicial del primer dedo (para detectar tap)
+let tPrevDist = null;   // distancia entre dos dedos (frame anterior) para pinch-zoom
+let tPrevMid  = null;   // punto medio entre dos dedos (frame anterior) para pan
+let tDragInstr = false; // si el dedo está arrastrando el instrumento
+
+// Convierte un Touch a NDC igual que getNDC para mouse
+function getTouchNDC(touch) {
+  const r = renderer.domElement.getBoundingClientRect();
+  return {
+    x:  ((touch.clientX - r.left) / r.width)  * 2 - 1,
+    y: -((touch.clientY - r.top)  / r.height) * 2 + 1
+  };
+}
+
+function onTouchStart(e) {
+  e.preventDefault();
+  const touches = e.touches;
+
+  if (touches.length === 1) {
+    const t = touches[0];
+    tPrev1  = {x: t.clientX, y: t.clientY};
+    tDown0  = {x: t.clientX, y: t.clientY};
+    tDragInstr = false;
+    tPrevDist  = null;
+    tPrevMid   = null;
+
+    // ¿El dedo toca el instrumento?
+    const ndc = getTouchNDC(t);
+    raycaster.setFromCamera(new THREE.Vector2(ndc.x, ndc.y), camera);
+    const G = instrMode === 'tape' ? tapeGroup : caliperGroup;
+    if (G && G.visible && raycaster.intersectObjects(G.children, true).length > 0) {
+      tDragInstr = true;
+      draggingInstr = true;   // reutilizar flag para checkCaliperContact
+    }
+
+  } else if (touches.length === 2) {
+    // Dos dedos: preparar pinch-zoom y pan
+    tDragInstr = false;
+    draggingInstr = false;
+    const dx = touches[1].clientX - touches[0].clientX;
+    const dy = touches[1].clientY - touches[0].clientY;
+    tPrevDist = Math.hypot(dx, dy);
+    tPrevMid  = {
+      x: (touches[0].clientX + touches[1].clientX) / 2,
+      y: (touches[0].clientY + touches[1].clientY) / 2
+    };
+  }
+}
+
+function onTouchMove(e) {
+  e.preventDefault();
+  const touches = e.touches;
+
+  if (touches.length === 1) {
+    const t  = touches[0];
+    const dx = t.clientX - tPrev1.x;
+    const dy = t.clientY - tPrev1.y;
+    tPrev1   = {x: t.clientX, y: t.clientY};
+
+    if (tDragInstr) {
+      // Mover instrumento (igual que mouse)
+      const G = instrMode === 'tape' ? tapeGroup : caliperGroup;
+      if (G) {
+        G.position.addScaledVector(getCamRight(), dx * 0.04);
+        G.position.y -= dy * 0.04;
+      }
+      if (instrMode === 'caliper') checkCaliperContact();
+    } else {
+      // Un dedo sin instrumento = rotar cámara
+      camTheta -= dx * 0.008;
+      camPhi    = Math.max(0.06, Math.min(Math.PI * 0.88, camPhi + dy * 0.008));
+      updateCam();
+    }
+
+  } else if (touches.length === 2) {
+    const dx   = touches[1].clientX - touches[0].clientX;
+    const dy   = touches[1].clientY - touches[0].clientY;
+    const dist = Math.hypot(dx, dy);
+    const mid  = {
+      x: (touches[0].clientX + touches[1].clientX) / 2,
+      y: (touches[0].clientY + touches[1].clientY) / 2
+    };
+
+    // Pinch → zoom
+    if (tPrevDist !== null) {
+      const delta = tPrevDist - dist;
+      camR = Math.max(5, Math.min(60, camR + delta * 0.07));
+    }
+
+    // Dos dedos desplazándose juntos → pan de cámara
+    if (tPrevMid !== null) {
+      const pdx = mid.x - tPrevMid.x;
+      const pdy = mid.y - tPrevMid.y;
+      camTarget.addScaledVector(getCamRight(), -pdx * 0.03);
+      camTarget.y += pdy * 0.03;
+    }
+
+    updateCam();
+    tPrevDist = dist;
+    tPrevMid  = mid;
+  }
+}
+
+function onTouchEnd(e) {
+  e.preventDefault();
+  const remaining = e.touches.length;
+
+  if (remaining === 0) {
+    // Detectar tap (toque corto sin movimiento) → seleccionar circunferencia
+    if (!tDragInstr && tDown0) {
+      const touch = e.changedTouches[0];
+      const dist  = Math.hypot(touch.clientX - tDown0.x, touch.clientY - tDown0.y);
+      if (dist < 12) {
+        const ndc = getTouchNDC(touch);
+        raycaster.setFromCamera(new THREE.Vector2(ndc.x, ndc.y), camera);
+        const hits = raycaster.intersectObjects(circles.map(c => c.mesh));
+        if (hits.length > 0) {
+          const i = circles.findIndex(c => c.mesh === hits[0].object);
+          if (i >= 0) selectCircle(i);
+        }
+      }
+    }
+    tPrev1     = null;
+    tDown0     = null;
+    tPrevDist  = null;
+    tPrevMid   = null;
+    tDragInstr = false;
+    draggingInstr = false;
+  } else if (remaining === 1) {
+    // Quedó un dedo → reiniciar referencia para seguir rotando suavemente
+    tPrev1    = {x: e.touches[0].clientX, y: e.touches[0].clientY};
+    tPrevDist = null;
+    tPrevMid  = null;
+  }
+}
+
+
+function switchInstr(mode) {
+  instrMode = mode;
+  document.getElementById('btn-tape').classList.toggle('act', mode === 'tape');
+  document.getElementById('btn-cal').classList.toggle('act',  mode === 'caliper');
+
+  tapeGroup.visible     = (mode === 'tape');
+  caliperGroup.visible  = (mode === 'caliper');
+
+  if (mode !== 'tape') {
+    clearWrap(); wrapT = 0; wrapDir = 0;
+    if (tapeTex) { tapeTex.dispose(); tapeTex = null; }
+  }
+
+  document.getElementById('tape-panel').style.display    = 'none';
+  document.getElementById('vernier-panel').style.display = 'none';
+
+  updateBadge(); updateInstrs();
+
+  if (selIdx >= 0) {
+    if (mode === 'tape') {
+      wrapT = 0; wrapDir = 1;
+      if (tapeTex) { tapeTex.dispose(); tapeTex = null; }
+      document.getElementById('tape-panel').style.display = 'flex';
+    } else {
+      caliperMeasured = false;
+      caliperCurX = null;
+      setCaliperTarget();
+      if (selIdx >= 0) caliperCurX = caliperTargetX + 4.5;
+      document.getElementById('vernier-panel').style.display = 'none';
+      document.getElementById('meas-status').style.display   = 'none';
+    }
+    updateRdv();
+  }
+  updateHint();
+}
+
+// ════════════════════════════════════════════════
+//  SELECT CIRCLE
+// ════════════════════════════════════════════════
+function selectCircle(idx) {
+  selIdx = idx;
+  document.getElementById('sel-lbl').textContent = 'C' + (idx + 1);
+  document.querySelectorAll('.cbtn').forEach((b,i) => b.classList.toggle('act', i === idx));
+  circles.forEach((c,i) =>
+    c.mesh.material.emissive = new THREE.Color(i === idx ? 0x152870 : 0x000000)
+  );
+
+  if (instrMode === 'tape') {
+    clearWrap(); wrapT = 0; wrapDir = 1;
+    if (tapeTex) { tapeTex.dispose(); tapeTex = null; }
+    document.getElementById('tape-panel').style.display    = 'flex';
+    document.getElementById('vernier-panel').style.display = 'none';
+  } else {
+    caliperMeasured = false;
+    caliperCurX = null;
+    setCaliperTarget();
+    caliperCurX = caliperTargetX + 4.5;
+    document.getElementById('tape-panel').style.display    = 'none';
+    document.getElementById('vernier-panel').style.display = 'none';
+    document.getElementById('meas-status').style.display   = 'none';
+  }
+
+  updateRdv(); updateHint(); showTab('m');
+}
+
+function updateRdv() {
+  const rdv = document.getElementById('rdv');
+  const rds = document.getElementById('rds');
+  if (selIdx < 0) {
+    rdv.textContent = 'Selecciona una circunferencia';
+    rds.textContent = '';
+    return;
+  }
+  if (instrMode === 'tape') {
+    rdv.textContent = 'Lee la línea roja en la cinta →';
+    rds.textContent = 'Perímetro — determínalo tú mismo';
+  } else if (!caliperMeasured) {
+    rdv.textContent = 'Las mordazas se están cerrando…';
+    rds.textContent = 'Espera a que toquen el cilindro';
+  } else {
+    rdv.textContent = 'Observa las líneas del nonio →';
+    rds.textContent = '¿Cuál línea inferior coincide con una superior?';
+  }
+}
+
+// ════════════════════════════════════════════════
+//  TAPE RULER  —  PANEL (small, interactive)
+// ════════════════════════════════════════════════
+let tapePanelPanMM   = 0;
+let tapePanelPxPerMM = 3.8;   // px por mm en el panel pequeño
+
+function drawTapePanel() {
+  if (selIdx < 0) return;
+  const cv  = document.getElementById('tape-canvas');
+  const ctx = cv.getContext('2d');
+  tapePanelPanMM   = PERIMS[selIdx];
+  tapePanelPxPerMM = Math.max(2, Math.min(10, cv.width / 80));
+  renderTapePanelView(ctx, cv.width, cv.height);
+  setupTapePanelEvents(cv);
+}
+
+function renderTapePanelView(ctx, W, H) {
+  const measMM  = PERIMS[selIdx];
+  const pxPerMM = tapePanelPxPerMM;
+  const viewMM  = W / pxPerMM;
+  const startMM = Math.max(0, tapePanelPanMM - viewMM * 0.5);
+  const toX     = mm => (mm - startMM) * pxPerMM;
+
+  ctx.clearRect(0, 0, W, H);
+
+  // Fondo cinta
+  const bg = ctx.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0,   '#f6e970');
+  bg.addColorStop(0.5, '#eee040');
+  bg.addColorStop(1,   '#d8c428');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = 'rgba(0,0,0,0.09)';
+  ctx.fillRect(0, 0, W, 4); ctx.fillRect(0, H-4, W, 4);
+  ctx.strokeStyle = '#8a6a00'; ctx.lineWidth = 1.5;
+  ctx.strokeRect(0.5, 0.5, W-1, H-1);
+
+  // Ticks
+  const firstMM = Math.ceil(startMM);
+  const lastMM  = Math.floor(startMM + viewMM) + 2;
+  for (let mm = firstMM; mm <= lastMM; mm++) {
+    const x = toX(mm);
+    if (x < -2 || x > W+2) continue;
+    let tickH, lw;
+    if      (mm % 10 === 0) { tickH = H*0.60; lw = 1.8; }
+    else if (mm %  5 === 0) { tickH = H*0.40; lw = 1.4; }
+    else                    { tickH = H*0.23; lw = 1.0; }
+    ctx.strokeStyle = '#3a2800'; ctx.lineWidth = lw;
+    ctx.beginPath(); ctx.moveTo(x, H-3); ctx.lineTo(x, H-3-tickH); ctx.stroke();
+  }
+
+  // Números cada 10mm
+  let step = 10;
+  if (pxPerMM >= 8) step = 5;
+  if (pxPerMM >= 20) step = 1;
+  const fs = Math.max(7, Math.min(14, Math.floor(pxPerMM * step * 0.30)));
+  ctx.font = `bold ${fs}px Share Tech Mono`;
+  ctx.textBaseline = 'bottom'; ctx.fillStyle = '#3a2800';
+  for (let mm = Math.ceil(startMM / step) * step; mm <= lastMM; mm += step) {
+    const x = toX(mm);
+    if (x < 0 || x > W) continue;
+    const isTen = (mm % 10 === 0);
+    const tH = isTen ? H*0.60 : H*0.40;
+    ctx.fillText(`${mm}`, x + 2, H - 3 - tH - 1);
+  }
+
+  // Zona sombreada + línea roja
+  const rx = toX(measMM);
+  const x0 = toX(Math.max(0, startMM));
+  if (rx > x0) { ctx.fillStyle = 'rgba(255,30,0,0.12)'; ctx.fillRect(x0, 0, rx-x0, H); }
+  ctx.strokeStyle = '#ee0808'; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(rx, 0); ctx.lineTo(rx, H); ctx.stroke();
+  ctx.fillStyle = '#ee0808';
+  ctx.beginPath(); ctx.moveTo(rx, H); ctx.lineTo(rx-6, H-13); ctx.lineTo(rx+6, H-13); ctx.fill();
+
+  // Hint mini
+  ctx.fillStyle = 'rgba(0,0,0,0.50)';
+  ctx.fillRect(2, 2, 160, 14);
+  ctx.fillStyle = '#ffeeaa'; ctx.font = '9px Rajdhani'; ctx.textBaseline = 'top';
+  ctx.fillText(`${pxPerMM.toFixed(1)}px/mm · arrastra/pellizca para zoom`, 5, 4);
+}
+
+function setupTapePanelEvents(cv) {
+  cv.style.cursor = 'ew-resize';
+  let dragging = false, dragX = 0;
+
+  cv.onmousedown = e => { dragging = true; dragX = e.clientX; };
+  cv.onmousemove = e => {
+    if (!dragging) return;
+    const dx = e.clientX - dragX; dragX = e.clientX;
+    tapePanelPanMM -= dx / tapePanelPxPerMM;
+    tapePanelPanMM = Math.max(10, Math.min(TAPE_LEN - 10, tapePanelPanMM));
+    renderTapePanelView(cv.getContext('2d'), cv.width, cv.height);
+  };
+  cv.onmouseup = cv.onmouseleave = () => { dragging = false; };
+  cv.onwheel = e => {
+    e.preventDefault();
+    tapePanelPxPerMM = Math.max(1.5, Math.min(40, tapePanelPxPerMM * (e.deltaY < 0 ? 1.15 : 0.87)));
+    renderTapePanelView(cv.getContext('2d'), cv.width, cv.height);
+  };
+
+  // Touch
+  let t1 = null, tDist = null;
+  cv.addEventListener('touchstart', e => {
+    e.preventDefault();
+    if (e.touches.length === 1) { t1 = e.touches[0].clientX; tDist = null; }
+    else if (e.touches.length === 2) {
+      t1 = null;
+      tDist = Math.hypot(e.touches[1].clientX - e.touches[0].clientX,
+                         e.touches[1].clientY - e.touches[0].clientY);
+    }
+  }, {passive: false});
+  cv.addEventListener('touchmove', e => {
+    e.preventDefault();
+    if (e.touches.length === 1 && t1 !== null) {
+      const dx = e.touches[0].clientX - t1; t1 = e.touches[0].clientX;
+      tapePanelPanMM -= dx / tapePanelPxPerMM;
+      tapePanelPanMM = Math.max(10, Math.min(TAPE_LEN - 10, tapePanelPanMM));
+      renderTapePanelView(cv.getContext('2d'), cv.width, cv.height);
+    } else if (e.touches.length === 2 && tDist !== null) {
+      const d = Math.hypot(e.touches[1].clientX - e.touches[0].clientX,
+                           e.touches[1].clientY - e.touches[0].clientY);
+      tapePanelPxPerMM = Math.max(1.5, Math.min(40, tapePanelPxPerMM * (d / tDist)));
+      tDist = d;
+      renderTapePanelView(cv.getContext('2d'), cv.width, cv.height);
+    }
+  }, {passive: false});
+  cv.addEventListener('touchend', e => { e.preventDefault(); t1 = null; tDist = null; }, {passive: false});
+}
+
+// ════════════════════════════════════════════════
+//  TAPE RULER  —  ZOOM (zoom + pan, rendered on demand)
+// ════════════════════════════════════════════════
+function renderTapeZoom() {
+  if (selIdx < 0) return;
+  const perimMM = PERIMS[selIdx];   // exact value = same as red line in panel
+  const zc  = document.getElementById('zoom-canvas');
+  const ctx = zc.getContext('2d');
+  const W   = zc.width, H = zc.height;
+
+  const viewMM  = W / tapeZoomPxPerMM;
+  const startMM = Math.max(0, tapeZoomPanMM - viewMM / 2);
+
+  ctx.clearRect(0, 0, W, H);
+
+  // Tape background
+  const bg = ctx.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0,   '#f6e970');
+  bg.addColorStop(0.5, '#eee040');
+  bg.addColorStop(1,   '#d8c428');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = 'rgba(0,0,0,0.08)';
+  ctx.fillRect(0, 0, W, 6); ctx.fillRect(0, H-6, W, 6);
+  ctx.strokeStyle = '#8a6a00'; ctx.lineWidth = 2;
+  ctx.strokeRect(1, 1, W-2, H-2);
+
+  const toX = mm => (mm - startMM) * tapeZoomPxPerMM;
+
+  // ── Ticks — solo milímetros enteros ──
+  const firstTick = Math.ceil(startMM);
+  const lastTick  = Math.ceil(startMM + viewMM) + 1;
+
+  for (let mm = firstTick; mm <= lastTick; mm++) {
+    const x     = toX(mm);
+    if (x < -2 || x > W+2) continue;
+    const isFive = mm % 5  === 0;
+    const isTen  = mm % 10 === 0;
+
+    let tickH, lw;
+    if      (isTen)  { tickH = H*0.64; lw = 2.2; }
+    else if (isFive) { tickH = H*0.46; lw = 1.6; }
+    else             { tickH = H*0.30; lw = 1.3; }
+
+    ctx.strokeStyle = '#3a2800'; ctx.lineWidth = lw;
+    ctx.beginPath(); ctx.moveTo(x, H-4); ctx.lineTo(x, H-4-tickH); ctx.stroke();
+  }
+
+  // ── Numbers ──
+  let numStep = 10;
+  if (tapeZoomPxPerMM >= 14) numStep = 5;
+  if (tapeZoomPxPerMM >= 40) numStep = 1;
+  const fs = Math.max(9, Math.min(18, Math.floor(tapeZoomPxPerMM * numStep * 0.30)));
+  ctx.font         = `bold ${fs}px Share Tech Mono`;
+  ctx.textBaseline = 'bottom';
+  ctx.fillStyle    = '#3a2800';
+  for (let mm = Math.ceil(startMM / numStep) * numStep; mm <= lastTick; mm += numStep) {
+    const x = toX(mm);
+    if (x < 2 || x > W-2) continue;
+    const isWhole = Math.abs(mm - Math.round(mm)) < 0.01;
+    const isFive  = isWhole && Math.abs(Math.round(mm) % 5)  < 0.01;
+    const isTen   = isWhole && Math.abs(Math.round(mm) % 10) < 0.01;
+    const tickH   = isTen ? H*0.64 : isFive ? H*0.46 : H*0.30;
+    ctx.fillText(Math.round(mm * 10) / 10, x + 2, H - 4 - tickH - 1);
+  }
+
+  // ── Shading + Red line ──
+  const rx = toX(perimMM);
+  const x0 = toX(Math.max(0, startMM));
+  if (rx > x0) {
+    ctx.fillStyle = 'rgba(255,30,0,0.11)';
+    ctx.fillRect(x0, 0, Math.min(rx, W) - x0, H);
+  }
+  if (rx >= -4 && rx <= W+4) {
+    ctx.strokeStyle = '#ee0505'; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.moveTo(rx, 0); ctx.lineTo(rx, H); ctx.stroke();
+    ctx.fillStyle = '#ee0505';
+    ctx.beginPath();
+    ctx.moveTo(rx, H); ctx.lineTo(rx-8, H-20); ctx.lineTo(rx+8, H-20);
+    ctx.fill();
+    ctx.beginPath(); ctx.moveTo(rx, 0); ctx.lineTo(rx, 7); ctx.stroke();
+  }
+
+  // Zoom hint
+  ctx.fillStyle = 'rgba(0,0,0,0.55)';
+  ctx.fillRect(2, 2, 195, 18);
+  ctx.fillStyle    = '#ffeeaa';
+  ctx.font         = '10px Rajdhani';
+  ctx.textBaseline = 'top';
+  ctx.fillText(`Zoom: ${tapeZoomPxPerMM.toFixed(0)}px/mm · Arrastra o rueda para navegar`, 5, 5);
+}
+
+// ════════════════════════════════════════════════
+//  VERNIER  —  PANEL  (interactive, like tape)
+// ════════════════════════════════════════════════
+function drawVernierPanel() {
+  if (selIdx < 0) return;
+  const cv  = document.getElementById('vernier-canvas');
+  const ctx = cv.getContext('2d');
+  // Center panel on measurement, default zoom
+  caliperZoomPanMM   = caliperDiamMM;
+  caliperZoomPxPerMM = Math.max(8, Math.min(28, cv.width / 14));
+  renderVernierInteractive(ctx, cv.width, cv.height, caliperDiamMM,
+                           caliperZoomPanMM, caliperZoomPxPerMM, false);
+  setupVernierPanelEvents(cv);
+}
+
+function setupVernierPanelEvents(cv) {
+  cv.style.cursor = 'ew-resize';
+
+  // ── Mouse ──
+  cv.onmousedown = e => { caliperZoomDragging = true; caliperZoomDragX = e.clientX; };
+  cv.onmousemove = e => {
+    if (!caliperZoomDragging) return;
+    const dx = e.clientX - caliperZoomDragX; caliperZoomDragX = e.clientX;
+    caliperZoomPanMM -= dx / caliperZoomPxPerMM;
+    caliperZoomPanMM = Math.max(0, Math.min(150, caliperZoomPanMM));
+    const ctx2 = cv.getContext('2d');
+    renderVernierInteractive(ctx2, cv.width, cv.height, caliperDiamMM,
+                             caliperZoomPanMM, caliperZoomPxPerMM, false);
+  };
+  cv.onmouseup = cv.onmouseleave = () => { caliperZoomDragging = false; };
+  cv.onwheel = e => {
+    e.preventDefault();
+    caliperZoomPxPerMM = Math.max(4, Math.min(80, caliperZoomPxPerMM * (e.deltaY < 0 ? 1.18 : 0.85)));
+    const ctx2 = cv.getContext('2d');
+    renderVernierInteractive(ctx2, cv.width, cv.height, caliperDiamMM,
+                             caliperZoomPanMM, caliperZoomPxPerMM, false);
+  };
+
+  // ── Touch: 1 dedo = pan, 2 dedos = pinch zoom ──
+  let vt1 = null, vtDist = null;
+  cv.addEventListener('touchstart', e => {
+    e.preventDefault();
+    if (e.touches.length === 1) { vt1 = e.touches[0].clientX; vtDist = null; }
+    else if (e.touches.length === 2) {
+      vt1 = null;
+      vtDist = Math.hypot(e.touches[1].clientX - e.touches[0].clientX,
+                          e.touches[1].clientY - e.touches[0].clientY);
+    }
+  }, {passive: false});
+  cv.addEventListener('touchmove', e => {
+    e.preventDefault();
+    const ctx2 = cv.getContext('2d');
+    if (e.touches.length === 1 && vt1 !== null) {
+      const dx = e.touches[0].clientX - vt1;
+      vt1 = e.touches[0].clientX;
+      caliperZoomPanMM -= dx / caliperZoomPxPerMM;
+      caliperZoomPanMM = Math.max(0, Math.min(150, caliperZoomPanMM));
+      renderVernierInteractive(ctx2, cv.width, cv.height, caliperDiamMM,
+                               caliperZoomPanMM, caliperZoomPxPerMM, false);
+    } else if (e.touches.length === 2 && vtDist !== null) {
+      const d = Math.hypot(e.touches[1].clientX - e.touches[0].clientX,
+                           e.touches[1].clientY - e.touches[0].clientY);
+      caliperZoomPxPerMM = Math.max(4, Math.min(80, caliperZoomPxPerMM * (d / vtDist)));
+      vtDist = d;
+      renderVernierInteractive(ctx2, cv.width, cv.height, caliperDiamMM,
+                               caliperZoomPanMM, caliperZoomPxPerMM, false);
+    }
+  }, {passive: false});
+  cv.addEventListener('touchend', e => { e.preventDefault(); vt1 = null; vtDist = null; }, {passive: false});
+}
+
+/**
+ * Render the vernier caliper — interactive version.
+ *
+ * Physical model (0.05 mm vernier, 1/20):
+ *   20 vernier divisions = 19 main-scale mm  →  each vernier div = 0.95 mm
+ *   Vernier 0-line is at `diamMM`.
+ *   Coinciding division: n = round(frac / 0.05), frac = diamMM - floor(diamMM)
+ */
+function renderVernierInteractive(ctx, W, H, diamMM, panMM, pxPerMM, large) {
+  ctx.clearRect(0, 0, W, H);
+
+  const mainMM   = Math.floor(diamMM);
+  const fracMM   = diamMM - mainMM;
+  const coincDiv = Math.round(fracMM / 0.05);   // 0..19
+
+  const H_MAIN = Math.round(H * 0.48);
+  const H_VERN = H - H_MAIN;
+
+  // View window: panMM is the center
+  const viewMM  = W / pxPerMM;
+  const startMM = Math.max(0, panMM - viewMM * 0.5);
+  const toX     = mm => (mm - startMM) * pxPerMM;
+
+  // ── MAIN SCALE background (steel/gold gradient) ──
+  const bgM = ctx.createLinearGradient(0, 0, 0, H_MAIN);
+  bgM.addColorStop(0,   '#e8d870');
+  bgM.addColorStop(0.5, '#d4c248');
+  bgM.addColorStop(1,   '#bfaa30');
+  ctx.fillStyle = bgM;
+  ctx.fillRect(0, 0, W, H_MAIN);
+
+  // Edge lines
+  ctx.fillStyle = 'rgba(0,0,0,0.12)';
+  ctx.fillRect(0, 0, W, 3);
+
+  // ── MAIN SCALE ticks — every 0.5mm ──
+  for (let mm = Math.ceil(startMM * 2) / 2; mm <= startMM + viewMM + 1; mm += 0.5) {
+    const x      = toX(mm);
+    if (x < -2 || x > W+2) continue;
+    const isWhole = (Math.round(mm * 2) % 2 === 0);
+    const isFive  = isWhole && Math.abs(Math.round(mm) % 5)  < 0.01;
+    const isTen   = isWhole && Math.abs(Math.round(mm) % 10) < 0.01;
+
+    let tH, lw;
+    if      (isTen)    { tH = H_MAIN*0.78; lw = 2.2; }
+    else if (isFive)   { tH = H_MAIN*0.58; lw = 1.6; }
+    else if (isWhole)  { tH = H_MAIN*0.40; lw = 1.3; }
+    else               { tH = H_MAIN*0.22; lw = 0.9; }
+
+    ctx.strokeStyle = '#2a1800'; ctx.lineWidth = lw;
+    ctx.beginPath(); ctx.moveTo(x, H_MAIN); ctx.lineTo(x, H_MAIN - tH); ctx.stroke();
+  }
+
+  // ── MAIN SCALE numbers (adaptive) ──
+  let numStep = 10;
+  if (pxPerMM >= 12) numStep = 5;
+  if (pxPerMM >= 30) numStep = 1;
+  const fsM = Math.max(9, Math.min(large ? 17 : 13, Math.floor(pxPerMM * numStep * 0.30)));
+  ctx.font         = `bold ${fsM}px Share Tech Mono`;
+  ctx.textBaseline = 'bottom';
+  ctx.fillStyle    = '#2a1800';
+  for (let mm = Math.ceil(startMM / numStep) * numStep; mm <= startMM + viewMM + 1; mm += numStep) {
+    const x = toX(mm);
+    if (x < 2 || x > W-2) continue;
+    // Dibujar número justo encima de la línea divisoria (abajo del área dorada)
+    const isTen  = (Math.round(mm) % 10 === 0);
+    const isFive = (Math.round(mm) % 5  === 0);
+    const tH = isTen ? H_MAIN*0.78 : isFive ? H_MAIN*0.58 : H_MAIN*0.40;
+    // Fondo blanco semitransparente para legibilidad
+    const tw = ctx.measureText(`${mm}`).width;
+    ctx.fillStyle = 'rgba(255,255,255,0.75)';
+    ctx.fillRect(x + 1, H_MAIN - tH - fsM - 3, tw + 4, fsM + 2);
+    ctx.fillStyle = '#1a0e00';
+    ctx.fillText(`${mm}`, x + 3, H_MAIN - tH - 2);
+  }
+
+  // Main scale label (arriba izquierda, pequeño)
+  ctx.font      = `bold ${large ? 9 : 7}px Rajdhani`;
+  ctx.fillStyle = 'rgba(40,20,0,0.55)';
+  ctx.textBaseline = 'top';
+  ctx.fillText('ESCALA PRINCIPAL (mm)', 3, 3);
+
+  // ── Divider line ──
+  ctx.strokeStyle = '#4a6090'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(0, H_MAIN); ctx.lineTo(W, H_MAIN); ctx.stroke();
+
+  // ── VERNIER SCALE background ──
+  const bgV = ctx.createLinearGradient(0, H_MAIN, 0, H);
+  bgV.addColorStop(0, '#c4d4f0');
+  bgV.addColorStop(1, '#9aaed8');
+  ctx.fillStyle = bgV;
+  ctx.fillRect(0, H_MAIN, W, H_VERN);
+
+  // ── VERNIER SCALE ticks ──
+  // Vernier 0-line is at diamMM on main scale
+  // Division n is at: diamMM + n * 0.95  (on main-scale mm)
+  const vDivMM  = 0.95;   // each vernier division in main-scale mm
+
+  for (let n = 0; n <= 20; n++) {
+    const mmPos = diamMM + n * vDivMM;
+    const x     = toX(mmPos);
+    if (x < -2 || x > W+2) continue;
+
+    const isLabelled = (n % 2 === 0);   // labels: 0,1,2,...,10
+    const isTen      = (n % 10 === 0);
+    const isCoincide = (n === coincDiv);
+
+    let tH, lw;
+    if      (isTen)      { tH = H_VERN*0.82; lw = isCoincide ? 3.5 : 2.0; }
+    else if (isLabelled) { tH = H_VERN*0.60; lw = isCoincide ? 2.8 : 1.4; }
+    else                 { tH = H_VERN*0.38; lw = isCoincide ? 2.2 : 1.0; }
+
+    // Glow behind coincident tick
+    if (isCoincide) {
+      const glow = ctx.createLinearGradient(x-12, 0, x+12, 0);
+      glow.addColorStop(0,   'rgba(255,30,30,0)');
+      glow.addColorStop(0.5, 'rgba(255,30,30,0.28)');
+      glow.addColorStop(1,   'rgba(255,30,30,0)');
+      ctx.fillStyle = glow;
+      ctx.fillRect(x-12, H_MAIN, 24, H_VERN);
+    }
+
+    ctx.strokeStyle = isCoincide ? '#cc0000' : '#1a2860';
+    ctx.lineWidth   = lw;
+    ctx.beginPath();
+    ctx.moveTo(x, H_MAIN);
+    ctx.lineTo(x, H_MAIN + tH);
+    ctx.stroke();
+
+    // Labels every 2 divisions (0,1,...,10)
+    if (isLabelled) {
+      const label = `${n / 2}`;
+      const fsV   = Math.max(7, Math.min(large ? 14 : 10, Math.floor(vDivMM * pxPerMM * 0.9)));
+      ctx.font      = `${isCoincide ? 'bold ' : ''}${fsV}px Share Tech Mono`;
+      ctx.fillStyle = isCoincide ? '#bb0000' : '#1a2860';
+      ctx.textBaseline = 'top';
+      ctx.fillText(label, x + 2, H_MAIN + tH + 1);
+    }
+  }
+
+  // ── Vernier label ──
+  ctx.font      = `bold ${large ? 9 : 7}px Rajdhani`;
+  ctx.fillStyle = 'rgba(20,30,80,0.55)';
+  ctx.textBaseline = 'bottom';
+  ctx.fillText('NONIO: 0–10 con marcas intermedias (20 divisiones × 0.05 mm)', 3, H - 2);
+
+  // ── Coincidence dashed vertical line across both scales ──
+  const coinX = toX(diamMM + coincDiv * vDivMM);
+  if (coinX >= 0 && coinX <= W) {
+    ctx.strokeStyle = 'rgba(200,0,0,0.60)';
+    ctx.lineWidth   = 1.8;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath(); ctx.moveTo(coinX, 0); ctx.lineTo(coinX, H); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Small arrow at top pointing to coincidence
+    ctx.fillStyle = '#dd0000';
+    ctx.beginPath();
+    ctx.moveTo(coinX, 0);
+    ctx.lineTo(coinX - 6, 14);
+    ctx.lineTo(coinX + 6, 14);
+    ctx.fill();
+  }
+
+  // ── Info box (esquina inferior derecha, dentro del nonio) ──
+  const vernLabel    = coincDiv / 2;
+  const vernLabelStr = Number.isInteger(vernLabel) ? `${vernLabel}` : `${Math.floor(vernLabel)}.5`;
+  const fracResult   = (coincDiv * 0.05).toFixed(2);
+
+  const bW = large ? 230 : 190, bH = large ? 48 : 40;
+  const bY  = H - bH - 2;   // siempre al fondo, dentro de la zona del nonio
+  ctx.fillStyle = 'rgba(5,12,40,0.92)';
+  ctx.fillRect(W - bW - 2, bY, bW, bH);
+  ctx.strokeStyle = '#2a4080'; ctx.lineWidth = 1;
+  ctx.strokeRect(W - bW - 2, bY, bW, bH);
+
+  ctx.textBaseline = 'top';
+  ctx.font      = `bold ${large ? 12 : 9}px Share Tech Mono`;
+  ctx.fillStyle = '#90c0ff';
+  ctx.fillText(`Línea coincidente: ${vernLabelStr}`, W - bW, bY + 4);
+
+  ctx.font      = `${large ? 11 : 8}px Share Tech Mono`;
+  ctx.fillStyle = '#70b0e8';
+  ctx.fillText(`Fracción: ${vernLabelStr} × 0.05 = ${fracResult} mm`, W - bW, bY + (large ? 20 : 16));
+
+  ctx.font      = `bold ${large ? 11 : 8}px Rajdhani`;
+  ctx.fillStyle = '#ffcc40';
+  ctx.fillText('mm enteros: lee la ESCALA SUPERIOR', W - bW, bY + (large ? 36 : 29));
+
+  // ── Zoom hint (abajo izquierda, zona nonio) ──
+  const hintW = large ? 260 : 210;
+  ctx.fillStyle = 'rgba(0,0,0,0.55)';
+  ctx.fillRect(2, H - 18, hintW, 16);
+  ctx.fillStyle    = '#aaddff';
+  ctx.font         = `${large ? 11 : 9}px Rajdhani`;
+  ctx.textBaseline = 'bottom';
+  ctx.fillText(`Zoom: ${pxPerMM.toFixed(0)}px/mm · Arrastra ← → o pellizca`, 5, H - 3);
+}
+
+
+
+// ════════════════════════════════════════════════
+//  ZOOM MODAL
+// ════════════════════════════════════════════════
+function openZoom() {
+  if (selIdx < 0) return;
+  const ov     = document.getElementById('zoom-overlay');
+  const zc     = document.getElementById('zoom-canvas');
+  const footer = document.getElementById('zoom-footer');
+  const mobile = window.innerWidth <= 700;
+  const maxW   = mobile ? window.innerWidth : Math.min(window.innerWidth - 60, 980);
+  const zbox   = document.getElementById('zoom-box');
+
+  ov.style.display = 'flex';
+
+  if (mobile) {
+    zbox.style.cssText = 'width:100vw;height:100vh;border-radius:0;border:none;';
+  } else {
+    zbox.style.cssText = 'width:' + maxW + 'px;border-radius:10px;border:2px solid #2a4060;';
+  }
+
+  if (instrMode === 'tape') {
+    const H = mobile ? Math.round(window.innerHeight * 0.84) : 130;
+    zc.width  = maxW; zc.height = H;
+    footer.textContent = mobile
+      ? '👆 Un dedo: desplazar  ·  Dos dedos: zoom  ·  Línea ROJA = perímetro'
+      : 'Arrastra ← → para desplazar · Rueda del mouse = zoom · Línea ROJA = perímetro';
+    tapeZoomPanMM   = PERIMS[selIdx];
+    tapeZoomPxPerMM = mobile ? Math.round(maxW / 18) : 18;
+    renderTapeZoom();
+    setupTapeZoomEvents(zc);
+
+  } else {
+    const H = mobile ? Math.round(window.innerHeight * 0.84) : 320;
+    zc.width  = maxW; zc.height = H;
+    footer.textContent = mobile
+      ? '👆 Un dedo: desplazar  ·  Dos dedos: zoom  ·  Línea ROJA = coincidencia'
+      : 'Arrastra ← → para desplazar · Rueda del mouse = zoom · Línea ROJA punteada = coincidencia exacta';
+    caliperZoomPanMM   = caliperDiamMM;
+    caliperZoomPxPerMM = Math.max(12, Math.min(60, maxW / 12));
+
+    const renderCZ = () => renderVernierInteractive(
+      zc.getContext('2d'), zc.width, zc.height,
+      caliperDiamMM, caliperZoomPanMM, caliperZoomPxPerMM, true
+    );
+    renderCZ();
+
+    // Mouse
+    zc.style.cursor = 'ew-resize';
+    let czDrag = false, czDragX = 0;
+    zc.onmousedown = e => { czDrag = true; czDragX = e.clientX; };
+    zc.onmousemove = e => {
+      if (!czDrag) return;
+      const dx = e.clientX - czDragX; czDragX = e.clientX;
+      caliperZoomPanMM -= dx / caliperZoomPxPerMM;
+      caliperZoomPanMM = Math.max(0, Math.min(150, caliperZoomPanMM));
+      renderCZ();
+    };
+    zc.onmouseup = zc.onmouseleave = () => { czDrag = false; };
+    zc.onwheel = e => {
+      e.preventDefault();
+      caliperZoomPxPerMM = Math.max(5, Math.min(120, caliperZoomPxPerMM * (e.deltaY < 0 ? 1.15 : 0.87)));
+      renderCZ();
+    };
+
+    // Touch: 1 dedo = pan, 2 dedos = pinch zoom
+    let czt1 = null, cztDist = null;
+    zc.addEventListener('touchstart', e => {
+      e.preventDefault();
+      if (e.touches.length === 1) { czt1 = e.touches[0].clientX; cztDist = null; }
+      else if (e.touches.length === 2) {
+        czt1 = null;
+        cztDist = Math.hypot(e.touches[1].clientX - e.touches[0].clientX,
+                             e.touches[1].clientY - e.touches[0].clientY);
+      }
+    }, {passive: false});
+    zc.addEventListener('touchmove', e => {
+      e.preventDefault();
+      if (e.touches.length === 1 && czt1 !== null) {
+        const dx = e.touches[0].clientX - czt1;
+        czt1 = e.touches[0].clientX;
+        caliperZoomPanMM -= dx / caliperZoomPxPerMM;
+        caliperZoomPanMM = Math.max(0, Math.min(150, caliperZoomPanMM));
+        renderCZ();
+      } else if (e.touches.length === 2 && cztDist !== null) {
+        const d = Math.hypot(e.touches[1].clientX - e.touches[0].clientX,
+                             e.touches[1].clientY - e.touches[0].clientY);
+        caliperZoomPxPerMM = Math.max(5, Math.min(120, caliperZoomPxPerMM * (d / cztDist)));
+        cztDist = d;
+        renderCZ();
+      }
+    }, {passive: false});
+    zc.addEventListener('touchend', e => { e.preventDefault(); czt1 = null; cztDist = null; }, {passive: false});
+  }
+}
+
+function setupTapeZoomEvents(cv) {
+  cv.style.cursor = 'ew-resize';
+
+  // ── Mouse ──
+  cv.onmousedown = e => { tapeZoomDragging = true; tapeZoomDragX = e.clientX; };
+  cv.onmousemove = e => {
+    if (!tapeZoomDragging) return;
+    const dx = e.clientX - tapeZoomDragX; tapeZoomDragX = e.clientX;
+    tapeZoomPanMM -= dx / tapeZoomPxPerMM;
+    tapeZoomPanMM  = Math.max(10, Math.min(TAPE_LEN - 10, tapeZoomPanMM));
+    renderTapeZoom();
+  };
+  cv.onmouseup   = () => { tapeZoomDragging = false; };
+  cv.onmouseleave = () => { tapeZoomDragging = false; };
+  cv.onwheel = e => {
+    e.preventDefault();
+    tapeZoomPxPerMM = Math.max(4, Math.min(70, tapeZoomPxPerMM * (e.deltaY < 0 ? 1.15 : 0.87)));
+    renderTapeZoom();
+  };
+
+  // ── Touch: 1 dedo = pan, 2 dedos = pinch zoom ──
+  let tt1 = null, ttDist = null;
+  cv.addEventListener('touchstart', e => {
+    e.preventDefault();
+    if (e.touches.length === 1) { tt1 = e.touches[0].clientX; ttDist = null; }
+    else if (e.touches.length === 2) {
+      tt1 = null;
+      ttDist = Math.hypot(e.touches[1].clientX - e.touches[0].clientX,
+                          e.touches[1].clientY - e.touches[0].clientY);
+    }
+  }, {passive: false});
+  cv.addEventListener('touchmove', e => {
+    e.preventDefault();
+    if (e.touches.length === 1 && tt1 !== null) {
+      const dx = e.touches[0].clientX - tt1;
+      tt1 = e.touches[0].clientX;
+      tapeZoomPanMM -= dx / tapeZoomPxPerMM;
+      tapeZoomPanMM = Math.max(10, Math.min(TAPE_LEN - 10, tapeZoomPanMM));
+      renderTapeZoom();
+    } else if (e.touches.length === 2 && ttDist !== null) {
+      const d = Math.hypot(e.touches[1].clientX - e.touches[0].clientX,
+                           e.touches[1].clientY - e.touches[0].clientY);
+      tapeZoomPxPerMM = Math.max(4, Math.min(70, tapeZoomPxPerMM * (d / ttDist)));
+      ttDist = d;
+      renderTapeZoom();
+    }
+  }, {passive: false});
+  cv.addEventListener('touchend', e => { e.preventDefault(); tt1 = null; ttDist = null; }, {passive: false});
+}
+
+function closeZoom()      { document.getElementById('zoom-overlay').style.display = 'none'; }
+function closeZoomBg(e)   { if (e.target === document.getElementById('zoom-overlay')) closeZoom(); }
+
+// ════════════════════════════════════════════════
+//  UI
+// ════════════════════════════════════════════════
+function showTab(t) {
+  ['m','t','h'].forEach(n => {
+    const el = document.getElementById('tc-' + n);
+    el.style.display = (n === t) ? 'flex' : 'none';
+    if (n === t) el.style.flexDirection = 'column';
+    document.getElementById('tab-' + n).classList.toggle('act', n === t);
+  });
+}
+
+function updateBadge() {
+  document.getElementById('instr-badge').textContent =
+    instrMode === 'tape'
+      ? '📏 Cinta Métrica · 1 m · División mínima: 1 mm'
+      : '🔩 Calibrador · 150 mm · División mínima: 0.05 mm · Nonio 1/20';
+}
+
+function updateInstrs() {
+  document.getElementById('instrs').innerHTML = instrMode === 'tape' ? `
+    <div class="step"><div class="sn">1</div><span>Haz clic en una circunferencia — la cinta la abraza y mide el <b>perímetro</b></span></div>
+    <div class="step"><div class="sn">2</div><span>El panel muestra la cinta: la <b>línea roja</b> marca la posición exacta</span></div>
+    <div class="step"><div class="sn">3</div><span>Presiona <b>🔍 Ampliar</b>: arrastra y usa la rueda del mouse para hacer zoom</span></div>
+    <div class="step"><div class="sn">4</div><span>Lee cuántos mm tiene la medida y escríbelo en la <b>Tabla</b></span></div>` : `
+    <div class="step"><div class="sn">1</div><span>Haz clic en una circunferencia — las mordazas se abren al <b>diámetro</b></span></div>
+    <div class="step"><div class="sn">2</div><span><b>Escala superior (dorada):</b> lee el último mm visible antes del "0" del nonio</span></div>
+    <div class="step"><div class="sn">3</div><span><b>Escala inferior (azul) — Nonio:</b> busca qué línea se alinea exactamente con una línea de arriba</span></div>
+    <div class="step"><div class="sn">4</div><span>El nonio va de <b>0 a 10</b> con una marca intermedia entre cada número → 20 divisiones de 0.05 mm</span></div>
+    <div class="step"><div class="sn">5</div><span>Resultado = mm enteros + n° línea × 0.05 · Presiona <b>🔍 Ampliar</b> para verlo mejor</span></div>`;
+}
+
+function updateHint() {
+  const h = document.getElementById('hint');
+  if (selIdx < 0) { h.textContent = 'Selecciona un instrumento y haz clic en una circunferencia'; return; }
+  h.textContent = instrMode === 'tape'
+    ? `C${selIdx+1}: la cinta mide el perímetro — lee la línea roja en el panel`
+    : `C${selIdx+1}: calibrador al diámetro — ¿qué línea del nonio coincide?`;
+}
+
+function buildUI() {
+  updateBadge(); updateInstrs();
+
+  const bc = document.getElementById('circle-btns');
+  bc.innerHTML = '';
+  for (let i = 0; i < 5; i++) {
+    const b = document.createElement('div');
+    b.className  = 'cbtn';
+    b.textContent = `C${i+1}`;
+    b.onclick     = () => selectCircle(i);
+    bc.appendChild(b);
+  }
+
+  buildTable(); showTab('m');
+}
+
+function buildTable() {
+  const tb = document.getElementById('tbody');
+  tb.innerHTML = '';
+  for (let i = 0; i < 5; i++) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>C${i+1}</td>
+      <td><input class="tdi" id="tdd${i}" value="${tableData[i].d}" placeholder="—"
+        onchange="tableData[${i}].d=this.value; updatePiCol(${i})"></td>
+      <td><input class="tdi" id="tdp${i}" value="${tableData[i].p}" placeholder="—"
+        onchange="tableData[${i}].p=this.value; updatePiCol(${i})"></td>
+      <td id="tdpi${i}" style="font-family:'Share Tech Mono';font-size:.75rem;color:#60d890;">—</td>
+      <td><button class="treg" onclick="showTab('t')">📝</button></td>`;
+    tb.appendChild(tr);
+    updatePiCol(i);
+  }
+}
+
+function updatePiCol(i) {
+  const d = parseFloat(tableData[i].d);
+  const p = parseFloat(tableData[i].p);
+  const el = document.getElementById('tdpi' + i);
+  if (el && d > 0 && p > 0) {
+    el.textContent = (p / d).toFixed(4);
+    el.style.color = '#60d890';
+  } else if (el) {
+    el.textContent = '—';
+    el.style.color = '#3a6a8a';
+  }
+  updatePiSummary();
+}
+
+function updatePiSummary() {
+  const vals = [];
+  for (let i = 0; i < 5; i++) {
+    const d = parseFloat(tableData[i].d);
+    const p = parseFloat(tableData[i].p);
+    if (d > 0 && p > 0) vals.push(p / d);
+  }
+  const box = document.getElementById('pi-result');
+  if (vals.length < 2) { box.style.display = 'none'; return; }
+  const avg = vals.reduce((a,b) => a+b, 0) / vals.length;
+  const err = Math.abs(avg - Math.PI) / Math.PI * 100;
+  box.style.display = 'block';
+  box.innerHTML = `<span style="color:#70c0ff;font-weight:700;">π experimental ≈ ${avg.toFixed(4)}</span>
+    &nbsp;·&nbsp; <span style="color:#ffcc40;">Error: ${err.toFixed(2)}%</span>
+    &nbsp;·&nbsp; <span style="color:#4a8aaa;">n = ${vals.length} pares</span>`;
+}
+
+function exportCSV() {
+  let csv = 'Objeto,Diametro_mm,Perimetro_mm,P_sobre_D\n';
+  for (let i = 0; i < 5; i++) {
+    const d = tableData[i].d || '';
+    const p = tableData[i].p || '';
+    const dv = parseFloat(d), pv = parseFloat(p);
+    const pi = (dv > 0 && pv > 0) ? (pv/dv).toFixed(4) : '';
+    csv += `C${i+1},${d},${p},${pi}\n`;
+  }
+  const blob = new Blob([csv], {type: 'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'mediciones_pi.csv';
+  a.click();
+}
+
+// ════════════════════════════════════════════════
+//  MODO DÍA / NOCHE
+// ════════════════════════════════════════════════
+let isDayMode = false;
+function toggleTheme() {
+  isDayMode = !isDayMode;
+  document.body.classList.toggle('day', isDayMode);
+  const btn = document.getElementById('btn-theme');
+  btn.textContent = isDayMode ? '🌙 Noche' : '☀️ Día';
+  // Actualizar fondo y niebla de la escena 3D
+  if (scene) {
+    const col = isDayMode ? 0xb8cce0 : 0x050710;
+    scene.background = new THREE.Color(col);
+    scene.fog = isDayMode
+      ? new THREE.FogExp2(col, 0.006)
+      : new THREE.FogExp2(col, 0.011);
+  }
+}
+
+function animate() {
+  animId = requestAnimationFrame(animate);
+  const t = Date.now() * 0.001;
+
+  // Tape wrap animation
+  if (instrMode === 'tape' && wrapDir !== 0 && selIdx >= 0) {
+    wrapT = Math.max(0, Math.min(1, wrapT + wrapDir * 0.032));
+    buildWrapRibbon(circles[selIdx], wrapT);
+    if (wrapT >= 1) { wrapDir = 0; drawTapePanel(); updateHint(); }
+    if (wrapT <= 0)   wrapDir = 0;
+  }
+
+  // Caliper jaw
+  if (instrMode === 'caliper') updateCaliperAnim();
+
+  // Gentle float when not dragging
+  if (!draggingInstr) {
+    if (tapeGroup && tapeGroup.visible && wrapT < 0.05) {
+      tapeGroup.position.y += Math.sin(t * 0.9) * 0.0018;
+      tapeGroup.rotation.y  = Math.sin(t * 0.35) * 0.04;
+    }
+    if (caliperGroup && caliperGroup.visible && selIdx >= 0) {
+      const baseY = circles[selIdx].topY + 1.2;
+      caliperGroup.position.y = baseY + Math.sin(t * 0.85) * 0.06;
+    }
+  }
+
+  // Pulse selected circle
+  if (selIdx >= 0 && circles[selIdx]) {
+    circles[selIdx].mesh.material.emissiveIntensity = 0.12 + 0.09 * Math.sin(t * 2.5);
+  }
+
+  renderer.render(scene, camera);
+}
+</script>
+</body>
+</html>

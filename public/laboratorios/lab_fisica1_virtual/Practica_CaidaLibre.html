@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Práctica de Laboratorio — Caída Libre</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>
+  MathJax = {
+    tex: { inlineMath: [['$','$'],['\\(','\\)']], displayMath: [['$$','$$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+  :root {
+    --ink:       #1a1a2e;
+    --ink-soft:  #3d3d5c;
+    --ink-muted: #7a7a9a;
+    --paper:     #faf8f3;
+    --paper-alt: #f2ede3;
+    --rule:      #d4c9b0;
+    --accent:    #1a5276;
+    --accent2:   #c0392b;
+    --gold:      #b8860b;
+    --green:     #1e8449;
+    --orange:    #d35400;
+    --mono:      'JetBrains Mono', monospace;
+    --serif:     'Source Serif 4', Georgia, serif;
+    --display:   'Playfair Display', Georgia, serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { background: #dde3e8; font-family: var(--serif); color: var(--ink); font-size: 15px; line-height: 1.75; min-height: 100vh; padding: 30px 15px 80px; }
+  .documento { max-width: 860px; margin: 0 auto; background: var(--paper); overflow-x: hidden; box-shadow: 0 2px 4px rgba(0,0,0,.08), 0 8px 32px rgba(0,0,0,.14), 0 20px 60px rgba(0,0,0,.08); position: relative; }
+  .documento::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: linear-gradient(180deg, var(--accent) 0%, var(--accent2) 50%, var(--gold) 100%); }
+
+  /* HEADER */
+  .header { background: var(--ink); color: #fff; padding: 36px 50px 30px 55px; position: relative; overflow: hidden; }
+  .header::after { content: 'g'; font-family: var(--display); font-size: 300px; font-weight: 700; color: rgba(255,255,255,.04); position: absolute; right: -10px; top: -60px; line-height: 1; pointer-events: none; user-select: none; }
+  .header-meta { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; gap: 20px; }
+  .badge-codigo { font-family: var(--mono); font-size: .7em; background: var(--accent); color: #fff; padding: 3px 10px; letter-spacing: .12em; text-transform: uppercase; }
+  .badge-tipo { font-family: var(--mono); font-size: .7em; color: rgba(255,255,255,.5); letter-spacing: .1em; text-transform: uppercase; border: 1px solid rgba(255,255,255,.15); padding: 3px 10px; }
+  .header h1 { font-family: var(--display); font-size: 2.1em; font-weight: 700; line-height: 1.2; color: #fff; margin-bottom: 6px; }
+  .header h1 em { font-style: italic; color: rgba(255,255,255,.65); font-size: .82em; }
+  .header-sub { font-size: .82em; color: rgba(255,255,255,.45); font-weight: 300; letter-spacing: .04em; margin-top: 4px; }
+  .header-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 24px; margin-top: 24px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,.12); }
+  .field-item label { display: block; font-family: var(--mono); font-size: .65em; color: rgba(255,255,255,.4); text-transform: uppercase; letter-spacing: .12em; margin-bottom: 4px; }
+  .field-item input[type="text"], .field-item input[type="date"] { width: 100%; background: rgba(255,255,255,.07); border: none; border-bottom: 1px solid rgba(255,255,255,.25); color: #fff; font-family: var(--serif); font-size: .9em; padding: 4px 0; outline: none; transition: border-color .2s; }
+  .field-item input:focus { border-bottom-color: var(--accent2); }
+  .field-item input::placeholder { color: rgba(255,255,255,.2); }
+
+  /* BODY */
+  .body { padding: 44px 50px 50px 55px; }
+  .seccion { margin-bottom: 42px; }
+  .seccion-titulo { font-family: var(--display); font-size: 1.15em; font-weight: 600; color: var(--ink); display: flex; align-items: center; gap: 12px; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 2px solid var(--rule); }
+  .seccion-titulo .num { font-family: var(--mono); font-size: .75em; color: var(--accent); background: #e8f0f7; padding: 2px 7px; letter-spacing: .05em; min-width: 36px; text-align: center; }
+  .subseccion-titulo { font-family: var(--display); font-size: 1em; font-weight: 600; color: var(--accent); margin: 22px 0 10px; display: flex; align-items: center; gap: 8px; }
+  .subseccion-titulo::before { content: ''; width: 14px; height: 2px; background: var(--accent); display: inline-block; flex-shrink: 0; }
+  p { margin-bottom: 10px; color: var(--ink-soft); font-size: .95em; }
+  p:last-child { margin-bottom: 0; }
+
+  .resumen-box { background: var(--paper-alt); border-left: 3px solid var(--accent); padding: 16px 20px; font-size: .9em; font-style: italic; color: var(--ink-soft); line-height: 1.7; }
+  .objetivos-lista { list-style: none; padding: 0; }
+  .objetivos-lista li { display: flex; gap: 12px; align-items: flex-start; padding: 8px 0; border-bottom: 1px dashed var(--rule); font-size: .93em; color: var(--ink-soft); }
+  .objetivos-lista li:last-child { border-bottom: none; }
+  .objetivos-lista li .obj-num { font-family: var(--mono); font-size: .75em; color: #fff; background: var(--accent); min-width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; margin-top: 2px; flex-shrink: 0; }
+
+  .formula-box { background: var(--ink); color: #fff; padding: 18px 24px; margin: 18px 0; position: relative; overflow: hidden; }
+  .formula-box::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent2); }
+  .formula-box .formula-label { font-family: var(--mono); font-size: .65em; color: rgba(255,255,255,.4); text-transform: uppercase; letter-spacing: .12em; margin-bottom: 10px; }
+  .formula-main { font-size: 1.2em; text-align: center; padding: 6px 0; }
+  .formula-num { font-family: var(--mono); font-size: .65em; color: rgba(255,255,255,.35); text-align: right; margin-top: 6px; }
+
+  .tabla-resultados { width: 100%; border-collapse: collapse; font-size: .86em; margin: 14px 0; }
+  .tabla-resultados th { background: var(--ink); color: #fff; font-family: var(--mono); font-size: .7em; letter-spacing: .07em; padding: 9px 12px; text-align: center; font-weight: 500; border: 1px solid #444; }
+  .tabla-resultados td { padding: 7px 10px; border: 1px solid var(--rule); text-align: center; color: var(--ink-soft); vertical-align: middle; }
+  .tabla-resultados td.input-cell { padding: 3px 4px; }
+  .tabla-resultados input[type="text"] { width: 100%; border: none; border-bottom: 1px solid var(--rule); background: transparent; font-family: var(--mono); font-size: .88em; color: var(--ink); padding: 4px; text-align: center; outline: none; transition: border-color .2s; }
+  .tabla-resultados input:focus { border-bottom-color: var(--accent); }
+  .tabla-resultados tr:nth-child(even) td { background: var(--paper-alt); }
+  .tabla-resultados tr:nth-child(even) td.input-cell { background: var(--paper-alt); }
+  .tabla-resultados .row-label { font-family: var(--mono); font-size: .82em; font-weight: 500; color: var(--accent); }
+
+  .paso { display: flex; gap: 16px; margin-bottom: 20px; align-items: flex-start; }
+  .paso-num { font-family: var(--mono); font-size: .8em; background: var(--accent); color: #fff; min-width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+  .paso-content { flex: 1; }
+  .paso-content p { margin-bottom: 6px; }
+
+  .trabajo-area { width: 100%; min-height: 110px; border: 1px solid var(--rule); background: #fff; font-family: var(--serif); font-size: .9em; color: var(--ink); padding: 14px 16px; resize: vertical; outline: none; line-height: 1.8; transition: border-color .2s; display: block; }
+  .trabajo-area:focus { border-color: var(--accent); }
+  .trabajo-area::placeholder { color: #bbb; font-style: italic; }
+  .area-label { font-family: var(--mono); font-size: .68em; color: var(--ink-muted); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 5px; margin-top: 14px; display: block; }
+
+  .nota { background: #fef9e7; border-left: 3px solid var(--gold); padding: 10px 16px; font-size: .85em; color: #7d6608; margin: 14px 0; font-style: italic; }
+  .nota strong { font-style: normal; color: var(--gold); }
+
+  /* EJEMPLO — igual que Practica_Simulador_Medidas */
+  .ejemplo-box { background: #f0f7f0; border-left: 3px solid var(--green); padding: 14px 18px; margin: 14px 0; font-size: .9em; }
+  .ejemplo-box .ej-label { font-family: var(--mono); font-size: .65em; color: var(--green); text-transform: uppercase; letter-spacing: .12em; margin-bottom: 8px; display: block; font-weight: 500; }
+
+  .result-box { background: var(--paper-alt); border: 1px solid var(--rule); padding: 16px 20px; margin: 14px 0; display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; }
+  .result-box.col2 { grid-template-columns: 1fr 1fr; }
+  .result-box.col4 { grid-template-columns: repeat(4,1fr); }
+  .result-box.col5 { grid-template-columns: repeat(5,1fr); }
+  .result-box.col6 { grid-template-columns: repeat(6,1fr); }
+  @media(max-width:600px){ .result-box,.result-box.col2,.result-box.col4,.result-box.col5,.result-box.col6{ grid-template-columns:1fr 1fr; } }
+  .res-campo label { font-family: var(--mono); font-size: .63em; color: var(--ink-muted); text-transform: uppercase; letter-spacing: .1em; display: block; margin-bottom: 5px; }
+  .res-campo input[type="text"] { width: 100%; border: none; border-bottom: 2px solid var(--rule); background: transparent; font-family: var(--mono); font-size: 1em; color: var(--ink); padding: 4px 0; outline: none; transition: border-color .2s; text-align: center; }
+  .res-campo input:focus { border-bottom-color: var(--accent); }
+
+  .rango-tabla { width: 100%; border-collapse: collapse; font-size: .85em; margin: 12px 0; }
+  .rango-tabla th { background: var(--ink); color: #fff; font-family: var(--mono); font-size: .68em; padding: 7px 12px; letter-spacing: .08em; text-align: center; }
+  .rango-tabla td { padding: 6px 12px; border: 1px solid var(--rule); text-align: center; font-size: .88em; }
+  .rango-tabla .bueno { color: var(--green); font-weight: 600; }
+  .rango-tabla .medio { color: var(--gold); font-weight: 600; }
+  .rango-tabla .malo  { color: var(--accent2); font-weight: 600; }
+
+  /* PARTES A/B */
+  .parte-header { background: linear-gradient(135deg, #1a1a2e 0%, #2c3e50 100%); color: #fff; padding: 14px 20px; display: flex; align-items: center; gap: 14px; margin-bottom: 0; }
+  .parte-header.parteB { background: linear-gradient(135deg, #1a1a2e 0%, #1a3a2e 100%); }
+  .parte-badge { font-family: var(--mono); font-size: .65em; color: #fff; padding: 3px 9px; letter-spacing: .12em; text-transform: uppercase; flex-shrink: 0; }
+  .parte-badge.A { background: var(--accent); }
+  .parte-badge.B { background: var(--green); }
+  .parte-header h4 { font-family: var(--display); font-size: 1em; font-weight: 600; color: #fff; margin: 0; }
+  .parte-header p { font-size: .8em; color: rgba(255,255,255,.6); margin: 2px 0 0; }
+  .parte-body { border: 1px solid #2c3e50; border-top: none; padding: 20px; background: #f8fafc; margin-bottom: 24px; }
+  .parte-body.B { border-color: #1a3a2e; background: #f6faf8; }
+
+  /* RETO */
+  .reto-header { background: linear-gradient(135deg, #1a1a2e 0%, #7b1a1a 100%); color: #fff; padding: 16px 20px; display: flex; align-items: center; gap: 14px; }
+  .reto-badge { font-family: var(--mono); font-size: .65em; background: var(--accent2); color: #fff; padding: 3px 9px; letter-spacing: .12em; text-transform: uppercase; flex-shrink: 0; }
+  .reto-header h4 { font-family: var(--display); font-size: 1em; font-weight: 600; color: #fff; margin: 0; }
+  .reto-header p { font-size: .8em; color: rgba(255,255,255,.6); margin: 2px 0 0; }
+  .reto-body { border: 1px solid #7b1a1a; border-top: none; padding: 20px; background: #fff8f6; }
+
+  .grafica-box { border: 1px solid var(--rule); background: #fff; margin: 14px 0; overflow: hidden; }
+  .grafica-header { background: var(--ink); color: #fff; padding: 8px 16px; font-family: var(--mono); font-size: .68em; letter-spacing: .1em; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; }
+  .grafica-canvas { display: block; width: 100%; background: #fafafa; }
+  .grafica-controles { padding: 10px 16px; border-top: 1px solid var(--rule); display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .btn-ctrl { font-family: var(--mono); font-size: .7em; padding: 5px 12px; border: 1px solid var(--rule); background: var(--paper-alt); color: var(--ink-soft); cursor: pointer; transition: all .2s; letter-spacing: .05em; }
+  .btn-ctrl:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-ctrl.activo { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .grafica-info { font-family: var(--mono); font-size: .7em; color: var(--ink-muted); margin-left: auto; }
+
+  .adjunto-slot { border: 2px dashed var(--rule); background: var(--paper-alt); padding: 24px 16px; text-align: center; margin-top: 10px; position: relative; cursor: pointer; transition: border-color .2s, background .2s; }
+  .adjunto-slot:hover { border-color: var(--accent); background: #e8f0f7; }
+  .adjunto-slot input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+  .adjunto-slot .slot-icon { font-size: 1.8em; margin-bottom: 5px; display: block; }
+  .adjunto-slot .slot-label { font-family: var(--mono); font-size: .68em; color: var(--ink-muted); text-transform: uppercase; letter-spacing: .1em; display: block; }
+  .adjunto-slot .slot-hint { font-size: .78em; color: var(--ink-muted); margin-top: 3px; display: block; }
+  .adjunto-slot .preview-img { max-width: 100%; max-height: 220px; margin-top: 10px; border: 1px solid var(--rule); display: none; }
+
+  .divider { display: flex; align-items: center; gap: 12px; margin: 28px 0; opacity: .4; }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--rule); }
+  .divider span { font-family: var(--mono); font-size: .65em; color: var(--ink-muted); letter-spacing: .1em; text-transform: uppercase; }
+
+  .firma-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 30px; }
+  .firma-slot { text-align: center; padding-top: 50px; border-top: 1px solid var(--rule); font-family: var(--mono); font-size: .68em; color: var(--ink-muted); text-transform: uppercase; letter-spacing: .08em; }
+
+  .btn-imprimir { position: fixed; bottom: 24px; right: 24px; background: var(--accent); color: #fff; border: none; padding: 12px 22px; font-family: var(--mono); font-size: .75em; letter-spacing: .1em; text-transform: uppercase; cursor: pointer; box-shadow: 0 4px 16px rgba(26,82,118,.35); transition: transform .15s, box-shadow .15s; z-index: 100; }
+  .btn-imprimir:hover { transform: translateY(-2px); box-shadow: 0 6px 22px rgba(26,82,118,.45); }
+
+
+  /* ===== RESPONSIVE MOBILE ===== */
+  @media (max-width: 680px) {
+    body { padding: 10px 0 40px; }
+    .documento { border-radius: 0; }
+
+    /* Header */
+    .header { padding: 22px 18px 20px 22px; }
+    .header::after { font-size: 160px; }
+    .header h1 { font-size: 1.4em !important; }
+    .header-meta { flex-direction: column; gap: 8px; }
+    .header-fields { grid-template-columns: 1fr !important; gap: 10px 0; }
+
+    /* Body */
+    .body { padding: 22px 16px 28px 20px; }
+
+    /* Tablas — scroll horizontal */
+    .tabla-resultados,
+    .rango-tabla { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+    /* Result boxes — máx 2 columnas */
+    .result-box,
+    .result-box.col2,
+    .result-box.col4,
+    .result-box.col5,
+    .result-box.col6 { grid-template-columns: 1fr 1fr !important; }
+
+    /* Grids de firma */
+    .firma-grid { grid-template-columns: 1fr !important; gap: 20px; }
+
+    /* Pasos de procedimiento */
+    .paso { gap: 10px; }
+
+    /* Parte headers */
+    .parte-header,
+    .reto-header { padding: 12px 14px; gap: 10px; }
+    .parte-header h4,
+    .reto-header h4 { font-size: 0.9em; }
+    .parte-body,
+    .reto-body { padding: 14px; }
+
+    /* Controles de gráfica */
+    .grafica-controles { gap: 6px; flex-wrap: wrap; }
+    .btn-ctrl { font-size: 0.65em; padding: 4px 8px; }
+
+    /* Section titles */
+    .seccion-titulo { font-size: 1em; gap: 8px; }
+
+    /* Adjunto slot */
+    .adjunto-slot { padding: 16px 10px; }
+
+    /* Trabajo área */
+    .trabajo-area { min-height: 80px; }
+  }
+
+  @media (max-width: 420px) {
+    .header { padding: 18px 14px 16px 18px; }
+    .body { padding: 16px 12px 20px 14px; }
+    .result-box,
+    .result-box.col2,
+    .result-box.col4,
+    .result-box.col5,
+    .result-box.col6 { grid-template-columns: 1fr !important; }
+    .header h1 { font-size: 1.2em !important; }
+    .formula-main { font-size: 1em !important; }
+  }
+
+  @media print { body { background: #fff; padding: 0; } .documento { box-shadow: none; } .btn-imprimir, .grafica-controles { display: none; } }
+</style>
+</head>
+<body>
+<div class="documento">
+
+  <!-- ENCABEZADO -->
+  <div class="header">
+    <div class="header-meta">
+      <span class="badge-codigo" id="codigoPractica">PRÁCTICA FIS-CL-02</span>
+      <span class="badge-tipo">Laboratorio de Física · Cinemática</span>
+    </div>
+    <h1>Caída Libre<br><em>Determinación experimental de la aceleración gravitacional</em></h1>
+    <div class="header-sub">Parte A: $y = y_0 - \tfrac{1}{2}gt^2$ · Parte B: $y = \tfrac{1}{2}gt^2\;(y_0=0)$ · Incertidumbre · IR · ER</div>
+    <div class="header-fields">
+      <div class="field-item"><label>Nombre del estudiante</label><input type="text" placeholder="Escriba su nombre completo"></div>
+      <div class="field-item"><label>Código</label><input type="text" placeholder="Código estudiantil"></div>
+      <div class="field-item"><label>Grupo / Sección</label><input type="text" placeholder="Ej. Grupo B — Martes 8 am"></div>
+      <div class="field-item"><label>Docente</label><input type="text" placeholder="Nombre del profesor/a"></div>
+      <div class="field-item"><label>Fecha de realización</label><input type="date"></div>
+      <div class="field-item"><label>Planeta asignado</label><input type="text" id="planetaHeader" placeholder="Ej. Marte  (g = 3.71 m/s²)"></div>
+    </div>
+  </div>
+
+  <div class="body">
+
+    <!-- 00. RESUMEN -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">00</span> Resumen</h2>
+      <div class="resumen-box">
+        En esta práctica se estudia el movimiento de <strong>caída libre</strong> mediante un simulador que
+        asigna un planeta con su gravedad $g$. La práctica se divide en dos partes:
+        la <strong>Parte A</strong> trabaja con la ecuación $h = \tfrac{1}{2}gt^2$, donde el suelo es el
+        marco de referencia y $h$ es la distancia caída; la <strong>Parte B</strong> utiliza la forma completa
+        $y = y_0 - \tfrac{1}{2}gt^2$, donde $y_0$ es la posición inicial y $y$ la posición instantánea.
+        En ambas partes se aplica linealización graficando $h$ vs. $t^2$ para determinar $g_{\exp}$,
+        y se evalúa la calidad del resultado con la <strong>incertidumbre relativa (IR)</strong> y el
+        <strong>error relativo (ER)</strong>. Finalmente, en la Parte C se resuelve el problema inverso
+        prediciendo la altura necesaria para un tiempo de caída objetivo.
+      </div>
+      <p style="margin-top:10px;"><strong>Palabras clave:</strong>
+        Caída libre · aceleración gravitacional · marco de referencia · linealización · incertidumbre · IR · ER
+      </p>
+    </div>
+
+    <!-- 01. OBJETIVOS -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">01</span> Objetivos</h2>
+      <ul class="objetivos-lista">
+        <li><span class="obj-num">1</span>Aplicar la ecuación $h = \tfrac{1}{2}gt^2$ (Parte A) para registrar datos de caída y determinar $g_{\exp}$ mediante linealización.</li>
+        <li><span class="obj-num">2</span>Aplicar la ecuación $y = y_0 - \tfrac{1}{2}gt^2$ (Parte B) reconociendo el rol de la posición inicial $y_0$ y del marco de referencia.</li>
+        <li><span class="obj-num">3</span>Construir la gráfica $h$ vs. $t^2$ en ambas partes, ajustar una recta y extraer $g_{\exp} = 2m$ a partir de la pendiente.</li>
+        <li><span class="obj-num">4</span>Calcular la propagación de incertidumbre $\Delta g$ y evaluar la precisión (IR) y la exactitud (ER) de los resultados.</li>
+        <li><span class="obj-num">5</span>Resolver la Parte C (reto): dado un tiempo objetivo $T$, calcular $h$ con $h = \tfrac{1}{2}g_{\exp}T^2$ y verificar el resultado en el simulador.</li>
+      </ul>
+    </div>
+
+    <!-- 02. MARCO TEÓRICO -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">02</span> Marco Teórico</h2>
+
+      <div class="subseccion-titulo">2.1 · Parte A — Marco de referencia en el suelo: $y = y_0 - \tfrac{1}{2}g\,t^2$</div>
+      <p>Cuando se toma el <strong>suelo como referencia</strong> ($y_{\text{suelo}} = 0$), la posición del
+        objeto en cualquier instante es $y(t)$. La esfera parte del reposo desde una altura $y_0$
+        (medida desde el suelo) y cae hasta $y = 0$. La ecuación de posición es:</p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 1 — Parte A: posición con referencia en el suelo</div>
+        <div class="formula-main">$$y(t) = y_0 - \frac{1}{2}\,g\,t^2$$</div>
+        <div class="formula-num">(1)</div>
+      </div>
+      <p>En el instante del impacto $y = 0$, por lo que $y_0 = \tfrac{1}{2}g\,t_f^2$.
+        La distancia total caída es $h = y_0$, lo que permite linealizar graficando $h$ vs. $t^2$.</p>
+
+      <div class="subseccion-titulo">2.2 · Parte B — Marco de referencia en el punto de lanzamiento: $y = \tfrac{1}{2}g\,t^2$</div>
+      <p>Cuando se toma el <strong>punto de lanzamiento como referencia</strong> ($y_0 = 0$), la posición
+        del objeto es la <em>distancia recorrida hacia abajo</em> desde ese punto. La ecuación se simplifica:</p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 2 — Parte B: posición con referencia en el punto de lanzamiento ($y_0 = 0$)</div>
+        <div class="formula-main">$$y(t) = \frac{1}{2}\,g\,t^2$$</div>
+        <div class="formula-num">(2)</div>
+      </div>
+      <p>Aquí $y(t)$ crece positivamente hacia abajo y al impacto $y = h$ (la altura total configurada en
+        el simulador). Ambas ecuaciones describen el mismo movimiento — la diferencia es únicamente
+        el <strong>origen del sistema de referencia</strong>.</p>
+
+      <div class="subseccion-titulo">2.3 · Linealización y determinación de g</div>
+      <p>En ambas partes, la variable $h$ (distancia caída) sigue la Ec. (1). Definiendo $u = t^2$,
+        la relación se vuelve lineal. La pendiente $m$ de la recta ajustada da $g$:</p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 3 — Linealización y determinación de g (válida para A y B)</div>
+        <div class="formula-main">$$h = \underbrace{\dfrac{g}{2}}_{m} \cdot t^2 \qquad \Rightarrow \qquad g_{\exp} = 2m$$</div>
+        <div class="formula-num">(3)</div>
+      </div>
+
+      <div class="subseccion-titulo">2.4 · Propagación de incertidumbre de g</div>
+      <p>Aplicando propagación de incertidumbres a $g = 2h/t^2$, siendo $\Delta h$ la apreciación
+        del deslizador y $\Delta t$ la resolución del cronómetro:</p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 4 — Propagación de incertidumbre de g</div>
+        <div class="formula-main">$$\Delta g_i = g_i \sqrt{\left(\frac{\Delta h}{h_i}\right)^2 + \left(2\,\frac{\Delta t}{t_i}\right)^2}$$</div>
+        <div class="formula-num">(4)</div>
+      </div>
+
+      <div class="subseccion-titulo">2.4b · Ejemplo numérico de propagación</div>
+      <p>Para ilustrar el procedimiento, suponga los datos medidos en <strong>Marte</strong> ($g_\text{real} = 3.71$ m/s²):
+         $h = 1.200$ m, $t = 0.697$ s, $\Delta h = 0.001$ m, $\Delta t = 0.005$ s.</p>
+
+      <div class="ejemplo-box">
+        <span class="ej-label">Ejemplo numérico — Propagación paso a paso (Marte)</span>
+
+        <strong style="font-family:var(--mono);color:var(--accent);font-size:.8em;text-transform:uppercase;letter-spacing:.08em;">Paso 1 — Calcular g:</strong>
+        $$g = \frac{2\times 1.200}{(0.697)^2} = \frac{2.400}{0.4858} \approx 4.94 \text{ m/s}^2$$
+
+        <strong style="font-family:var(--mono);color:var(--accent);font-size:.8em;text-transform:uppercase;letter-spacing:.08em;">Paso 2 — Errores relativos de cada variable:</strong>
+        $$\frac{\Delta h}{h} = \frac{0.001}{1.200} = 0.00083 \qquad\qquad 2\cdot\frac{\Delta t}{t} = 2\times\frac{0.005}{0.697} = 0.01435$$
+
+        <strong style="font-family:var(--mono);color:var(--accent);font-size:.8em;text-transform:uppercase;letter-spacing:.08em;">Paso 3 — Incertidumbre relativa y absoluta de g:</strong>
+        $$\frac{\Delta g}{g} = \sqrt{(0.00083)^2 + (0.01435)^2} \approx 0.0144 \approx 1.4\,\%$$
+        $$\Delta g = 4.94 \times 0.0144 \approx 0.07 \text{ m/s}^2$$
+
+        <strong style="font-family:var(--mono);color:var(--accent);font-size:.8em;text-transform:uppercase;letter-spacing:.08em;">Resultado final:</strong>
+        $$\boxed{g = (4.94 \pm 0.07) \text{ m/s}^2}$$
+
+        <p style="margin-top:8px;font-style:italic;font-size:.88em;">
+          <strong>Nota:</strong> El tiempo domina la incertidumbre porque su error relativo aparece
+          multiplicado por 2 (exponente $t^2$). En el ejemplo: tiempo aporta $1.44\,\%$ vs. $0.08\,\%$ de la altura.
+          El valor obtenido ($4.94$ m/s²) difiere del teórico ($3.71$ m/s²) porque $h = 1.200$ m es la lectura
+          del slider — el estudiante debe restar el diámetro de la esfera para obtener la altura real de caída.
+        </p>
+      </div>
+
+      <div class="formula-box" style="margin-top:6px;">
+        <div class="formula-label">Incertidumbre estadística del tiempo (mediciones repetidas)</div>
+        <div class="formula-main">$$\Delta t = \frac{s}{\sqrt{n}} = \frac{\text{desviación estándar}}{\sqrt{\text{número de mediciones}}}$$</div>
+        <div class="formula-num">—</div>
+      </div>
+      <p>Si se repite la medición del tiempo para una misma altura, el $\Delta t$ estadístico
+        reduce la incertidumbre al aumentar $n$. Este valor puede reemplazar la resolución del
+        cronómetro en la Ec. (4) cuando se dispone de repeticiones.</p>
+
+      <table class="rango-tabla" style="margin-top:10px;">
+        <thead><tr><th>Concepto</th><th>Fórmula</th></tr></thead>
+        <tbody>
+          <tr><td>Gravedad experimental</td><td style="font-family:var(--mono);">g = 2h / t²</td></tr>
+          <tr><td>Error relativo de g</td><td style="font-family:var(--mono);">Δg/g = √[(Δh/h)² + (2Δt/t)²]</td></tr>
+          <tr><td>Incertidumbre absoluta</td><td style="font-family:var(--mono);">Δg = g × (Δg/g)</td></tr>
+          <tr><td>El tiempo domina</td><td style="font-family:var(--mono);">Su contribución se duplica por el exponente 2</td></tr>
+        </tbody>
+      </table>
+
+      <div class="subseccion-titulo">2.5 · Incertidumbre relativa (IR) y Error relativo (ER)</div>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 5 — IR y ER</div>
+        <div class="formula-main">$$\text{IR} = \frac{\overline{\Delta g}}{\bar{g}_{\exp}} \times 100\,\% \qquad\qquad \text{ER} = \frac{|\bar{g}_{\exp} - g_{\text{teo}}|}{g_{\text{teo}}} \times 100\,\%$$</div>
+        <div class="formula-num">(5)</div>
+      </div>
+      <table class="rango-tabla" style="margin-top:10px;">
+        <thead><tr><th>Indicador</th><th>Rango</th><th>Interpretación</th></tr></thead>
+        <tbody>
+          <tr><td rowspan="3" style="font-family:var(--mono);font-size:.85em;">IR</td>
+            <td class="bueno">IR &lt; 1 %</td><td>Resultado muy preciso</td></tr>
+          <tr><td class="medio">1 % ≤ IR &lt; 10 %</td><td>Resultado preciso</td></tr>
+          <tr><td class="malo">IR ≥ 10 %</td><td>Resultado poco preciso</td></tr>
+          <tr><td rowspan="3" style="font-family:var(--mono);font-size:.85em;">ER</td>
+            <td class="bueno">ER &lt; 1 %</td><td>Resultado muy exacto</td></tr>
+          <tr><td class="medio">1 % ≤ ER &lt; 10 %</td><td>Resultado exacto</td></tr>
+          <tr><td class="malo">ER ≥ 10 %</td><td>Resultado poco exacto</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 03. PROCEDIMIENTO -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">03</span> Procedimiento Experimental</h2>
+      <div class="nota"><strong>Antes de comenzar:</strong> Identifique el planeta asignado en el simulador y anote $g_{\text{teo}}$ en el encabezado. Si actualiza la página el planeta puede cambiar. Registre también la apreciación del deslizador ($\Delta h$) y la resolución del cronómetro ($\Delta t$).</div>
+      <div class="nota" style="border-color:var(--accent2);background:#fef0ef;color:#7b241c;">
+        <strong>⚠️ Corrección por diámetro de la esfera:</strong> La esfera tiene un diámetro $d$ que
+        el simulador indica en pantalla. El sensor de impacto se activa cuando la <em>parte inferior</em>
+        de la esfera lo toca, no cuando su centro llega a la altura $h$ configurada. Por lo tanto,
+        la distancia de caída real es:
+        $$h_{\text{real}} = h_{\text{configurada}} - \frac{d}{2}$$
+        Use siempre $h_{\text{real}}$ en todos los cálculos de $g_i$, $\Delta g_i$, la tabla y la gráfica.
+        Ignorar este ajuste introduce un error sistemático que subestima $h$ y por ende subestima $g_{\exp}$.
+      </div>
+      <div class="paso">
+        <div class="paso-num">1</div>
+        <div class="paso-content"><p><strong>Parte A.</strong> Configure el simulador con suelo como referencia. Seleccione 6 alturas distintas entre 0.5 m y 4.5 m. Para cada una: reinicie, fije la altura $h$, suelte la esfera y registre el tiempo $t$ al impacto. Complete la Tabla 1A.</p></div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">2</div>
+        <div class="paso-content"><p><strong>Parte B.</strong> Ahora registre también la posición instantánea $y(t)$ usando la Ec. $y = y_0 - \tfrac{1}{2}gt^2$. Use las mismas alturas $y_0$ de la Parte A. En cada ensayo calcule $h = y_0 - y$ y complete la Tabla 1B.</p></div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">3</div>
+        <div class="paso-content"><p><strong>Linealización.</strong> Para ambas partes, calcule $t^2$ e ingrese los datos en las gráficas correspondientes. Active el ajuste lineal y registre la pendiente $m$ y el coeficiente $R^2$.</p></div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">4</div>
+        <div class="paso-content"><p><strong>Incertidumbre y errores.</strong> Calcule $\Delta g_i$ para cada ensayo según la Ec. (4). Obtenga $\bar{g}$, $\overline{\Delta g}$, IR y ER para cada parte por separado.</p></div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">5</div>
+        <div class="paso-content"><p><strong>Parte C — Reto.</strong> Con el tiempo objetivo $T$ del docente, aplique $h = \tfrac{1}{2}g_{\exp}T^2$, configure el slider y verifique el tiempo medido.</p></div>
+      </div>
+    </div>
+
+    <!-- 04. DATOS — INCERTIDUMBRE INSTRUMENTAL -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">04</span> Datos Experimentales</h2>
+
+      <div class="result-box col4" style="margin-bottom:18px;">
+        <div class="res-campo"><label>g teórica del planeta (m/s²)</label><input type="text" id="gTeoVal" placeholder="0.000" oninput="calcIRER_A(); calcIRER_B()"></div>
+        <div class="res-campo"><label>Apreciación altura Δh (m)</label><input type="text" id="deltaH" placeholder="± 0.01" oninput="actualizarA(); actualizarB()"></div>
+        <div class="res-campo"><label>Resolución cronómetro Δt (s)</label><input type="text" id="deltaTinst" placeholder="± 0.001" oninput="actualizarA(); actualizarB()"></div>
+        <div class="res-campo"><label>Diámetro esfera d (m)</label><input type="text" id="diametroEsfera" placeholder="0.000" oninput="actualizarA(); actualizarB()"></div>
+        <div class="res-campo"><label>Radio r = d/2 (m)</label><input type="text" id="radioEsfera" placeholder="0.000" readonly style="color:var(--orange);"></div>
+        <div class="res-campo"><label>Planeta asignado</label><input type="text" id="planetaDatos" placeholder="Nombre del planeta"></div>
+      </div>
+
+      <!-- ══ PARTE A ══ -->
+      <div class="parte-header">
+        <div><span class="parte-badge A">Parte A</span></div>
+        <div>
+          <h4>Caída libre — Marco de referencia en el suelo</h4>
+          <p>Ecuación de trabajo: $y = y_0 - \tfrac{1}{2}\,g\,t^2$ &nbsp;·&nbsp; referencia: suelo ($y_{\text{suelo}} = 0$)</p>
+        </div>
+      </div>
+      <div class="parte-body">
+
+        <div class="subseccion-titulo">Tabla 1A — Datos Parte A</div>
+        <p style="font-size:.85em;color:var(--ink-muted);font-style:italic;">Tabla 1A. Altura $h$ (m), tiempo $t$ (s), $t^2$ (s²), $g_i = 2h/t^2$ (m/s²), $\Delta g_i$ (m/s²) y $v_f$ (m/s).</p>
+        <table class="tabla-resultados">
+          <thead>
+            <tr>
+              <th>Ensayo</th><th>$h$ (m)</th><th>$t$ (s)</th><th>$t^2$ (s²)</th>
+              <th>$g_i = 2h/t^2$ (m/s²)</th><th>$\Delta g_i$ (m/s²)</th><th>$v_f = g_i \cdot t$ (m/s)</th>
+            </tr>
+          </thead>
+          <tbody id="bodyA"></tbody>
+        </table>
+
+        <span class="area-label">Procedimiento de cálculo — Parte A: g individual, propagación, g̅, Δg̅, IR y ER</span>
+        <textarea class="trabajo-area" style="min-height:220px;"
+          placeholder="Δh = ___ m  |  Δt = ___ s&#10;&#10;g_i = 2h / t²     →     Δg_i = g_i · √( (Δh/h)² + (2·Δt/t)² )&#10;&#10;E1: g₁ = 2×___ / (___)² = ___ m/s²    Δg₁ = ___·√((___/___)²+(2×___/___)²) = ___&#10;E2: g₂ = ___ m/s²    Δg₂ = ___&#10;E3: g₃ = ___ m/s²    Δg₃ = ___&#10;E4: g₄ = ___ m/s²    Δg₄ = ___&#10;E5: g₅ = ___ m/s²    Δg₅ = ___&#10;E6: g₆ = ___ m/s²    Δg₆ = ___&#10;&#10;g̅ = (g₁+…+g₆)/6 = ___ m/s²&#10;Δg̅ = (Δg₁+…+Δg₆)/6 = ___ m/s²&#10;IR = Δg̅/g̅ × 100% = ___ %&#10;ER = |g̅ − g_teo|/g_teo × 100% = ___ %&#10;&#10;Resultado: g = (___ ± ___) m/s²"></textarea>
+
+        <div class="result-box col5">
+          <div class="res-campo"><label>g̅ experimental (m/s²)</label><input type="text" id="gPromA" placeholder="0.000" oninput="calcIRER_A()"></div>
+          <div class="res-campo"><label>Δg̅ promedio (m/s²)</label><input type="text" id="dgPromA" placeholder="0.000" oninput="calcIRER_A()"></div>
+          <div class="res-campo"><label>IR (%)</label><input type="text" id="irA" placeholder="0.00 %" readonly style="color:var(--accent);font-weight:600;"></div>
+          <div class="res-campo"><label>ER (%)</label><input type="text" id="erA" placeholder="0.00 %" readonly style="color:var(--accent2);font-weight:600;"></div>
+          <div class="res-campo"><label>g = (g̅ ± Δg̅) m/s²</label><input type="text" id="gResA" placeholder="___±___" readonly style="color:var(--green);font-weight:600;"></div>
+        </div>
+
+        <div class="divider"><span>Gráfica A — h vs. t²  (Parte A)</span></div>
+        <p>Ingrese los datos en la Tabla 1A. Active el ajuste lineal para obtener la pendiente $m = g/2$.</p>
+        <div class="grafica-box">
+          <div class="grafica-header">
+            <span>Gráfica A · h (m) vs. t² (s²) — Parte A: h = ½g·t²</span>
+            <span id="pendienteA" style="color:rgba(255,255,255,.6);font-size:.9em;">m = —</span>
+          </div>
+          <canvas class="grafica-canvas" id="graficaA" height="300"></canvas>
+          <div class="grafica-controles">
+            <button class="btn-ctrl" id="btnRegA" onclick="toggleRegA()">📈 Ajuste lineal</button>
+            <span class="grafica-info" id="eqA">—</span>
+          </div>
+        </div>
+        <div class="result-box col4">
+          <div class="res-campo"><label>Pendiente m (m/s²)</label><input type="text" id="mA" placeholder="0.000" oninput="calcGRegA()"></div>
+          <div class="res-campo"><label>g = 2m (m/s²)</label><input type="text" id="gRegA" placeholder="0.000"></div>
+          <div class="res-campo"><label>R² del ajuste</label><input type="text" id="r2A" placeholder="0.0000"></div>
+          <div class="res-campo"><label>ER desde regresión (%)</label><input type="text" id="erRegA" placeholder="0.00 %" readonly style="color:var(--accent2);"></div>
+        </div>
+
+        <span class="area-label">Captura del simulador — Parte A</span>
+        <div class="adjunto-slot">
+          <input type="file" accept="image/*" onchange="previsualizarImagen(this,'prevA')">
+          <span class="slot-icon">📸</span>
+          <span class="slot-label">Adjuntar captura del simulador — Parte A</span>
+          <span class="slot-hint">Deben verse: planeta, alturas y cronómetro · PNG, JPG</span>
+          <img id="prevA" class="preview-img" alt="">
+        </div>
+      </div><!-- fin parte-body A -->
+
+      <!-- ══ PARTE B ══ -->
+      <div class="parte-header parteB">
+        <div><span class="parte-badge B">Parte B</span></div>
+        <div>
+          <h4>Caída libre — Marco de referencia en el punto de lanzamiento</h4>
+          <p>Ecuación de trabajo: $y = \tfrac{1}{2}\,g\,t^2$ &nbsp;·&nbsp; referencia: punto de lanzamiento ($y_0 = 0$)</p>
+        </div>
+      </div>
+      <div class="parte-body B">
+
+        <div class="nota" style="margin-top:0;">
+          <strong>Diferencia con la Parte A:</strong> Aquí $y_0$ es la posición inicial conocida (la altura
+          configurada en el slider) y $y(t)$ es la posición en el instante $t$. La distancia caída es
+          $h = y_0 - y(t) = \tfrac{1}{2}g\,t^2$, que es la misma cantidad usada en la Parte A.
+          El estudiante debe verificar que ambas ecuaciones son consistentes y producen el mismo $g_{\exp}$.
+        </div>
+
+        <div class="subseccion-titulo">Tabla 1B — Datos Parte B</div>
+        <p style="font-size:.85em;color:var(--ink-muted);font-style:italic;">Tabla 1B. Posición inicial $y_0$ (m), posición al impacto $y_f = 0$ (suelo), tiempo $t$ (s), $h = y_0 - y_f$ (m), $t^2$ (s²), $g_i$ (m/s²) y $\Delta g_i$ (m/s²).</p>
+        <table class="tabla-resultados">
+          <thead>
+            <tr>
+              <th>Ensayo</th><th>$y_0$ (m)</th><th>$y_f$ (m)</th><th>$t$ (s)</th>
+              <th>$h = y_0 - y_f$ (m)</th><th>$t^2$ (s²)</th><th>$g_i$ (m/s²)</th><th>$\Delta g_i$ (m/s²)</th>
+            </tr>
+          </thead>
+          <tbody id="bodyB"></tbody>
+        </table>
+
+        <span class="area-label">Procedimiento de cálculo — Parte B: h = y₀ − y_f, g individual, propagación, g̅, Δg̅, IR y ER</span>
+        <textarea class="trabajo-area" style="min-height:220px;"
+          placeholder="En cada ensayo:  h = y₀ − y_f  (y_f = 0 en el suelo)&#10;                 g_i = 2h / t²     Δg_i = g_i · (Δh/h + 2·Δt/t)&#10;&#10;E1: y₀=___  y_f=___  h=___  t=___  g₁=___  Δg₁=___&#10;E2: y₀=___  y_f=___  h=___  t=___  g₂=___  Δg₂=___&#10;E3: y₀=___  y_f=___  h=___  t=___  g₃=___  Δg₃=___&#10;E4: y₀=___  y_f=___  h=___  t=___  g₄=___  Δg₄=___&#10;E5: y₀=___  y_f=___  h=___  t=___  g₅=___  Δg₅=___&#10;E6: y₀=___  y_f=___  h=___  t=___  g₆=___  Δg₆=___&#10;&#10;g̅ = ___ m/s²    Δg̅ = ___ m/s²&#10;IR = ___ %       ER = ___ %&#10;&#10;Resultado: g = (___ ± ___) m/s²&#10;&#10;Comparación con Parte A: ¿coinciden los valores de g? ___"></textarea>
+
+        <div class="result-box col5">
+          <div class="res-campo"><label>g̅ experimental (m/s²)</label><input type="text" id="gPromB" placeholder="0.000" oninput="calcIRER_B()"></div>
+          <div class="res-campo"><label>Δg̅ promedio (m/s²)</label><input type="text" id="dgPromB" placeholder="0.000" oninput="calcIRER_B()"></div>
+          <div class="res-campo"><label>IR (%)</label><input type="text" id="irB" placeholder="0.00 %" readonly style="color:var(--accent);font-weight:600;"></div>
+          <div class="res-campo"><label>ER (%)</label><input type="text" id="erB" placeholder="0.00 %" readonly style="color:var(--accent2);font-weight:600;"></div>
+          <div class="res-campo"><label>g = (g̅ ± Δg̅) m/s²</label><input type="text" id="gResB" placeholder="___±___" readonly style="color:var(--green);font-weight:600;"></div>
+        </div>
+
+        <div class="divider"><span>Gráfica B — h vs. t²  (Parte B)</span></div>
+        <p>Los puntos de la Parte B deben alinearse sobre la misma recta que la Parte A, confirmando que
+          ambas ecuaciones describen el mismo fenómeno.</p>
+        <div class="grafica-box">
+          <div class="grafica-header">
+            <span>Gráfica B · h (m) vs. t² (s²) — Parte B: y = y₀ − ½g·t²</span>
+            <span id="pendienteB" style="color:rgba(255,255,255,.6);font-size:.9em;">m = —</span>
+          </div>
+          <canvas class="grafica-canvas" id="graficaB" height="300"></canvas>
+          <div class="grafica-controles">
+            <button class="btn-ctrl" id="btnRegB" onclick="toggleRegB()">📈 Ajuste lineal</button>
+            <span class="grafica-info" id="eqB">—</span>
+          </div>
+        </div>
+        <div class="result-box col4">
+          <div class="res-campo"><label>Pendiente m (m/s²)</label><input type="text" id="mB" placeholder="0.000" oninput="calcGRegB()"></div>
+          <div class="res-campo"><label>g = 2m (m/s²)</label><input type="text" id="gRegB" placeholder="0.000"></div>
+          <div class="res-campo"><label>R² del ajuste</label><input type="text" id="r2B" placeholder="0.0000"></div>
+          <div class="res-campo"><label>ER desde regresión (%)</label><input type="text" id="erRegB" placeholder="0.00 %" readonly style="color:var(--accent2);"></div>
+        </div>
+
+        <span class="area-label">Captura del simulador — Parte B</span>
+        <div class="adjunto-slot">
+          <input type="file" accept="image/*" onchange="previsualizarImagen(this,'prevB')">
+          <span class="slot-icon">📸</span>
+          <span class="slot-label">Adjuntar captura del simulador — Parte B</span>
+          <span class="slot-hint">Debe verse la posición inicial y₀ y el tiempo de impacto · PNG, JPG</span>
+          <img id="prevB" class="preview-img" alt="">
+        </div>
+      </div><!-- fin parte-body B -->
+
+    </div><!-- fin sección 04 -->
+
+    <!-- 05. PARTE C — RETO -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">05</span> Parte C — Reto de Predicción</h2>
+      <div>
+        <div class="reto-header">
+          <div><span class="reto-badge">🎯 Parte C</span></div>
+          <div>
+            <h4>Predecir la altura para un tiempo de caída objetivo</h4>
+            <p>Usando $g_{\exp}$ de la Parte A o B, calcula $h = \tfrac{1}{2}g_{\exp}T^2$, configura el slider y verifica el tiempo de impacto.</p>
+          </div>
+        </div>
+        <div class="reto-body">
+          <div class="nota" style="margin-top:0;">
+            <strong>Instrucción:</strong> El docente proporcionará el tiempo objetivo $T$.
+            Calcule la altura <em>antes</em> de tocar el simulador. Puede usar el $g_{\exp}$
+            de la Parte A, el de la Parte B, o el obtenido por regresión.
+          </div>
+
+          <span class="area-label">Datos del reto</span>
+          <div class="result-box col4" style="margin-top:6px;">
+            <div class="res-campo"><label>Tiempo objetivo T (s)</label><input type="text" id="rTObj" placeholder="T = ___" oninput="calcReto()"></div>
+            <div class="res-campo"><label>g_exp usado (m/s²)</label><input type="text" id="rGUsada" placeholder="de Parte A ó B" oninput="calcReto()"></div>
+            <div class="res-campo"><label>h calculada (m) = ½·g·T²</label><input type="text" id="rHcalc" placeholder="h = ___" readonly style="color:var(--green);font-weight:600;"></div>
+            <div class="res-campo"><label>h ajustada en simulador (m)</label><input type="text" id="rHsim" placeholder="h = ___"></div>
+          </div>
+
+          <span class="area-label">Procedimiento de cálculo</span>
+          <textarea class="trabajo-area" style="min-height:180px;"
+            placeholder="Datos:  g_exp = ___ m/s²    T = ___ s&#10;&#10;Aplicando h = ½ · g · T²:&#10;  h = ½ × ___ × (___)²&#10;  h = ½ × ___ × ___&#10;  h = ___ m&#10;&#10;▶ Configurar slider en: ___ m&#10;▶ Tiempo medido: ___ s&#10;▶ |T − t_medido| = ___ s"></textarea>
+
+          <div class="result-box col4" style="margin-top:4px;">
+            <div class="res-campo"><label>Tiempo medido t (s)</label><input type="text" id="rTmed" placeholder="t = ___"></div>
+            <div class="res-campo"><label>|T − t_medido| (s)</label><input type="text" id="rDelta" placeholder="Δt = ___"></div>
+            <div class="res-campo"><label>¿Tolerancia ±0.05 s?</label><input type="text" placeholder="Sí / No"></div>
+            <div class="res-campo"><label>g usado: ¿Parte A, B o reg.?</label><input type="text" placeholder="Parte ___"></div>
+          </div>
+
+          <table class="rango-tabla" style="margin:14px 0;">
+            <thead><tr><th>Diferencia |ΔT|</th><th>Resultado</th></tr></thead>
+            <tbody>
+              <tr><td class="bueno">|ΔT| ≤ 0.03 s</td><td>✅ Predicción perfecta</td></tr>
+              <tr><td class="medio">0.03 s &lt; |ΔT| ≤ 0.07 s</td><td>⚠️ Predicción aceptable</td></tr>
+              <tr><td class="malo">|ΔT| &gt; 0.07 s</td><td>❌ Revisar cálculo y repetir</td></tr>
+            </tbody>
+          </table>
+
+          <span class="area-label">Captura del simulador — Reto completado</span>
+          <div class="adjunto-slot">
+            <input type="file" accept="image/*" onchange="previsualizarImagen(this,'prevC')">
+            <span class="slot-icon">🏆</span>
+            <span class="slot-label">Adjuntar captura del reto completado</span>
+            <span class="slot-hint">Debe verse la altura configurada y el tiempo registrado · PNG, JPG</span>
+            <img id="prevC" class="preview-img" alt="">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 06. DISCUSIÓN -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">06</span> Discusión de Resultados</h2>
+
+      <span class="area-label">6.1 · ¿Por qué las ecuaciones de la Parte A ($h = \tfrac{1}{2}gt^2$) y la Parte B ($y = y_0 - \tfrac{1}{2}gt^2$) producen el mismo valor de $g_{\exp}$? ¿Qué papel juega el marco de referencia?</span>
+      <textarea class="trabajo-area" placeholder="Escriba su análisis aquí..."></textarea>
+
+      <span class="area-label">6.2 · Compare los valores de $g_{\exp}$ obtenidos por promedio directo y por regresión lineal en ambas partes. ¿Cuál método es más confiable? ¿Coinciden los valores de la Parte A y la Parte B?</span>
+      <textarea class="trabajo-area" placeholder="Escriba su análisis aquí..."></textarea>
+
+      <span class="area-label">6.3 · Analice la IR obtenida en ambas partes. ¿Qué indica sobre la dispersión de las mediciones? ¿Qué factores del simulador pudieron generar esa dispersión?</span>
+      <textarea class="trabajo-area" placeholder="Escriba su análisis aquí..."></textarea>
+
+      <span class="area-label">6.4 · Analice el ER de ambas partes. ¿Son los resultados exactos? ¿Las fuentes de error son sistemáticas o aleatorias? Justifique con los valores calculados.</span>
+      <textarea class="trabajo-area" placeholder="Escriba su análisis aquí..."></textarea>
+
+      <span class="area-label">6.5 · En el Reto (Parte C), ¿usó $g_{\exp}$ de la Parte A, de la Parte B o el de la regresión? ¿Cambiaría el resultado si hubiera usado los otros valores? Justifique con un cálculo.</span>
+      <textarea class="trabajo-area" placeholder="Escriba su análisis aquí..."></textarea>
+    </div>
+
+    <!-- 07. CONCLUSIONES -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">07</span> Conclusiones</h2>
+      <p>Redacte tres conclusiones concretas que respondan a los objetivos planteados.</p>
+      <span class="area-label">Conclusión 1 — Sobre la diferencia conceptual entre las ecuaciones de la Parte A y la Parte B</span>
+      <textarea class="trabajo-area" style="min-height:90px;" placeholder="Redacte su primera conclusión..."></textarea>
+      <span class="area-label">Conclusión 2 — Sobre la determinación de g por linealización y la evaluación con IR y ER</span>
+      <textarea class="trabajo-area" style="min-height:90px;" placeholder="Redacte su segunda conclusión..."></textarea>
+      <span class="area-label">Conclusión 3 — Sobre el Reto de Predicción y la aplicación del modelo cinemático</span>
+      <textarea class="trabajo-area" style="min-height:90px;" placeholder="Redacte su tercera conclusión..."></textarea>
+    </div>
+
+    <!-- 08. REFERENCIAS -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">08</span> Referencias</h2>
+      <p style="font-size:.88em; line-height:2.2;">
+        [1] Sears, F. W., Zemansky, M. W. &amp; Young, H. D. <em>University Physics</em>. 14ª ed. Pearson, 2016.<br>
+        [2] Serway, R. A. &amp; Jewett, J. W. <em>Physics for Scientists and Engineers</em>. 10ª ed. Cengage Learning, 2019.<br>
+        [3] Tipler, P. A. &amp; Llewellyn, R. A. <em>Physics for Scientists and Engineers</em>. 6ª ed. W. H. Freeman, 2008.<br>
+        [4] Giancoli, D. C. <em>Physics: Principles with Applications</em>. 7ª ed. Pearson Prentice Hall, 2014.<br>
+        [5] Halliday, D., Resnick, R. &amp; Krane, K. S. <em>Physics</em>. 5ª ed. John Wiley &amp; Sons, 2002.
+      </p>
+    </div>
+
+    <div class="firma-grid">
+      <div class="firma-slot">Firma del estudiante</div>
+      <div class="firma-slot">Visto bueno del docente</div>
+    </div>
+
+  </div><!-- fin body -->
+</div><!-- fin documento -->
+
+<button class="btn-imprimir" onclick="window.print()">🖨 Imprimir / PDF</button>
+
+<script>
+const N = 6;
+const IS = 'width:100%;border:none;border-bottom:1px solid var(--rule);background:transparent;font-family:var(--mono);font-size:.88em;text-align:center;outline:none;padding:3px;';
+
+// ── Helpers ──────────────────────────────────────
+function pNum(s){ return parseFloat((s||'').replace(',','.')); }
+function fmt(n,d){ return isNaN(n)||!isFinite(n)?'—':n.toFixed(d); }
+
+// ── Build tablas ──────────────────────────────────
+function buildTablas(){
+  // Tabla A: h, t, t², gi, dgi, vf
+  const bA = document.getElementById('bodyA');
+  for(let i=1;i<=N;i++){
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="row-label">E${i}</td>
+      <td class="input-cell"><input type="text" id="hA_${i}" placeholder="0.00" oninput="actualizarA()" style="${IS}"></td>
+      <td class="input-cell"><input type="text" id="tA_${i}" placeholder="0.000" oninput="actualizarA()" style="${IS}"></td>
+      <td class="input-cell"><input type="text" id="t2A_${i}" placeholder="—" readonly style="${IS}color:var(--accent);"></td>
+      <td class="input-cell"><input type="text" id="giA_${i}" placeholder="—" readonly style="${IS}color:var(--green);font-weight:600;"></td>
+      <td class="input-cell"><input type="text" id="dgiA_${i}" placeholder="—" readonly style="${IS}color:var(--orange);"></td>
+      <td class="input-cell"><input type="text" id="vfA_${i}" placeholder="—" readonly style="${IS}color:var(--ink-muted);"></td>`;
+    bA.appendChild(tr);
+  }
+  // Tabla B: y0, yf, t, h=y0-yf, t², gi, dgi
+  const bB = document.getElementById('bodyB');
+  for(let i=1;i<=N;i++){
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="row-label">E${i}</td>
+      <td class="input-cell"><input type="text" id="y0B_${i}" placeholder="0.00" oninput="actualizarB()" style="${IS}"></td>
+      <td class="input-cell"><input type="text" id="yfB_${i}" placeholder="0.00" oninput="actualizarB()" style="${IS}"></td>
+      <td class="input-cell"><input type="text" id="tB_${i}" placeholder="0.000" oninput="actualizarB()" style="${IS}"></td>
+      <td class="input-cell"><input type="text" id="hB_${i}" placeholder="—" readonly style="${IS}color:var(--accent);"></td>
+      <td class="input-cell"><input type="text" id="t2B_${i}" placeholder="—" readonly style="${IS}color:var(--accent);"></td>
+      <td class="input-cell"><input type="text" id="giB_${i}" placeholder="—" readonly style="${IS}color:var(--green);font-weight:600;"></td>
+      <td class="input-cell"><input type="text" id="dgiB_${i}" placeholder="—" readonly style="${IS}color:var(--orange);"></td>`;
+    bB.appendChild(tr);
+  }
+}
+
+// ── Datos y cálculos Parte A ──────────────────────
+const dataA = [];
+function actualizarA(){
+  dataA.length = 0;
+  const dH = pNum(document.getElementById('deltaH').value)    || 0.01;
+  const dT = pNum(document.getElementById('deltaTinst').value) || 0.001;
+  const d  = pNum(document.getElementById('diametroEsfera').value) || 0;
+  const r  = d / 2;
+  document.getElementById('radioEsfera').value = r > 0 ? fmt(r, 4) : '—';
+
+  for(let i=1;i<=N;i++){
+    const hConf = pNum(document.getElementById(`hA_${i}`).value);
+    const t  = pNum(document.getElementById(`tA_${i}`).value);
+    if(hConf>0 && t>0){
+      const h = hConf - r;   // corrección por radio de la esfera
+      const t2=t*t, gi=2*h/t2, dgi=gi*Math.sqrt((dH/h)**2+(2*dT/t)**2), vf=gi*t;
+      document.getElementById(`t2A_${i}`).value  = fmt(t2, 4);
+      document.getElementById(`giA_${i}`).value  = fmt(gi, 4);
+      document.getElementById(`dgiA_${i}`).value = '± '+fmt(dgi,4);
+      document.getElementById(`vfA_${i}`).value  = fmt(vf, 3);
+      dataA.push({h,t,t2,gi,dgi,vf});
+    } else {
+      ['t2A','giA','dgiA','vfA'].forEach(k=>{ const el=document.getElementById(`${k}_${i}`); if(el) el.value='—'; });
+    }
+  }
+  if(dataA.length>0){
+    const gP  = dataA.reduce((s,d)=>s+d.gi, 0)/dataA.length;
+    const dgP = dataA.reduce((s,d)=>s+d.dgi,0)/dataA.length;
+    document.getElementById('gPromA').value = fmt(gP,4);
+    document.getElementById('dgPromA').value= fmt(dgP,4);
+    document.getElementById('gResA').value  = fmt(gP,3)+' ± '+fmt(dgP,3);
+    calcIRER_A();
+  }
+  dibujarGrafica('graficaA', dataA, 'pendienteA', 'eqA', 'mA', 'gRegA', 'r2A', 'erRegA', regA);
+}
+
+// ── Datos y cálculos Parte B ──────────────────────
+const dataB = [];
+function actualizarB(){
+  dataB.length = 0;
+  const dH = pNum(document.getElementById('deltaH').value)    || 0.01;
+  const dT = pNum(document.getElementById('deltaTinst').value) || 0.001;
+  const r  = (pNum(document.getElementById('diametroEsfera').value) || 0) / 2;
+
+  for(let i=1;i<=N;i++){
+    const y0 = pNum(document.getElementById(`y0B_${i}`).value);
+    const yf = pNum(document.getElementById(`yfB_${i}`).value) || 0;
+    const t  = pNum(document.getElementById(`tB_${i}`).value);
+    if(y0>0 && t>0){
+      const h=(y0-yf)-r;   // corrección por radio de la esfera
+      const t2=t*t, gi=2*h/t2, dgi=gi*Math.sqrt((dH/h)**2+(2*dT/t)**2);
+      document.getElementById(`hB_${i}`).value   = fmt(h, 3);
+      document.getElementById(`t2B_${i}`).value  = fmt(t2,4);
+      document.getElementById(`giB_${i}`).value  = fmt(gi,4);
+      document.getElementById(`dgiB_${i}`).value = '± '+fmt(dgi,4);
+      dataB.push({h,t,t2,gi,dgi});
+    } else {
+      ['hB','t2B','giB','dgiB'].forEach(k=>{ const el=document.getElementById(`${k}_${i}`); if(el) el.value='—'; });
+    }
+  }
+  if(dataB.length>0){
+    const gP  = dataB.reduce((s,d)=>s+d.gi, 0)/dataB.length;
+    const dgP = dataB.reduce((s,d)=>s+d.dgi,0)/dataB.length;
+    document.getElementById('gPromB').value = fmt(gP,4);
+    document.getElementById('dgPromB').value= fmt(dgP,4);
+    document.getElementById('gResB').value  = fmt(gP,3)+' ± '+fmt(dgP,3);
+    calcIRER_B();
+  }
+  dibujarGrafica('graficaB', dataB, 'pendienteB', 'eqB', 'mB', 'gRegB', 'r2B', 'erRegB', regB);
+}
+
+// ── IR y ER ──────────────────────────────────────
+function calcIRER_A(){
+  const gT=pNum(document.getElementById('gTeoVal').value);
+  const gP=pNum(document.getElementById('gPromA').value);
+  const dg=pNum(document.getElementById('dgPromA').value);
+  if(gP>0 && !isNaN(dg)) document.getElementById('irA').value=(dg/gP*100).toFixed(2)+' %';
+  if(gT>0 && gP>0) document.getElementById('erA').value=(Math.abs(gP-gT)/gT*100).toFixed(2)+' %';
+}
+function calcIRER_B(){
+  const gT=pNum(document.getElementById('gTeoVal').value);
+  const gP=pNum(document.getElementById('gPromB').value);
+  const dg=pNum(document.getElementById('dgPromB').value);
+  if(gP>0 && !isNaN(dg)) document.getElementById('irB').value=(dg/gP*100).toFixed(2)+' %';
+  if(gT>0 && gP>0) document.getElementById('erB').value=(Math.abs(gP-gT)/gT*100).toFixed(2)+' %';
+}
+
+// ── Regresión desde campo m (manual) ─────────────
+function calcGRegA(){
+  const m=pNum(document.getElementById('mA').value);
+  if(!isNaN(m)){ const g=2*m; document.getElementById('gRegA').value=g.toFixed(3);
+    const gT=pNum(document.getElementById('gTeoVal').value);
+    if(gT>0) document.getElementById('erRegA').value=(Math.abs(g-gT)/gT*100).toFixed(2)+' %'; }
+}
+function calcGRegB(){
+  const m=pNum(document.getElementById('mB').value);
+  if(!isNaN(m)){ const g=2*m; document.getElementById('gRegB').value=g.toFixed(3);
+    const gT=pNum(document.getElementById('gTeoVal').value);
+    if(gT>0) document.getElementById('erRegB').value=(Math.abs(g-gT)/gT*100).toFixed(2)+' %'; }
+}
+
+// ── Gráfica genérica h vs t² ──────────────────────
+let regA=false, regB=false;
+function toggleRegA(){ regA=!regA; document.getElementById('btnRegA').classList.toggle('activo',regA); actualizarA(); }
+function toggleRegB(){ regB=!regB; document.getElementById('btnRegB').classList.toggle('activo',regB); actualizarB(); }
+
+function dibujarGrafica(cvId, pts, pendId, eqId, mId, gId, r2Id, erRegId, showReg){
+  const cv=document.getElementById(cvId);
+  if(!cv) return;
+  const ctx=cv.getContext('2d');
+  cv.width=cv.offsetWidth*window.devicePixelRatio||760;
+  const PAD={top:30,right:30,bottom:48,left:64};
+  const W=cv.width, H=cv.height, pw=W-PAD.left-PAD.right, ph=H-PAD.top-PAD.bottom;
+  ctx.clearRect(0,0,W,H); ctx.fillStyle='#fafafa'; ctx.fillRect(0,0,W,H);
+
+  if(pts.length<2){
+    ctx.fillStyle='#bbb'; ctx.font=`14px 'Source Serif 4',serif`; ctx.textAlign='center';
+    ctx.fillText('Complete la tabla para visualizar la gráfica', W/2, H/2); return;
+  }
+
+  const xV=pts.map(d=>d.t2), yV=pts.map(d=>d.h);
+  const xMax=Math.max(...xV)*1.12, yMax=Math.max(...yV)*1.12;
+  const cx=x=>PAD.left+x/xMax*pw, cy=y=>PAD.top+ph-y/yMax*ph;
+
+  // Cuadrícula
+  ctx.strokeStyle='#e8e4dc'; ctx.lineWidth=1;
+  for(let i=0;i<=5;i++){
+    const yp=PAD.top+i*ph/5; ctx.beginPath(); ctx.moveTo(PAD.left,yp); ctx.lineTo(PAD.left+pw,yp); ctx.stroke();
+    const xp=PAD.left+i*pw/5; ctx.beginPath(); ctx.moveTo(xp,PAD.top); ctx.lineTo(xp,PAD.top+ph); ctx.stroke();
+  }
+  ctx.strokeStyle='#888'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(PAD.left,PAD.top); ctx.lineTo(PAD.left,PAD.top+ph); ctx.lineTo(PAD.left+pw,PAD.top+ph); ctx.stroke();
+
+  // Etiquetas ejes
+  ctx.fillStyle='#3d3d5c'; ctx.font=`bold 11px 'JetBrains Mono',monospace`; ctx.textAlign='center';
+  ctx.fillText('t²  (s²)', PAD.left+pw/2, H-5);
+  ctx.save(); ctx.translate(14,PAD.top+ph/2); ctx.rotate(-Math.PI/2); ctx.fillText('h  (m)',0,0); ctx.restore();
+  ctx.fillStyle='#888'; ctx.font=`10px 'JetBrains Mono',monospace`;
+  for(let i=0;i<=5;i++){
+    const xv=xMax*i/5; ctx.textAlign='center'; ctx.fillText(xv.toFixed(2),cx(xv),PAD.top+ph+16);
+    const yv=yMax*i/5; ctx.textAlign='right';  ctx.fillText(yv.toFixed(2),PAD.left-4,cy(yv)+4);
+  }
+
+  // Regresión forzada al origen
+  if(showReg && pts.length>=2){
+    let sXY=0, sX2=0;
+    xV.forEach((x,i)=>{ sXY+=x*yV[i]; sX2+=x*x; });
+    const m=sXY/sX2, gC=2*m;
+    const yM=yV.reduce((a,b)=>a+b,0)/pts.length;
+    const ssTot=yV.reduce((a,v)=>a+(v-yM)**2,0);
+    const ssRes=yV.reduce((a,v,i)=>a+(v-m*xV[i])**2,0);
+    const r2=Math.max(0,1-ssRes/ssTot);
+
+    ctx.strokeStyle='#d35400'; ctx.lineWidth=2.5; ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(cx(0),cy(0)); ctx.lineTo(cx(xMax),cy(m*xMax)); ctx.stroke();
+
+    document.getElementById(eqId).textContent=`h = ${m.toFixed(4)} · t²  |  g = ${gC.toFixed(3)} m/s²  |  R² = ${r2.toFixed(4)}`;
+    document.getElementById(pendId).textContent=`m = ${m.toFixed(4)}`;
+    document.getElementById(mId).value=m.toFixed(4);
+    document.getElementById(gId).value=gC.toFixed(3);
+    document.getElementById(r2Id).value=r2.toFixed(4);
+    const gT=pNum(document.getElementById('gTeoVal').value);
+    if(gT>0) document.getElementById(erRegId).value=(Math.abs(gC-gT)/gT*100).toFixed(2)+' %';
+  } else {
+    document.getElementById(eqId).textContent='—';
+    document.getElementById(pendId).textContent='m = —';
+  }
+
+  // Puntos
+  const COLS=['#d35400','#1a5276','#1e8449','#8e44ad','#b8860b','#c0392b'];
+  pts.forEach((p,i)=>{
+    ctx.fillStyle=COLS[i%COLS.length];
+    ctx.beginPath(); ctx.arc(cx(p.t2),cy(p.h),5.5,0,Math.PI*2); ctx.fill();
+    ctx.font=`bold 10px JetBrains Mono,monospace`; ctx.textAlign='left';
+    ctx.fillText('E'+(i+1),cx(p.t2)+8,cy(p.h)-5);
+  });
+}
+
+// ── Reto ─────────────────────────────────────────
+function calcReto(){
+  const T=pNum(document.getElementById('rTObj').value);
+  const g=pNum(document.getElementById('rGUsada').value)||
+          pNum(document.getElementById('gRegA').value)||
+          pNum(document.getElementById('gTeoVal').value);
+  if(T>0 && g>0) document.getElementById('rHcalc').value=(0.5*g*T*T).toFixed(3);
+}
+
+// ── Adjuntos ──────────────────────────────────────
+function previsualizarImagen(input,previewId){
+  const file=input.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{ const img=document.getElementById(previewId); if(img){img.src=e.target.result; img.style.display='block';} };
+  reader.readAsDataURL(file);
+}
+
+// ── Init ──────────────────────────────────────────
+window.addEventListener('load',()=>{
+  buildTablas();
+  dibujarGrafica('graficaA',dataA,'pendienteA','eqA','mA','gRegA','r2A','erRegA',regA);
+  dibujarGrafica('graficaB',dataB,'pendienteB','eqB','mB','gRegB','r2B','erRegB',regB);
+  const now=new Date(), sem=now.getMonth()<6?'1':'2';
+  document.getElementById('codigoPractica').textContent=`PRÁCTICA FIS-CL-02 · ${now.getFullYear()}-${sem}`;
+  document.querySelectorAll('input[type="date"]').forEach(i=>i.value=now.toISOString().split('T')[0]);
+});
+
+window.addEventListener('resize',()=>{
+  dibujarGrafica('graficaA',dataA,'pendienteA','eqA','mA','gRegA','r2A','erRegA',regA);
+  dibujarGrafica('graficaB',dataB,'pendienteB','eqB','mB','gRegB','r2B','erRegB',regB);
+});
+</script>
+</body>
+</html>

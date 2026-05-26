@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Laboratorio 3D Ley de Hooke</title>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #000000;
+            --panel-bg: rgba(245, 245, 245, 0.95);
+        }
+        body.dark-mode {
+            --bg-color: #121212;
+            --text-color: #e0e0e0;
+            --panel-bg: rgba(30, 30, 30, 0.95);
+        }
+        body { margin: 0; overflow: hidden; font-family: 'Segoe UI', sans-serif; background-color: var(--bg-color); color: var(--text-color); transition: 0.3s; touch-action: none; }
+        
+        #ui-layer {
+            position: absolute; top: 10px; left: 10px;
+            background: var(--panel-bg); padding: 20px;
+            border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+            width: 320px; z-index: 100; max-height: 90vh; overflow-y: auto;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s;
+        }
+
+        #ui-layer.hidden { transform: translateX(-110%); opacity: 0; }
+        
+        #toggle-menu {
+            position: absolute; bottom: 20px; left: 20px;
+            z-index: 1001; background: #2c3e50; color: white;
+            border: none; width: 50px; height: 50px; border-radius: 50%;
+            font-size: 20px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            display: flex; align-items: center; justify-content: center;
+            transition: 0.3s;
+        }
+
+        #toggle-menu.active { transform: rotate(180deg); background: #e67e22; }
+
+        @media (max-width: 600px) {
+            #ui-layer { width: 85%; left: 5%; padding: 15px; }
+        }
+
+        #planet-tag { background: #2c3e50; color: #ecf0f1; padding: 10px; border-radius: 8px; margin-bottom: 15px; text-align: center; border-bottom: 3px solid #e67e22; }
+        .control-group { margin-bottom: 15px; border-bottom: 1px solid #ccc; padding-bottom: 10px; }
+        input[type=range] { width: 100%; margin: 8px 0; cursor: pointer; }
+        button.action-btn { width: 100%; padding: 10px; margin-top: 5px; cursor: pointer; border-radius: 5px; border: none; color: white; font-weight: bold; transition: 0.2s; }
+        #measure-btn { background: #27ae60; }
+        #reset-btn { background: #3498db; }
+        #csv-btn { background: #f39c12; }
+        #clear-table-btn { background: #95a5a6; }
+        #snap-btn { background: #8e44ad; }
+        table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 15px; }
+        th, td { border: 1px solid #888; padding: 6px; text-align: center; }
+        th { background: rgba(0,0,0,0.1); }
+
+        /* ── Tabs de modos ── */
+        #mode-tabs { display: flex; gap: 4px; margin-bottom: 14px; }
+        .tab-btn {
+            flex: 1; padding: 7px 4px; font-size: 10.5px; font-weight: bold;
+            border: none; border-radius: 6px; cursor: pointer;
+            background: rgba(0,0,0,0.08); color: var(--text-color);
+            transition: 0.2s;
+        }
+        .tab-btn.active { background: #2c3e50; color: #fff; }
+        .tab-btn:hover:not(.active) { background: rgba(0,0,0,0.15); }
+
+        /* ── Secciones por modo ── */
+        .mode-section { display: none; }
+        .mode-section.visible { display: block; }
+
+        /* ── Tabla manual Modo Calcular K ── */
+        .manual-input {
+            width: 90%; padding: 3px 4px; font-size: 11px;
+            border: 1px solid #aaa; border-radius: 3px;
+            background: transparent; color: var(--text-color);
+            text-align: center;
+        }
+        #add-row-btn { background: #16a085; }
+
+        /* ── Reto ── */
+        #reto-objetivo {
+            background: #2c3e50; color: #ecf0f1; border-radius: 8px;
+            padding: 12px; text-align: center; margin-bottom: 12px;
+        }
+        #reto-objetivo .reto-valor {
+            font-size: 1.8em; font-weight: bold; color: #e67e22;
+        }
+        #reto-barra-wrap {
+            background: rgba(0,0,0,0.1); border-radius: 20px;
+            height: 16px; overflow: hidden; margin: 8px 0;
+        }
+        #reto-barra {
+            height: 100%; width: 0%; border-radius: 20px;
+            background: #27ae60; transition: width 0.3s, background 0.3s;
+        }
+        #reto-actual { font-size: 0.85em; margin: 4px 0; }
+        #reto-resultado {
+            font-weight: bold; font-size: 0.95em; min-height: 1.4em;
+            text-align: center; margin-top: 6px;
+        }
+        #verificar-btn { background: #c0392b; }
+        #nuevo-reto-btn { background: #8e44ad; }
+    </style>
+</head>
+<body>
+
+<button id="mode-toggle" style="position: absolute; top: 20px; right: 20px; background: none; border: 2px solid var(--text-color); border-radius: 50%; width: 45px; height: 45px; cursor: pointer; color: var(--text-color); font-size: 20px; display: flex; align-items: center; justify-content: center; z-index: 1000;">🌙</button>
+
+<button id="toggle-menu" onclick="toggleUIPanel()">❯</button>
+
+<div id="ui-layer">
+    <div id="planet-tag">
+        <div style="font-size: 0.7em; opacity: 0.8;">Laboratorio 3D Ley de Hooke</div>
+        <h2 id="planet-name" style="margin: 5px 0;">Cargando...</h2>
+        <div style="font-size: 0.9em; color: #e67e22;">g = <span id="g-text">0.00</span> m/s²</div>
+        <div style="font-size: 0.85em; color: #3498db; margin-top: 4px;">K: <span id="k-tag">?</span> N/m</div>
+        <div id="planeta-nota" style="font-size:0.7em; color:#e67e22; margin-top:4px; opacity:0.85;"></div>
+    </div>
+
+    <!-- ── Selector de modos ── -->
+    <div id="mode-tabs">
+        <button class="tab-btn active" id="tab-abierto"  onclick="switchMode('abierto')">🔓 Abierto</button>
+        <button class="tab-btn"        id="tab-calcK"    onclick="switchMode('calcK')">📐 Calcular K</button>
+        <button class="tab-btn"        id="tab-reto"     onclick="switchMode('reto')">🎯 Reto</button>
+    </div>
+
+    <!-- ── Slider compartido ── -->
+    <div class="control-group" id="slider-section">
+        <label>Masa Nominal: <span id="mVal">0.500</span> kg</label>
+        <input type="range" id="mSlider" min="0.1" max="2.0" step="0.05" value="0.50">
+    </div>
+
+    <!-- ══════════════════════════════════
+         MODO 1 · ABIERTO
+    ══════════════════════════════════ -->
+    <div id="section-abierto" class="mode-section visible">
+        <div class="control-group">
+            <button id="measure-btn" class="action-btn" onclick="takeMeasure()">📋 Registro de Datos</button>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 5px;">
+                <button class="action-btn" style="background:#3498db;" onclick="location.reload()">🔄 Reiniciar</button>
+                <button class="action-btn" style="background:#f39c12;" onclick="exportCSV()">📥 CSV</button>
+            </div>
+            <button class="action-btn" style="background:#8e44ad; margin-top:5px;" onclick="takeSnapshot()">📸 Capturar PNG</button>
+            <button class="action-btn" style="background:#95a5a6; margin-top:5px;" onclick="clearTable()">🗑 Limpiar Tabla</button>
+        </div>
+        <table>
+            <thead><tr><th>#</th><th>m (kg)</th><th>y (m)</th></tr></thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+    </div>
+
+    <!-- ══════════════════════════════════
+         MODO 2 · CALCULAR K  (tabla manual)
+    ══════════════════════════════════ -->
+    <div id="section-calcK" class="mode-section">
+        <p style="font-size:0.8em; margin: 0 0 8px; opacity:0.8;">
+            Ingresa tus mediciones manualmente. Usa el resorte como referencia visual.
+        </p>
+        <div class="control-group">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
+                <button id="add-row-btn"   class="action-btn" onclick="addManualRow()">➕ Agregar fila</button>
+                <button id="csv-manual-btn" class="action-btn" style="background:#f39c12;" onclick="exportCSVManual()">📥 Exportar CSV</button>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top:5px;">
+                <button class="action-btn" style="background:#3498db;" onclick="location.reload()">🔄 Reiniciar</button>
+                <button class="action-btn" style="background:#95a5a6;" onclick="clearManualTable()">🗑 Limpiar</button>
+            </div>
+        </div>
+        <table>
+            <thead><tr><th>#</th><th>m (kg)</th><th>y (m)</th></tr></thead>
+            <tbody id="manualTableBody"></tbody>
+        </table>
+        <!-- ── Verificación de K ── -->
+        <div style="margin-top:12px; border-top:2px solid #e67e22; padding-top:10px;">
+            <label style="font-size:0.85em; font-weight:bold;">🔑 Ingresa tu K calculada (N/m):</label>
+            <div style="display:grid; grid-template-columns:1fr auto; gap:6px; margin-top:6px;">
+                <input type="number" id="k-input" step="0.1" min="0" placeholder="ej. 25.0"
+                    style="padding:8px; border-radius:5px; border:1px solid #aaa;
+                           background:transparent; color:var(--text-color); font-size:1em; width:100%; box-sizing:border-box;">
+                <button class="action-btn" style="background:#27ae60; margin:0; padding:8px 12px;" onclick="verificarK()">✅</button>
+            </div>
+            <div id="k-resultado" style="font-weight:bold; font-size:0.9em; min-height:1.4em; text-align:center; margin-top:6px;"></div>
+            <button id="snap-calcK" class="action-btn" style="background:#8e44ad; margin-top:5px; display:none;" onclick="takeSnapshot(true,'calcK')">📸 Capturar APROBADO</button>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════
+         MODO 3 · RETO
+    ══════════════════════════════════ -->
+    <div id="section-reto" class="mode-section">
+        <div id="reto-objetivo">
+            <div style="font-size:0.75em; opacity:0.8; margin-bottom:4px;">🎯 Elongación objetivo</div>
+            <div class="reto-valor"><span id="reto-meta">—</span> m</div>
+            <div style="font-size:0.7em; opacity:0.7; margin-top:4px;">Ajusta la masa hasta lograrlo</div>
+        </div>
+        <div id="reto-actual">Elongación actual: <strong id="reto-now">0.0000</strong> m</div>
+        <div id="reto-barra-wrap"><div id="reto-barra"></div></div>
+        <div id="reto-intentos" style="font-size:0.8em; text-align:center; margin:4px 0; opacity:0.8;">Intentos: 0 / 2</div>
+        <div id="reto-resultado"></div>
+        <div class="control-group" style="margin-top:10px;">
+            <button id="verificar-btn"  class="action-btn" onclick="verificarReto()">✅ Verificar</button>
+            <button id="nuevo-reto-btn" class="action-btn" onclick="nuevoReto()">🔀 Nuevo reto</button>
+            <button class="action-btn" style="background:#3498db; margin-top:5px;" onclick="location.reload()">🔄 Reiniciar</button>
+            <button id="snap-reto" class="action-btn" style="background:#8e44ad; margin-top:5px;" onclick="takeSnapshot()">📸 Capturar PNG</button>
+        </div>
+    </div>
+</div>
+
+<script type="importmap"> { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "orbit": "https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js" } } </script>
+
+<script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'orbit';
+
+    const planetas = [
+        { n: "Mercurio", g: 3.7 }, { n: "Venus", g: 8.87 }, { n: "Tierra", g: 9.81 },
+        { n: "Marte", g: 3.71 }, { n: "Júpiter", g: 24.79 }, { n: "Saturno", g: 10.44 },
+        { n: "Urano", g: 8.69 }, { n: "Neptuno", g: 11.15 }, { n: "Plutón", g: 0.62 }
+    ];
+
+    const miPlaneta = planetas[Math.floor(Math.random() * planetas.length)];
+    // Planeta diferente garantizado para el modo Abierto
+    let idxAbierto = Math.floor(Math.random() * planetas.length);
+    while (idxAbierto === planetas.indexOf(miPlaneta)) idxAbierto = Math.floor(Math.random() * planetas.length);
+    const miPlanetaAbierto = planetas[idxAbierto];
+
+    const k_real = Math.floor(Math.random() * (40 - 12 + 1)) + 12;
+
+    let scene, camera, renderer, controls, spring, block, rulerIndicator;
+    let masaNominal = 0.5, g = miPlanetaAbierto.g, dataLog = [];
+    const L0 = 1.0;         // longitud natural en unidades 3D
+    const VIS_SCALE = 1.5;  // unidades 3D por metro — compartido con takeMeasure()
+
+    // ── Variables de modos declaradas ANTES de init() para evitar temporal dead zone ──
+    let modoActual = 'abierto';
+    let manualRowCount = 0;
+    let retoMeta = null;
+    let retoIntentos = 0;
+    let retoAprobado = false;
+    const RETO_TOLERANCIA = 0.10;
+    const RETO_MAX_INTENTOS = 2;
+
+    window.toggleUIPanel = function() {
+        const panel = document.getElementById('ui-layer');
+        const btn = document.getElementById('toggle-menu');
+        panel.classList.toggle('hidden');
+        btn.classList.toggle('active');
+        btn.innerText = panel.classList.contains('hidden') ? '❯' : '❮';
+    };
+
+    init();
+    animate();
+
+    function init() {
+        // Modo inicial = Abierto → mostrar su planeta
+        document.getElementById('planet-name').innerText = miPlanetaAbierto.n;
+        document.getElementById('g-text').innerText = miPlanetaAbierto.g;
+        document.getElementById('planeta-nota').innerText = '⚠️ Planeta distinto al de Calcular K';
+        // k_real se mantiene oculto — el estudiante debe calcularlo experimentalmente
+
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xffffff);
+        
+        // --- CÁMARA CENTRADA (ORIGINAL) ---
+        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 1.8, 6);
+
+        renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        document.body.appendChild(renderer.domElement);
+
+        controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        // --- TARGET CENTRADO (ORIGINAL) ---
+        controls.target.set(-0.3, 1.0, 0);
+
+        const chromeMat = new THREE.MeshPhongMaterial({ color: 0xcccccc, specular: 0xffffff, shininess: 150 });
+        scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
+        dirLight.position.set(5, 12, 8);
+        scene.add(dirLight);
+
+        // Estructura Soporte
+        const baseWidth = 3, baseDepth = 2, radius = 0.1;
+        const shape = new THREE.Shape();
+        shape.moveTo(-baseWidth/2 + radius, -baseDepth/2);
+        shape.lineTo(baseWidth/2 - radius, -baseDepth/2);
+        shape.quadraticCurveTo(baseWidth/2, -baseDepth/2, baseWidth/2, -baseDepth/2 + radius);
+        shape.lineTo(baseWidth/2, baseDepth/2 - radius);
+        shape.quadraticCurveTo(baseWidth/2, baseDepth/2, baseWidth/2 - radius, baseDepth/2);
+        shape.lineTo(-baseWidth/2 + radius, baseDepth/2);
+        shape.quadraticCurveTo(-baseWidth/2, baseDepth/2, -baseWidth/2, baseDepth/2 - radius);
+        shape.lineTo(-baseWidth/2, -baseDepth/2 + radius);
+        shape.quadraticCurveTo(-baseWidth/2, -baseDepth/2, -baseWidth/2 + radius, -baseDepth/2);
+
+        const baseGeo = new THREE.ExtrudeGeometry(shape, { depth: 0.2, bevelEnabled: true, bevelThickness: 0.05, bevelSize: 0.05, bevelSegments: 5 });
+        const base = new THREE.Mesh(baseGeo, chromeMat);
+        base.rotation.x = -Math.PI / 2; base.position.y = -1; scene.add(base);
+
+        const vRod = new THREE.Mesh(new THREE.CapsuleGeometry(0.06, 3.4, 8, 12), chromeMat);
+        vRod.position.set(-1, 0.7, 0); scene.add(vRod);
+
+        const hRod = new THREE.Mesh(new THREE.CapsuleGeometry(0.05, 1.4, 8, 12), chromeMat);
+        hRod.rotation.z = Math.PI / 2; hRod.position.set(-0.3, 2.45, 0); scene.add(hRod);
+
+        // ── REGLA FUNCIONAL ──────────────────────────────────────
+        // 0 en el punto de anclaje del resorte (y=2.45, arriba)
+        // Mide hacia abajo en metros reales
+        // VIS_SCALE: 1.5 unidades 3D = 1 metro (declarado a nivel de módulo)
+        const RULER_H        = 2.8;
+        const RULER_ANCHOR_Y = 2.45;
+        const RULER_MAX_M    = RULER_H / VIS_SCALE;
+
+        const rulerGroup = new THREE.Group();
+        const rulerBody = new THREE.Mesh(
+            new THREE.BoxGeometry(0.20, RULER_H, 0.02),
+            new THREE.MeshPhongMaterial({ color: 0xf5f0dc })
+        );
+        rulerGroup.add(rulerBody);
+
+        // ── Textura: 0 arriba, valores crecen hacia abajo ──
+        const rCanvas = document.createElement('canvas');
+        const rCtx    = rCanvas.getContext('2d');
+        rCanvas.width = 128; rCanvas.height = 1024;
+
+        rCtx.fillStyle = '#f5f0dc';
+        rCtx.fillRect(0, 0, 128, 1024);
+
+        const pxPerMeter = 1024 / RULER_MAX_M;
+
+        // Marca L₀ (longitud natural) = 1.0 m desde anclaje → línea roja punteada
+        const l0Px = (1.0 / RULER_MAX_M) * 1024;
+        rCtx.fillStyle = '#e74c3c';
+        for (let p = 0; p < 128; p += 14) rCtx.fillRect(p, l0Px, 8, 3);
+        rCtx.font = 'bold 28px Arial';
+        rCtx.textAlign = 'left';
+        rCtx.fillText('L₀', 4, l0Px - 3);
+
+        // Marcas en metros (cada 0.02 m minor, 0.05 m medium, 0.10 m major)
+        rCtx.fillStyle = '#111';
+        rCtx.textAlign = 'right';
+        for (let mm = 0; mm * 0.02 <= RULER_MAX_M + 0.001; mm++) {
+            const m   = mm * 0.02;
+            const yPx = (m / RULER_MAX_M) * 1024;
+            if (yPx > 1023) break;
+
+            const isMajor  = Math.abs(Math.round(m * 100) % 10) === 0;
+            const isMedium = Math.abs(Math.round(m * 100) %  5) === 0;
+
+            const tickW = isMajor ? 72 : isMedium ? 48 : 22;
+            rCtx.fillRect(0, yPx, tickW, isMajor ? 3 : 2);
+
+            if (isMajor) {
+                rCtx.font = 'bold 32px Arial';
+                rCtx.fillText(m.toFixed(2), 122, yPx + (mm === 0 ? 20 : 14));
+            }
+        }
+
+        const rulerTex  = new THREE.CanvasTexture(rCanvas);
+        const rulerFace = new THREE.Mesh(
+            new THREE.PlaneGeometry(0.20, RULER_H),
+            new THREE.MeshBasicMaterial({ map: rulerTex })
+        );
+        rulerFace.position.z = 0.011;
+        rulerGroup.add(rulerFace);
+
+        // Centro de grupo → top queda exactamente en RULER_ANCHOR_Y
+        rulerGroup.position.set(0.75, RULER_ANCHOR_Y - RULER_H / 2, -0.1);
+        scene.add(rulerGroup);
+
+        // ── Marcador MÓVIL azul (sigue el extremo inferior del resorte) ──
+        rulerIndicator = new THREE.Mesh(
+            new THREE.BoxGeometry(0.28, 0.012, 0.04),
+            new THREE.MeshBasicMaterial({ color: 0x2980b9 })
+        );
+        rulerIndicator.visible = false; // oculto en modo Abierto (inicial)
+        scene.add(rulerIndicator);
+
+        // Resorte y Masa
+        const springPoints = [];
+        for (let i = 0; i <= 200; i++) {
+            const t = i / 200;
+            springPoints.push(new THREE.Vector3(Math.cos(t * Math.PI * 32) * 0.12, -t, Math.sin(t * Math.PI * 32) * 0.12));
+        }
+        spring = new THREE.Line(new THREE.BufferGeometry().setFromPoints(springPoints), new THREE.LineBasicMaterial({ color: 0x222222 }));
+        spring.position.set(0.4, 2.45, 0); scene.add(spring);
+
+        block = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 0.5), new THREE.MeshPhongMaterial({ color: 0xc0392b }));
+        scene.add(block);
+
+        setupUI();
+        initManualTable();
+        window.addEventListener('resize', onWindowResize);
+    }
+
+    function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    function setupUI() {
+        document.getElementById('mSlider').addEventListener('input', (e) => {
+            masaNominal = parseFloat(e.target.value);
+            document.getElementById('mVal').innerText = masaNominal.toFixed(3);
+            const vs = 0.6 + (masaNominal * 0.35);
+            block.scale.set(vs, vs, vs);
+        });
+
+        document.getElementById('mode-toggle').addEventListener('click', () => {
+            const isDark = document.body.classList.toggle('dark-mode');
+            scene.background = new THREE.Color(isDark ? 0x121212 : 0xffffff);
+            spring.material.color.set(isDark ? 0xffffff : 0x222222);
+        });
+    }
+
+    window.takeMeasure = function() {
+        const errorMasa = (Math.random() * 0.0008) * (Math.random() < 0.5 ? -1 : 1);
+        const errorDist = (Math.random() * 0.008) * (Math.random() < 0.5 ? -1 : 1);
+        const masaMedida    = masaNominal + errorMasa;
+        const elongacionReal = (masaNominal * g) / k_real;
+        // Lectura de la regla = lo que marca la línea azul desde el anclaje (0)
+        // = distancia total del resorte estirado en metros
+        const lecturaRegla = Math.max(0.0001, (L0 / VIS_SCALE) + elongacionReal + errorDist);
+
+        const record = { n: dataLog.length + 1, m_med: masaMedida.toFixed(4), y_med: lecturaRegla.toFixed(4) };
+        dataLog.push(record);
+        const row = document.getElementById("tableBody").insertRow(-1);
+        row.innerHTML = `<td>${record.n}</td><td>${record.m_med}</td><td>${record.y_med} m</td>`;
+        
+        if(window.innerWidth < 600) setTimeout(() => toggleUIPanel(), 300);
+    };
+
+    window.exportCSV = function() {
+        if (dataLog.length === 0) return alert("Sin datos");
+        let csv = "\"Masa (kg)\",\"Posicion regla (m)\"\n";
+        dataLog.forEach(r => { csv += `"${r.m_med}","${r.y_med}"\n`; });
+        const blob = new Blob(["\uFEFF", csv], { type: 'text/csv;charset=utf-8;' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `mediciones_${miPlaneta.n}.csv`;
+        a.click();
+    };
+
+    window.takeSnapshot = function(aprobado = false, contexto = '') {
+        renderer.render(scene, camera);
+        const glCanvas = renderer.domElement;
+        const out = document.createElement('canvas');
+        out.width  = glCanvas.width;
+        out.height = glCanvas.height;
+        const ctx2 = out.getContext('2d');
+        ctx2.drawImage(glCanvas, 0, 0);
+
+        if (aprobado) {
+            const W = out.width, H = out.height;
+            ctx2.save();
+            ctx2.translate(W * 0.72, H * 0.38);
+            ctx2.rotate(-0.35);
+            ctx2.font = `bold ${Math.round(W * 0.09)}px Arial`;
+            ctx2.lineWidth = Math.round(W * 0.012);
+            ctx2.strokeStyle = 'rgba(255,255,255,0.9)';
+            ctx2.fillStyle   = 'rgba(39,174,96,0.92)';
+            ctx2.textAlign   = 'center';
+            ctx2.textBaseline = 'middle';
+            ctx2.strokeText('✓ APROBADO', 0, 0);
+            ctx2.fillText  ('✓ APROBADO', 0, 0);
+            const detalle = contexto === 'calcK'
+                ? `K = ${k_real} N/m · ${miPlaneta.n} (g=${miPlaneta.g} m/s²)`
+                : `Reto superado · ${miPlaneta.n} (g=${miPlaneta.g} m/s²)`;
+            ctx2.font = `bold ${Math.round(W * 0.032)}px Arial`;
+            ctx2.fillStyle = 'rgba(39,174,96,0.95)';
+            ctx2.strokeStyle = 'rgba(255,255,255,0.8)';
+            ctx2.lineWidth = Math.round(W * 0.005);
+            ctx2.strokeText(detalle, 0, Math.round(W * 0.08));
+            ctx2.fillText  (detalle, 0, Math.round(W * 0.08));
+            ctx2.restore();
+        } else if (contexto === 'reto') {
+            // Sello NO APROBADO en rojo
+            const W = out.width, H = out.height;
+            ctx2.save();
+            ctx2.translate(W * 0.72, H * 0.38);
+            ctx2.rotate(-0.35);
+            ctx2.font = `bold ${Math.round(W * 0.075)}px Arial`;
+            ctx2.lineWidth = Math.round(W * 0.012);
+            ctx2.strokeStyle = 'rgba(255,255,255,0.9)';
+            ctx2.fillStyle   = 'rgba(192,57,43,0.92)';
+            ctx2.textAlign   = 'center';
+            ctx2.textBaseline = 'middle';
+            ctx2.strokeText('✗ NO APROBADO', 0, 0);
+            ctx2.fillText  ('✗ NO APROBADO', 0, 0);
+            const detalle = `${miPlaneta.n} (g=${miPlaneta.g} m/s²)`;
+            ctx2.font = `bold ${Math.round(W * 0.032)}px Arial`;
+            ctx2.fillStyle = 'rgba(192,57,43,0.95)';
+            ctx2.strokeStyle = 'rgba(255,255,255,0.8)';
+            ctx2.lineWidth = Math.round(W * 0.005);
+            ctx2.strokeText(detalle, 0, Math.round(W * 0.08));
+            ctx2.fillText  (detalle, 0, Math.round(W * 0.08));
+            ctx2.restore();
+        }
+
+        const link = document.createElement('a');
+        const prefijo = aprobado ? 'APROBADO_' : (contexto === 'reto' ? 'NO_APROBADO_' : '');
+        link.download = `${prefijo}hooke_${miPlaneta.n}.png`;
+        link.href = out.toDataURL('image/png');
+        link.click();
+    };
+
+    window.clearTable = function() { document.getElementById("tableBody").innerHTML = ""; dataLog = []; };
+
+    // ── Verificación de K ingresada por el estudiante ──
+    window.verificarK = function() {
+        const inp = parseFloat(document.getElementById('k-input').value);
+        const res = document.getElementById('k-resultado');
+        if (isNaN(inp) || inp <= 0) { res.innerText = '⚠️ Ingresa un valor válido'; res.style.color = '#e67e22'; return; }
+        const error = Math.abs(inp - k_real) / k_real;
+        if (error <= RETO_TOLERANCIA) {
+            res.innerText = `🏆 ¡Correcto! K real = ${k_real} N/m (error: ${(error*100).toFixed(1)}%)`;
+            res.style.color = '#27ae60';
+            document.getElementById('k-tag').innerText = k_real;
+            document.getElementById('snap-calcK').style.display = 'block';
+        } else {
+            res.innerText = `❌ Error: ${(error*100).toFixed(1)}% — revisa tus cálculos`;
+            res.style.color = '#c0392b';
+            document.getElementById('snap-calcK').style.display = 'none';
+        }
+    };
+
+    // ══════════════════════════════════════════════
+    //  LÓGICA DE TABS / MODOS
+    // ══════════════════════════════════════════════
+
+    window.switchMode = function(modo) {
+        modoActual = modo;
+        ['abierto','calcK','reto'].forEach(m => {
+            document.getElementById(`tab-${m}`).classList.toggle('active', m === modo);
+            document.getElementById(`section-${m}`).classList.toggle('visible', m === modo);
+        });
+        // Cambiar gravedad y header según modo
+        if (modo === 'abierto') {
+            g = miPlanetaAbierto.g;
+            document.getElementById('planet-name').innerText = miPlanetaAbierto.n;
+            document.getElementById('g-text').innerText = miPlanetaAbierto.g;
+            document.getElementById('planeta-nota').innerText = `⚠️ Planeta distinto al de Calcular K`;
+        } else {
+            g = miPlaneta.g;
+            document.getElementById('planet-name').innerText = miPlaneta.n;
+            document.getElementById('g-text').innerText = miPlaneta.g;
+            document.getElementById('planeta-nota').innerText = '';
+        }
+        // Indicador azul: visible solo en calcK y reto
+        if (rulerIndicator) rulerIndicator.visible = (modo !== 'abierto');
+        if (modo === 'reto' && !retoMeta) nuevoReto();
+    };
+
+    // ══════════════════════════════════════════════
+    //  MODO 2 · TABLA MANUAL
+    // ══════════════════════════════════════════════
+
+    function addManualRow() {
+        manualRowCount++;
+        const tbody = document.getElementById('manualTableBody');
+        const tr = document.createElement('tr');
+        tr.id = `mrow-${manualRowCount}`;
+        tr.innerHTML = `
+            <td>${manualRowCount}</td>
+            <td><input class="manual-input" type="number" step="0.0001" min="0" placeholder="0.0000" id="m-in-${manualRowCount}"></td>
+            <td><input class="manual-input" type="number" step="0.0001" min="0" placeholder="0.0000" id="dy-in-${manualRowCount}"></td>`;
+        tbody.appendChild(tr);
+    }
+
+    window.addManualRow = addManualRow;
+
+    // Iniciar con 5 filas vacías
+    function initManualTable() {
+        for (let i = 0; i < 5; i++) addManualRow();
+    }
+
+    window.clearManualTable = function() {
+        document.getElementById('manualTableBody').innerHTML = '';
+        manualRowCount = 0;
+        initManualTable();
+    };
+
+    window.exportCSVManual = function() {
+        const rows = document.getElementById('manualTableBody').querySelectorAll('tr');
+        let csv = '"#","Masa (kg)","Posicion regla (m)"\n';
+        let hasData = false;
+        rows.forEach((tr, i) => {
+            const mVal  = tr.querySelector(`[id^="m-in-"]`)?.value.trim()  || '';
+            const dyVal = tr.querySelector(`[id^="dy-in-"]`)?.value.trim() || '';
+            if (mVal !== '' || dyVal !== '') {
+                csv += `"${i+1}","${mVal}","${dyVal}"\n`;
+                hasData = true;
+            }
+        });
+        if (!hasData) return alert('Sin datos para exportar');
+        const blob = new Blob(['\uFEFF', csv], { type: 'text/csv;charset=utf-8;' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `calcK_${miPlaneta.n}.csv`;
+        a.click();
+    };
+
+    // ══════════════════════════════════════════════
+    //  MODO 3 · RETO  (2 intentos)
+    // ══════════════════════════════════════════════
+
+    window.nuevoReto = function() {
+        // Masa objetivo alineada EXACTAMENTE con los pasos del slider (0.05 kg)
+        // Rango: 0.10 → 2.00 kg = 39 posiciones posibles
+        const numSteps = Math.round((2.0 - 0.1) / 0.05); // 38
+        const stepElegido = Math.floor(Math.random() * (numSteps + 1));
+        const masaObjetivo = +(0.1 + stepElegido * 0.05).toFixed(2);
+        const elongObjetivo = (masaObjetivo * g) / k_real;
+        retoMeta = +elongObjetivo.toFixed(4);
+        retoIntentos = 0;
+        document.getElementById('reto-meta').innerText = retoMeta.toFixed(4);
+        document.getElementById('reto-resultado').innerText = '';
+        document.getElementById('reto-resultado').style.color = '';
+        document.getElementById('reto-barra').style.width = '0%';
+        document.getElementById('reto-intentos').innerText = `Intentos: 0 / ${RETO_MAX_INTENTOS}`;
+        document.getElementById('verificar-btn').disabled = false;
+        document.getElementById('verificar-btn').style.opacity = '1';
+    };
+
+    window.verificarReto = function() {
+        if (!retoMeta) return;
+        if (retoIntentos >= RETO_MAX_INTENTOS) return;
+        retoIntentos++;
+        document.getElementById('reto-intentos').innerText = `Intentos: ${retoIntentos} / ${RETO_MAX_INTENTOS}`;
+        const elongActual = (masaNominal * g) / k_real;
+        const error = Math.abs(elongActual - retoMeta) / retoMeta;
+        const res = document.getElementById('reto-resultado');
+        if (error <= RETO_TOLERANCIA) {
+            retoAprobado = true;
+            res.innerText = `🏆 ¡Lograste! (error: ${(error*100).toFixed(1)}%) — k = ${k_real} N/m`;
+            res.style.color = '#27ae60';
+            document.getElementById('k-tag').innerText = k_real;
+            document.getElementById('verificar-btn').disabled = true;
+            document.getElementById('verificar-btn').style.opacity = '0.5';
+            // Activar captura con sello
+            const snapBtn = document.getElementById('snap-reto');
+            snapBtn.innerText = '📸 Capturar APROBADO';
+            snapBtn.onclick = () => takeSnapshot(true, 'reto');
+        } else if (retoIntentos >= RETO_MAX_INTENTOS) {
+            retoAprobado = false;
+            res.innerText = `😔 Sin intentos. La resp. era m ≈ ${((retoMeta * k_real) / g).toFixed(3)} kg`;
+            res.style.color = '#e67e22';
+            document.getElementById('verificar-btn').disabled = true;
+            document.getElementById('verificar-btn').style.opacity = '0.5';
+            const snapBtn = document.getElementById('snap-reto');
+            snapBtn.innerText = '📸 Capturar NO APROBADO';
+            snapBtn.onclick = () => takeSnapshot(false, 'reto');
+        } else {
+            const restantes = RETO_MAX_INTENTOS - retoIntentos;
+            res.innerText = `❌ Error: ${(error*100).toFixed(1)}% — te queda ${restantes} intento`;
+            res.style.color = '#c0392b';
+        }
+    };
+
+    function animate() {
+        requestAnimationFrame(animate);
+        controls.update();
+        const elongReal    = (masaNominal * g) / k_real;
+        const visualStretch = L0 + elongReal * 1.5;
+        spring.scale.y = visualStretch;
+
+        // Posición del bloque (igual que antes)
+        const blockTopY = 2.45 - visualStretch;
+        block.position.set(0.4, blockTopY - (block.scale.y * 0.25), 0);
+
+        // Indicador azul: sigue el extremo inferior del resorte (= ANCHOR - visualStretch)
+        rulerIndicator.position.set(0.75, 2.45 - visualStretch, 0.01);
+
+        // Actualizar indicadores del Reto en tiempo real
+        if (modoActual === 'reto' && retoMeta) {
+            document.getElementById('reto-now').innerText = elongReal.toFixed(4);
+            const ratio = Math.min(elongReal / retoMeta, 1);
+            const error = Math.abs(elongReal - retoMeta) / retoMeta;
+            const barra = document.getElementById('reto-barra');
+            barra.style.width = (ratio * 100).toFixed(1) + '%';
+            barra.style.background = error <= RETO_TOLERANCIA ? '#27ae60' : (error <= 0.15 ? '#f39c12' : '#c0392b');
+        }
+
+        renderer.render(scene, camera);
+    }
+</script>
+</body>
+</html>

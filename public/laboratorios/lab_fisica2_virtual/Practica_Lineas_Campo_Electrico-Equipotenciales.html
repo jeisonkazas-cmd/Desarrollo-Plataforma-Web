@@ -1,0 +1,1723 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Práctica — Simulador 3D Campo Eléctrico & Equipotenciales</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>
+  MathJax = {
+    tex: { inlineMath: [['$','$'],['\\(','\\)']], displayMath: [['$$','$$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+  :root {
+    --ink:       #1a1a2e;
+    --ink-soft:  #3d3d5c;
+    --ink-muted: #7a7a9a;
+    --paper:     #faf8f3;
+    --paper-alt: #f2ede3;
+    --rule:      #d4c9b0;
+    --accent:    #1a5276;
+    --accent2:   #c0392b;
+    --gold:      #b8860b;
+    --green:     #1e8449;
+    --purple:    #6c3483;
+    --mono:      'JetBrains Mono', monospace;
+    --serif:     'Source Serif 4', Georgia, serif;
+    --display:   'Playfair Display', Georgia, serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: #dde3e8;
+    font-family: var(--serif);
+    color: var(--ink);
+    font-size: 15px;
+    line-height: 1.75;
+    min-height: 100vh;
+    padding: 30px 15px 80px;
+  }
+  .documento {
+    max-width: 860px;
+    margin: 0 auto;
+    background: var(--paper);
+    box-shadow: 0 2px 4px rgba(0,0,0,.08), 0 8px 32px rgba(0,0,0,.14), 0 20px 60px rgba(0,0,0,.08);
+    position: relative;
+    overflow-x: hidden;
+  }
+  .documento::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 5px;
+    background: linear-gradient(180deg, var(--accent) 0%, var(--accent2) 40%, var(--gold) 70%, var(--green) 100%);
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--ink);
+    color: #fff;
+    padding: 36px 50px 30px 55px;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::after {
+    content: 'E';
+    font-family: var(--display);
+    font-size: 300px;
+    font-weight: 700;
+    color: rgba(255,255,255,.04);
+    position: absolute;
+    right: -10px; top: -60px;
+    line-height: 1;
+    pointer-events: none;
+    user-select: none;
+  }
+  .header-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    gap: 20px;
+  }
+  .badge-codigo {
+    font-family: var(--mono);
+    font-size: .7em;
+    background: var(--accent);
+    color: #fff;
+    padding: 3px 10px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+  .badge-tipo {
+    font-family: var(--mono);
+    font-size: .7em;
+    color: rgba(255,255,255,.5);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    border: 1px solid rgba(255,255,255,.15);
+    padding: 3px 10px;
+  }
+  .header h1 {
+    font-family: var(--display);
+    font-size: 2em;
+    font-weight: 700;
+    line-height: 1.2;
+    color: #fff;
+    margin-bottom: 6px;
+  }
+  .header h1 em {
+    font-style: italic;
+    color: rgba(255,255,255,.65);
+    font-size: .8em;
+  }
+  .header-sub {
+    font-size: .82em;
+    color: rgba(255,255,255,.45);
+    font-weight: 300;
+    letter-spacing: .04em;
+    margin-top: 4px;
+  }
+  .header-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 24px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,.12);
+  }
+  .field-item label {
+    display: block;
+    font-family: var(--mono);
+    font-size: .65em;
+    color: rgba(255,255,255,.4);
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    margin-bottom: 4px;
+  }
+  .field-item input[type="text"],
+  .field-item input[type="date"] {
+    width: 100%;
+    background: rgba(255,255,255,.07);
+    border: none;
+    border-bottom: 1px solid rgba(255,255,255,.25);
+    color: #fff;
+    font-family: var(--serif);
+    font-size: .9em;
+    padding: 4px 0;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .field-item input:focus { border-bottom-color: var(--accent2); }
+  .field-item input::placeholder { color: rgba(255,255,255,.2); }
+
+  /* BODY */
+  .body { padding: 44px 50px 50px 55px; }
+  .seccion { margin-bottom: 44px; }
+  .seccion-titulo {
+    font-family: var(--display);
+    font-size: 1.15em;
+    font-weight: 600;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--rule);
+  }
+  .seccion-titulo .num {
+    font-family: var(--mono);
+    font-size: .75em;
+    color: var(--accent);
+    background: #e8f0f7;
+    padding: 2px 7px;
+    letter-spacing: .05em;
+    min-width: 36px;
+    text-align: center;
+  }
+  .subseccion-titulo {
+    font-family: var(--display);
+    font-size: 1em;
+    font-weight: 600;
+    color: var(--accent);
+    margin: 22px 0 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .subseccion-titulo::before {
+    content: '';
+    width: 14px; height: 2px;
+    background: var(--accent);
+    display: inline-block;
+    flex-shrink: 0;
+  }
+  p { margin-bottom: 10px; color: var(--ink-soft); font-size: .95em; }
+  p:last-child { margin-bottom: 0; }
+
+  /* RESUMEN */
+  .resumen-box {
+    background: var(--paper-alt);
+    border-left: 3px solid var(--accent);
+    padding: 16px 20px;
+    font-size: .9em;
+    font-style: italic;
+    color: var(--ink-soft);
+    line-height: 1.7;
+  }
+
+  /* OBJETIVOS */
+  .objetivos-lista { list-style: none; padding: 0; }
+  .objetivos-lista li {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 8px 0;
+    border-bottom: 1px dashed var(--rule);
+    font-size: .93em;
+    color: var(--ink-soft);
+  }
+  .objetivos-lista li:last-child { border-bottom: none; }
+  .objetivos-lista li .obj-num {
+    font-family: var(--mono);
+    font-size: .75em;
+    color: #fff;
+    background: var(--accent);
+    min-width: 22px; height: 22px;
+    display: flex; align-items: center; justify-content: center;
+    margin-top: 2px; flex-shrink: 0;
+  }
+
+  /* FÓRMULAS */
+  .formula-box {
+    background: var(--ink);
+    color: #fff;
+    padding: 18px 24px;
+    margin: 18px 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .formula-box::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--accent2);
+  }
+  .formula-box .formula-label {
+    font-family: var(--mono);
+    font-size: .65em;
+    color: rgba(255,255,255,.4);
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    margin-bottom: 10px;
+  }
+  .formula-main { font-size: 1.1em; text-align: center; padding: 6px 0; }
+  .formula-num {
+    font-family: var(--mono);
+    font-size: .65em;
+    color: rgba(255,255,255,.35);
+    text-align: right;
+    margin-top: 6px;
+  }
+
+  /* TABLA DATOS */
+  .tabla-resultados {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .86em;
+    margin: 14px 0;
+  }
+  .tabla-resultados th {
+    background: var(--ink);
+    color: #fff;
+    font-family: var(--mono);
+    font-size: .7em;
+    letter-spacing: .07em;
+    padding: 9px 12px;
+    text-align: center;
+    font-weight: 500;
+    border: 1px solid #444;
+  }
+  .tabla-resultados td {
+    padding: 7px 10px;
+    border: 1px solid var(--rule);
+    text-align: center;
+    color: var(--ink-soft);
+    vertical-align: middle;
+  }
+  .tabla-resultados td.input-cell { padding: 3px 4px; }
+  .tabla-resultados input[type="text"] {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid var(--rule);
+    background: transparent;
+    font-family: var(--mono);
+    font-size: .88em;
+    color: var(--ink);
+    padding: 4px 4px;
+    text-align: center;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .tabla-resultados input:focus { border-bottom-color: var(--accent); }
+  .tabla-resultados tr:nth-child(even) td { background: var(--paper-alt); }
+  .tabla-resultados .row-label {
+    font-family: var(--mono);
+    font-size: .82em;
+    font-weight: 500;
+    color: var(--accent);
+  }
+
+  /* PASOS */
+  .paso { display: flex; gap: 16px; margin-bottom: 20px; align-items: flex-start; }
+  .paso-num {
+    font-family: var(--mono); font-size: .8em;
+    background: var(--accent); color: #fff;
+    min-width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 2px;
+  }
+  .paso-content { flex: 1; }
+  .paso-content p { margin-bottom: 6px; }
+
+  /* ÁREA DE TRABAJO */
+  .trabajo-area {
+    width: 100%; min-height: 110px;
+    border: 1px solid var(--rule);
+    background: #fff;
+    font-family: var(--serif);
+    font-size: .9em; color: var(--ink);
+    padding: 14px 16px; resize: vertical; outline: none;
+    line-height: 1.8; transition: border-color .2s; display: block;
+  }
+  .trabajo-area:focus { border-color: var(--accent); }
+  .trabajo-area::placeholder { color: #bbb; font-style: italic; }
+  .area-label {
+    font-family: var(--mono); font-size: .68em;
+    color: var(--ink-muted); text-transform: uppercase;
+    letter-spacing: .1em; margin-bottom: 5px; margin-top: 14px; display: block;
+  }
+
+  /* NOTA */
+  .nota {
+    background: #fef9e7;
+    border-left: 3px solid var(--gold);
+    padding: 10px 16px;
+    font-size: .85em; color: #7d6608;
+    margin: 14px 0; font-style: italic;
+  }
+  .nota strong { font-style: normal; color: var(--gold); }
+
+  /* CAJAS DE RESULTADO */
+  .result-box {
+    background: var(--paper-alt);
+    border: 1px solid var(--rule);
+    padding: 16px 20px; margin: 14px 0;
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  .result-box.col2 { grid-template-columns: 1fr 1fr; }
+  .result-box.col4 { grid-template-columns: repeat(4, 1fr); }
+  .result-box.col5 { grid-template-columns: repeat(5, 1fr); }
+  .res-campo label {
+    font-family: var(--mono); font-size: .63em;
+    color: var(--ink-muted); text-transform: uppercase;
+    letter-spacing: .1em; display: block; margin-bottom: 5px;
+  }
+  .res-campo input[type="text"] {
+    width: 100%; border: none;
+    border-bottom: 2px solid var(--rule);
+    background: transparent; font-family: var(--mono);
+    font-size: 1em; color: var(--ink); padding: 4px 0;
+    outline: none; transition: border-color .2s; text-align: center;
+  }
+  .res-campo input:focus { border-bottom-color: var(--accent); }
+
+  /* GRÁFICA */
+  .grafica-box {
+    border: 1px solid var(--rule);
+    background: #fff; margin: 14px 0;
+    overflow: hidden;
+  }
+  .grafica-header {
+    background: var(--ink); color: #fff;
+    padding: 8px 16px;
+    font-family: var(--mono); font-size: .68em;
+    letter-spacing: .1em; text-transform: uppercase;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .grafica-canvas {
+    display: block; width: 100%;
+    background: #fafafa;
+  }
+  .grafica-controles {
+    padding: 10px 16px;
+    border-top: 1px solid var(--rule);
+    display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+  }
+  .btn-ctrl {
+    font-family: var(--mono); font-size: .7em;
+    padding: 5px 12px; border: 1px solid var(--rule);
+    background: var(--paper-alt); color: var(--ink-soft);
+    cursor: pointer; transition: all .2s; letter-spacing: .05em;
+  }
+  .btn-ctrl:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-ctrl.activo { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .grafica-info {
+    font-family: var(--mono); font-size: .75em;
+    color: var(--ink-muted); flex: 1; text-align: right;
+  }
+
+  /* DIVIDER */
+  .divider {
+    display: flex; align-items: center; gap: 12px;
+    margin: 28px 0 18px;
+    font-family: var(--mono); font-size: .68em;
+    color: var(--ink-muted); text-transform: uppercase; letter-spacing: .1em;
+  }
+  .divider::before, .divider::after {
+    content: ''; flex: 1; height: 1px; background: var(--rule);
+  }
+
+  /* ADJUNTO */
+  .adjunto-slot {
+    border: 2px dashed var(--rule);
+    padding: 24px; text-align: center;
+    cursor: pointer; position: relative;
+    transition: border-color .2s; margin-top: 8px;
+  }
+  .adjunto-slot:hover { border-color: var(--accent); }
+  .adjunto-slot input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%;
+  }
+  .slot-icon { display: block; font-size: 1.8em; margin-bottom: 6px; }
+  .slot-label { display: block; font-family: var(--mono); font-size: .75em; color: var(--ink-soft); }
+  .slot-hint  { display: block; font-size: .72em; color: var(--ink-muted); margin-top: 4px; }
+  .preview-img {
+    display: none; max-width: 100%; margin-top: 14px;
+    border: 1px solid var(--rule);
+  }
+
+  /* MODO ABIERTO — tarjeta de configuración */
+  .config-card {
+    border: 1px solid var(--rule);
+    margin-bottom: 28px;
+    overflow: hidden;
+  }
+  .config-card-header {
+    background: var(--ink);
+    color: #fff;
+    padding: 10px 18px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .config-badge {
+    font-family: var(--mono); font-size: .65em;
+    padding: 3px 8px; letter-spacing: .1em;
+  }
+  .config-badge.pos  { background: #b84a00; }
+  .config-badge.neg  { background: #0a4a8a; }
+  .config-badge.mix  { background: #1e6a30; }
+  .config-badge.line { background: #5a2080; }
+  .config-badge.plan { background: #7d6608; }
+  .config-card-header h4 {
+    font-family: var(--display); font-size: .95em; flex: 1;
+  }
+  .config-card-body { padding: 16px 18px; }
+  .capturas-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 10px;
+  }
+  .captura-slot { border: 2px dashed var(--rule); position: relative; text-align: center; padding: 18px 10px; transition: border-color .2s; cursor: pointer; }
+  .captura-slot:hover { border-color: var(--accent); }
+  .captura-slot input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+  .captura-tipo {
+    font-family: var(--mono); font-size: .65em;
+    text-transform: uppercase; letter-spacing: .1em;
+    color: var(--ink-muted); display: block; margin-bottom: 6px;
+  }
+  .captura-icon { font-size: 1.5em; display: block; margin-bottom: 4px; }
+  .captura-desc { font-size: .72em; color: var(--ink-muted); }
+  .captura-preview { display: none; max-width: 100%; border: 1px solid var(--rule); margin-top: 8px; }
+
+  /* TABLA RANGOS */
+  .rango-tabla {
+    width: 100%; border-collapse: collapse;
+    font-size: .85em; margin: 12px 0;
+  }
+  .rango-tabla th {
+    background: var(--ink); color: #fff;
+    font-family: var(--mono); font-size: .68em;
+    padding: 7px 12px; letter-spacing: .08em; text-align: center;
+  }
+  .rango-tabla td {
+    padding: 6px 12px; border: 1px solid var(--rule);
+    text-align: center; font-size: .88em;
+  }
+  .rango-tabla .bueno { color: var(--green); font-weight: 600; }
+  .rango-tabla .medio { color: var(--gold); font-weight: 600; }
+  .rango-tabla .malo  { color: var(--accent2); font-weight: 600; }
+
+  /* FIRMA */
+  .firma-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 30px; }
+  .firma-slot {
+    text-align: center; padding-top: 50px;
+    border-top: 1px solid var(--rule);
+    font-family: var(--mono); font-size: .68em;
+    color: var(--ink-muted); text-transform: uppercase; letter-spacing: .08em;
+  }
+
+  /* BTN IMPRIMIR */
+  .btn-imprimir {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--accent); color: #fff; border: none;
+    padding: 12px 22px; font-family: var(--mono);
+    font-size: .75em; letter-spacing: .1em; text-transform: uppercase;
+    cursor: pointer; box-shadow: 0 4px 16px rgba(26,82,118,.35);
+    transition: transform .15s, box-shadow .15s; z-index: 100;
+  }
+  .btn-imprimir:hover { transform: translateY(-2px); box-shadow: 0 6px 22px rgba(26,82,118,.45); }
+
+  /* PARTE BADGE */
+  .parte-header {
+    display: flex; align-items: flex-start; gap: 14px;
+    background: var(--ink); color: #fff;
+    padding: 14px 18px; margin-bottom: 0;
+  }
+  .parte-badge {
+    font-family: var(--mono); font-size: .65em;
+    padding: 3px 8px; letter-spacing: .1em; white-space: nowrap; margin-top: 3px;
+  }
+  .parte-badge.A { background: #1a5276; }
+  .parte-badge.B { background: #6c3483; }
+  .parte-badge.C { background: #1e6a30; }
+  .parte-body { border: 1px solid var(--rule); padding: 22px; border-top: none; }
+
+  @media (max-width: 680px) {
+    body { padding: 10px 0 40px; }
+    .documento { border-radius: 0; }
+    .header { padding: 22px 18px 20px 22px; }
+    .header::after { font-size: 160px; }
+    .header h1 { font-size: 1.4em !important; }
+    .header-meta { flex-direction: column; gap: 8px; }
+    .header-fields { grid-template-columns: 1fr !important; gap: 10px 0; }
+    .body { padding: 22px 16px 28px 20px; }
+    .tabla-resultados, .rango-tabla { display: block; overflow-x: auto; }
+    .result-box, .result-box.col2, .result-box.col4, .result-box.col5 { grid-template-columns: 1fr 1fr !important; }
+    .firma-grid { grid-template-columns: 1fr !important; gap: 20px; }
+    .capturas-grid { grid-template-columns: 1fr !important; }
+    .grafica-controles { gap: 6px; }
+    .btn-ctrl { font-size: .65em; padding: 4px 8px; }
+  }
+  @media print {
+    body { background: #fff; padding: 0; }
+    .documento { box-shadow: none; }
+    .btn-imprimir, .grafica-controles { display: none; }
+  }
+
+  /* ── IMPRESIÓN: mostrar todo el contenido de respuestas ── */
+  @media print {
+    .print-value {
+      display: block !important;
+      white-space: pre-wrap !important;
+      word-break: break-word !important;
+      font-family: inherit !important;
+      font-size: inherit !important;
+      line-height: 1.75 !important;
+      color: #1a1a2e !important;
+      width: 100% !important;
+      padding: 2px 0 !important;
+      background: transparent !important;
+    }
+    textarea,
+    input[type="text"],
+    input[type="date"] {
+      display: none !important;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="documento">
+
+  <!-- ENCABEZADO -->
+  <div class="header">
+    <div class="header-meta">
+      <span class="badge-codigo" id="codigoPractica">PRÁCTICA FIS-CAMPO3D-02</span>
+      <span class="badge-tipo">Laboratorio de Física · Electrostática</span>
+    </div>
+    <h1>Campo Eléctrico &amp; Equipotenciales<br><em>Simulador 3D Interactivo</em></h1>
+    <div class="header-sub">Potencial eléctrico · Cargas puntuales · Líneas de carga · Planos · Determinación de constantes</div>
+    <div class="header-fields">
+      <div class="field-item"><label>Nombre del estudiante</label><input type="text" placeholder="Escriba su nombre completo"></div>
+      <div class="field-item"><label>Código estudiantil</label><input type="text" placeholder="Código"></div>
+      <div class="field-item"><label>Grupo / Sección</label><input type="text" placeholder="Ej. Grupo B — Martes 8 am"></div>
+      <div class="field-item"><label>Docente</label><input type="text" placeholder="Nombre del profesor/a"></div>
+      <div class="field-item"><label>Fecha de realización</label><input type="date"></div>
+      <div class="field-item"><label>Medio dieléctrico asignado</label><input type="text" placeholder="Ej. Vacío / Aire · εᵣ = 1.0"></div>
+    </div>
+  </div>
+
+  <div class="body">
+
+    <!-- 00. RESUMEN -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">00</span> Resumen</h2>
+      <div class="resumen-box">
+        En esta práctica se estudia el <strong>potencial eléctrico</strong> generado por distintas distribuciones de
+        carga mediante el simulador 3D interactivo de campo eléctrico y equipotenciales. La práctica consta de
+        cuatro secciones: un <em>Modo Abierto</em> de exploración cualitativa con configuraciones asignadas al azar,
+        y tres partes cuantitativas —&nbsp;<strong>A</strong> (cargas puntuales), <strong>B</strong> (líneas de carga)
+        y <strong>C</strong> (planos conductores)&nbsp;— en las que se registran 16 valores de potencial a distintas
+        distancias, se grafican, se linealizan y se determinan experimentalmente la constante electrostática $k$,
+        la densidad lineal de carga $\lambda$ y la densidad superficial $\sigma$.
+      </div>
+      <p style="margin-top:10px;"><strong>Palabras clave:</strong>
+        Potencial eléctrico · campo eléctrico · equipotencial · linealización · carga puntual · línea de carga · plano conductor · constante electrostática
+      </p>
+    </div>
+
+    <!-- 01. OBJETIVOS -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">01</span> Objetivos</h2>
+      <ul class="objetivos-lista">
+        <li><span class="obj-num">1</span>Explorar cualitativamente el campo eléctrico y las equipotenciales para distintas combinaciones de fuentes en el Modo Abierto.</li>
+        <li><span class="obj-num">2</span>Registrar 16 valores de potencial eléctrico a distintas posiciones para dos cargas puntuales y linealizar $V$ vs. $1/r$ para determinar $k$.</li>
+        <li><span class="obj-num">3</span>Registrar 16 valores de potencial para dos líneas de carga y linealizar $V$ vs. $\ln(\rho)$ para determinar la densidad lineal $\lambda$.</li>
+        <li><span class="obj-num">4</span>Registrar 16 valores de potencial para dos planos y linealizar $V$ vs. $|x|$ para determinar la densidad superficial $\sigma$.</li>
+        <li><span class="obj-num">5</span>Construir y analizar gráficas normales y linealizadas usando los datos exportados del simulador.</li>
+        <li><span class="obj-num">6</span>Evaluar la calidad de los resultados mediante el error relativo respecto a los valores teóricos.</li>
+      </ul>
+    </div>
+
+    <!-- 02. MARCO TEÓRICO -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">02</span> Marco Teórico</h2>
+
+      <div class="subseccion-titulo">2.1 · Carga puntual — Potencial eléctrico</div>
+      <p>Para dos cargas iguales $q$ separadas a distancias $r_1$ y $r_2$ desde un punto de medición, el potencial total es:</p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 1 — Potencial de dos cargas puntuales</div>
+        <div class="formula-main">$$V = k\left(\frac{q_1}{r_1} + \frac{q_2}{r_2}\right) \qquad k = \frac{K_0}{\varepsilon_r} \qquad K_0 = 8.9876 \times 10^9 \;\text{N·m}^2/\text{C}^2$$</div>
+        <div class="formula-num">(1)</div>
+      </div>
+      <p>Para puntos lejanos al sistema ($r \gg d$, donde $d$ es la separación entre cargas), la contribución dominante es $V \approx k\,q_{\text{equiv}}/r$. Graficando $V$ vs. $1/r$ se obtiene una recta de pendiente $m_A = k\,q_{\text{equiv}}$, con lo que:</p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 2 — Determinación de k (Parte A)</div>
+        <div class="formula-main">$$k_{\text{exp}} = \frac{m_A}{q_{\text{equiv}}} \qquad \text{donde} \quad q_{\text{equiv}} = |q_1| + |q_2|$$</div>
+        <div class="formula-num">(2)</div>
+      </div>
+
+      <div class="subseccion-titulo">2.2 · Línea de carga — Potencial eléctrico</div>
+      <p>Una línea infinita de densidad lineal $\lambda$ genera un potencial que varía logarítmicamente con la distancia radial $\rho$:</p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 3 — Potencial de línea de carga</div>
+        <div class="formula-main">$$V = -2k\lambda\ln(\rho) + C_0 \qquad \Rightarrow \qquad V = m_B \cdot \ln(\rho) + C_0$$</div>
+        <div class="formula-num">(3)</div>
+      </div>
+      <p>Graficando $V$ vs. $\ln(\rho)$ se obtiene una recta de pendiente $m_B = -2k\lambda$. Por tanto:</p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 4 — Determinación de λ (Parte B)</div>
+        <div class="formula-main">$$\lambda_{\text{exp}} = \frac{-m_B}{2k}$$</div>
+        <div class="formula-num">(4)</div>
+      </div>
+
+      <div class="subseccion-titulo">2.3 · Plano cargado — Potencial eléctrico</div>
+      <p>Un plano conductor con densidad superficial $\sigma$ genera un campo uniforme perpendicular al plano. El potencial varía linealmente con la distancia $|x|$ al plano:</p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 5 — Potencial de plano cargado</div>
+        <div class="formula-main">$$V = -\frac{\sigma}{2\varepsilon_0}|x| + C_0 = m_C \cdot |x| + C_0$$</div>
+        <div class="formula-num">(5)</div>
+      </div>
+      <p>Graficando $V$ vs. $|x|$ se obtiene una recta de pendiente $m_C = -\sigma/(2\varepsilon_0)$. Por tanto:</p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 6 — Determinación de σ (Parte C)</div>
+        <div class="formula-main">$$\sigma_{\text{exp}} = -2\varepsilon_0\,m_C \qquad \varepsilon_0 = 8.854 \times 10^{-12} \;\text{F/m}$$</div>
+        <div class="formula-num">(6)</div>
+      </div>
+
+      <div class="subseccion-titulo">2.4 · Error relativo</div>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 7 — Error relativo porcentual</div>
+        <div class="formula-main">$$\text{ER} = \frac{|X_{\text{exp}} - X_{\text{teo}}|}{X_{\text{teo}}} \times 100\%$$</div>
+        <div class="formula-num">(7)</div>
+      </div>
+      <table class="rango-tabla" style="margin-top:8px;">
+        <thead><tr><th>ER</th><th>Rango</th><th>Interpretación</th></tr></thead>
+        <tbody>
+          <tr><td rowspan="3" style="font-family:var(--mono);font-size:.85em;">ER</td>
+            <td class="bueno">ER &lt; 1 %</td><td>Resultado muy exacto</td></tr>
+          <tr><td class="medio">1 % &lt; ER &lt; 10 %</td><td>Resultado exacto</td></tr>
+          <tr><td class="malo">ER &gt; 10 %</td><td>Resultado poco exacto</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ══════════════════════════════════ -->
+    <!-- 03. MODO ABIERTO                  -->
+    <!-- ══════════════════════════════════ -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">03</span> Modo Abierto — Exploración Cualitativa</h2>
+
+      <div class="nota">
+        <strong>Instrucción:</strong> Al cargar esta guía, el sistema asigna automáticamente
+        <strong>tres configuraciones al azar</strong>. Configure el simulador con cada una de ellas,
+        active las capas indicadas y tome las dos capturas de pantalla solicitadas:
+        una con <em>líneas de campo E</em> visibles y otra con <em>equipotenciales</em> visibles.
+        Adjunte ambas en los espacios de cada configuración.
+      </div>
+
+      <!-- Las 3 tarjetas se inyectan por JS -->
+      <div id="configsAbierto"></div>
+
+      <span class="area-label">Observaciones generales — Modo Abierto (las tres configuraciones)</span>
+      <textarea class="trabajo-area" style="min-height:100px;"
+        placeholder="Compare las tres configuraciones. ¿Cómo cambia la simetría del campo según el tipo de fuente? ¿En qué caso las equipotenciales son esféricas, cilíndricas o planas? ¿Qué ocurre cuando las fuentes tienen signos opuestos frente a cuando tienen el mismo signo?"></textarea>
+    </div>
+
+    <!-- ══════════════════════════════════ -->
+    <!-- 04. PARTE A — CARGAS PUNTUALES     -->
+    <!-- ══════════════════════════════════ -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">04</span> Parte A — Dos Cargas Puntuales</h2>
+
+      <div class="parte-header">
+        <div><span class="parte-badge A">PARTE A</span></div>
+        <div>
+          <h4 style="font-family:var(--display);font-size:.95em;margin-bottom:4px;">Determinación de la constante electrostática $k$</h4>
+          <p style="font-size:.82em;color:rgba(255,255,255,.55);margin:0;">
+            Coloque dos cargas puntuales en el simulador. Defina el rango $[-x_0,\,x_0]$.
+            El simulador le entregará 16 valores de posición y potencial. Exporte y registre en la tabla.</p>
+        </div>
+      </div>
+      <div class="parte-body">
+
+        <div class="subseccion-titulo">Configuración inicial — Parte A</div>
+        <div class="result-box col4" style="margin-bottom:12px;">
+          <div class="res-campo">
+            <label>Carga q₁ (μC)</label>
+            <input type="text" id="aq1" placeholder="+3.0" oninput="calcA()">
+          </div>
+          <div class="res-campo">
+            <label>Posición x₁ (u)</label>
+            <input type="text" id="ax1" placeholder="-2.0">
+          </div>
+          <div class="res-campo">
+            <label>Carga q₂ (μC)</label>
+            <input type="text" id="aq2" placeholder="+3.0" oninput="calcA()">
+          </div>
+          <div class="res-campo">
+            <label>Posición x₂ (u)</label>
+            <input type="text" id="ax2" placeholder="+2.0">
+          </div>
+        </div>
+        <div class="result-box col4" style="margin-bottom:8px;">
+          <div class="res-campo">
+            <label>Rango −x₀ (u)</label>
+            <input type="text" id="axmin" placeholder="-5.0">
+          </div>
+          <div class="res-campo">
+            <label>Rango +x₀ (u)</label>
+            <input type="text" id="axmax" placeholder="+5.0">
+          </div>
+          <div class="res-campo">
+            <label>Medio dieléctrico</label>
+            <input type="text" id="amedio" placeholder="Vacío" oninput="calcA()">
+          </div>
+          <div class="res-campo">
+            <label>εᵣ</label>
+            <input type="text" id="aer" placeholder="1.0" oninput="calcA()">
+          </div>
+        </div>
+
+        <div class="nota">
+          <strong>Procedimiento:</strong> En el simulador agregue las dos cargas. En la sección
+          <em>Parte A</em> del simulador, ingrese el rango $[-x_0,\,x_0]$ y solicite 16 valores.
+          El simulador generará 16 posiciones al azar y calculará el potencial en cada una.
+          Exporte con el botón <strong>📋 Exportar datos</strong> y transcriba en la tabla siguiente.
+        </div>
+
+        <div class="subseccion-titulo">Tabla A — Potencial de dos cargas puntuales (16 valores)</div>
+        <p style="font-size:.85em;color:var(--ink-muted);font-style:italic;">
+          Tabla A. Posición $x$ (unidades del simulador), potencial registrado $V(x)$ y valores calculados
+          para la linealización. El estudiante transcribe $x$ y $V$; la guía calcula $1/|x|$, $\ln|x|$ automáticamente.
+        </p>
+        <table class="tabla-resultados" id="tablaA">
+          <thead>
+            <tr>
+              <th>N°</th>
+              <th style="color:#8fd6a0;">$x$ (u) — del simulador</th>
+              <th>$V(x)$ (V) — del simulador</th>
+              <th>$|x|$</th>
+              <th>$1/|x|$</th>
+              <th>$\ln|x|$</th>
+            </tr>
+          </thead>
+          <tbody id="bodyA"></tbody>
+        </table>
+
+        <div class="divider"><span>Gráfica A1 — Potencial vs. distancia (Normal)</span></div>
+        <div class="grafica-box">
+          <div class="grafica-header">
+            <span>Gráfica A1: $V$ (V) vs. posición $x$ — Distribución del potencial</span>
+            <span id="infoA1" style="color:rgba(255,255,255,.6);font-size:.9em;">sin datos</span>
+          </div>
+          <canvas class="grafica-canvas" id="grafA1" height="300"></canvas>
+          <div class="grafica-controles">
+            <button class="btn-ctrl" onclick="toggleRegA1()">📈 Curva suavizada</button>
+            <button class="btn-ctrl" onclick="limpiarA()">🗑 Limpiar</button>
+            <span class="grafica-info" id="eqA1">Ingrese datos en la Tabla A</span>
+          </div>
+        </div>
+
+        <div class="divider"><span>Gráfica A2 — Linealizada: V vs. 1/|x| → determina k</span></div>
+        <div class="grafica-box">
+          <div class="grafica-header">
+            <span>Gráfica A2: $V$ (V) vs. $1/|x|$ — Linealización para determinar $k$</span>
+            <span id="pendienteA" style="color:rgba(255,255,255,.6);font-size:.9em;">pendiente = —</span>
+          </div>
+          <canvas class="grafica-canvas" id="grafA2" height="300"></canvas>
+          <div class="grafica-controles">
+            <button class="btn-ctrl" id="btnRegA2" onclick="toggleRegA2()">📈 Ajuste lineal</button>
+            <button class="btn-ctrl" onclick="limpiarA()">🗑 Limpiar</button>
+            <span class="grafica-info" id="eqA2">Active el ajuste para ver la recta</span>
+          </div>
+        </div>
+
+        <div class="subseccion-titulo">Resultados — Parte A</div>
+        <div class="result-box col4">
+          <div class="res-campo">
+            <label>Pendiente m_A (V·u)</label>
+            <input type="text" id="aSlope" placeholder="0.000" oninput="calcA()">
+          </div>
+          <div class="res-campo">
+            <label>R² del ajuste</label>
+            <input type="text" id="aR2" placeholder="0.000">
+          </div>
+          <div class="res-campo">
+            <label>q_equiv (μC)</label>
+            <input type="text" id="aQeq" placeholder="—" readonly style="color:var(--accent);">
+          </div>
+          <div class="res-campo">
+            <label>k_exp (N·m²/C²)</label>
+            <input type="text" id="aKexp" placeholder="—" readonly style="color:var(--green);font-weight:600;">
+          </div>
+        </div>
+        <div class="result-box col2" style="margin-top:0;">
+          <div class="res-campo">
+            <label>k_teórico = K₀/εᵣ (N·m²/C²)</label>
+            <input type="text" id="aKteo" placeholder="—" readonly style="color:var(--accent);">
+          </div>
+          <div class="res-campo">
+            <label>ER (%) — Error relativo</label>
+            <input type="text" id="aER" placeholder="—" readonly style="color:var(--accent2);">
+          </div>
+        </div>
+
+        <span class="area-label">Procedimiento de cálculo — Parte A (muestre aquí los pasos para obtener k)</span>
+        <textarea class="trabajo-area" style="min-height:180px;"
+          placeholder="De la Gráfica A2 (V vs. 1/|x|):&#10;  Pendiente m_A = ___&#10;&#10;Según la Ec. (2): k_exp = m_A / q_equiv&#10;  q_equiv = |q₁| + |q₂| = ___ μC = ___ C&#10;  k_exp = ___ / ___ = ___ N·m²/C²&#10;&#10;Valor teórico:&#10;  k_teo = K₀ / εᵣ = 8.9876×10⁹ / ___ = ___ N·m²/C²&#10;&#10;Error relativo:&#10;  ER = |k_exp − k_teo| / k_teo × 100% = ___&#10;"></textarea>
+
+        <span class="area-label">Captura del simulador — Parte A (datos exportados)</span>
+        <div class="adjunto-slot">
+          <input type="file" accept="image/*" onchange="prevImg(this,'prevPartA')">
+          <span class="slot-icon">📸</span>
+          <span class="slot-label">Adjuntar captura del simulador — Parte A con tabla de 16 valores</span>
+          <span class="slot-hint">PNG, JPG — debe verse la tabla de datos exportada</span>
+          <img id="prevPartA" class="preview-img" alt="">
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════ -->
+    <!-- 05. PARTE B — LÍNEAS DE CARGA     -->
+    <!-- ══════════════════════════════════ -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">05</span> Parte B — Dos Líneas de Carga</h2>
+
+      <div class="parte-header">
+        <div><span class="parte-badge B">PARTE B</span></div>
+        <div>
+          <h4 style="font-family:var(--display);font-size:.95em;margin-bottom:4px;">Determinación de la densidad lineal de carga $\lambda$</h4>
+          <p style="font-size:.82em;color:rgba(255,255,255,.55);margin:0;">
+            Coloque dos líneas de carga en el simulador. Defina el rango $[-x_0,\,x_0]$ en el eje X.
+            El simulador entregará 16 posiciones con su potencial. Grafique $V$ vs. $\ln(\rho)$ para linealizar.</p>
+        </div>
+      </div>
+      <div class="parte-body">
+
+        <div class="subseccion-titulo">Configuración inicial — Parte B</div>
+        <div class="result-box col4" style="margin-bottom:12px;">
+          <div class="res-campo">
+            <label>Signo línea 1</label>
+            <input type="text" id="bl1" placeholder="+ ó −">
+          </div>
+          <div class="res-campo">
+            <label>Posición X₁ (u)</label>
+            <input type="text" id="bx1" placeholder="-2.0">
+          </div>
+          <div class="res-campo">
+            <label>Signo línea 2</label>
+            <input type="text" id="bl2" placeholder="+ ó −">
+          </div>
+          <div class="res-campo">
+            <label>Posición X₂ (u)</label>
+            <input type="text" id="bx2" placeholder="+2.0">
+          </div>
+        </div>
+        <div class="result-box col4" style="margin-bottom:8px;">
+          <div class="res-campo">
+            <label>Rango −x₀ (u)</label>
+            <input type="text" id="bxmin" placeholder="-5.0">
+          </div>
+          <div class="res-campo">
+            <label>Rango +x₀ (u)</label>
+            <input type="text" id="bxmax" placeholder="+5.0">
+          </div>
+          <div class="res-campo">
+            <label>Medio dieléctrico</label>
+            <input type="text" placeholder="Vacío">
+          </div>
+          <div class="res-campo">
+            <label>εᵣ</label>
+            <input type="text" id="ber" placeholder="1.0">
+          </div>
+        </div>
+
+        <div class="nota">
+          <strong>Procedimiento:</strong> Agregue las dos líneas de carga. Defina el rango y solicite los 16 valores.
+          El potencial varía como $V = -2k\lambda\ln(\rho) + C_0$. La variable de distancia $\rho$ es la
+          distancia radial en el plano XZ desde el eje de la línea más cercana.
+          Exporte y transcriba en la tabla.
+        </div>
+
+        <div class="subseccion-titulo">Tabla B — Potencial de dos líneas de carga (16 valores)</div>
+        <table class="tabla-resultados" id="tablaB">
+          <thead>
+            <tr>
+              <th>N°</th>
+              <th style="color:#8fd6a0;">$x$ (u) — del simulador</th>
+              <th>$V(x)$ (V) — del simulador</th>
+              <th>$\rho = |x|$</th>
+              <th>$\ln(\rho)$</th>
+              <th>Notas</th>
+            </tr>
+          </thead>
+          <tbody id="bodyB"></tbody>
+        </table>
+
+        <div class="divider"><span>Gráfica B1 — Potencial vs. distancia (Normal)</span></div>
+        <div class="grafica-box">
+          <div class="grafica-header">
+            <span>Gráfica B1: $V$ (V) vs. posición $x$ — Distribución del potencial lineal</span>
+            <span id="infoB1" style="color:rgba(255,255,255,.6);font-size:.9em;">sin datos</span>
+          </div>
+          <canvas class="grafica-canvas" id="grafB1" height="300"></canvas>
+          <div class="grafica-controles">
+            <button class="btn-ctrl" onclick="toggleCurvaB1()">📈 Curva suavizada</button>
+            <button class="btn-ctrl" onclick="limpiarB()">🗑 Limpiar</button>
+            <span class="grafica-info" id="eqB1">Ingrese datos en la Tabla B</span>
+          </div>
+        </div>
+
+        <div class="divider"><span>Gráfica B2 — Linealizada: V vs. ln(ρ) → determina λ</span></div>
+        <div class="grafica-box">
+          <div class="grafica-header">
+            <span>Gráfica B2: $V$ (V) vs. $\ln(\rho)$ — Linealización para determinar $\lambda$</span>
+            <span id="pendienteB" style="color:rgba(255,255,255,.6);font-size:.9em;">pendiente = —</span>
+          </div>
+          <canvas class="grafica-canvas" id="grafB2" height="300"></canvas>
+          <div class="grafica-controles">
+            <button class="btn-ctrl" id="btnRegB2" onclick="toggleRegB2()">📈 Ajuste lineal</button>
+            <button class="btn-ctrl" onclick="limpiarB()">🗑 Limpiar</button>
+            <span class="grafica-info" id="eqB2">Active el ajuste para ver la recta</span>
+          </div>
+        </div>
+
+        <div class="subseccion-titulo">Resultados — Parte B</div>
+        <div class="result-box col4">
+          <div class="res-campo">
+            <label>Pendiente m_B (V)</label>
+            <input type="text" id="bSlope" placeholder="0.000" oninput="calcB()">
+          </div>
+          <div class="res-campo">
+            <label>R² del ajuste</label>
+            <input type="text" id="bR2" placeholder="0.000">
+          </div>
+          <div class="res-campo">
+            <label>k = K₀/εᵣ usado</label>
+            <input type="text" id="bK" placeholder="8.99×10⁹" oninput="calcB()">
+          </div>
+          <div class="res-campo">
+            <label>λ_exp (C/m)</label>
+            <input type="text" id="bLambda" placeholder="—" readonly style="color:var(--green);font-weight:600;">
+          </div>
+        </div>
+        <div class="result-box col2" style="margin-top:0;">
+          <div class="res-campo">
+            <label>λ_teórico ingresado (C/m)</label>
+            <input type="text" id="bLambdaTeo" placeholder="— ingrese valor" oninput="calcB()">
+          </div>
+          <div class="res-campo">
+            <label>ER (%) — Error relativo</label>
+            <input type="text" id="bER" placeholder="—" readonly style="color:var(--accent2);">
+          </div>
+        </div>
+
+        <span class="area-label">Procedimiento de cálculo — Parte B</span>
+        <textarea class="trabajo-area" style="min-height:180px;"
+          placeholder="De la Gráfica B2 (V vs. ln ρ):&#10;  Pendiente m_B = ___&#10;&#10;Según la Ec. (4): λ_exp = −m_B / (2k)&#10;  k = K₀/εᵣ = 8.9876×10⁹ / ___ = ___ N·m²/C²&#10;  λ_exp = −(___)/(2 × ___) = ___ C/m&#10;&#10;Valor teórico (del simulador):&#10;  λ_teo = ___ C/m&#10;&#10;Error relativo:&#10;  ER = |λ_exp − λ_teo| / λ_teo × 100% = ___&#10;"></textarea>
+
+        <span class="area-label">Captura del simulador — Parte B</span>
+        <div class="adjunto-slot">
+          <input type="file" accept="image/*" onchange="prevImg(this,'prevPartB')">
+          <span class="slot-icon">📸</span>
+          <span class="slot-label">Adjuntar captura del simulador — Parte B con tabla exportada</span>
+          <span class="slot-hint">PNG, JPG</span>
+          <img id="prevPartB" class="preview-img" alt="">
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════ -->
+    <!-- 06. PARTE C — PLANOS              -->
+    <!-- ══════════════════════════════════ -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">06</span> Parte C — Dos Planos Conductores</h2>
+
+      <div class="parte-header">
+        <div><span class="parte-badge C">PARTE C</span></div>
+        <div>
+          <h4 style="font-family:var(--display);font-size:.95em;margin-bottom:4px;">Determinación de la densidad superficial de carga $\sigma$</h4>
+          <p style="font-size:.82em;color:rgba(255,255,255,.55);margin:0;">
+            Coloque dos planos conductores en el simulador. Defina el rango $[-x_0,\,x_0]$.
+            El simulador entregará 16 posiciones con su potencial. Grafique $V$ vs. $|x|$ para linealizar.</p>
+        </div>
+      </div>
+      <div class="parte-body">
+
+        <div class="subseccion-titulo">Configuración inicial — Parte C</div>
+        <div class="result-box col4" style="margin-bottom:12px;">
+          <div class="res-campo">
+            <label>Signo plano 1</label>
+            <input type="text" id="cp1" placeholder="+ ó −">
+          </div>
+          <div class="res-campo">
+            <label>Posición X plano 1 (u)</label>
+            <input type="text" id="cx1" placeholder="-3.0">
+          </div>
+          <div class="res-campo">
+            <label>Signo plano 2</label>
+            <input type="text" id="cp2" placeholder="+ ó −">
+          </div>
+          <div class="res-campo">
+            <label>Posición X plano 2 (u)</label>
+            <input type="text" id="cx2" placeholder="+3.0">
+          </div>
+        </div>
+        <div class="result-box col4" style="margin-bottom:8px;">
+          <div class="res-campo">
+            <label>Rango −x₀ (u)</label>
+            <input type="text" id="cxmin" placeholder="-5.0">
+          </div>
+          <div class="res-campo">
+            <label>Rango +x₀ (u)</label>
+            <input type="text" id="cxmax" placeholder="+5.0">
+          </div>
+          <div class="res-campo">
+            <label>Medio dieléctrico</label>
+            <input type="text" placeholder="Vacío">
+          </div>
+          <div class="res-campo">
+            <label>εᵣ</label>
+            <input type="text" id="cer" placeholder="1.0">
+          </div>
+        </div>
+
+        <div class="nota">
+          <strong>Procedimiento:</strong> Agregue los dos planos. En la configuración de capacitor
+          ($+$ y $-$), el campo entre los planos es uniforme y el potencial varía linealmente con $x$.
+          Defina el rango, solicite los 16 valores al simulador, exporte y transcriba en la tabla.
+          La linealización $V$ vs. $|x|$ permite determinar $\sigma$.
+        </div>
+
+        <div class="subseccion-titulo">Tabla C — Potencial de dos planos conductores (16 valores)</div>
+        <table class="tabla-resultados" id="tablaC">
+          <thead>
+            <tr>
+              <th>N°</th>
+              <th style="color:#8fd6a0;">$x$ (u) — del simulador</th>
+              <th>$V(x)$ (V) — del simulador</th>
+              <th>$|x|$</th>
+              <th>$V / |x|$ (V/u)</th>
+              <th>Notas</th>
+            </tr>
+          </thead>
+          <tbody id="bodyC"></tbody>
+        </table>
+
+        <div class="divider"><span>Gráfica C1 — Potencial vs. posición (Normal)</span></div>
+        <div class="grafica-box">
+          <div class="grafica-header">
+            <span>Gráfica C1: $V$ (V) vs. posición $x$ — Campo de planos</span>
+            <span id="infoC1" style="color:rgba(255,255,255,.6);font-size:.9em;">sin datos</span>
+          </div>
+          <canvas class="grafica-canvas" id="grafC1" height="300"></canvas>
+          <div class="grafica-controles">
+            <button class="btn-ctrl" onclick="toggleCurvaC1()">📈 Curva suavizada</button>
+            <button class="btn-ctrl" onclick="limpiarC()">🗑 Limpiar</button>
+            <span class="grafica-info" id="eqC1">Ingrese datos en la Tabla C</span>
+          </div>
+        </div>
+
+        <div class="divider"><span>Gráfica C2 — Linealizada: V vs. |x| → determina σ</span></div>
+        <div class="grafica-box">
+          <div class="grafica-header">
+            <span>Gráfica C2: $V$ (V) vs. $|x|$ — Linealización para determinar $\sigma$</span>
+            <span id="pendienteC" style="color:rgba(255,255,255,.6);font-size:.9em;">pendiente = —</span>
+          </div>
+          <canvas class="grafica-canvas" id="grafC2" height="300"></canvas>
+          <div class="grafica-controles">
+            <button class="btn-ctrl" id="btnRegC2" onclick="toggleRegC2()">📈 Ajuste lineal</button>
+            <button class="btn-ctrl" onclick="limpiarC()">🗑 Limpiar</button>
+            <span class="grafica-info" id="eqC2">Active el ajuste para ver la recta</span>
+          </div>
+        </div>
+
+        <div class="subseccion-titulo">Resultados — Parte C</div>
+        <div class="result-box col4">
+          <div class="res-campo">
+            <label>Pendiente m_C (V/u)</label>
+            <input type="text" id="cSlope" placeholder="0.000" oninput="calcC()">
+          </div>
+          <div class="res-campo">
+            <label>R² del ajuste</label>
+            <input type="text" id="cR2" placeholder="0.000">
+          </div>
+          <div class="res-campo">
+            <label>σ_exp (C/m²)</label>
+            <input type="text" id="cSigma" placeholder="—" readonly style="color:var(--green);font-weight:600;">
+          </div>
+          <div class="res-campo">
+            <label>ε₀ = 8.854×10⁻¹² F/m</label>
+            <input type="text" value="8.854 × 10⁻¹²" readonly style="color:var(--accent);font-size:.85em;">
+          </div>
+        </div>
+        <div class="result-box col2" style="margin-top:0;">
+          <div class="res-campo">
+            <label>σ_teórico ingresado (C/m²)</label>
+            <input type="text" id="cSigmaTeo" placeholder="— ingrese valor" oninput="calcC()">
+          </div>
+          <div class="res-campo">
+            <label>ER (%) — Error relativo</label>
+            <input type="text" id="cER" placeholder="—" readonly style="color:var(--accent2);">
+          </div>
+        </div>
+
+        <span class="area-label">Procedimiento de cálculo — Parte C</span>
+        <textarea class="trabajo-area" style="min-height:180px;"
+          placeholder="De la Gráfica C2 (V vs. |x|):&#10;  Pendiente m_C = ___&#10;&#10;Según la Ec. (6): σ_exp = −2ε₀ · m_C&#10;  ε₀ = 8.854×10⁻¹² F/m&#10;  σ_exp = −2 × 8.854×10⁻¹² × ___ = ___ C/m²&#10;&#10;Valor teórico (del simulador):&#10;  σ_teo = ___ C/m²&#10;&#10;Error relativo:&#10;  ER = |σ_exp − σ_teo| / σ_teo × 100% = ___&#10;"></textarea>
+
+        <span class="area-label">Captura del simulador — Parte C</span>
+        <div class="adjunto-slot">
+          <input type="file" accept="image/*" onchange="prevImg(this,'prevPartC')">
+          <span class="slot-icon">📸</span>
+          <span class="slot-label">Adjuntar captura del simulador — Parte C con tabla exportada</span>
+          <span class="slot-hint">PNG, JPG</span>
+          <img id="prevPartC" class="preview-img" alt="">
+        </div>
+      </div>
+    </div>
+
+    <!-- 07. DISCUSIÓN -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">07</span> Discusión de Resultados</h2>
+
+      <span class="area-label">7.1 · Modo Abierto: ¿Cómo difieren visualmente las equipotenciales de una carga puntual, una línea y un plano? Justifique físicamente.</span>
+      <textarea class="trabajo-area" placeholder="Escriba su análisis..."></textarea>
+
+      <span class="area-label">7.2 · Parte A: ¿La gráfica V vs. 1/|x| resultó una recta? ¿El valor de k obtenido es consistente con el teórico? Analice las desviaciones.</span>
+      <textarea class="trabajo-area" placeholder="Escriba su análisis..."></textarea>
+
+      <span class="area-label">7.3 · Parte B: ¿Por qué es necesario graficar V vs. ln(ρ) en lugar de V vs. ρ para las líneas de carga? ¿Qué nos indica la pendiente negativa?</span>
+      <textarea class="trabajo-area" placeholder="Escriba su análisis..."></textarea>
+
+      <span class="area-label">7.4 · Parte C: ¿En qué zona el campo entre los planos es más uniforme? ¿El potencial es verdaderamente lineal en todo el rango? Explique los bordes.</span>
+      <textarea class="trabajo-area" placeholder="Escriba su análisis..."></textarea>
+
+      <span class="area-label">7.5 · Compare los errores relativos ER de las tres partes. ¿Cuál distribución fue más fácil de linealizar? ¿Por qué?</span>
+      <textarea class="trabajo-area" placeholder="Escriba su análisis..."></textarea>
+    </div>
+
+    <!-- 08. CONCLUSIONES -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">08</span> Conclusiones</h2>
+
+      <span class="area-label">Conclusión 1 — Sobre el Modo Abierto y la relación entre tipo de fuente, simetría del campo y forma de las equipotenciales</span>
+      <textarea class="trabajo-area" style="min-height:90px;" placeholder="Redacte su primera conclusión..."></textarea>
+
+      <span class="area-label">Conclusión 2 — Sobre los valores de k, λ y σ obtenidos experimentalmente y su comparación con los valores teóricos</span>
+      <textarea class="trabajo-area" style="min-height:90px;" placeholder="Redacte su segunda conclusión..."></textarea>
+
+      <span class="area-label">Conclusión 3 — Sobre la efectividad del método de linealización para cada tipo de distribución y las fuentes de error experimentales</span>
+      <textarea class="trabajo-area" style="min-height:90px;" placeholder="Redacte su tercera conclusión..."></textarea>
+    </div>
+
+    <!-- 09. REFERENCIAS -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">09</span> Referencias</h2>
+      <p style="font-size:.88em; line-height:2.2;">
+        [1] Sears, F. W., Zemansky, M. W. &amp; Young, H. D. <em>University Physics</em>. 14ª ed. Pearson, 2016. Cap. 23 — Potencial eléctrico.<br>
+        [2] Serway, R. A. &amp; Jewett, J. W. <em>Physics for Scientists and Engineers</em>. 10ª ed. Cengage, 2019. Cap. 25 — Potencial eléctrico.<br>
+        [3] Halliday, D., Resnick, R. &amp; Krane, K. S. <em>Physics</em>. 5ª ed. Wiley, 2002. Cap. 24 — Potencial eléctrico.<br>
+        [4] Griffiths, D. J. <em>Introduction to Electrodynamics</em>. 4ª ed. Cambridge, 2017. Cap. 2 — Electrostática.
+      </p>
+    </div>
+
+    <!-- FIRMAS -->
+    <div class="seccion" style="margin-bottom:0;">
+      <div class="firma-grid">
+        <div class="firma-slot">Firma del estudiante</div>
+        <div class="firma-slot">Vo. Bo. Docente</div>
+      </div>
+    </div>
+
+  </div><!-- /body -->
+</div><!-- /documento -->
+
+<button class="btn-imprimir" onclick="window.print()">🖨 Imprimir / PDF</button>
+
+<script>
+// ══════════════════════════════════════════════════════════════════════
+//  MODO ABIERTO — CONFIGURACIONES ALEATORIAS
+// ══════════════════════════════════════════════════════════════════════
+const CONFIGS = [
+  { badge:'pos',  label:'Carga puntual ⊕ + Carga puntual ⊕',   icon:'⊕⊕', desc:'Dos cargas del mismo signo positivo. Las líneas se repelen y divergen. Las equipotenciales son lobuladas.',       instrE:'Activa solo Campo E. Observa cómo las líneas se repelen entre sí.', instrEq:'Activa solo Equipotenciales. Traza la forma de las superficies.' },
+  { badge:'neg',  label:'Carga puntual ⊖ + Carga puntual ⊖',   icon:'⊖⊖', desc:'Dos cargas negativas iguales. Las líneas entran desde afuera sin conectarse.',                                    instrE:'Activa solo Campo E. Las líneas azules entran a cada carga por separado.', instrEq:'Activa solo Equipotenciales. Observa la zona de campo nulo entre ellas.' },
+  { badge:'mix',  label:'Carga puntual ⊕ + Carga puntual ⊖',   icon:'⊕⊖', desc:'Dipolo eléctrico. Las líneas van de + a −. Las equipotenciales cortan el eje de simetría.',                      instrE:'Activa Campo E. Las líneas naranja parten del + y terminan en el −.', instrEq:'Activa Equipotenciales. Identifica la superficie de potencial cero.' },
+  { badge:'line', label:'Carga puntual ⊕ + Línea de carga ╿',  icon:'⊕╿', desc:'Combinación puntual + lineal. Equipotenciales deformadas entre geometría esférica y cilíndrica.',               instrE:'Muestra ambas fuentes activas. Captura las líneas de campo.', instrEq:'Observa cómo se distorsionan las equipotenciales.' },
+  { badge:'line', label:'Línea de carga ╿ + Plano conductor ▬', icon:'╿▬', desc:'Línea cilíndrica frente a un plano. Las equipotenciales adoptan forma intermedia.',                             instrE:'Activa Campo E. Las líneas siguen el campo neto de ambas fuentes.', instrEq:'Activa Equipotenciales. Observa la región de transición.' },
+  { badge:'plan', label:'Plano conductor ▬ + Carga puntual ⊕',  icon:'▬⊕', desc:'Plano infinito más una carga puntual. El campo puntual distorsiona el campo uniforme del plano.',              instrE:'Activa Campo E. Captura la perturbación local de la carga puntual.', instrEq:'Captura las equipotenciales deformadas cerca de la carga.' },
+  { badge:'plan', label:'Plano ▬⊕ + Plano ▬⊖ (Capacitor)',      icon:'▬▬', desc:'Dos planos de signo opuesto: capacitor de placas paralelas. Campo uniforme entre ellos, nulo afuera.',         instrE:'Activa Campo E. Las líneas van del + al − en paralelo.', instrEq:'Las equipotenciales son planos paralelos uniformemente espaciados.' },
+  { badge:'pos',  label:'Plano ▬⊕ + Plano ▬⊕ (misma carga)',   icon:'▬▬', desc:'Dos planos del mismo signo. Se repelen: el campo es cero en el plano de simetría y máximo afuera.',            instrE:'Activa Campo E. Las líneas salen hacia afuera de cada plano.', instrEq:'Equipotenciales simétricas, zona de potencial constante en el centro.' },
+  { badge:'mix',  label:'Línea ╿⊕ + Línea ╿⊖',                  icon:'╿╿', desc:'Dos líneas de signo opuesto. Las líneas de campo van de una a otra con simetría cilíndrica.',                  instrE:'Activa Campo E. Las líneas parten de la línea + y llegan a la −.', instrEq:'Equipotenciales son cilindros deformados que conectan las dos líneas.' },
+  { badge:'line', label:'Línea ╿⊕ + Línea ╿⊕ (misma carga)',   icon:'╿╿', desc:'Dos líneas del mismo signo. Se repelen, campo nulo en el plano de simetría.',                                   instrE:'Activa Campo E. Las líneas radiales huyen de ambas fuentes.', instrEq:'Activa Equipotenciales. Identifica la región de campo mínimo.' },
+];
+
+function elegirConfigs() {
+  // Shuffle and pick 3 ensuring variety (one mix of different types)
+  const pool = [...CONFIGS];
+  const chosen = [];
+  // Force variety: pick one from each category group roughly
+  const shuffled = pool.sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, 3);
+}
+
+function renderConfigs() {
+  const configs = elegirConfigs();
+  const container = document.getElementById('configsAbierto');
+  configs.forEach((cfg, i) => {
+    const id = 'cfg' + i;
+    const html = `
+      <div class="config-card">
+        <div class="config-card-header">
+          <div>
+            <span class="config-badge ${cfg.badge}">${String.fromCharCode(65+i)} · Config. asignada</span>
+          </div>
+          <h4>${cfg.icon} &nbsp; ${cfg.label}</h4>
+        </div>
+        <div class="config-card-body">
+          <p style="font-size:.9em; color:var(--ink-soft); margin-bottom:10px;">${cfg.desc}</p>
+          <div style="font-size:.83em; color:var(--ink-muted); margin-bottom:12px; line-height:1.7;">
+            <span style="font-family:var(--mono); font-size:.85em; color:var(--accent);">▸ CAMPO E:</span> ${cfg.instrE}<br>
+            <span style="font-family:var(--mono); font-size:.85em; color:var(--purple);">▸ EQUIPOTENCIALES:</span> ${cfg.instrEq}
+          </div>
+          <div class="capturas-grid">
+            <div>
+              <span class="captura-tipo">📡 Captura — Líneas de campo E</span>
+              <div class="captura-slot">
+                <input type="file" accept="image/*" onchange="prevCaptura(this,'${id}E')">
+                <span class="captura-icon">⚡</span>
+                <span class="captura-desc">Activa solo <strong>Campo E</strong> · toma captura · adjunta aquí</span>
+                <img id="${id}E" class="captura-preview" alt="">
+              </div>
+            </div>
+            <div>
+              <span class="captura-tipo">〰 Captura — Líneas Equipotenciales</span>
+              <div class="captura-slot">
+                <input type="file" accept="image/*" onchange="prevCaptura(this,'${id}Eq')">
+                <span class="captura-icon">〰️</span>
+                <span class="captura-desc">Activa solo <strong>Equipotenciales</strong> · toma captura · adjunta aquí</span>
+                <img id="${id}Eq" class="captura-preview" alt="">
+              </div>
+            </div>
+          </div>
+          <span class="area-label" style="margin-top:14px;">Observación — Config. ${String.fromCharCode(65+i)}</span>
+          <textarea class="trabajo-area" style="min-height:70px;"
+            placeholder="Describa brevemente lo que observa: simetría, dirección de las líneas de campo, densidad de equipotenciales, zona de campo máximo/mínimo..."></textarea>
+        </div>
+      </div>`;
+    container.insertAdjacentHTML('beforeend', html);
+  });
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  TABLAS — 16 FILAS PARTE A / B / C
+// ══════════════════════════════════════════════════════════════════════
+function buildTablas() {
+  // TABLA A
+  const bA = document.getElementById('bodyA');
+  for (let i = 1; i <= 16; i++) {
+    const tr = bA.insertRow(-1);
+    tr.dataset.row = i;
+    tr.innerHTML = `
+      <td class="row-label">${i}</td>
+      <td class="input-cell"><input type="text" class="ta-x" placeholder="0.00" style="border-bottom:1.5px solid #1e8449;" oninput="actualizarFilaA(${i})"></td>
+      <td class="input-cell"><input type="text" class="ta-v" placeholder="0.000" oninput="actualizarFilaA(${i})"></td>
+      <td class="input-cell"><input type="text" class="ta-ax" placeholder="—" readonly style="color:var(--ink-muted);"></td>
+      <td class="input-cell"><input type="text" class="ta-inv" placeholder="—" readonly style="color:var(--accent);"></td>
+      <td class="input-cell"><input type="text" class="ta-ln" placeholder="—" readonly style="color:var(--purple);"></td>`;
+  }
+
+  // TABLA B
+  const bB = document.getElementById('bodyB');
+  for (let i = 1; i <= 16; i++) {
+    const tr = bB.insertRow(-1);
+    tr.dataset.row = i;
+    tr.innerHTML = `
+      <td class="row-label">${i}</td>
+      <td class="input-cell"><input type="text" class="tb-x" placeholder="0.00" style="border-bottom:1.5px solid #1e8449;" oninput="actualizarFilaB(${i})"></td>
+      <td class="input-cell"><input type="text" class="tb-v" placeholder="0.000" oninput="actualizarFilaB(${i})"></td>
+      <td class="input-cell"><input type="text" class="tb-rho" placeholder="—" readonly style="color:var(--ink-muted);"></td>
+      <td class="input-cell"><input type="text" class="tb-ln" placeholder="—" readonly style="color:var(--accent);"></td>
+      <td class="input-cell"><input type="text" class="tb-nota" placeholder="—"></td>`;
+  }
+
+  // TABLA C
+  const bC = document.getElementById('bodyC');
+  for (let i = 1; i <= 16; i++) {
+    const tr = bC.insertRow(-1);
+    tr.dataset.row = i;
+    tr.innerHTML = `
+      <td class="row-label">${i}</td>
+      <td class="input-cell"><input type="text" class="tc-x" placeholder="0.00" style="border-bottom:1.5px solid #1e8449;" oninput="actualizarFilaC(${i})"></td>
+      <td class="input-cell"><input type="text" class="tc-v" placeholder="0.000" oninput="actualizarFilaC(${i})"></td>
+      <td class="input-cell"><input type="text" class="tc-ax" placeholder="—" readonly style="color:var(--ink-muted);"></td>
+      <td class="input-cell"><input type="text" class="tc-ratio" placeholder="—" readonly style="color:var(--accent);"></td>
+      <td class="input-cell"><input type="text" class="tc-nota" placeholder="—"></td>`;
+  }
+}
+
+// ── Auto-calcular columnas derivadas ──────────────────────────────────
+function actualizarFilaA(n) {
+  const rows = document.querySelectorAll('#bodyA tr');
+  const tr = rows[n-1];
+  const x = parseFloat(tr.querySelector('.ta-x').value);
+  const v = parseFloat(tr.querySelector('.ta-v').value);
+  if (!isNaN(x) && x !== 0) {
+    tr.querySelector('.ta-ax').value  = Math.abs(x).toFixed(4);
+    tr.querySelector('.ta-inv').value = (1/Math.abs(x)).toFixed(5);
+    tr.querySelector('.ta-ln').value  = Math.log(Math.abs(x)).toFixed(5);
+  } else {
+    tr.querySelector('.ta-ax').value = '';
+    tr.querySelector('.ta-inv').value = '';
+    tr.querySelector('.ta-ln').value = '';
+  }
+  dibujarGrafA1(); dibujarGrafA2();
+}
+function actualizarFilaB(n) {
+  const rows = document.querySelectorAll('#bodyB tr');
+  const tr = rows[n-1];
+  const x = parseFloat(tr.querySelector('.tb-x').value);
+  if (!isNaN(x) && x !== 0) {
+    const rho = Math.abs(x);
+    tr.querySelector('.tb-rho').value = rho.toFixed(4);
+    tr.querySelector('.tb-ln').value  = Math.log(rho).toFixed(5);
+  } else {
+    tr.querySelector('.tb-rho').value = '';
+    tr.querySelector('.tb-ln').value = '';
+  }
+  dibujarGrafB1(); dibujarGrafB2();
+}
+function actualizarFilaC(n) {
+  const rows = document.querySelectorAll('#bodyC tr');
+  const tr = rows[n-1];
+  const x = parseFloat(tr.querySelector('.tc-x').value);
+  const v = parseFloat(tr.querySelector('.tc-v').value);
+  if (!isNaN(x) && x !== 0) {
+    tr.querySelector('.tc-ax').value = Math.abs(x).toFixed(4);
+    if (!isNaN(v)) tr.querySelector('.tc-ratio').value = (v/Math.abs(x)).toFixed(5);
+  } else {
+    tr.querySelector('.tc-ax').value = '';
+    tr.querySelector('.tc-ratio').value = '';
+  }
+  dibujarGrafC1(); dibujarGrafC2();
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  CÁLCULOS AUTOMÁTICOS DE k, λ, σ
+// ══════════════════════════════════════════════════════════════════════
+const K0 = 8.9876e9;
+const EPS0 = 8.854e-12;
+
+function calcA() {
+  const q1 = Math.abs(parseFloat(document.getElementById('aq1').value) || 0);
+  const q2 = Math.abs(parseFloat(document.getElementById('aq2').value) || 0);
+  const er = parseFloat(document.getElementById('aer').value) || 1;
+  const m  = parseFloat(document.getElementById('aSlope').value);
+  const qeq = (q1 + q2) * 1e-6;
+  document.getElementById('aQeq').value = ((q1+q2)).toFixed(3) + ' μC';
+  document.getElementById('aKteo').value = (K0/er).toExponential(4);
+  if (!isNaN(m) && qeq > 0) {
+    const kexp = m / qeq;
+    document.getElementById('aKexp').value = kexp.toExponential(4);
+    const kteo = K0/er;
+    document.getElementById('aER').value = (Math.abs(kexp-kteo)/kteo*100).toFixed(2) + ' %';
+  }
+}
+function calcB() {
+  const m = parseFloat(document.getElementById('bSlope').value);
+  const k = parseFloat(document.getElementById('bK').value) || K0;
+  if (!isNaN(m)) {
+    const lam = -m / (2*k);
+    document.getElementById('bLambda').value = lam.toExponential(4);
+    const teo = parseFloat(document.getElementById('bLambdaTeo').value);
+    if (!isNaN(teo) && teo !== 0) document.getElementById('bER').value = (Math.abs(lam-teo)/Math.abs(teo)*100).toFixed(2) + ' %';
+  }
+}
+function calcC() {
+  const m = parseFloat(document.getElementById('cSlope').value);
+  if (!isNaN(m)) {
+    const sig = -2 * EPS0 * m;
+    document.getElementById('cSigma').value = sig.toExponential(4);
+    const teo = parseFloat(document.getElementById('cSigmaTeo').value);
+    if (!isNaN(teo) && teo !== 0) document.getElementById('cER').value = (Math.abs(sig-teo)/Math.abs(teo)*100).toFixed(2) + ' %';
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  MOTOR DE GRÁFICAS GENÉRICO
+// ══════════════════════════════════════════════════════════════════════
+function dibujarGrafica(canvasId, datos, opts) {
+  const cv = document.getElementById(canvasId);
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  cv.width  = (cv.offsetWidth || 700) * window.devicePixelRatio;
+  const W = cv.width, H = cv.height;
+  const PAD = { top:30, right:30, bottom:55, left:78 };
+  const pw = W-PAD.left-PAD.right, ph = H-PAD.top-PAD.bottom;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#fafafa'; ctx.fillRect(0,0,W,H);
+
+  if (!datos || datos.length < 2) {
+    ctx.fillStyle='#bbb'; ctx.font=`14px Source Serif 4, serif`;
+    ctx.textAlign='center';
+    ctx.fillText('Ingrese datos en la tabla para visualizar', W/2, H/2);
+    return;
+  }
+
+  const xVals = datos.map(d=>d.x), yVals = datos.map(d=>d.y);
+  let xMin = Math.min(...xVals), xMax = Math.max(...xVals);
+  let yMin = Math.min(...yVals), yMax = Math.max(...yVals);
+  const xPad = (xMax-xMin)*0.1||0.1, yPad = (yMax-yMin)*0.12||0.1;
+  xMin -= xPad; xMax += xPad; yMin -= yPad; yMax += yPad;
+
+  const cx = x => PAD.left + (x-xMin)/(xMax-xMin)*pw;
+  const cy = y => PAD.top  + ph - (y-yMin)/(yMax-yMin)*ph;
+
+  // Grid
+  ctx.strokeStyle='#e8e4dc'; ctx.lineWidth=1;
+  for(let i=0;i<=5;i++){
+    const yy=PAD.top+i*ph/5; ctx.beginPath(); ctx.moveTo(PAD.left,yy); ctx.lineTo(PAD.left+pw,yy); ctx.stroke();
+    const xx=PAD.left+i*pw/5; ctx.beginPath(); ctx.moveTo(xx,PAD.top); ctx.lineTo(xx,PAD.top+ph); ctx.stroke();
+  }
+  // Axes
+  ctx.strokeStyle='#888'; ctx.lineWidth=1.5; ctx.beginPath();
+  ctx.moveTo(PAD.left,PAD.top); ctx.lineTo(PAD.left,PAD.top+ph); ctx.lineTo(PAD.left+pw,PAD.top+ph); ctx.stroke();
+  // Zero line
+  if (yMin < 0 && yMax > 0) {
+    ctx.strokeStyle='#ccc'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+    ctx.beginPath(); ctx.moveTo(PAD.left,cy(0)); ctx.lineTo(PAD.left+pw,cy(0)); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // Labels
+  ctx.fillStyle='#3d3d5c'; ctx.font=`bold 11px JetBrains Mono, monospace`;
+  ctx.textAlign='center'; ctx.fillText(opts.xLabel||'x', PAD.left+pw/2, H-5);
+  ctx.save(); ctx.translate(13,PAD.top+ph/2); ctx.rotate(-Math.PI/2); ctx.fillText(opts.yLabel||'y',0,0); ctx.restore();
+
+  // Tick labels
+  ctx.fillStyle='#888'; ctx.font=`10px JetBrains Mono, monospace`;
+  for(let i=0;i<=5;i++){
+    const xv=xMin+i*(xMax-xMin)/5;
+    ctx.textAlign='center'; ctx.fillText(xv.toFixed(2),cx(xv),PAD.top+ph+16);
+    const yv=yMin+i*(yMax-yMin)/5;
+    ctx.textAlign='right'; ctx.fillText(yv.toFixed(2),PAD.left-4,cy(yv)+4);
+  }
+
+  // Regression
+  let slope=null, inter=null, r2=null;
+  if (opts.regression) {
+    const n=datos.length;
+    const Sx=xVals.reduce((a,b)=>a+b,0), Sy=yVals.reduce((a,b)=>a+b,0);
+    const Sxx=xVals.reduce((a,v)=>a+v*v,0), Sxy=xVals.reduce((a,v,i)=>a+v*yVals[i],0);
+    slope = (n*Sxy-Sx*Sy)/(n*Sxx-Sx*Sx);
+    inter = (Sy-slope*Sx)/n;
+    const yMean=Sy/n;
+    const ssTot=yVals.reduce((a,v)=>a+(v-yMean)**2,0);
+    const ssRes=yVals.reduce((a,v,i)=>a+(v-(slope*xVals[i]+inter))**2,0);
+    r2 = 1-ssRes/ssTot;
+
+    ctx.strokeStyle='#1a5276'; ctx.lineWidth=2.5; ctx.setLineDash([]);
+    ctx.beginPath();
+    ctx.moveTo(cx(xMin), cy(slope*xMin+inter));
+    ctx.lineTo(cx(xMax), cy(slope*xMax+inter)); ctx.stroke();
+
+    if (opts.onRegression) opts.onRegression(slope, inter, r2);
+  }
+
+  // Spline/connect if smooth
+  if (opts.smooth) {
+    const sorted = [...datos].sort((a,b)=>a.x-b.x);
+    ctx.strokeStyle='rgba(26,82,118,.4)'; ctx.lineWidth=1.5; ctx.setLineDash([3,3]);
+    ctx.beginPath();
+    sorted.forEach((p,i)=>{ if(i===0) ctx.moveTo(cx(p.x),cy(p.y)); else ctx.lineTo(cx(p.x),cy(p.y)); });
+    ctx.stroke(); ctx.setLineDash([]);
+  }
+
+  // Points
+  const COLORS=['#1a5276','#c0392b','#1e8449','#b8860b','#6c3483','#117a65','#7b241c','#145a32',
+                '#1a5276','#c0392b','#1e8449','#b8860b','#6c3483','#117a65','#7b241c','#145a32'];
+  datos.forEach((p,i)=>{
+    ctx.fillStyle=COLORS[i%COLORS.length];
+    ctx.beginPath(); ctx.arc(cx(p.x),cy(p.y),4.5,0,Math.PI*2); ctx.fill();
+  });
+
+  return {slope, inter, r2};
+}
+
+// ── Getters de datos de tablas ─────────────────────────────────────────
+function getDatosA(useInv) {
+  const out=[];
+  document.querySelectorAll('#bodyA tr').forEach(tr=>{
+    const v  = parseFloat(tr.querySelector('.ta-v').value);
+    const x  = parseFloat(tr.querySelector('.ta-x').value);
+    const inv= parseFloat(tr.querySelector('.ta-inv').value);
+    if(!isNaN(v)&&!isNaN(x)) out.push({x: useInv?(isNaN(inv)?null:inv):x, y:v});
+  });
+  return out.filter(d=>d.x!==null);
+}
+function getDatosB(useLn) {
+  const out=[];
+  document.querySelectorAll('#bodyB tr').forEach(tr=>{
+    const v  = parseFloat(tr.querySelector('.tb-v').value);
+    const x  = parseFloat(tr.querySelector('.tb-x').value);
+    const ln = parseFloat(tr.querySelector('.tb-ln').value);
+    if(!isNaN(v)&&!isNaN(x)) out.push({x: useLn?(isNaN(ln)?null:ln):x, y:v});
+  });
+  return out.filter(d=>d.x!==null);
+}
+function getDatosC(useAbs) {
+  const out=[];
+  document.querySelectorAll('#bodyC tr').forEach(tr=>{
+    const v  = parseFloat(tr.querySelector('.tc-v').value);
+    const x  = parseFloat(tr.querySelector('.tc-x').value);
+    const ax = parseFloat(tr.querySelector('.tc-ax').value);
+    if(!isNaN(v)&&!isNaN(x)) out.push({x: useAbs?(isNaN(ax)?null:ax):x, y:v});
+  });
+  return out.filter(d=>d.x!==null);
+}
+
+// ── Estado de toggles ──────────────────────────────────────────────────
+let stA1=false, stA2=false, stB1=false, stB2=false, stC1=false, stC2=false;
+
+function dibujarGrafA1() {
+  dibujarGrafica('grafA1', getDatosA(false),
+    {xLabel:'x (u)', yLabel:'V (V)', smooth:stA1});
+  document.getElementById('eqA1').textContent = getDatosA(false).length + ' punto(s)';
+}
+function dibujarGrafA2() {
+  const r = dibujarGrafica('grafA2', getDatosA(true),
+    {xLabel:'1/|x|', yLabel:'V (V)', regression:stA2,
+     onRegression:(m,b,r2)=>{
+       document.getElementById('pendienteA').textContent = `m = ${m.toFixed(4)}`;
+       document.getElementById('eqA2').textContent = `V = ${m.toFixed(4)}·(1/|x|) ${b>=0?'+':''} ${b.toFixed(4)}   |   R² = ${r2.toFixed(4)}`;
+       document.getElementById('aSlope').value = m.toFixed(4);
+       document.getElementById('aR2').value    = r2.toFixed(4);
+       calcA();
+     }});
+}
+function dibujarGrafB1() {
+  dibujarGrafica('grafB1', getDatosB(false),
+    {xLabel:'x (u)', yLabel:'V (V)', smooth:stB1});
+  document.getElementById('eqB1').textContent = getDatosB(false).length + ' punto(s)';
+}
+function dibujarGrafB2() {
+  dibujarGrafica('grafB2', getDatosB(true),
+    {xLabel:'ln(ρ)', yLabel:'V (V)', regression:stB2,
+     onRegression:(m,b,r2)=>{
+       document.getElementById('pendienteB').textContent = `m = ${m.toFixed(4)}`;
+       document.getElementById('eqB2').textContent = `V = ${m.toFixed(4)}·ln(ρ) ${b>=0?'+':''} ${b.toFixed(4)}   |   R² = ${r2.toFixed(4)}`;
+       document.getElementById('bSlope').value = m.toFixed(4);
+       document.getElementById('bR2').value    = r2.toFixed(4);
+       calcB();
+     }});
+}
+function dibujarGrafC1() {
+  dibujarGrafica('grafC1', getDatosC(false),
+    {xLabel:'x (u)', yLabel:'V (V)', smooth:stC1});
+  document.getElementById('eqC1').textContent = getDatosC(false).length + ' punto(s)';
+}
+function dibujarGrafC2() {
+  dibujarGrafica('grafC2', getDatosC(true),
+    {xLabel:'|x|', yLabel:'V (V)', regression:stC2,
+     onRegression:(m,b,r2)=>{
+       document.getElementById('pendienteC').textContent = `m = ${m.toFixed(4)}`;
+       document.getElementById('eqC2').textContent = `V = ${m.toFixed(4)}·|x| ${b>=0?'+':''} ${b.toFixed(4)}   |   R² = ${r2.toFixed(4)}`;
+       document.getElementById('cSlope').value = m.toFixed(4);
+       document.getElementById('cR2').value    = r2.toFixed(4);
+       calcC();
+     }});
+}
+
+// ── Toggles ────────────────────────────────────────────────────────────
+function toggleRegA1(){ stA1=!stA1; document.querySelector('#grafA1').closest('.grafica-box').querySelector('.btn-ctrl').classList.toggle('activo',stA1); dibujarGrafA1(); }
+function toggleRegA2(){ stA2=!stA2; document.getElementById('btnRegA2').classList.toggle('activo',stA2); dibujarGrafA2(); }
+function toggleCurvaB1(){ stB1=!stB1; document.querySelector('#grafB1').closest('.grafica-box').querySelector('.btn-ctrl').classList.toggle('activo',stB1); dibujarGrafB1(); }
+function toggleRegB2(){ stB2=!stB2; document.getElementById('btnRegB2').classList.toggle('activo',stB2); dibujarGrafB2(); }
+function toggleCurvaC1(){ stC1=!stC1; document.querySelector('#grafC1').closest('.grafica-box').querySelector('.btn-ctrl').classList.toggle('activo',stC1); dibujarGrafC1(); }
+function toggleRegC2(){ stC2=!stC2; document.getElementById('btnRegC2').classList.toggle('activo',stC2); dibujarGrafC2(); }
+
+// ── Limpiar ─────────────────────────────────────────────────────────────
+function limpiarA(){
+  document.querySelectorAll('#bodyA input').forEach(i=>{ if(!i.readOnly) i.value=''; else i.value=''; });
+  dibujarGrafA1(); dibujarGrafA2();
+}
+function limpiarB(){
+  document.querySelectorAll('#bodyB input').forEach(i=>i.value='');
+  dibujarGrafB1(); dibujarGrafB2();
+}
+function limpiarC(){
+  document.querySelectorAll('#bodyC input').forEach(i=>i.value='');
+  dibujarGrafC1(); dibujarGrafC2();
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  IMÁGENES
+// ══════════════════════════════════════════════════════════════════════
+function prevImg(input, id) {
+  const f = input.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = e => { const img=document.getElementById(id); if(img){img.src=e.target.result;img.style.display='block';} };
+  r.readAsDataURL(f);
+}
+function prevCaptura(input, id) { prevImg(input, id); }
+
+// ══════════════════════════════════════════════════════════════════════
+//  INICIALIZACIÓN
+// ══════════════════════════════════════════════════════════════════════
+window.addEventListener('load', () => {
+  renderConfigs();
+  buildTablas();
+  // Blank graphs
+  ['grafA1','grafA2','grafB1','grafB2','grafC1','grafC2'].forEach(id=>{
+    const cv=document.getElementById(id); if(!cv)return;
+    const ctx=cv.getContext('2d');
+    cv.width=(cv.offsetWidth||700)*window.devicePixelRatio;
+    ctx.fillStyle='#fafafa'; ctx.fillRect(0,0,cv.width,cv.height);
+    ctx.fillStyle='#bbb'; ctx.font='14px Source Serif 4, serif'; ctx.textAlign='center';
+    ctx.fillText('Ingrese datos en la tabla para visualizar', cv.width/2, cv.height/2);
+  });
+
+  const now = new Date();
+  const sem = now.getMonth()<6?'1':'2';
+  document.getElementById('codigoPractica').textContent =
+    `PRÁCTICA FIS-CAMPO3D-02 · ${now.getFullYear()}-${sem}`;
+  document.querySelectorAll('input[type="date"]').forEach(i=>i.value=now.toISOString().split('T')[0]);
+});
+
+window.addEventListener('resize', ()=>{
+  dibujarGrafA1(); dibujarGrafA2();
+  dibujarGrafB1(); dibujarGrafB2();
+  dibujarGrafC1(); dibujarGrafC2();
+});
+</script>
+<script>
+/* ── Preparar impresión: volcar valores en divs visibles ── */
+(function () {
+  var snapshots = [];
+
+  function prepararImpresion() {
+    snapshots = [];
+    document.querySelectorAll(
+      'textarea, input[type="text"], input[type="date"]'
+    ).forEach(function (el) {
+      var div = document.createElement('div');
+      div.className = 'print-value';
+      div.textContent = el.value !== '' ? el.value : ' ';
+      /* Copiar estilos de tamaño/posición del campo original */
+      div.style.minHeight = (el.offsetHeight || 24) + 'px';
+      el.parentNode.insertBefore(div, el.nextSibling);
+      snapshots.push({ el: el, div: div });
+    });
+  }
+
+  function restaurar() {
+    snapshots.forEach(function (s) {
+      if (s.div.parentNode) s.div.parentNode.removeChild(s.div);
+    });
+    snapshots = [];
+  }
+
+  window.addEventListener('beforeprint', prepararImpresion);
+  window.addEventListener('afterprint',  restaurar);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Práctica 2 — Mediciones e Incertidumbres</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$']]},options:{skipHtmlTags:['script','noscript','style','textarea','pre']}};</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+  :root{--ink:#1a1a2e;--ink-soft:#3d3d5c;--ink-muted:#7a7a9a;--paper:#faf8f3;--paper-alt:#f2ede3;--rule:#d4c9b0;--accent:#1a5276;--accent2:#c0392b;--gold:#b8860b;--green:#1e8449;--mono:'JetBrains Mono',monospace;--serif:'Source Serif 4',Georgia,serif;--display:'Playfair Display',Georgia,serif;}
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;font-size:17px;}
+  body{background:#dde3e8;font-family:var(--serif);color:var(--ink);font-size:1rem;line-height:1.8;padding:0 0 80px;}
+  .documento{max-width:900px;margin:0 auto;background:var(--paper);box-shadow:0 2px 4px rgba(0,0,0,.08),0 8px 32px rgba(0,0,0,.14);position:relative;overflow-x:hidden;}
+  .documento::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:linear-gradient(180deg,var(--accent) 0%,var(--accent2) 50%,var(--gold) 100%);}
+
+  /* HEADER */
+  .header{background:var(--ink);color:#fff;padding:36px 50px 30px 55px;position:relative;overflow:hidden;}
+  .header::after{content:'±';font-family:var(--display);font-size:260px;font-weight:700;color:rgba(255,255,255,.04);position:absolute;right:-10px;top:-40px;line-height:1;pointer-events:none;user-select:none;}
+  .header-meta{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;gap:20px;}
+  .badge-codigo{font-family:var(--mono);font-size:.7em;background:var(--accent);color:#fff;padding:3px 10px;letter-spacing:.12em;text-transform:uppercase;}
+  .badge-tipo{font-family:var(--mono);font-size:.7em;color:rgba(255,255,255,.5);letter-spacing:.1em;text-transform:uppercase;border:1px solid rgba(255,255,255,.15);padding:3px 10px;}
+  .header h1{font-family:var(--display);font-size:2.1em;font-weight:700;line-height:1.2;color:#fff;margin-bottom:6px;}
+  .header h1 em{font-style:italic;color:rgba(255,255,255,.65);font-size:.82em;}
+  .header-sub{font-size:.82em;color:rgba(255,255,255,.45);font-weight:300;letter-spacing:.04em;margin-top:4px;}
+  .header-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px 24px;margin-top:24px;padding-top:20px;border-top:1px solid rgba(255,255,255,.12);}
+  .field-item label{display:block;font-family:var(--mono);font-size:.65em;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.12em;margin-bottom:4px;}
+  .field-item input{width:100%;background:rgba(255,255,255,.07);border:none;border-bottom:1px solid rgba(255,255,255,.25);color:#fff;font-family:var(--serif);font-size:.9em;padding:4px 0;outline:none;transition:border-color .2s;}
+  .field-item input:focus{border-bottom-color:var(--accent2);}
+  .field-item input::placeholder{color:rgba(255,255,255,.2);}
+
+  /* BODY */
+  .body{padding:44px 50px 50px 55px;}
+  .seccion{margin-bottom:42px;}
+  .seccion-titulo{font-family:var(--display);font-size:1.25em;font-weight:600;color:var(--ink);display:flex;align-items:center;gap:12px;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--rule);}
+  .seccion-titulo .num{font-family:var(--mono);font-size:.75em;color:var(--accent);background:#e8f0f7;padding:2px 7px;letter-spacing:.05em;min-width:36px;text-align:center;}
+  .subseccion-titulo{font-family:var(--display);font-size:1.08em;font-weight:600;color:var(--accent);margin:22px 0 10px;display:flex;align-items:center;gap:8px;}
+  .subseccion-titulo::before{content:'';width:14px;height:2px;background:var(--accent);display:inline-block;flex-shrink:0;}
+  p{margin-bottom:10px;color:var(--ink-soft);font-size:1rem;}
+
+  /* LISTAS */
+  .objetivos-lista{list-style:none;padding:0;}
+  .objetivos-lista li{display:flex;gap:12px;align-items:flex-start;padding:8px 0;border-bottom:1px dashed var(--rule);font-size:1rem;color:var(--ink-soft);}
+  .objetivos-lista li:last-child{border-bottom:none;}
+  .objetivos-lista li .obj-num{font-family:var(--mono);font-size:.75em;color:#fff;background:var(--accent);min-width:22px;height:22px;display:flex;align-items:center;justify-content:center;margin-top:2px;flex-shrink:0;}
+
+  /* FÓRMULAS */
+  .formula-box{background:var(--ink);color:#fff;padding:18px 24px;margin:18px 0;position:relative;overflow:hidden;}
+  .formula-box::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent2);}
+  .formula-box .formula-label{font-family:var(--mono);font-size:.65em;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.12em;margin-bottom:10px;}
+  .formula-main{font-size:1.2em;text-align:center;padding:6px 0;}
+  .formula-num{font-family:var(--mono);font-size:.65em;color:rgba(255,255,255,.35);text-align:right;margin-top:6px;}
+  .formula-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0;}
+  .formula-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:18px 0;}
+
+  /* TABLA */
+  .tabla-wrap{overflow-x:auto;margin:16px 0;}
+  table{width:100%;border-collapse:collapse;font-size:.95em;}
+  thead tr{background:var(--ink);color:#fff;}
+  thead th{font-family:var(--mono);font-size:.78em;font-weight:500;letter-spacing:.06em;text-transform:uppercase;padding:12px 10px;text-align:center;}
+  tbody tr:nth-child(even){background:var(--paper-alt);}
+  tbody tr:hover{background:#e8f0f7;}
+  tbody td{padding:8px 10px;border-bottom:1px solid var(--rule);text-align:center;color:var(--ink-soft);font-size:.95em;}
+  tbody td.fila-label{font-family:var(--mono);font-size:.8em;color:var(--ink-muted);text-align:left;padding-left:12px;}
+  input.celda{width:90px;border:none;border-bottom:1px solid var(--rule);background:transparent;font-family:var(--mono);font-size:.95em;color:var(--ink);text-align:center;padding:2px 4px;outline:none;transition:border-color .2s;}
+  input.celda:focus{border-bottom-color:var(--accent);}
+  input.celda.calc{color:var(--accent);background:rgba(26,82,118,.06);border-bottom-color:rgba(26,82,118,.3);}
+  input.celda.prom{color:var(--green);background:rgba(30,132,73,.06);border-bottom-color:rgba(30,132,73,.3);font-weight:500;}
+  input.celda.err{color:var(--accent2);background:rgba(192,57,43,.06);border-bottom-color:rgba(192,57,43,.3);}
+
+  /* RESULTADOS */
+  .resultados-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:18px 0;}
+  .res-card{background:var(--paper-alt);border:1px solid var(--rule);padding:14px 18px;}
+  .res-card label{font-family:var(--mono);font-size:.65em;color:var(--ink-muted);text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:6px;}
+  .res-card input{width:100%;border:none;border-bottom:2px solid var(--rule);background:transparent;font-family:var(--mono);font-size:1.1em;color:var(--accent);font-weight:500;padding:4px 0;outline:none;}
+  .res-card.destacado{border-color:var(--accent);border-left:3px solid var(--accent);}
+  .res-card.error-card{border-left:3px solid var(--accent2);}
+  .res-card.error-card input{color:var(--accent2);}
+
+  /* GRÁFICA */
+  .grafica-wrap{background:#fff;border:1px solid var(--rule);padding:20px;margin:20px 0;}
+  .grafica-titulo{font-family:var(--mono);font-size:.72em;color:var(--ink-muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;}
+  canvas{display:block;width:100%;cursor:crosshair;}
+  .grafica-controles{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;}
+
+  /* BOTONES */
+  .btn{font-family:var(--mono);font-size:.72em;letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--rule);background:var(--paper-alt);color:var(--ink-soft);padding:6px 14px;cursor:pointer;transition:all .15s;}
+  .btn:hover{background:var(--ink);color:#fff;border-color:var(--ink);}
+  .btn.activo{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+  /* PREGUNTAS */
+  .pregunta{display:flex;gap:14px;padding:14px 0;border-bottom:1px dashed var(--rule);align-items:flex-start;}
+  .pregunta:last-child{border-bottom:none;}
+  .preg-num{font-family:var(--mono);font-size:.72em;color:#fff;background:var(--gold);min-width:28px;height:28px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;}
+  .preg-texto{font-size:1rem;color:var(--ink-soft);flex:1;}
+
+  /* ÁREA DE RESPUESTA */
+  .respuesta-div{width:100%;min-height:90px;margin-top:8px;border:1px solid var(--rule);background:var(--paper-alt);font-family:var(--serif);font-size:.95em;color:var(--ink);padding:10px 12px;outline:none;line-height:1.6;cursor:text;white-space:pre-wrap;word-break:break-word;}
+  .respuesta-div:focus{border-color:var(--accent);}
+  .respuesta-div:empty::before{content:attr(data-placeholder);color:var(--ink-muted);font-style:italic;pointer-events:none;}
+
+  /* CAJAS INFO */
+  .info-box{background:#e8f0f7;border-left:3px solid var(--accent);padding:12px 16px;font-size:.95em;color:var(--accent);margin:14px 0;font-style:italic;}
+  .g-ref-box{background:var(--paper-alt);border:1px solid var(--rule);padding:16px;margin:14px 0;}
+  .g-ref-box p{font-family:var(--mono);font-size:.82em;color:var(--ink-soft);margin-bottom:4px;}
+  .precaucion-box{background:#fff3cd;border-left:3px solid var(--gold);padding:10px 14px;font-size:.95em;color:#7c5c00;margin:14px 0;}
+  .precaucion-box strong{font-family:var(--mono);font-size:.85em;letter-spacing:.05em;}
+
+  /* MONTAJE */
+  .montaje-box{background:var(--paper-alt);border:1px solid var(--rule);padding:20px 24px;margin:16px 0;}
+  .montaje-materiales{list-style:none;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;margin-bottom:18px;}
+  .montaje-materiales li{display:flex;align-items:center;gap:8px;font-size:1rem;color:var(--ink-soft);}
+  .montaje-materiales li::before{content:'';width:6px;height:6px;background:var(--accent2);flex-shrink:0;}
+  .pasos-lista{list-style:none;padding:0;counter-reset:pasos;}
+  .pasos-lista li{counter-increment:pasos;display:flex;gap:14px;padding:10px 0;border-bottom:1px dashed var(--rule);font-size:.95em;color:var(--ink-soft);align-items:flex-start;}
+  .pasos-lista li:last-child{border-bottom:none;}
+  .pasos-lista li::before{content:counter(pasos);font-family:var(--mono);font-size:.75em;color:#fff;background:var(--ink);min-width:24px;height:24px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+
+  /* TABLA ERRORES */
+  .tabla-tipos{width:100%;border-collapse:collapse;margin:16px 0;}
+  .tabla-tipos th{background:var(--ink);color:#fff;font-family:var(--mono);font-size:.78em;padding:10px 14px;text-align:left;}
+  .tabla-tipos td{padding:10px 14px;border-bottom:1px solid var(--rule);font-size:.9em;color:var(--ink-soft);}
+  .tabla-tipos tr:nth-child(even) td{background:var(--paper-alt);}
+  .tag-error{display:inline-block;font-family:var(--mono);font-size:.68em;padding:2px 7px;border-radius:2px;font-weight:600;letter-spacing:.06em;}
+  .tag-escala{background:#e8f0f7;color:var(--accent);}
+  .tag-aleatorio{background:#fde8e8;color:var(--accent2);}
+  .tag-sistematico{background:#fef9e7;color:var(--gold);}
+
+  /* VISUALIZADOR (placeholder print) */
+  .vis-print-placeholder{display:none;border:1px dashed #bbb;background:#f9f9f9;padding:18px 20px;font-family:var(--mono);font-size:.82em;color:var(--ink-muted);text-align:center;margin:12px 0;}
+
+  /* BOTÓN IMPRIMIR */
+  .btn-imprimir-wrap{text-align:center;padding:28px 0 10px;border-top:2px solid var(--rule);margin-top:40px;}
+  .btn-imprimir{display:inline-flex;align-items:center;gap:10px;background:var(--ink);color:#fff;border:none;padding:13px 32px;font-family:var(--mono);font-size:.9em;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:background .2s,transform .15s;box-shadow:0 4px 16px rgba(0,0,0,.18);border-radius:4px;}
+  .btn-imprimir:hover{background:var(--accent);transform:translateY(-2px);}
+  .btn-imprimir svg{width:20px;height:20px;flex-shrink:0;}
+
+  /* RESPONSIVE */
+  @media(max-width:900px){.documento{max-width:100%!important;margin:0!important;}.header{padding:28px 24px 24px 30px!important;}.body{padding:28px 24px 32px 30px!important;}.header-fields,.formula-grid,.formula-grid-3,.resultados-grid{grid-template-columns:1fr 1fr!important;}}
+  @media(max-width:640px){html{font-size:15px;}.header{padding:20px 16px 18px 20px!important;}.body{padding:20px 16px 24px 20px!important;}.header h1{font-size:1.7em!important;}.header-fields,.resultados-grid,.formula-grid,.formula-grid-3,.montaje-materiales{grid-template-columns:1fr!important;}.tabla-wrap{-webkit-overflow-scrolling:touch;}table{min-width:480px;}input.celda{width:70px!important;}canvas{max-width:100%;height:auto!important;}}
+
+  /* IMPRESIÓN */
+  @media print{
+    body{background:white!important;padding:0!important;}
+    .documento{box-shadow:none!important;max-width:100%!important;}
+    .btn-imprimir-wrap{display:none!important;}
+    .header,.formula-box,thead tr,.objetivos-lista li .obj-num,.preg-num,.seccion-titulo .num,.pasos-lista li::before{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .respuesta-div{border:1px solid #aaa!important;background:white!important;min-height:0!important;overflow:visible!important;page-break-inside:avoid;}
+    .respuesta-div:empty::before{content:''!important;}
+    input.celda,input.celda.calc,input.celda.prom,input.celda.err{border-bottom:1px solid #999!important;-webkit-appearance:none!important;}
+    .res-card input{border-bottom:2px solid #999!important;}
+    canvas{display:none!important;}
+    .vis-print-placeholder{display:block!important;}
+    .seccion,.montaje-box{page-break-inside:avoid;}
+    table{page-break-inside:auto;min-width:0!important;width:100%!important;}
+    tr{page-break-inside:avoid;page-break-after:auto;}
+    thead{display:table-header-group;}
+    .tabla-wrap{overflow:visible!important;}
+  }
+</style>
+</head>
+<body>
+<div class="documento">
+  <!-- ENCABEZADO -->
+  <div class="header">
+    <div class="header-meta">
+      <span class="badge-codigo" id="codigoPractica">PRÁCTICA FIS-MED-02</span>
+      <span class="badge-tipo">Mecánica · Medición</span>
+    </div>
+    <h1>Mediciones<br><em>e Incertidumbres</em></h1>
+    <div class="header-sub">Departamento de Ciencias Básicas · Institución Universitaria Antonio José Camacho · Cali 2025</div>
+    <div class="header-fields">
+      <div class="field-item"><label>Nombre del estudiante</label><input type="text" placeholder="Apellidos, Nombres"></div>
+      <div class="field-item"><label>Grupo / Sección</label><input type="text" placeholder="Ej. Física I – G2"></div>
+      <div class="field-item"><label>Docente</label><input type="text" placeholder="Nombre del profesor"></div>
+      <div class="field-item"><label>Fecha de realización</label><input type="date"></div>
+    </div>
+  </div>
+
+  <div class="body">
+
+    <!-- SECCIÓN 01: OBJETIVOS -->
+    <div class="seccion">
+      <div class="seccion-titulo"><span class="num">01</span> Objetivos</div>
+      <ul class="objetivos-lista">
+        <li><span class="obj-num">1</span>Estudiar los tipos de error presentes en las mediciones experimentales.</li>
+        <li><span class="obj-num">2</span>Realizar operaciones con incertidumbres usando las reglas de propagación.</li>
+        <li><span class="obj-num">3</span>Determinar experimentalmente el valor del número π midiendo perímetros y diámetros de circunferencias.</li>
+        <li><span class="obj-num">4</span>Aplicar los criterios de precisión y exactitud para evaluar los resultados obtenidos.</li>
+      </ul>
+    </div>
+
+    <!-- SECCIÓN 02: MARCO TEÓRICO -->
+    <div class="seccion">
+      <div class="seccion-titulo"><span class="num">02</span> Marco Teórico</div>
+
+      <div class="subseccion-titulo">Error de escala e incertidumbre</div>
+      <p>Toda medición posee una incertidumbre asociada $\Delta x$ que refleja las limitaciones del instrumento utilizado. El resultado se reporta como:</p>
+      <div class="formula-box">
+        <div class="formula-label">Resultado de una medición</div>
+        <div class="formula-main">$$x \pm \Delta x$$</div>
+        <div class="formula-num">(1)</div>
+      </div>
+      <p>La <strong>incertidumbre relativa</strong> (IR) indica qué tan precisa fue la medición como porcentaje:</p>
+      <div class="formula-box">
+        <div class="formula-label">Incertidumbre relativa</div>
+        <div class="formula-main">$$IR = \frac{\Delta x}{x} \times 100\%$$</div>
+        <div class="formula-num">(2)</div>
+      </div>
+      <p>El <strong>error relativo</strong> (ER) compara el valor experimental con un valor teórico de referencia:</p>
+      <div class="formula-box">
+        <div class="formula-label">Error relativo</div>
+        <div class="formula-main">$$ER = \frac{|x_{\text{exp}} - x_{\text{teo}}|}{x_{\text{teo}}} \times 100\%$$</div>
+        <div class="formula-num">(3)</div>
+      </div>
+
+      <div class="g-ref-box">
+        <p>Criterios de interpretación</p>
+        <p style="color:var(--accent);font-size:.95em;">IR &lt; 1% → Muy preciso &ensp;·&ensp; 1% &lt; IR &lt; 10% → Preciso &ensp;·&ensp; IR &gt; 10% → Poco preciso</p>
+        <p style="color:var(--accent2);font-size:.95em;margin-top:4px;">ER &lt; 1% → Muy exacto &ensp;·&ensp; 1% &lt; ER &lt; 10% → Exacto &ensp;·&ensp; ER &gt; 10% → Poco exacto</p>
+      </div>
+
+      <div class="subseccion-titulo">Operaciones con incertidumbres</div>
+      <p>Cuando los valores medidos se combinan matemáticamente, las incertidumbres se propagan. La siguiente tabla resume las reglas básicas:</p>
+
+      <div class="tabla-wrap">
+        <table>
+          <thead>
+            <tr><th>Operación</th><th>Resultado</th><th>Incertidumbre</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Suma / Resta</td><td>$x \pm y$</td><td>$\Delta x + \Delta y$</td></tr>
+            <tr><td>Multiplicación</td><td>$x \cdot y$</td><td>$x\,\Delta y + y\,\Delta x$</td></tr>
+            <tr><td>División</td><td>$x / y$</td><td>$\dfrac{x\,\Delta y + y\,\Delta x}{y^2}$</td></tr>
+            <tr><td>Potencia</td><td>$x^n$</td><td>$n\,x^{n-1}\,\Delta x$</td></tr>
+            <tr><td>Escalar</td><td>$\lambda \cdot x$</td><td>$\lambda\,\Delta x$</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size:.88em;color:var(--ink-muted);margin-top:6px;">Caso general — diferencial total: $\displaystyle\Delta f = \left|\frac{\partial f}{\partial x}\right|\Delta x + \left|\frac{\partial f}{\partial y}\right|\Delta y$ &ensp;(4)</p>
+
+      <div class="subseccion-titulo">Número π y la circunferencia</div>
+      <p>El número π se obtiene como la razón entre el perímetro $P$ y el diámetro $d$ de cualquier circunferencia:</p>
+      <div class="formula-grid">
+        <div class="formula-box">
+          <div class="formula-label">Definición de π</div>
+          <div class="formula-main">$$\pi = \frac{P}{d}$$</div>
+          <div class="formula-num">(5)</div>
+        </div>
+        <div class="formula-box">
+          <div class="formula-label">Incertidumbre de π</div>
+          <div class="formula-main">$$\Delta\pi = \frac{P\,\Delta d + d\,\Delta P}{d^2}$$</div>
+          <div class="formula-num">(6)</div>
+        </div>
+      </div>
+      <div class="g-ref-box">
+        <p>Valor teórico de referencia</p>
+        <p style="color:var(--accent);font-size:1em;">π<sub>teo</sub> = 3,1416 (valor adoptado en esta práctica)</p>
+      </div>
+    </div>
+
+    <!-- SECCIÓN 03: TIPOS DE ERROR -->
+    <div class="seccion">
+      <div class="seccion-titulo"><span class="num">03</span> Tipos de Error en las Mediciones</div>
+      <div class="tabla-wrap">
+        <table class="tabla-tipos">
+          <thead><tr><th>Tipo</th><th>Descripción</th><th>Ejemplo</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><span class="tag-error tag-escala">ESCALA</span></td>
+              <td>Limitación de la resolución del instrumento. Es la mínima división que puede discriminar.</td>
+              <td>Regla: $\Delta x = \pm 0{,}1$ cm &ensp;·&ensp; Cinta métrica: $\Delta x = \pm 0{,}1$ cm</td>
+            </tr>
+            <tr>
+              <td><span class="tag-error tag-aleatorio">ALEATORIO</span></td>
+              <td>Factores externos no controlables que generan dispersión en mediciones repetidas.</td>
+              <td>Error humano (reacción), condiciones ambientales, falta de definición del objeto medido</td>
+            </tr>
+            <tr>
+              <td><span class="tag-error tag-sistematico">SISTEMÁTICO</span></td>
+              <td>Errores de procedimiento reproducibles que sesgan todas las mediciones en la misma dirección.</td>
+              <td>Error de cero, error de paralaje, modelo teórico inadecuado, interacción instrumento–sistema</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Cuando hay errores aleatorios se realizan <strong>N</strong> mediciones y se reporta la media aritmética y la desviación estándar del valor medio:</p>
+      <div class="formula-grid">
+        <div class="formula-box">
+          <div class="formula-label">Media aritmética</div>
+          <div class="formula-main">$$\bar{x} = \frac{1}{N}\sum_{i=1}^{N} x_i$$</div>
+          <div class="formula-num">(7)</div>
+        </div>
+        <div class="formula-box">
+          <div class="formula-label">Desviación estándar del valor medio</div>
+          <div class="formula-main">$$\Delta x = \sigma_{\bar{x}} = \sqrt{\frac{\sum(x_i - \bar{x})^2}{N(N-1)}}$$</div>
+          <div class="formula-num">(8)</div>
+        </div>
+      </div>
+      <div class="info-box">Nota: Si $\sigma_{\bar{x}}$ supera el error de escala del instrumento, se usa $\Delta x = \sigma_{\bar{x}}$; de lo contrario, $\Delta x =$ error de escala.</div>
+    </div>
+
+    <!-- SECCIÓN M: MONTAJE -->
+    <div class="seccion" id="sec-montaje">
+      <div class="seccion-titulo"><span class="num">M</span> Montaje Experimental</div>
+      <div class="montaje-box">
+        <div class="subseccion-titulo">Materiales</div>
+        <ul class="montaje-materiales">
+          <li>Cinta métrica (precisión ±0,1 cm)</li>
+          <li>Regla graduada</li>
+          <li>5 objetos circulares de distinto diámetro</li>
+          <li>Hilo o cuerda delgada</li>
+          <li>Cronómetro (para sección 2)</li>
+          <li>Hoja de papel milimetrado o Excel</li>
+        </ul>
+        <ol class="pasos-lista">
+          <li>Reúna 5 objetos con sección circular (platos, vasos, monedas, tapas, tubos). Anote un código identificador para cada uno (C1–C5).</li>
+          <li>Para medir el <strong>perímetro</strong>: enrolle el hilo alrededor de la sección circular completa, marque el punto de cierre y mida la longitud del hilo con la cinta métrica.</li>
+          <li>Para medir el <strong>diámetro</strong>: mida la distancia entre los dos puntos más alejados de la circunferencia utilizando la cinta métrica o la regla.</li>
+          <li>Registre los valores en la Tabla 1 con la resolución completa del instrumento (hasta décimas de centímetro).</li>
+          <li>Calcule $\pi = P / d$ y la incertidumbre $\Delta\pi$ para cada círculo.</li>
+          <li>Entregue una copia de la tabla a su docente antes de abandonar el laboratorio.</li>
+        </ol>
+        <div class="precaucion-box"><strong>⚠ Precauciones:</strong> Asegúrese de que el hilo no quede holgado ni demasiado tenso al medir el perímetro. Realice cada medición al menos dos veces y reporte el promedio. Lea la cinta siempre en posición perpendicular para evitar el error de paralaje.</div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN 04: TOMA DE DATOS -->
+    <div class="seccion">
+      <div class="seccion-titulo"><span class="num">04</span> Toma de Datos — Número π</div>
+      <div class="info-box">Instrumento: Cinta métrica · Precisión: ±0,1 cm · Valor teórico: π = 3,1416</div>
+      <p>Registre el perímetro y el diámetro de cada círculo. El cociente π y su incertidumbre se calculan automáticamente.</p>
+
+      <p style="font-family:var(--mono);font-size:.8em;color:var(--ink-muted);margin-bottom:4px;">Incertidumbre del instrumento: ΔP = Δd = ±0,1 cm</p>
+
+      <div class="tabla-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Círculo</th>
+              <th>P (cm)</th>
+              <th>d (cm)</th>
+              <th>π = P/d</th>
+              <th>Δπ</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-pi"></tbody>
+        </table>
+      </div>
+
+      <div class="resultados-grid">
+        <div class="res-card destacado">
+          <label>π promedio</label>
+          <input id="res-pi-prom" readonly placeholder="—">
+        </div>
+        <div class="res-card destacado">
+          <label>Incertidumbre Δπ (desv. estándar)</label>
+          <input id="res-pi-delta" readonly placeholder="—">
+        </div>
+        <div class="res-card">
+          <label>Incertidumbre relativa IR (%)</label>
+          <input id="res-pi-ir" readonly placeholder="—">
+        </div>
+        <div class="res-card error-card">
+          <label>Error relativo ER (%)</label>
+          <input id="res-pi-er" readonly placeholder="—">
+        </div>
+      </div>
+
+      <!-- GRÁFICA P vs d -->
+      <div class="grafica-wrap">
+        <div class="grafica-titulo">Gráfica P vs d &ensp;—&ensp; Número π (pendiente = π)</div>
+        <canvas id="canvas-pi" height="340"></canvas>
+        <div class="vis-print-placeholder">[ Diagrama interactivo — visible en pantalla ]</div>
+        <div class="grafica-controles">
+          <button class="btn activo" id="btn-reg" onclick="toggleReg()">Regresión lineal</button>
+          <button class="btn" onclick="exportGraf()">Exportar PNG</button>
+          <span id="info-graf" style="font-family:var(--mono);font-size:.72em;color:var(--ink-muted);align-self:center;"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN 05: ERRORES ALEATORIOS (persona 1 y 2) -->
+    <div class="seccion">
+      <div class="seccion-titulo"><span class="num">05</span> Errores Aleatorios — Tiempo de Caída</div>
+      <p>Dos personas miden 10 veces el tiempo de caída de un objeto. Ingrese los datos de cada persona y calcule la estadística correspondiente.</p>
+      <div class="info-box">Instrumento: Cronómetro · Precisión: ±0,01 s · Valor teórico del tiempo: <input id="in-tteo" type="text" placeholder="__ s" style="width:60px;border:none;border-bottom:1px solid var(--accent);background:transparent;font-family:var(--mono);font-size:.95em;color:var(--accent);padding:0 2px;outline:none;"></div>
+
+      <div class="formula-grid">
+        <div>
+          <div class="subseccion-titulo">Persona 1</div>
+          <div class="tabla-wrap">
+            <table>
+              <thead><tr><th>Ensayo</th><th>t (s)</th></tr></thead>
+              <tbody id="tbody-p1"></tbody>
+            </table>
+          </div>
+          <div class="resultados-grid" style="grid-template-columns:1fr;">
+            <div class="res-card destacado"><label>t̄ ± Δt (Persona 1)</label><input id="res-p1" readonly placeholder="— ± —"></div>
+            <div class="res-card"><label>IR Persona 1 (%)</label><input id="res-p1-ir" readonly placeholder="—"></div>
+            <div class="res-card error-card"><label>ER Persona 1 (%)</label><input id="res-p1-er" readonly placeholder="—"></div>
+          </div>
+        </div>
+        <div>
+          <div class="subseccion-titulo">Persona 2</div>
+          <div class="tabla-wrap">
+            <table>
+              <thead><tr><th>Ensayo</th><th>t (s)</th></tr></thead>
+              <tbody id="tbody-p2"></tbody>
+            </table>
+          </div>
+          <div class="resultados-grid" style="grid-template-columns:1fr;">
+            <div class="res-card destacado"><label>t̄ ± Δt (Persona 2)</label><input id="res-p2" readonly placeholder="— ± —"></div>
+            <div class="res-card"><label>IR Persona 2 (%)</label><input id="res-p2-ir" readonly placeholder="—"></div>
+            <div class="res-card error-card"><label>ER Persona 2 (%)</label><input id="res-p2-er" readonly placeholder="—"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN 06: PREGUNTAS -->
+    <div class="seccion">
+      <div class="seccion-titulo"><span class="num">06</span> Análisis y Preguntas</div>
+
+      <div class="pregunta">
+        <span class="preg-num">1</span>
+        <div class="preg-texto">Con los datos de la Tabla 1, obtenga el promedio y la incertidumbre de π. ¿Fue exacto y preciso el resultado? Justifique usando IR y ER.
+          <div class="respuesta-div" contenteditable="true" data-placeholder="Desarrolle aquí su respuesta…"></div>
+        </div>
+      </div>
+
+      <div class="pregunta">
+        <span class="preg-num">2</span>
+        <div class="preg-texto">¿Qué significado físico tiene la pendiente de la gráfica P vs d? ¿Coincide con el valor teórico de π? Calcule el ER de la pendiente.
+          <div class="respuesta-div" contenteditable="true" data-placeholder="Desarrolle aquí su respuesta…"></div>
+        </div>
+      </div>
+
+      <div class="pregunta">
+        <span class="preg-num">3</span>
+        <div class="preg-texto">Compare las mediciones de las dos personas en la sección de errores aleatorios. ¿Cuál fue más precisa? ¿Cuál fue más exacta? ¿Por qué pueden diferir los valores aunque usen el mismo cronómetro?
+          <div class="respuesta-div" contenteditable="true" data-placeholder="Desarrolle aquí su respuesta…"></div>
+        </div>
+      </div>
+
+      <div class="pregunta">
+        <span class="preg-num">4</span>
+        <div class="preg-texto">Identifique al menos dos errores sistemáticos y dos errores aleatorios presentes en esta práctica. Proponga una mejora para cada uno.
+          <div class="respuesta-div" contenteditable="true" data-placeholder="Desarrolle aquí su respuesta…"></div>
+        </div>
+      </div>
+
+      <div class="pregunta">
+        <span class="preg-num">5</span>
+        <div class="preg-texto">Se midió el radio de un círculo $r = 5{,}23 \pm 0{,}01$ cm. Calcule el área con su incertidumbre correspondiente. Muestre el procedimiento completo.
+          <div class="respuesta-div" contenteditable="true" data-placeholder="A = π·r² → ΔA = 2π·r·Δr …"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN 07: REFERENCIAS -->
+    <div class="seccion">
+      <div class="seccion-titulo"><span class="num">07</span> Referencias</div>
+      <p style="font-size:1rem;color:var(--ink-muted);">[1] Serway, R. A. &amp; Jewett, J. W. (2009). <em>Física para Ciencias e Ingeniería</em> (7ª ed.). Cengage.</p>
+      <p style="font-size:1rem;color:var(--ink-muted);">[2] Sears, F. W., Zemansky, M. W., Young, H. D. &amp; Freedman, R. A. (2013). <em>Física Universitaria Vol. 1</em> (13ª ed.). Pearson.</p>
+      <p style="font-size:1rem;color:var(--ink-muted);">[3] Giancoli, D. C. (2008). <em>Física para Ciencias e Ingeniería Vol. 1</em> (4ª ed.). Pearson.</p>
+      <p style="font-size:1rem;color:var(--ink-muted);">[4] Taylor, J. R. (1997). <em>An Introduction to Error Analysis</em> (2ª ed.). University Science Books.</p>
+    </div>
+
+  </div><!-- /body -->
+</div><!-- /documento -->
+
+<!-- BOTÓN IMPRIMIR -->
+<div class="btn-imprimir-wrap">
+  <button class="btn-imprimir" onclick="window.print()">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="6 9 6 2 18 2 18 9"/>
+      <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+      <rect x="6" y="14" width="12" height="8"/>
+    </svg>
+    Imprimir / Guardar como PDF
+  </button>
+</div>
+
+<script>
+/* =============================================
+   TABLA PI — 5 CÍRCULOS
+   ============================================= */
+const PI_REF = 3.1416;
+const DELTA_INS = 0.1; // cm, incertidumbre de la cinta
+let dataPi = Array.from({length:5},(_,i)=>({id:i+1,P:null,d:null,pi:null,dpi:null}));
+let showReg = true;
+
+function buildTablaPi(){
+  const tb = document.getElementById('tbody-pi');
+  tb.innerHTML='';
+  dataPi.forEach((r,i)=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML =
+      `<td class="fila-label">C${r.id}</td>`+
+      `<td><input class="celda" type="text" inputmode="decimal" placeholder="0.0" oninput="onPi(${i},'P',this.value)"></td>`+
+      `<td><input class="celda" type="text" inputmode="decimal" placeholder="0.0" oninput="onPi(${i},'d',this.value)"></td>`+
+      `<td><input class="celda calc" id="pi-val-${i}" readonly placeholder="—"></td>`+
+      `<td><input class="celda err" id="dpi-val-${i}" readonly placeholder="—"></td>`;
+    tb.appendChild(tr);
+  });
+}
+
+function pn(s){return parseFloat((s||'').replace(',','.'))}
+function ft(n,d){return isNaN(n)||n===null?'—':n.toFixed(d)}
+
+function onPi(i,campo,val){
+  dataPi[i][campo]=pn(val);
+  calcFilaPi(i);
+  calcResumenPi();
+  dibujar();
+}
+
+function calcFilaPi(i){
+  const P=dataPi[i].P, d=dataPi[i].d;
+  if(!P||!d||isNaN(P)||isNaN(d)||d===0) return;
+  const pi = P/d;
+  const dpi = (P*DELTA_INS + d*DELTA_INS)/(d*d);
+  dataPi[i].pi=pi;
+  dataPi[i].dpi=dpi;
+  document.getElementById(`pi-val-${i}`).value = ft(pi,4);
+  document.getElementById(`dpi-val-${i}`).value = ft(dpi,4);
+}
+
+function calcResumenPi(){
+  const pts = dataPi.filter(r=>r.pi!==null&&!isNaN(r.pi));
+  if(!pts.length) return;
+  const prom = pts.reduce((s,r)=>s+r.pi,0)/pts.length;
+  let delta = 0;
+  if(pts.length>=2){
+    const ss = pts.reduce((s,r)=>s+(r.pi-prom)**2,0);
+    delta = Math.sqrt(ss/(pts.length*(pts.length-1)));
+  } else {
+    delta = pts[0].dpi||DELTA_INS;
+  }
+  const ir = (delta/prom)*100;
+  const er = Math.abs(prom-PI_REF)/PI_REF*100;
+  document.getElementById('res-pi-prom').value = ft(prom,4);
+  document.getElementById('res-pi-delta').value = ft(delta,4);
+  document.getElementById('res-pi-ir').value = ft(ir,2)+' %';
+  document.getElementById('res-pi-er').value = ft(er,2)+' %';
+}
+
+/* =============================================
+   TABLA PERSONAS (errores aleatorios)
+   ============================================= */
+const N_ENS = 10;
+let dataP1 = Array(N_ENS).fill(null);
+let dataP2 = Array(N_ENS).fill(null);
+
+function buildTablaPersonas(){
+  ['p1','p2'].forEach(pid=>{
+    const tb = document.getElementById(`tbody-${pid}`);
+    tb.innerHTML='';
+    for(let i=0;i<N_ENS;i++){
+      const tr=document.createElement('tr');
+      tr.innerHTML=
+        `<td class="fila-label">${i+1}</td>`+
+        `<td><input class="celda" type="text" inputmode="decimal" placeholder="0.00" oninput="onPersona('${pid}',${i},this.value)"></td>`;
+      tb.appendChild(tr);
+    }
+  });
+}
+
+function onPersona(pid,i,val){
+  if(pid==='p1') dataP1[i]=pn(val);
+  else           dataP2[i]=pn(val);
+  calcPersona(pid);
+}
+
+function calcPersona(pid){
+  const data = pid==='p1'?dataP1:dataP2;
+  const tteoEl = document.getElementById('in-tteo');
+  const tteo = pn(tteoEl.value);
+  const vals = data.filter(v=>v!==null&&!isNaN(v)&&v>0);
+  if(!vals.length) return;
+  const mean = vals.reduce((a,b)=>a+b,0)/vals.length;
+  let delta = 0.01; // error de escala
+  if(vals.length>=2){
+    const ss = vals.reduce((s,v)=>s+(v-mean)**2,0);
+    const sd = Math.sqrt(ss/(vals.length*(vals.length-1)));
+    if(sd>0.01) delta=sd;
+  }
+  const ir = (delta/mean)*100;
+  document.getElementById(`res-${pid}`).value = ft(mean,3)+' ± '+ft(delta,3)+' s';
+  document.getElementById(`res-${pid}-ir`).value = ft(ir,2)+' %';
+  if(!isNaN(tteo)&&tteo>0){
+    const er = Math.abs(mean-tteo)/tteo*100;
+    document.getElementById(`res-${pid}-er`).value = ft(er,2)+' %';
+  } else {
+    document.getElementById(`res-${pid}-er`).value = '(ingrese t teórico)';
+  }
+}
+
+document.getElementById('in-tteo').addEventListener('input',function(){
+  calcPersona('p1');
+  calcPersona('p2');
+});
+
+/* =============================================
+   GRÁFICA P vs d
+   ============================================= */
+const COLS=['#1a5276','#c0392b','#1e8449','#b8860b','#7d3c98'];
+
+function regLin(xs,ys){
+  const n=xs.length,sx=xs.reduce((a,b)=>a+b,0),sy=ys.reduce((a,b)=>a+b,0);
+  const sxy=xs.reduce((s,x,i)=>s+x*ys[i],0),sx2=xs.reduce((s,x)=>s+x*x,0);
+  const m=(n*sxy-sx*sy)/(n*sx2-sx**2),b=(sy-m*sx)/n;
+  const ym=sy/n,ss=ys.reduce((s,y)=>s+(y-ym)**2,0),sr=ys.reduce((s,y,i)=>s+(y-(m*xs[i]+b))**2,0);
+  return{m,b,r2:ss>0?1-sr/ss:0};
+}
+
+function dibujar(){
+  const cv=document.getElementById('canvas-pi');
+  const ctx=cv.getContext('2d');
+  const W=cv.offsetWidth||700;
+  cv.width=W*devicePixelRatio; cv.height=340*devicePixelRatio;
+  cv.style.width=W+'px'; cv.style.height='340px';
+  ctx.scale(devicePixelRatio,devicePixelRatio);
+  const w=W,h=340,PAD={top:28,right:28,bottom:52,left:66};
+  const pw=w-PAD.left-PAD.right,ph=h-PAD.top-PAD.bottom;
+  const pts=dataPi.filter(r=>r.P!==null&&r.d!==null&&!isNaN(r.P)&&!isNaN(r.d)).map(r=>({x:r.d,y:r.P}));
+  ctx.fillStyle='#fafafa';ctx.fillRect(0,0,w,h);
+  ctx.fillStyle='#f5f5f5';ctx.fillRect(PAD.left,PAD.top,pw,ph);
+  let xMax=pts.length>0?Math.max(...pts.map(p=>p.x))*1.2:20;
+  let yMax=pts.length>0?Math.max(...pts.map(p=>p.y))*1.2:80;
+  xMax=Math.max(xMax,2);yMax=Math.max(yMax,10);
+  const cx=v=>PAD.left+(v/xMax)*pw, cy=v=>PAD.top+ph-(v/yMax)*ph;
+  ctx.strokeStyle='#e0e0e0';ctx.lineWidth=1;
+  for(let i=0;i<=6;i++){const x=cx(i*xMax/6);ctx.beginPath();ctx.moveTo(x,PAD.top);ctx.lineTo(x,PAD.top+ph);ctx.stroke();}
+  for(let i=0;i<=5;i++){const y=cy(i*yMax/5);ctx.beginPath();ctx.moveTo(PAD.left,y);ctx.lineTo(PAD.left+pw,y);ctx.stroke();}
+  ctx.strokeStyle='#333';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(PAD.left,PAD.top);ctx.lineTo(PAD.left,PAD.top+ph);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(PAD.left,PAD.top+ph);ctx.lineTo(PAD.left+pw,PAD.top+ph);ctx.stroke();
+  ctx.fillStyle='#555';ctx.font='11px JetBrains Mono, monospace';ctx.textAlign='center';
+  for(let i=0;i<=6;i++) ctx.fillText((i*xMax/6).toFixed(1),cx(i*xMax/6),PAD.top+ph+16);
+  ctx.textAlign='right';
+  for(let i=0;i<=5;i++) ctx.fillText((i*yMax/5).toFixed(1),PAD.left-6,cy(i*yMax/5)+4);
+  ctx.fillStyle='#333';ctx.font='bold 12px Source Serif 4, serif';ctx.textAlign='center';
+  ctx.fillText('Diámetro  d  (cm)',PAD.left+pw/2,h-8);
+  ctx.save();ctx.translate(14,PAD.top+ph/2);ctx.rotate(-Math.PI/2);ctx.fillText('Perímetro  P  (cm)',0,0);ctx.restore();
+  if(showReg&&pts.length>=2){
+    const{m,b,r2}=regLin(pts.map(p=>p.x),pts.map(p=>p.y));
+    ctx.strokeStyle='#1a5276';ctx.lineWidth=2;ctx.setLineDash([6,4]);
+    ctx.beginPath();ctx.moveTo(cx(0),cy(b));ctx.lineTo(cx(xMax),cy(m*xMax+b));ctx.stroke();ctx.setLineDash([]);
+    const er_m=Math.abs(m-PI_REF)/PI_REF*100;
+    document.getElementById('info-graf').textContent=`pendiente m = ${ft(m,4)}  ·  ER = ${ft(er_m,2)} %  ·  R² = ${ft(r2*100,2)} %`;
+  }
+  pts.forEach((p,i)=>{
+    ctx.fillStyle=COLS[i%COLS.length];
+    ctx.beginPath();ctx.arc(cx(p.x),cy(p.y),5,0,Math.PI*2);ctx.fill();
+    ctx.font='bold 10px JetBrains Mono, monospace';ctx.textAlign='left';
+    ctx.fillText(`C${dataPi.filter(r=>r.P!==null&&r.d!==null)[i]?.id||i+1}`,cx(p.x)+8,cy(p.y)-5);
+  });
+  if(!pts.length){ctx.fillStyle='#bbb';ctx.font='13px Source Serif 4, serif';ctx.textAlign='center';ctx.fillText('Ingrese los valores de P y d en la tabla para ver los puntos aquí',PAD.left+pw/2,PAD.top+ph/2);}
+}
+
+function toggleReg(){
+  showReg=!showReg;
+  document.getElementById('btn-reg').classList.toggle('activo',showReg);
+  dibujar();
+}
+
+function exportGraf(){
+  const a=document.createElement('a');a.download='grafica_numero_pi.png';a.href=document.getElementById('canvas-pi').toDataURL();a.click();
+}
+
+/* =============================================
+   INIT
+   ============================================= */
+window.addEventListener('load',()=>{
+  buildTablaPi();
+  buildTablaPersonas();
+  dibujar();
+  const now=new Date(),sem=now.getMonth()<6?'1':'2';
+  document.getElementById('codigoPractica').textContent=`PRÁCTICA FIS-MED-02 · ${now.getFullYear()}-${sem}`;
+  document.querySelectorAll('input[type="date"]').forEach(i=>i.value=new Date().toISOString().split('T')[0]);
+});
+window.addEventListener('resize',dibujar);
+</script>
+
+</body>
+</html>

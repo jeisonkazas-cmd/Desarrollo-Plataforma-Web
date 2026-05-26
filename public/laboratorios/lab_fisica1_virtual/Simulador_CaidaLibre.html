@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Laboratorio Virtual - Caída Libre</title>
+    <style>
+        :root { --bg-color: #ffffff; --text-color: #000000; --panel-bg: rgba(245, 245, 245, 0.95); }
+        body.dark-mode { --bg-color: #121212; --text-color: #e0e0e0; --panel-bg: rgba(30, 30, 30, 0.95); }
+        body { margin: 0; overflow: hidden; font-family: 'Segoe UI', sans-serif; background-color: var(--bg-color); color: var(--text-color); transition: 0.3s; touch-action: manipulation; }
+        
+        #ui-layer { 
+            position: absolute; top: 10px; left: 10px; 
+            background: var(--panel-bg); padding: 15px; 
+            border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.15); 
+            width: 300px; z-index: 100; max-height: 90vh; 
+            overflow-y: auto; transition: transform 0.4s ease;
+        }
+        #ui-layer.hidden { transform: translateX(-110%); }
+
+        #toggle-menu {
+            position: absolute; bottom: 20px; left: 20px; z-index: 1001; 
+            background: #2c3e50; color: white; border: none; 
+            width: 50px; height: 50px; border-radius: 50%;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3); font-size: 20px; transition: 0.3s;
+        }
+
+        #planet-tag { background: #2c3e50; color: #ecf0f1; padding: 10px; border-radius: 8px; margin-bottom: 15px; text-align: center; border-bottom: 3px solid #e74c3c; }
+        #timer-display { font-family: 'Courier New', Courier, monospace; font-size: 2em; font-weight: bold; text-align: center; margin: 10px 0; color: #e74c3c; background: rgba(0,0,0,0.05); border-radius: 8px; padding: 5px 0; border: 1px solid rgba(231, 76, 60, 0.3); }
+        
+        .control-group { margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 10px; }
+        input[type=range] { width: 100%; margin: 12px 0; cursor: pointer; height: 25px; }
+        
+        button { width: 100%; padding: 12px; margin-top: 5px; cursor: pointer; border-radius: 8px; border: none; color: white; font-weight: bold; font-size: 14px; }
+        #start-btn { background: #27ae60; }
+        #reset-btn { background: #3498db; }
+        #csv-btn { background: #f39c12; }
+        #clear-btn { background: #e74c3c; }
+        #cap-btn { background: #9b59b6; }
+
+        /* ── BOTÓN RETO ── */
+        #reto-btn {
+            background: linear-gradient(135deg, #1a1a2e, #8b0000);
+            color: #fff; font-size: 15px; letter-spacing: 0.04em;
+            border: 2px solid #e74c3c;
+            box-shadow: 0 0 12px rgba(231,76,60,0.4);
+            animation: pulse-reto 2.5s ease-in-out infinite;
+            margin-top: 10px;
+        }
+        @keyframes pulse-reto {
+            0%, 100% { box-shadow: 0 0 8px rgba(231,76,60,0.3); }
+            50%       { box-shadow: 0 0 20px rgba(231,76,60,0.7); }
+        }
+
+        table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 10px; background: white; }
+        body.dark-mode table { background: #222; color: #eee; }
+        th, td { border: 1px solid #888; padding: 6px; text-align: center; }
+
+        @media (max-width: 600px) { #ui-layer { width: 85%; font-size: 0.9em; } }
+
+        /* ══════════════════════════
+           MODAL RETO
+        ══════════════════════════ */
+        #reto-overlay {
+            display: none;
+            position: fixed; inset: 0; z-index: 2000;
+            background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(4px);
+            align-items: center; justify-content: center;
+        }
+        #reto-overlay.active { display: flex; }
+
+        #reto-modal {
+            background: #fff;
+            border-radius: 16px;
+            width: 92%; max-width: 420px;
+            max-height: 92vh; overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            animation: slideUp 0.35s cubic-bezier(.16,1,.3,1);
+        }
+        body.dark-mode #reto-modal { background: #1e1e2e; color: #e0e0e0; }
+        @keyframes slideUp {
+            from { transform: translateY(40px); opacity: 0; }
+            to   { transform: translateY(0);    opacity: 1; }
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #1a1a2e, #8b0000);
+            color: #fff; padding: 20px 22px;
+            border-radius: 16px 16px 0 0;
+            display: flex; align-items: flex-start; justify-content: space-between;
+        }
+        .modal-header h3 { margin: 0 0 4px; font-size: 1.15em; }
+        .modal-header p  { margin: 0; font-size: 0.78em; opacity: 0.75; }
+        .modal-close {
+            background: none; border: none; color: #fff;
+            font-size: 22px; cursor: pointer; padding: 0;
+            width: auto; line-height: 1; opacity: 0.8;
+        }
+        .modal-close:hover { opacity: 1; }
+
+        .modal-body { padding: 20px 22px; }
+
+        /* Pantallas del reto */
+        .reto-screen { display: none; }
+        .reto-screen.active { display: block; }
+
+        /* Instrucción objetivo */
+        .objetivo-box {
+            background: #fff3cd; border: 1px solid #e6b800;
+            border-radius: 10px; padding: 14px 16px; margin-bottom: 14px;
+            text-align: center;
+        }
+        body.dark-mode .objetivo-box { background: #2a2200; border-color: #e6b800; }
+        .objetivo-label { font-size: 0.7em; text-transform: uppercase; letter-spacing: 0.1em; color: #888; margin-bottom: 4px; }
+        .objetivo-val { font-family: 'Courier New', monospace; font-size: 2em; font-weight: bold; color: #8b0000; }
+        body.dark-mode .objetivo-val { color: #e74c3c; }
+        .objetivo-val span { font-size: 0.5em; color: #666; }
+
+        /* Input de la respuesta */
+        .input-group { margin-bottom: 14px; }
+        .input-group label { font-size: 0.82em; font-weight: 600; display: block; margin-bottom: 5px; }
+        .input-group input[type=number], .input-group input[type=text] {
+            width: 100%; padding: 11px 14px; border-radius: 8px;
+            border: 2px solid #ccc; font-size: 1em;
+            font-family: 'Courier New', monospace;
+            background: #f9f9f9; color: #111;
+            box-sizing: border-box;
+        }
+        body.dark-mode .input-group input { background: #2a2a3e; border-color: #444; color: #eee; }
+        .input-group input:focus { border-color: #3498db; outline: none; }
+        .input-group .hint { font-size: 0.73em; color: #888; margin-top: 4px; }
+
+        /* Formula box */
+        .formula-reto {
+            background: #eef6ff; border: 1px solid #bde0ff;
+            border-radius: 8px; padding: 12px 16px;
+            font-family: 'Courier New', monospace; font-size: 0.92em;
+            color: #1a5276; text-align: center; margin: 10px 0;
+        }
+        body.dark-mode .formula-reto { background: #0d2035; border-color: #1a5276; color: #7fb8e8; }
+
+        /* Steps numbered */
+        .step-list { list-style: none; padding: 0; margin: 0 0 14px; }
+        .step-list li {
+            display: flex; gap: 10px; align-items: flex-start;
+            font-size: 0.85em; margin-bottom: 8px; color: #444;
+        }
+        body.dark-mode .step-list li { color: #ccc; }
+        .step-num {
+            min-width: 22px; height: 22px; border-radius: 50%;
+            background: #2c3e50; color: #fff;
+            font-size: 0.75em; font-weight: bold;
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+        }
+
+        /* Botones del modal */
+        .btn-reto-accion {
+            width: 100%; padding: 13px; border-radius: 10px; border: none;
+            font-size: 1em; font-weight: bold; cursor: pointer; margin-top: 8px;
+        }
+        .btn-verificar { background: #27ae60; color: #fff; }
+        .btn-verificar:disabled { background: #95a5a6; cursor: not-allowed; }
+        .btn-reintentar { background: #3498db; color: #fff; }
+        .btn-cerrar-reto { background: #7f8c8d; color: #fff; }
+
+        /* Resultado del reto */
+        #reto-resultado {
+            border-radius: 12px; padding: 18px; text-align: center;
+            margin-top: 14px; transition: all 0.4s;
+        }
+        #reto-resultado.aprobado {
+            background: #eafaf1; border: 2px solid #27ae60;
+        }
+        #reto-resultado.aceptable {
+            background: #fef9e7; border: 2px solid #f39c12;
+        }
+        #reto-resultado.fallido {
+            background: #fdedec; border: 2px solid #e74c3c;
+        }
+        body.dark-mode #reto-resultado.aprobado  { background: #0a2a1a; }
+        body.dark-mode #reto-resultado.aceptable { background: #2a1f00; }
+        body.dark-mode #reto-resultado.fallido   { background: #2a0a0a; }
+
+        .resultado-emoji { font-size: 2.8em; display: block; margin-bottom: 6px; }
+        .resultado-titulo { font-size: 1.1em; font-weight: bold; margin-bottom: 4px; }
+        .resultado-detalle { font-size: 0.82em; color: #555; line-height: 1.5; }
+        body.dark-mode .resultado-detalle { color: #aaa; }
+
+        /* Tabla de tolerancias */
+        .tol-table { width: 100%; border-collapse: collapse; font-size: 0.78em; margin-top: 10px; }
+        .tol-table th { background: #2c3e50; color: #fff; padding: 6px; }
+        .tol-table td { padding: 6px; border: 1px solid #ddd; text-align: center; }
+        .tol-table tr.active-row td { font-weight: bold; background: #fffacd; }
+        body.dark-mode .tol-table td { border-color: #444; }
+        body.dark-mode .tol-table tr.active-row td { background: #2a2a00; }
+
+        /* Progreso de intentos */
+        .intentos-bar { display: flex; gap: 6px; justify-content: center; margin: 10px 0; }
+        .intento-dot {
+            width: 12px; height: 12px; border-radius: 50%;
+            background: #ddd; transition: background 0.3s;
+        }
+        .intento-dot.ok   { background: #27ae60; }
+        .intento-dot.fail { background: #e74c3c; }
+        .intento-dot.warn { background: #f39c12; }
+
+        /* Divider */
+        .sep { border: none; border-top: 1px solid #eee; margin: 14px 0; }
+        body.dark-mode .sep { border-color: #333; }
+    </style>
+</head>
+<body>
+
+<button id="mode-toggle" style="position: absolute; top: 20px; right: 20px; background: none; border: 2px solid var(--text-color); border-radius: 50%; width: 45px; height: 45px; cursor: pointer; color: var(--text-color); font-size: 20px; display: flex; align-items: center; justify-content: center; z-index: 1000;">🌙</button>
+
+<!-- PANEL PRINCIPAL -->
+<div id="ui-layer">
+    <div id="planet-tag">
+        <div style="font-size: 0.7em; opacity: 0.8;">LABORATORIO DE CAÍDA LIBRE</div>
+        <h2 id="planet-name" style="margin: 5px 0;">Cargando...</h2>
+        <div style="font-size: 0.85em; color: #f1c40f;">Gravedad g = <span id="g-text">0.00</span> m/s²</div>
+    </div>
+
+    <div class="control-group">
+        <label>Altura de Lanzamiento: <span id="hVal">2.50</span> (m)</label>
+        <input type="range" id="hSlider" min="0.5" max="4.5" step="0.05" value="2.5">
+        <div id="timer-display">0.000s</div>
+        <button id="start-btn" onclick="handleStart()">Soltar Esfera</button>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px;">
+            <button id="reset-btn" onclick="resetSim()">Reiniciar</button>
+            <button id="csv-btn" onclick="exportCSV()">Exportar CSV</button>
+        </div>
+        <button id="clear-btn" onclick="clearData()" style="margin-top: 8px;">Limpiar Tabla</button>
+        <button id="cap-btn" onclick="captureImage()" style="margin-top: 8px;">Captura Imagen</button>
+
+        <!-- ★ BOTÓN RETO ★ -->
+        <button id="reto-btn" onclick="abrirReto()">🎯 MODO RETO — Parte C</button>
+    </div>
+
+    <div style="max-height: 200px; overflow-y: auto;">
+        <table id="dataTable">
+            <thead><tr><th>#</th><th>Altura y(m)</th><th>Tiempo t(s)</th></tr></thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<button id="toggle-menu" onclick="toggleUIPanel()">⬅️</button>
+
+<!-- ══════════════════════════════════════
+     MODAL DEL RETO
+══════════════════════════════════════ -->
+<div id="reto-overlay">
+  <div id="reto-modal">
+    <div class="modal-header">
+      <div>
+        <h3>🎯 Reto de Predicción — Parte C</h3>
+        <p>Usa tu g<sub>exp</sub> para predecir la altura correcta</p>
+      </div>
+      <button class="modal-close" onclick="cerrarReto()">✕</button>
+    </div>
+
+    <div class="modal-body">
+
+      <!-- ── PANTALLA 1: Instrucciones + Ingreso de g_exp ── -->
+      <div id="screen-intro" class="reto-screen active">
+        <div class="objetivo-box">
+          <div class="objetivo-label">⏱ Tiempo objetivo del docente</div>
+          <div class="objetivo-val" id="tiempo-objetivo-display">—<span> s</span></div>
+        </div>
+
+        <ul class="step-list">
+          <li><span class="step-num">1</span> El docente te da un <strong>tiempo objetivo T</strong>.</li>
+          <li><span class="step-num">2</span> Ingresa tu <strong>g<sub>exp</sub></strong> medido en la práctica.</li>
+          <li><span class="step-num">3</span> El reto calcula la altura <strong>h = ½ · g · T²</strong>.</li>
+          <li><span class="step-num">4</span> Ajusta el <strong>slider</strong> a esa altura y suelta la esfera.</li>
+          <li><span class="step-num">5</span> Si el tiempo medido cumple la tolerancia, <strong>¡apruebas!</strong></li>
+        </ul>
+
+        <div class="input-group">
+          <label>⏱ Tiempo objetivo T (s) — dado por el docente</label>
+          <input type="number" id="input-T" placeholder="Ej: 0.620" step="0.001" min="0.1" max="10" oninput="calcularH()">
+          <div class="hint">Introduce el valor que te indicó tu profesor/a.</div>
+        </div>
+
+        <div class="input-group">
+          <label>📐 Tu g<sub>exp</sub> calculado en la práctica (m/s²)</label>
+          <input type="number" id="input-gexp" placeholder="Ej: 9.76" step="0.001" min="0.1" max="30" oninput="calcularH()">
+          <div class="hint">Usa el valor de g que obtuviste en la Parte A o B.</div>
+        </div>
+
+        <div class="formula-reto" id="formula-display">
+          h = ½ · g<sub>exp</sub> · T²  →  <strong id="h-calculada">ingresa T y g primero</strong>
+        </div>
+
+        <button class="btn-reto-accion btn-verificar" id="btn-ir-reto" onclick="irAlReto()" disabled>
+          Ir al simulador a verificar →
+        </button>
+      </div>
+
+      <!-- ── PANTALLA 2: Esperando medición ── -->
+      <div id="screen-medir" class="reto-screen">
+        <div class="objetivo-box">
+          <div class="objetivo-label">🎯 Configura el slider en</div>
+          <div class="objetivo-val" id="h-objetivo-display">—<span> m</span></div>
+          <div style="font-size:0.78em; color:#888; margin-top:4px;">
+            T objetivo = <span id="T-ref-display" style="font-weight:bold; color:#8b0000;">—</span> s
+          </div>
+        </div>
+
+        <ul class="step-list">
+          <li><span class="step-num">1</span> Cierra este modal con la <strong>X</strong>.</li>
+          <li><span class="step-num">2</span> Ajusta el <strong>slider</strong> exactamente a <strong id="h-slider-hint">— m</strong>.</li>
+          <li><span class="step-num">3</span> Pulsa <strong>"Soltar Esfera"</strong> y observa el tiempo.</li>
+          <li><span class="step-num">4</span> Anota el tiempo medido y vuelve aquí.</li>
+        </ul>
+
+        <div class="input-group">
+          <label>⏱ Tiempo medido en el simulador (s)</label>
+          <input type="number" id="input-tmedido" placeholder="Ej: 0.618" step="0.001" min="0" max="20" oninput="habilitarVerificar()">
+        </div>
+
+        <div class="intentos-bar" id="intentos-bar"></div>
+
+        <button class="btn-reto-accion btn-verificar" id="btn-verificar" onclick="verificarReto()" disabled>
+          ✅ Verificar resultado
+        </button>
+        <button class="btn-reto-accion btn-cerrar-reto" onclick="cerrarReto()" style="margin-top:6px;">
+          ✕ Cerrar y medir en el simulador
+        </button>
+      </div>
+
+      <!-- ── PANTALLA 3: Resultado ── -->
+      <div id="screen-resultado" class="reto-screen">
+        <div id="reto-resultado">
+          <span class="resultado-emoji" id="res-emoji">—</span>
+          <div class="resultado-titulo" id="res-titulo">—</div>
+          <div class="resultado-detalle" id="res-detalle">—</div>
+        </div>
+
+        <hr class="sep">
+
+        <table class="tol-table" id="tol-table">
+          <thead><tr><th>Diferencia |ΔT|</th><th>Resultado</th></tr></thead>
+          <tbody>
+            <tr id="tol-row-a"><td>|ΔT| ≤ 0.03 s</td><td>✅ Predicción perfecta</td></tr>
+            <tr id="tol-row-b"><td>0.03 s &lt; |ΔT| ≤ 0.07 s</td><td>⚠️ Predicción aceptable</td></tr>
+            <tr id="tol-row-c"><td>|ΔT| &gt; 0.07 s</td><td>❌ Revisar y repetir</td></tr>
+          </tbody>
+        </table>
+
+        <hr class="sep">
+
+        <div class="intentos-bar" id="intentos-bar-res"></div>
+
+        <button class="btn-reto-accion btn-reintentar" onclick="volverAMedir()" id="btn-reintentar">
+          🔄 Volver a medir
+        </button>
+        <button class="btn-reto-accion" onclick="nuevoReto()" style="background:#8b0000; color:#fff; margin-top:6px;">
+          🎲 Nuevo tiempo objetivo
+        </button>
+        <button class="btn-reto-accion btn-cerrar-reto" onclick="cerrarReto()" style="margin-top:6px;">
+          ✕ Cerrar
+        </button>
+      </div>
+
+    </div><!-- /modal-body -->
+  </div><!-- /reto-modal -->
+</div><!-- /reto-overlay -->
+
+
+<script type="importmap">
+    { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "orbit": "https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js" } }
+</script>
+
+<script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'orbit';
+
+    const planetas = [
+        { n: "Mercurio", g: 3.7 },  { n: "Venus",   g: 8.87 },
+        { n: "Tierra",  g: 9.81 },  { n: "Marte",   g: 3.71 },
+        { n: "Júpiter", g: 24.79 }, { n: "Saturno", g: 10.44 },
+        { n: "Urano",   g: 8.69 },  { n: "Neptuno", g: 11.15 },
+        { n: "Plutón",  g: 0.62 }
+    ];
+
+    const miPlaneta = planetas[Math.floor(Math.random() * planetas.length)];
+    let scene, camera, renderer, controls, sphere, sensorA, sensorB;
+    let hNominal = 2.5;
+    const g = miPlaneta.g;
+    let dataLog = [];
+    let running = false, startTime = 0, vActual = 0;
+    const radioEsfera = 0.15;      // radio visual en la escena 3D
+    const radioEsferaReal = 0.015; // radio físico real = 1.5 cm
+    const ALTURA_IMPACTO = 0.35;
+
+    // Exponer g al scope global para el reto
+    window._g_real = g;
+    window._miPlaneta = miPlaneta.n;
+    window._radioEsfera = radioEsferaReal;
+
+    init();
+    animate();
+
+    function init() {
+        document.getElementById('planet-name').innerText = miPlaneta.n;
+        document.getElementById('g-text').innerText = miPlaneta.g;
+
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xffffff);
+        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(4, 3, 6);
+
+        renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        controls = new OrbitControls(camera, renderer.domElement);
+        controls.target.set(0, 1.5, 0);
+        controls.enableDamping = true;
+
+        const metalMat = new THREE.MeshPhongMaterial({ color: 0x7f8c8d, specular: 0xffffff, shininess: 100 });
+        scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+        dirLight.position.set(5, 10, 5);
+        scene.add(dirLight);
+
+        const vRod = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 5), metalMat);
+        vRod.position.set(-0.8, 2.5, 0);
+        scene.add(vRod);
+
+        createGlobalRuler();
+
+        sensorA = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.1, 0.4),
+            new THREE.MeshPhongMaterial({ color: 0x34495e }));
+        sensorA.position.set(-0.4, hNominal + 0.25, 0);
+        scene.add(sensorA);
+
+        const baseGroup = new THREE.Group();
+        const hb = new THREE.Mesh(new THREE.BoxGeometry(2, 0.15, 2),
+            new THREE.MeshPhongMaterial({ color: 0x2c3e50 }));
+        hb.position.y = 0.075; baseGroup.add(hb);
+        sensorB = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.05, 1.6),
+            new THREE.MeshPhongMaterial({ color: 0xbdc3c7, specular: 0xffffff, shininess: 80 }));
+        sensorB.position.y = 0.175; baseGroup.add(sensorB);
+        scene.add(baseGroup);
+
+        sphere = new THREE.Mesh(new THREE.SphereGeometry(radioEsfera, 32, 32),
+            new THREE.MeshPhongMaterial({ color: 0x2980b9 }));
+        scene.add(sphere);
+
+        document.getElementById('hSlider').addEventListener('input', (e) => {
+            if (running) return;
+            hNominal = parseFloat(e.target.value);
+            document.getElementById('hVal').innerText = hNominal.toFixed(2);
+            updatePositions();
+        });
+
+        document.getElementById('mode-toggle').addEventListener('click', () => {
+            const isDark = document.body.classList.toggle('dark-mode');
+            scene.background = new THREE.Color(isDark ? 0x121212 : 0xffffff);
+        });
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        updatePositions();
+    }
+
+    function createGlobalRuler() {
+        const rulerHeight = 5.0;
+        const canvas = document.createElement('canvas');
+        canvas.width = 256; canvas.height = 2048;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#f1c40f'; ctx.fillRect(0, 0, 256, 2048);
+        ctx.fillStyle = '#000'; ctx.textAlign = 'left';
+        const ppm = 2048 / rulerHeight;
+        for (let i = 0; i <= 500; i++) {
+            const y = 2048 - (i * (ppm / 100));
+            const isMeter = i % 100 === 0, isDeci = i % 10 === 0;
+            ctx.fillRect(256 - (isMeter ? 120 : isDeci ? 80 : 40), y,
+                         isMeter ? 120 : isDeci ? 80 : 40, isMeter ? 4 : 2);
+            if (isDeci) {
+                ctx.font = isMeter ? 'bold 60px Arial' : '40px Arial';
+                ctx.fillText((i / 100).toFixed(1) + "m", 10, y + 15);
+            }
+        }
+        const rulerMesh = new THREE.Mesh(
+            new THREE.PlaneGeometry(0.3, rulerHeight),
+            new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(canvas), side: THREE.DoubleSide })
+        );
+        rulerMesh.position.set(-0.95, 2.70, 0.06);
+        scene.add(rulerMesh);
+    }
+
+    function updatePositions() {
+        if (!running) {
+            sensorA.position.y = hNominal + 0.25;
+            sphere.position.set(0, (hNominal + 0.25) - radioEsfera - 0.05, 0);
+            sensorB.material.color.set(0xbdc3c7);
+            sensorA.material.color.set(0x34495e);
+            vActual = 0;
+        }
+    }
+
+    window.handleStart = function () {
+        if (window.innerWidth < 600) toggleUIPanel(true);
+        startFall();
+    };
+
+    window.startFall = function () {
+        if (running) return;
+        running = true;
+        vActual = 0;
+        startTime = performance.now();
+        sensorA.material.color.set(0x27ae60);
+        document.getElementById('start-btn').disabled = true;
+    };
+
+    window.resetSim = function () {
+        running = false;
+        updatePositions();
+        document.getElementById('timer-display').innerText = "0.000s";
+        document.getElementById('start-btn').disabled = false;
+    };
+
+    window.clearData = function () {
+        dataLog = [];
+        document.getElementById("tableBody").innerHTML = "";
+    };
+
+    window.toggleUIPanel = function (forceClose = false) {
+        const panel = document.getElementById('ui-layer');
+        const btn   = document.getElementById('toggle-menu');
+        if (forceClose) {
+            panel.classList.add('hidden'); btn.innerText = "➡️";
+        } else {
+            panel.classList.toggle('hidden');
+            btn.innerText = panel.classList.contains('hidden') ? "➡️" : "⬅️";
+        }
+    };
+
+    window.exportCSV = function () {
+        if (dataLog.length === 0) return alert("No hay datos registrados.");
+        let csv = "Ensayo;Altura_m;Tiempo_s;Gravedad_ms2;Planeta\n";
+        dataLog.forEach(r => {
+            csv += `${r.n};${r.h.replace('.', ',')};${r.t.replace('.', ',')};${g.toString().replace('.', ',')};${miPlaneta.n}\n`;
+        });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' }));
+        link.download = `datos_${miPlaneta.n}.csv`;
+        link.click();
+    };
+
+    window.captureImage = function () {
+        const link = document.createElement('a');
+        link.download = `captura_${miPlaneta.n}.png`;
+        link.href = renderer.domElement.toDataURL();
+        link.click();
+    };
+
+    function animate() {
+        requestAnimationFrame(animate);
+        controls.update();
+        if (running) {
+            const dt = 0.016;
+            vActual += g * dt;
+            sphere.position.y -= vActual * dt;
+            document.getElementById('timer-display').innerText =
+                ((performance.now() - startTime) / 1000).toFixed(3) + "s";
+
+            if (sphere.position.y <= ALTURA_IMPACTO) {
+                running = false;
+                sphere.position.y = ALTURA_IMPACTO;
+                sensorB.material.color.set(0xe74c3c);
+
+                const deltaH = hNominal - 0.30;
+                const tTeorico = Math.sqrt((2 * deltaH) / g);
+                const error = 0.001 + Math.random() * 0.004;
+                const tFinal = tTeorico + error;
+
+                const registro = { n: dataLog.length + 1, h: hNominal.toFixed(3), t: tFinal.toFixed(3) };
+                dataLog.push(registro);
+                document.getElementById('timer-display').innerText = registro.t + "s";
+
+                const row = document.getElementById("tableBody").insertRow(-1);
+                row.innerHTML = `<td>${registro.n}</td><td>${registro.h}</td><td style="color:#e74c3c;font-weight:bold;">${registro.t}</td>`;
+
+                if (window.innerWidth < 600) toggleUIPanel(false);
+            }
+        }
+        renderer.render(scene, camera);
+    }
+</script>
+
+<!-- ══════════════════════════════════════
+     LÓGICA DEL RETO (script normal, accede al DOM)
+══════════════════════════════════════ -->
+<script>
+    // ── Estado del reto ──────────────────────────────
+    let retoT       = null;   // Tiempo objetivo generado
+    let retoH       = null;   // Altura calculada por el estudiante
+    let retoGexp    = null;   // g_exp ingresado por el estudiante
+    let intentos    = [];     // historial de intentos [{delta, resultado}]
+    const MAX_INTENTOS = 3;
+
+    // ── Generar tiempo objetivo ──────────────────────
+    // Alturas limitadas entre 0.50 m y 4.0 m
+    function generarTiempoObjetivo() {
+        const hRef = 0.50 + Math.random() * 3.50;  // rango 0.50 m a 4.0 m
+        const deltaH = Math.max(0.1, hRef - 0.30);  // resta diámetro real de la esfera (30 cm)
+        const gReal = window._g_real || 9.81;
+        const T = Math.sqrt((2 * deltaH) / gReal);
+        // Redondear a 2 dec para simular que el docente lo da redondeado
+        return Math.round(T * 100) / 100;
+    }
+
+    // ── Abrir modal ──────────────────────────────────
+    window.abrirReto = function () {
+        const esNuevo = !retoT;
+        if (esNuevo) retoT = generarTiempoObjetivo();
+
+        document.getElementById('tiempo-objetivo-display').innerHTML =
+            retoT.toFixed(2) + '<span> s</span>';
+        document.getElementById('input-T').value = retoT.toFixed(2);
+
+        // Solo resetear si es reto nuevo, no al reabrir el modal
+        if (esNuevo) {
+            document.getElementById('input-gexp').value = '';
+            document.getElementById('h-calculada').textContent = 'ingresa g primero';
+            document.getElementById('btn-ir-reto').disabled = true;
+            mostrarPantalla('screen-intro');
+        }
+
+        document.getElementById('reto-overlay').classList.add('active');
+    };
+
+    window.cerrarReto = function () {
+        document.getElementById('reto-overlay').classList.remove('active');
+    };
+
+    // ── Calcular h sugerida ──────────────────────────
+    window.calcularH = function () {
+        const T    = parseFloat(document.getElementById('input-T').value);
+        const gexp = parseFloat(document.getElementById('input-gexp').value);
+        const btn  = document.getElementById('btn-ir-reto');
+
+        if (T > 0 && gexp > 0) {
+            const h = 0.5 * gexp * T * T;
+            retoH    = h;
+            retoGexp = gexp;
+            retoT    = T;
+            document.getElementById('h-calculada').textContent = h.toFixed(3) + ' m';
+            document.getElementById('tiempo-objetivo-display').innerHTML =
+                T.toFixed(2) + '<span> s</span>';
+            // Validar rango del slider (0.5 a 4.5 m)
+            if (h >= 0.50 && h <= 4.0) {
+                btn.disabled = false;
+                btn.textContent = `Ir al simulador → ajusta slider a ${h.toFixed(3)} m`;
+            } else {
+                btn.disabled = true;
+                btn.textContent = h < 0.50
+                    ? '⚠ h muy pequeña — revisa tu g_exp o T'
+                    : '⚠ h fuera de rango (máx 4.0 m) — revisa g_exp o T';
+            }
+        } else {
+            document.getElementById('h-calculada').textContent = 'ingresa T y g primero';
+            document.getElementById('btn-ir-reto').disabled = true;
+        }
+    };
+
+    // ── Ir a pantalla de medición ─────────────────────
+    window.irAlReto = function () {
+        if (!retoH) return;
+        document.getElementById('h-objetivo-display').innerHTML =
+            retoH.toFixed(3) + '<span> m</span>';
+        document.getElementById('T-ref-display').textContent = retoT.toFixed(2);
+        document.getElementById('h-slider-hint').textContent = retoH.toFixed(3) + ' m';
+        document.getElementById('input-tmedido').value = '';
+        document.getElementById('btn-verificar').disabled = true;
+        renderIntentosBar('intentos-bar');
+        mostrarPantalla('screen-medir');
+    };
+
+    window.habilitarVerificar = function () {
+        const val = parseFloat(document.getElementById('input-tmedido').value);
+        document.getElementById('btn-verificar').disabled = !(val > 0);
+    };
+
+    // ── Verificar resultado ──────────────────────────
+    window.verificarReto = function () {
+        const tMedido = parseFloat(document.getElementById('input-tmedido').value);
+        if (!tMedido || tMedido <= 0) return;
+
+        const delta = Math.abs(retoT - tMedido);
+        let tipo;
+        if      (delta <= 0.03) tipo = 'aprobado';
+        else if (delta <= 0.07) tipo = 'aceptable';
+        else                    tipo = 'fallido';
+
+        intentos.push({ delta, tipo, tMedido });
+
+        // Rellenar resultado
+        const res = document.getElementById('reto-resultado');
+        res.className = tipo;
+
+        const emojis   = { aprobado: '🏆', aceptable: '⚠️', fallido: '❌' };
+        const titulos  = { aprobado: '¡Predicción perfecta!', aceptable: 'Predicción aceptable', fallido: 'Predicción incorrecta — inténtalo de nuevo' };
+        const detalles = {
+            aprobado:  `T objetivo: ${retoT.toFixed(3)} s  ·  T medido: ${tMedido.toFixed(3)} s\n|ΔT| = ${delta.toFixed(3)} s ≤ 0.03 s ✅\n\nTu cálculo h = ½ · ${retoGexp.toFixed(3)} · ${retoT.toFixed(3)}² = ${retoH.toFixed(3)} m fue excelente.`,
+            aceptable: `T objetivo: ${retoT.toFixed(3)} s  ·  T medido: ${tMedido.toFixed(3)} s\n|ΔT| = ${delta.toFixed(3)} s  (límite: 0.07 s) ⚠️\n\nAceptable. Verifica si el slider quedó exactamente en ${retoH.toFixed(3)} m.`,
+            fallido:   `T objetivo: ${retoT.toFixed(3)} s  ·  T medido: ${tMedido.toFixed(3)} s\n|ΔT| = ${delta.toFixed(3)} s > 0.07 s ❌\n\nRevisa: ¿Es correcto tu g_exp? ¿Ajustaste el slider a ${retoH.toFixed(3)} m exactamente?`
+        };
+
+        document.getElementById('res-emoji').textContent   = emojis[tipo];
+        document.getElementById('res-titulo').textContent  = titulos[tipo];
+        document.getElementById('res-detalle').style.whiteSpace = 'pre-line';
+        document.getElementById('res-detalle').textContent = detalles[tipo];
+
+        // Tabla de tolerancias — resaltar fila activa
+        document.getElementById('tol-row-a').classList.remove('active-row');
+        document.getElementById('tol-row-b').classList.remove('active-row');
+        document.getElementById('tol-row-c').classList.remove('active-row');
+        if      (tipo === 'aprobado')  document.getElementById('tol-row-a').classList.add('active-row');
+        else if (tipo === 'aceptable') document.getElementById('tol-row-b').classList.add('active-row');
+        else                           document.getElementById('tol-row-c').classList.add('active-row');
+
+        renderIntentosBar('intentos-bar-res');
+
+        // Deshabilitar reintentar si ya alcanzó máx intentos
+        const btnR = document.getElementById('btn-reintentar');
+        if (intentos.length >= MAX_INTENTOS || tipo === 'aprobado') {
+            btnR.disabled = true;
+            btnR.textContent = tipo === 'aprobado'
+                ? '🏆 ¡Completado!'
+                : `Máximo de ${MAX_INTENTOS} intentos alcanzado`;
+        } else {
+            btnR.disabled = false;
+            btnR.textContent = `🔄 Volver a medir (intento ${intentos.length + 1}/${MAX_INTENTOS})`;
+        }
+
+        mostrarPantalla('screen-resultado');
+    };
+
+    window.volverAMedir = function () {
+        if (intentos.length >= MAX_INTENTOS) return;
+        document.getElementById('input-tmedido').value = '';
+        document.getElementById('btn-verificar').disabled = true;
+        renderIntentosBar('intentos-bar');
+        mostrarPantalla('screen-medir');
+    };
+
+    window.nuevoReto = function () {
+        intentos = [];
+        retoT    = generarTiempoObjetivo();
+        retoH    = null;
+        retoGexp = null;
+        document.getElementById('tiempo-objetivo-display').innerHTML =
+            retoT.toFixed(2) + '<span> s</span>';
+        document.getElementById('input-T').value    = retoT.toFixed(2);
+        document.getElementById('input-gexp').value = '';
+        document.getElementById('h-calculada').textContent = 'ingresa g primero';
+        document.getElementById('btn-ir-reto').disabled = true;
+        mostrarPantalla('screen-intro');
+    };
+
+    // ── Helpers ──────────────────────────────────────
+    function mostrarPantalla(id) {
+        ['screen-intro', 'screen-medir', 'screen-resultado'].forEach(s => {
+            document.getElementById(s).classList.remove('active');
+        });
+        document.getElementById(id).classList.add('active');
+    }
+
+    function renderIntentosBar(containerId) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        let html = '';
+        for (let i = 0; i < MAX_INTENTOS; i++) {
+            const intento = intentos[i];
+            const cls = !intento ? '' :
+                        intento.tipo === 'aprobado'  ? 'ok'   :
+                        intento.tipo === 'aceptable' ? 'warn' : 'fail';
+            html += `<div class="intento-dot ${cls}" title="${intento ? '|ΔT|=' + intento.delta.toFixed(3) + 's' : 'Pendiente'}"></div>`;
+        }
+        container.innerHTML = html;
+    }
+</script>
+
+</body>
+</html>

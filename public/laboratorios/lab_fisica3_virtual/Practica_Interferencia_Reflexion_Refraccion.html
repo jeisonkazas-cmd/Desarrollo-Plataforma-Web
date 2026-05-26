@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Práctica de Laboratorio — Interferencia, Reflexión y Refracción</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>
+  MathJax = {
+    tex: { inlineMath: [['$','$'],['\\(','\\)']], displayMath: [['$$','$$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+  :root {
+    --ink:       #1a1a2e;
+    --ink-soft:  #3d3d5c;
+    --ink-muted: #7a7a9a;
+    --paper:     #faf8f3;
+    --paper-alt: #f2ede3;
+    --rule:      #d4c9b0;
+    --accent:    #1a5276;
+    --accent2:   #c0392b;
+    --gold:      #b8860b;
+    --green:     #1e8449;
+    --mono:      'JetBrains Mono', monospace;
+    --serif:     'Source Serif 4', Georgia, serif;
+    --display:   'Playfair Display', Georgia, serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: #dde3e8;
+    font-family: var(--serif);
+    color: var(--ink);
+    font-size: 17px;
+    line-height: 1.8;
+    min-height: 100vh;
+    padding: 30px 15px 80px;
+  }
+  .documento {
+    max-width: 860px;
+    margin: 0 auto;
+    background: var(--paper);
+    box-shadow: 0 2px 4px rgba(0,0,0,.08), 0 8px 32px rgba(0,0,0,.14), 0 20px 60px rgba(0,0,0,.08);
+    position: relative;
+    overflow-x: hidden;
+  }
+  .documento::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0; width: 5px;
+    background: linear-gradient(180deg, var(--accent) 0%, var(--accent2) 50%, var(--gold) 100%);
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--ink);
+    color: #fff;
+    padding: 36px 50px 30px 55px;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::after {
+    content: '∿';
+    font-family: var(--display);
+    font-size: 300px;
+    font-weight: 700;
+    font-style: italic;
+    color: rgba(255,255,255,.04);
+    position: absolute;
+    right: -10px; top: -60px;
+    line-height: 1;
+    pointer-events: none;
+    user-select: none;
+  }
+  .header-meta { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; gap: 20px; }
+  .badge-codigo { font-family: var(--mono); font-size: .72em; background: var(--accent); color: #fff; padding: 3px 10px; letter-spacing: .12em; text-transform: uppercase; }
+  .badge-tipo   { font-family: var(--mono); font-size: .72em; color: rgba(255,255,255,.5); letter-spacing: .1em; text-transform: uppercase; border: 1px solid rgba(255,255,255,.15); padding: 3px 10px; }
+  .header h1 { font-family: var(--display); font-size: 2.1em; font-weight: 700; line-height: 1.2; color: #fff; margin-bottom: 6px; }
+  .header h1 em { font-style: italic; color: rgba(255,255,255,.65); font-size: .82em; }
+  .header-sub { font-size: .82em; color: rgba(255,255,255,.45); font-weight: 300; letter-spacing: .04em; margin-top: 4px; }
+  .header-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 24px; margin-top: 24px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,.12); }
+  .field-item label { display: block; font-family: var(--mono); font-size: .68em; color: rgba(255,255,255,.4); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 4px; }
+  .field-item input[type="text"], .field-item input[type="date"] { width: 100%; background: rgba(255,255,255,.07); border: none; border-bottom: 1px solid rgba(255,255,255,.25); color: #fff; font-family: var(--serif); font-size: .9em; padding: 4px 0; outline: none; transition: border-color .2s; }
+  .field-item input:focus { border-bottom-color: var(--accent2); }
+  .field-item input::placeholder { color: rgba(255,255,255,.2); }
+
+  /* ── BODY ── */
+  .body { padding: 44px 50px 50px 55px; }
+  .seccion { margin-bottom: 42px; }
+  .seccion-titulo { font-family: var(--display); font-size: 1.1em; font-weight: 600; color: var(--ink); display: flex; align-items: center; gap: 12px; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 2px solid var(--rule); }
+  .seccion-titulo .num { font-family: var(--mono); font-size: .72em; color: var(--accent); background: #e8f0f7; padding: 2px 7px; letter-spacing: .05em; min-width: 36px; text-align: center; }
+  .subseccion-titulo { font-family: var(--display); font-size: .98em; font-weight: 600; color: var(--accent); margin: 22px 0 10px; display: flex; align-items: center; gap: 8px; }
+  .subseccion-titulo::before { content: ''; width: 14px; height: 2px; background: var(--accent); display: inline-block; flex-shrink: 0; }
+  p { margin-bottom: 10px; color: var(--ink-soft); font-size: 1em; }
+  p:last-child { margin-bottom: 0; }
+
+  /* ── RESUMEN ── */
+  .resumen-box { background: var(--paper-alt); border-left: 3px solid var(--accent); padding: 16px 20px; font-size: .9em; font-style: italic; color: var(--ink-soft); line-height: 1.7; }
+
+  /* ── OBJETIVOS ── */
+  .objetivos-lista { list-style: none; padding: 0; }
+  .objetivos-lista li { display: flex; gap: 12px; align-items: flex-start; padding: 8px 0; border-bottom: 1px dashed var(--rule); font-size: .93em; color: var(--ink-soft); }
+  .objetivos-lista li:last-child { border-bottom: none; }
+  .objetivos-lista li .obj-num { font-family: var(--mono); font-size: .75em; color: #fff; background: var(--accent); min-width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; margin-top: 2px; flex-shrink: 0; }
+
+  /* ── FÓRMULAS ── */
+  .formula-box { background: var(--ink); color: #fff; padding: 18px 24px; margin: 18px 0; position: relative; overflow: hidden; }
+  .formula-box::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent2); }
+  .formula-box.acento-azul::before  { background: var(--accent); }
+  .formula-box.acento-oro::before   { background: var(--gold); }
+  .formula-box.acento-verde::before { background: var(--green); }
+  .formula-box .formula-label { font-family: var(--mono); font-size: .65em; color: rgba(255,255,255,.4); text-transform: uppercase; letter-spacing: .12em; margin-bottom: 10px; }
+  .formula-main { font-size: 1.2em; text-align: center; padding: 6px 0; }
+  .formula-num  { font-family: var(--mono); font-size: .65em; color: rgba(255,255,255,.35); text-align: right; margin-top: 6px; }
+  .formula-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; }
+
+  /* ── TABLA DATOS ── */
+  .tabla-resultados { width: 100%; border-collapse: collapse; font-size: .92em; margin: 14px 0; }
+  .tabla-resultados th { background: var(--ink); color: #fff; font-family: var(--mono); font-size: .72em; letter-spacing: .05em; padding: 10px 8px; text-align: center; font-weight: 500; border: 1px solid #444; }
+  .tabla-resultados td { padding: 8px 8px; border: 1px solid var(--rule); text-align: center; color: var(--ink-soft); vertical-align: middle; }
+  .tabla-resultados td.input-cell { padding: 3px 4px; }
+  .tabla-resultados input[type="text"] { width: 100%; border: none; border-bottom: 1px solid var(--rule); background: transparent; font-family: var(--mono); font-size: .88em; color: var(--ink); padding: 4px 4px; text-align: center; outline: none; transition: border-color .2s; }
+  .tabla-resultados input:focus { border-bottom-color: var(--accent); }
+  .tabla-resultados tr:nth-child(even) td { background: var(--paper-alt); }
+  .tabla-resultados .row-label { font-family: var(--mono); font-size: .82em; font-weight: 500; color: var(--accent); }
+  .th-unc { background: #3d1c1c !important; color: #f9c5c5 !important; }
+
+  /* ── PASOS ── */
+  .paso { display: flex; gap: 16px; margin-bottom: 20px; align-items: flex-start; }
+  .paso-num { font-family: var(--mono); font-size: .8em; background: var(--accent); color: #fff; min-width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+  .paso-content { flex: 1; }
+  .paso-content p { margin-bottom: 6px; }
+
+  /* ── ÁREA DE TRABAJO ── */
+  .trabajo-area { width: 100%; min-height: 110px; border: 1px solid var(--rule); background: #fff; font-family: var(--serif); font-size: .9em; color: var(--ink); padding: 14px 16px; resize: vertical; outline: none; line-height: 1.8; transition: border-color .2s; display: block; }
+  .trabajo-area:focus { border-color: var(--accent); }
+  .trabajo-area::placeholder { color: #bbb; font-style: italic; }
+  .area-label { font-family: var(--mono); font-size: .72em; color: var(--ink-muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 5px; margin-top: 14px; display: block; line-height: 1.5; }
+
+  /* ── NOTA ── */
+  .nota { background: #fef9e7; border-left: 3px solid var(--gold); padding: 10px 16px; font-size: .85em; color: #7d6608; margin: 14px 0; font-style: italic; }
+  .nota strong { font-style: normal; color: var(--gold); }
+
+  /* ── CAJAS DE RESULTADO ── */
+  .result-box { background: var(--paper-alt); border: 1px solid var(--rule); padding: 16px 20px; margin: 14px 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .result-box.col2 { grid-template-columns: 1fr 1fr; }
+  .result-box.col4 { grid-template-columns: 1fr 1fr; }
+  .result-box.col5 { grid-template-columns: 1fr 1fr 1fr; }
+  @media(max-width:680px) { .result-box, .result-box.col2, .result-box.col4, .result-box.col5 { grid-template-columns: 1fr; } }
+  .res-campo label { font-family: var(--mono); font-size: .72em; color: var(--ink-muted); text-transform: uppercase; letter-spacing: .08em; display: block; margin-bottom: 6px; line-height: 1.4; }
+  .res-campo input[type="text"] { width: 100%; border: none; border-bottom: 2px solid var(--rule); background: transparent; font-family: var(--mono); font-size: .95em; color: var(--ink); padding: 5px 0; outline: none; transition: border-color .2s; text-align: center; }
+  .res-campo input:focus { border-bottom-color: var(--accent); }
+
+  /* ── RANGOS ── */
+  .rango-tabla { width: 100%; border-collapse: collapse; font-size: .88em; margin: 12px 0; }
+  .rango-tabla th { background: var(--ink); color: #fff; font-family: var(--mono); font-size: .72em; padding: 9px 12px; letter-spacing: .06em; text-align: center; }
+  .rango-tabla td { padding: 8px 12px; border: 1px solid var(--rule); text-align: center; font-size: .9em; }
+  .rango-tabla .bueno { color: var(--green); font-weight: 600; }
+  .rango-tabla .medio { color: var(--gold); font-weight: 600; }
+  .rango-tabla .malo  { color: var(--accent2); font-weight: 600; }
+
+  /* ── GRÁFICA ── */
+  .grafica-box { border: 1px solid var(--rule); background: #fff; margin: 14px 0; overflow: hidden; }
+  .grafica-header { background: var(--ink); color: #fff; padding: 10px 16px; font-family: var(--mono); font-size: .75em; letter-spacing: .08em; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; }
+  .grafica-canvas { display: block; width: 100%; background: #fafafa; }
+  .grafica-controles { padding: 10px 16px; border-top: 1px solid var(--rule); display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .btn-ctrl { font-family: var(--mono); font-size: .72em; padding: 6px 13px; border: 1px solid var(--rule); background: var(--paper-alt); color: var(--ink-soft); cursor: pointer; transition: all .2s; letter-spacing: .04em; white-space: nowrap; }
+  .btn-ctrl:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-ctrl.activo { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .grafica-info { font-family: var(--mono); font-size: .72em; color: var(--ink-muted); flex: 1; text-align: right; min-width: 80px; }
+
+  /* ── DIVIDER ── */
+  .divider { display: flex; align-items: center; gap: 12px; margin: 28px 0 18px; font-family: var(--mono); font-size: .68em; color: var(--ink-muted); text-transform: uppercase; letter-spacing: .1em; }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--rule); }
+
+  /* ── ADJUNTO ── */
+  .adjunto-slot { border: 2px dashed var(--rule); padding: 24px; text-align: center; cursor: pointer; position: relative; transition: border-color .2s; margin-top: 8px; }
+  .adjunto-slot:hover { border-color: var(--accent); }
+  .adjunto-slot input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+  .slot-icon  { display: block; font-size: 1.8em; margin-bottom: 6px; }
+  .slot-label { display: block; font-family: var(--mono); font-size: .75em; color: var(--ink-soft); }
+  .slot-hint  { display: block; font-size: .72em; color: var(--ink-muted); margin-top: 4px; }
+  .preview-img { display: none; max-width: 100%; margin-top: 14px; border: 1px solid var(--rule); }
+
+  /* ── RETO ── */
+  .reto-header { background: var(--ink); color: #fff; padding: 16px 20px; display: flex; gap: 16px; align-items: flex-start; margin-bottom: 0; }
+  .reto-header h4 { font-family: var(--display); font-size: 1em; margin-bottom: 4px; }
+  .reto-header p  { font-size: .82em; color: rgba(255,255,255,.55); margin: 0; }
+  .reto-badge { font-family: var(--mono); font-size: .65em; background: var(--accent2); color: #fff; padding: 3px 8px; letter-spacing: .1em; white-space: nowrap; margin-top: 3px; }
+  .reto-body { border: 1px solid var(--rule); padding: 20px; border-top: none; }
+
+  /* ── EJEMPLO ── */
+  .ejemplo-box { background: #f0f7f0; border-left: 3px solid var(--green); padding: 14px 18px; margin: 14px 0; font-size: .9em; }
+  .ejemplo-box .ej-label { font-family: var(--mono); font-size: .65em; color: var(--green); text-transform: uppercase; letter-spacing: .12em; margin-bottom: 8px; display: block; font-weight: 500; }
+
+  /* ── FIRMA ── */
+  .firma-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 30px; }
+  .firma-slot { text-align: center; padding-top: 50px; border-top: 1px solid var(--rule); font-family: var(--mono); font-size: .68em; color: var(--ink-muted); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── BTN IMPRIMIR ── */
+  .btn-imprimir { position: fixed; bottom: 24px; right: 24px; background: var(--accent); color: #fff; border: none; padding: 12px 22px; font-family: var(--mono); font-size: .75em; letter-spacing: .1em; text-transform: uppercase; cursor: pointer; box-shadow: 0 4px 16px rgba(26,82,118,.35); transition: transform .15s, box-shadow .15s; z-index: 100; }
+  .btn-imprimir:hover { transform: translateY(-2px); box-shadow: 0 6px 22px rgba(26,82,118,.45); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 680px) {
+    body { padding: 10px 0 40px; }
+    .documento { border-radius: 0; }
+    .header { padding: 22px 18px 20px 22px; }
+    .header::after { font-size: 160px; }
+    .header h1 { font-size: 1.4em !important; }
+    .header-meta { flex-direction: column; gap: 8px; }
+    .header-fields { grid-template-columns: 1fr !important; gap: 10px 0; }
+    .body { padding: 22px 16px 28px 20px; }
+    .tabla-resultados, .rango-tabla { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .result-box, .result-box.col2, .result-box.col4, .result-box.col5 { grid-template-columns: 1fr 1fr !important; }
+    .firma-grid { grid-template-columns: 1fr !important; gap: 20px; }
+    .paso { gap: 10px; }
+    .reto-header { padding: 12px 14px; gap: 10px; }
+    .reto-header h4 { font-size: 0.9em; }
+    .reto-body { padding: 14px; }
+    .grafica-controles { gap: 6px; flex-wrap: wrap; }
+    .btn-ctrl { font-size: .65em; padding: 4px 8px; }
+    .seccion-titulo { font-size: 1em; gap: 8px; }
+    .adjunto-slot { padding: 16px 10px; }
+    .trabajo-area { min-height: 80px; }
+    .formula-grid { grid-template-columns: 1fr !important; }
+  }
+  @media (max-width: 420px) {
+    .header { padding: 18px 14px 16px 18px; }
+    .body { padding: 16px 12px 20px 14px; }
+    .result-box, .result-box.col2, .result-box.col4, .result-box.col5 { grid-template-columns: 1fr !important; }
+    .header h1 { font-size: 1.2em !important; }
+    .formula-main { font-size: 1em !important; }
+  }
+  @media print {
+    body { background: #fff; padding: 0; }
+    .documento { box-shadow: none; }
+    .btn-imprimir, .grafica-controles, .adjunto-slot input[type="file"] { display: none; }
+    .grafica-canvas { border: 1px solid var(--rule); }
+  }
+</style>
+</head>
+<body>
+<div class="documento">
+
+  <!-- ══ ENCABEZADO ══ -->
+  <div class="header">
+    <div class="header-meta">
+      <span class="badge-codigo" id="codigoPractica">PRÁCTICA FIS-OND-02</span>
+      <span class="badge-tipo">Laboratorio de Física · Simulador Digital 3D</span>
+    </div>
+    <h1>Interferencia, Reflexión<br><em>y Refracción de Ondas en Cubeta Virtual</em></h1>
+    <div class="header-sub">Simulador 3D · Material aleatorio · 3 modos experimentales · Regla deslizable · Estroboscopio · Captura PNG</div>
+    <div class="header-fields">
+      <div class="field-item"><label>Nombre del estudiante</label><input type="text" placeholder="Escriba su nombre completo"></div>
+      <div class="field-item"><label>Código estudiantil</label><input type="text" placeholder="Código"></div>
+      <div class="field-item"><label>Grupo / Sección</label><input type="text" placeholder="Ej. Grupo C — Jueves 10 am"></div>
+      <div class="field-item"><label>Material asignado por el simulador</label><input type="text" placeholder="Nombre del fluido (ej. Agua Dulce)"></div>
+      <div class="field-item"><label>Velocidad del material (m/s)</label><input type="text" id="vMatHeader" placeholder="Valor mostrado en el panel"></div>
+      <div class="field-item"><label>Fecha de realización</label><input type="date"></div>
+      <div class="field-item"><label>Docente</label><input type="text" placeholder="Nombre del profesor/a"></div>
+    </div>
+  </div>
+
+  <!-- ══ CUERPO ══ -->
+  <div class="body">
+
+    <!-- 00. RESUMEN -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">00</span> Resumen</h2>
+      <div class="resumen-box">
+        Esta práctica utiliza un simulador 3D de cubeta de ondas con tres modos experimentales:
+        <strong>Interferencia</strong> (dos fuentes puntuales coherentes), <strong>Reflexión</strong>
+        (frente de onda sobre una barrera rígida) y <strong>Refracción</strong> (cambio de medio con
+        $v_2 = v_1/2$). Al iniciar, el simulador asigna aleatoriamente uno de diez materiales con
+        distinta velocidad de propagación $v$. La regla HD deslizable permite medir $\lambda$
+        directamente en pantalla; el estroboscopio congela el patrón para facilitar la lectura.
+        Los tres fenómenos se analizan a partir de $v = f\cdot\lambda$, la condición de
+        interferencia constructiva/destructiva, la ley de reflexión $\theta_i = \theta_r$ y la
+        ley de Snell $n_{12} = \lambda_1/\lambda_2$.
+      </div>
+      <p style="margin-top:10px;"><strong>Palabras clave:</strong>
+        interferencia · reflexión · refracción · cubeta de ondas · longitud de onda ·
+        índice de refracción · ley de Snell · estroboscopio · frentes de onda
+      </p>
+    </div>
+
+    <!-- 01. OBJETIVOS -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">01</span> Objetivos</h2>
+      <ul class="objetivos-lista">
+        <li><span class="obj-num">1</span>Identificar y medir los patrones de interferencia constructiva y destructiva variando la separación entre fuentes $d$ y la frecuencia $f$.</li>
+        <li><span class="obj-num">2</span>Verificar la condición de máximos $\Delta r = m\lambda$ y de mínimos $\Delta r = (m+\tfrac{1}{2})\lambda$ contando los nodos y antinodos observados.</li>
+        <li><span class="obj-num">3</span>Comprobar la ley de reflexión comparando la longitud de onda incidente y reflejada para el material asignado.</li>
+        <li><span class="obj-num">4</span>Medir $\lambda_1$ y $\lambda_2$ en el modo refracción y calcular el índice de refracción experimental $n_\text{exp} = \lambda_1/\lambda_2$, comparándolo con el valor teórico $n = 2$.</li>
+        <li><span class="obj-num">5</span>Construir la gráfica $\lambda_2$ vs. $\lambda_1$ y extraer $n_\text{exp}$ por regresión lineal al origen.</li>
+        <li><span class="obj-num">6</span>Propagar la incertidumbre $\delta v$ desde $\delta f = 0{,}1$ Hz y $\delta\lambda = 0{,}5$ u (resolución de la regla).</li>
+      </ul>
+    </div>
+
+    <!-- 02. MARCO TEÓRICO -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">02</span> Marco Teórico</h2>
+
+      <div class="subseccion-titulo">2.1 · Velocidad de fase y relación fundamental</div>
+      <p>El simulador asigna a cada material una velocidad de propagación $v_\text{mat}$. La frecuencia $f$ se conserva al cruzar cualquier interfaz; solo cambian $v$ y $\lambda$:</p>
+      <div class="formula-box acento-azul">
+        <div class="formula-label">Ecuación 1 — Relación fundamental de ondas</div>
+        <div class="formula-main">$$v = f \cdot \lambda \qquad \Longrightarrow \qquad \lambda = \frac{v}{f}$$</div>
+        <div class="formula-num">(1)</div>
+      </div>
+
+      <div class="subseccion-titulo">2.2 · Interferencia de dos fuentes puntuales coherentes</div>
+      <p>Con dos fuentes separadas una distancia $d$, la diferencia de caminos en un punto P es $\Delta r = |r_2 - r_1|$. Las condiciones de interferencia son:</p>
+      <div class="formula-grid">
+        <div class="formula-box acento-azul">
+          <div class="formula-label">Ecuación 2 — Interferencia constructiva (máximos)</div>
+          <div class="formula-main">$$\Delta r = m\lambda \quad m = 0,\pm1,\pm2,\ldots$$</div>
+          <div class="formula-num">(2)</div>
+        </div>
+        <div class="formula-box">
+          <div class="formula-label">Ecuación 3 — Interferencia destructiva (nodos)</div>
+          <div class="formula-main">$$\Delta r = \left(m+\tfrac{1}{2}\right)\lambda$$</div>
+          <div class="formula-num">(3)</div>
+        </div>
+      </div>
+      <p>El número de antinodos visible en el patrón es aproximadamente $N \approx 2\lfloor d/\lambda \rfloor + 1$.</p>
+
+      <div class="subseccion-titulo">2.3 · Ley de reflexión</div>
+      <p>Cuando una onda incide sobre una barrera rígida, se refleja conservando el ángulo respecto a la normal. La velocidad y la longitud de onda no cambian (mismo medio):</p>
+      <div class="formula-box acento-oro">
+        <div class="formula-label">Ecuación 4 — Ley de reflexión</div>
+        <div class="formula-main">$$\theta_i = \theta_r \qquad v_\text{refl} = v_\text{inc} \qquad \lambda_\text{refl} = \lambda_\text{inc}$$</div>
+        <div class="formula-num">(4)</div>
+      </div>
+
+      <div class="subseccion-titulo">2.4 · Refracción y ley de Snell</div>
+      <p>Al pasar a un medio con velocidad diferente, la frecuencia se conserva pero $\lambda$ cambia. El índice relativo de refracción es:</p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 5 — Ley de Snell para ondas mecánicas</div>
+        <div class="formula-main">$$\frac{\sin\theta_1}{\sin\theta_2} = \frac{v_1}{v_2} = \frac{\lambda_1}{\lambda_2} = n_{12}$$</div>
+        <div class="formula-num">(5)</div>
+      </div>
+      <p>En el simulador $v_2 = v_1/2$, por lo tanto $n_{12} = 2$ y $\lambda_2 = \lambda_1/2$. Esto se verifica midiendo con la regla a ambos lados de la interfaz.</p>
+
+      <div class="subseccion-titulo">2.5 · Determinación gráfica de n</div>
+      <p>De la Ec. (5): $\lambda_2 = (1/n_{12})\cdot\lambda_1$. Al graficar $\lambda_2$ vs. $\lambda_1$ se obtiene una recta al origen con pendiente $m_g = 1/n_{12}$:</p>
+      <div class="formula-box acento-verde">
+        <div class="formula-label">Ecuación 6 — Índice experimental desde la gráfica</div>
+        <div class="formula-main">$$n_\text{exp} = \frac{1}{m_g} \qquad \text{(teórico: } n = 2{,}00 \Rightarrow m_g = 0{,}500\text{)}$$</div>
+        <div class="formula-num">(6)</div>
+      </div>
+
+      <div class="subseccion-titulo">2.6 · Propagación de incertidumbre</div>
+      <p>Incertidumbres del simulador: $\delta f = 0{,}1$ Hz, $\delta\lambda = 0{,}5$ u.</p>
+      <div class="formula-grid">
+        <div class="formula-box acento-azul">
+          <div class="formula-label">Ecuación 7 — Incertidumbre relativa en v</div>
+          <div class="formula-main">$$\frac{\delta v}{v} = \sqrt{\left(\frac{\delta f}{f}\right)^2 + \left(\frac{\delta\lambda}{\lambda}\right)^2}$$</div>
+          <div class="formula-num">(7)</div>
+        </div>
+        <div class="formula-box">
+          <div class="formula-label">Ecuación 8 — Incertidumbre en n = λ₁/λ₂</div>
+          <div class="formula-main">$$\frac{\delta n}{n} = \sqrt{\left(\frac{\delta\lambda_1}{\lambda_1}\right)^2 + \left(\frac{\delta\lambda_2}{\lambda_2}\right)^2}$$</div>
+          <div class="formula-num">(8)</div>
+        </div>
+      </div>
+
+      <table class="rango-tabla">
+        <thead><tr><th>ER%</th><th>Calidad del resultado</th><th>Acción recomendada</th></tr></thead>
+        <tbody>
+          <tr><td>0 – 5 %</td><td class="bueno">✅ Excelente</td><td>Reportar con confianza</td></tr>
+          <tr><td>5 – 15 %</td><td class="medio">✓ Aceptable</td><td>Revisar técnica de medición</td></tr>
+          <tr><td>&gt; 15 %</td><td class="malo">✗ Revisar</td><td>Repetir medición — posible error en λ</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 03. DESCRIPCIÓN DEL SIMULADOR -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">03</span> Descripción del Simulador</h2>
+      <p>El simulador <em>Ondas Planas y Refracción</em> opera con tres modos seleccionables desde el menú lateral, un material aleatorio asignado al inicio, y los controles que se describen a continuación.</p>
+
+      <div class="paso">
+        <div class="paso-num">A</div>
+        <div class="paso-content"><p><strong>Material aleatorio (↻ Nuevo Material):</strong> asigna uno de 10 fluidos (Aire, Agua Dulce, Agua Salada, Aceite, Glicerina, Mercurio, Miel, Petróleo, Jarabe, Alcohol) con su velocidad $v_\text{prop}$ y color. Registre el nombre y $v_\text{prop}$ en el encabezado antes de comenzar.</p></div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">B</div>
+        <div class="paso-content"><p><strong>Modo Interferencia:</strong> dos vibradores separados una distancia $d$ ajustable (2–25 cm) con el deslizador <em>Distancia</em>. Cada vibrador genera ondas circulares coherentes. Observe cómo varía el número de lóbulos al cambiar $d$ o $f$.</p></div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">C</div>
+        <div class="paso-content"><p><strong>Modo Reflexión:</strong> un solo vibrador genera ondas que inciden sobre una barrera rígida. Observe el patrón de ondas estacionarias formado cerca de la pared y compare $\lambda_\text{inc}$ con $\lambda_\text{refl}$.</p></div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">D</div>
+        <div class="paso-content"><p><strong>Modo Refracción (Barra Plana):</strong> un vibrador-barra genera frentes de onda planos en dirección $+x$. La interfaz está en $x = 0$; a su derecha $v_2 = v_1/2$. Posicione la regla a la izquierda para medir $\lambda_1$ y a la derecha para medir $\lambda_2$.</p></div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">E</div>
+        <div class="paso-content"><p><strong>Regla HD y estroboscopio:</strong> arrastre la regla amarilla sobre el patrón. Iguale el estroboscopio a $f$ para congelar la imagen. El botón <strong>📸 Capturar Pantalla</strong> descarga un PNG del estado actual.</p></div>
+      </div>
+
+      <div class="nota">
+        <strong>Importante:</strong> el deslizador <em>Distancia</em> solo aparece en Modo Interferencia. El panel lateral siempre muestra $v_\text{prop}$ y $\lambda = v/f$ actualizados para el material activo.
+      </div>
+    </div>
+
+    <!-- 04. PROCEDIMIENTO -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">04</span> Procedimiento Experimental</h2>
+      <p>Abra el simulador y registre el material asignado y su $v_\text{prop}$ en el encabezado antes de comenzar cualquier medición.</p>
+
+      <div class="subseccion-titulo">Parte A — Modo Interferencia</div>
+      <div class="paso">
+        <div class="paso-num">1</div>
+        <div class="paso-content"><p>Seleccione <em>Interferencia</em>. Fije $f = 3$ Hz, $A = 1{,}0$ u y $d = 10$ cm. Active el estroboscopio con $f_L = f$. Use la regla para medir $\lambda$ y calcule $v_\text{exp} = f\cdot\lambda$. Complete la fila 1 de la Tabla 1.</p></div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">2</div>
+        <div class="paso-content"><p>Repita para $f = 4, 5, 6, 7$ Hz (cinco frecuencias). Para cada una, cuente el número de <strong>antinodos (lóbulos brillantes)</strong> visibles. Complete la Tabla 1.</p></div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">3</div>
+        <div class="paso-content"><p>Con $f = 4$ Hz fija, varíe $d = 5, 10, 15, 20$ cm. Cuente los antinodos en cada caso. Complete la Tabla 2.</p></div>
+      </div>
+
+      <div class="subseccion-titulo">Parte B — Modo Reflexión</div>
+      <div class="paso">
+        <div class="paso-num">4</div>
+        <div class="paso-content"><p>Seleccione <em>Reflexión</em>. Para los 5 valores de frecuencia de la Parte A, mida $\lambda_\text{inc}$ lejos de la barrera y $\lambda_\text{refl}$ cerca de ella con la regla. Complete la Tabla 3. Capture al menos dos imágenes (Sección 09).</p></div>
+      </div>
+
+      <div class="subseccion-titulo">Parte C — Modo Refracción</div>
+      <div class="paso">
+        <div class="paso-num">5</div>
+        <div class="paso-content"><p>Seleccione <em>Refracción (Barra Plana)</em>. Con el estroboscopio activo en $f_L = f$, posicione la regla a la izquierda ($x &lt; 0$) y mida $\lambda_1$. Luego muévala a la derecha ($x &gt; 0$) y mida $\lambda_2$. Repita para $f = 3, 4, 5, 6, 7$ Hz. Complete la Tabla 4.</p></div>
+      </div>
+    </div>
+
+    <!-- 05. TABLA 1 — INTERFERENCIA vs f -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">05</span> Tabla 1 — Interferencia: λ y antinodos vs. Frecuencia (d = 10 cm, A = 1,0 u)</h2>
+      <p>
+        Material: <input type="text" style="width:110px;border:none;border-bottom:1px solid var(--rule);font-family:var(--mono);font-size:.88em;text-align:center;" placeholder="fluido">&nbsp;&nbsp;
+        $v_\text{prop}=$ <input type="text" id="vMat" style="width:65px;border:none;border-bottom:1px solid var(--rule);font-family:var(--mono);font-size:.88em;text-align:center;" placeholder="0.00"> m/s
+      </p>
+
+      <div style="overflow-x:auto; -webkit-overflow-scrolling:touch;">
+        <table class="tabla-resultados" id="tabla1" style="min-width:720px;">
+          <thead>
+            <tr>
+              <th rowspan="2">#</th>
+              <th rowspan="2">f (Hz)</th>
+              <th rowspan="2">λ medida (u)</th>
+              <th rowspan="2">λ teórica = v/f (u)</th>
+              <th rowspan="2">v_exp = f·λ (m/s)</th>
+              <th rowspan="2">ER%</th>
+              <th rowspan="2">Antinodos</th>
+              <th colspan="2" class="th-unc">Incertidumbre</th>
+            </tr>
+            <tr>
+              <th class="th-unc">δv (m/s)</th>
+              <th class="th-unc">δv/v (%)</th>
+            </tr>
+          </thead>
+          <tbody id="bodyT1"></tbody>
+        </table>
+      </div>
+
+      <div class="nota">
+        <strong>Fórmulas:</strong>
+        $\lambda_\text{teórica} = v_\text{mat}/f$ &nbsp;·&nbsp;
+        $v_\text{exp} = f \cdot \lambda$ &nbsp;·&nbsp;
+        $\text{ER}\% = |v_\text{exp} - v_\text{mat}|/v_\text{mat} \times 100$ &nbsp;·&nbsp;
+        $\delta v/v = \sqrt{(\delta f/f)^2 + (\delta\lambda/\lambda)^2}$
+      </div>
+
+      <span class="area-label">Cálculo de ejemplo para una fila (muestre operaciones)</span>
+      <textarea class="trabajo-area" style="min-height:90px;" placeholder="Fila 1 (f=3 Hz): λ_med = ___ u  →  v_exp = 3 × ___ = ___ m/s&#10;λ_teo = v_mat/3 = ___ u  →  ER = |___ − v_mat|/v_mat × 100 = ___ %&#10;δv/v = √((0.1/3)² + (0.5/___)²) = ___  →  δv = ___ m/s&#10;Antinodos contados: ___"></textarea>
+    </div>
+
+    <!-- 06. TABLA 2 — d vs antinodos -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">06</span> Tabla 2 — Interferencia: antinodos vs. Distancia entre fuentes (f = 4 Hz)</h2>
+      <p>Varíe $d$ y cuente los lóbulos brillantes. Verifique la relación: mayor $d/\lambda$ → más antinodos ($N \approx 2d/\lambda + 1$).</p>
+
+      <div style="overflow-x:auto;">
+        <table class="tabla-resultados" style="max-width:620px;">
+          <thead>
+            <tr>
+              <th>#</th><th>d (cm)</th><th>λ (u) [Tab.1, f=4]</th>
+              <th>d/λ</th><th>Antinodos observados</th><th>N teórico ≈ 2d/λ+1</th>
+            </tr>
+          </thead>
+          <tbody id="bodyT2"></tbody>
+        </table>
+      </div>
+
+      <span class="area-label">Análisis — ¿cómo varía el número de lóbulos con d/λ?</span>
+      <textarea class="trabajo-area" style="min-height:75px;" placeholder="Al aumentar d de ___ a ___ cm, el cociente d/λ pasa de ___ a ___, y el número de antinodos aumenta de ___ a ___. Esto es consistente con N ≈ 2⌊d/λ⌋ + 1 porque..."></textarea>
+    </div>
+
+    <!-- 06b. TABLA 3 — REFLEXIÓN -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">06b</span> Tabla 3 — Reflexión: λ incidente vs. λ reflejada</h2>
+      <p>Mida $\lambda_\text{inc}$ lejos de la barrera y $\lambda_\text{refl}$ cerca de ella. La Ec. (4) predice $\lambda_\text{inc} = \lambda_\text{refl}$ (mismo medio).</p>
+
+      <div style="overflow-x:auto;">
+        <table class="tabla-resultados" id="tabla3" style="min-width:640px;">
+          <thead>
+            <tr>
+              <th>#</th><th>f (Hz)</th><th>λ_inc (u)</th><th>λ_refl (u)</th>
+              <th>|λ_inc − λ_refl| (u)</th><th>v_exp = f·λ_inc (m/s)</th><th>ER%</th>
+            </tr>
+          </thead>
+          <tbody id="bodyT3"></tbody>
+        </table>
+      </div>
+
+      <span class="area-label">Conclusión parcial — ¿se conserva λ en la reflexión?</span>
+      <textarea class="trabajo-area" style="min-height:70px;" placeholder="En los 5 casos, |λ_inc − λ_refl| varió entre ___ y ___ u (error promedio = ___%). Esto confirma / no confirma que λ se conserva en la reflexión porque..."></textarea>
+    </div>
+
+    <!-- 07. TABLAS 4 y 5 + GRÁFICA — REFRACCIÓN -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">07</span> Tablas 4 y 5 — Refracción: λ₁, λ₂ y Gráfica λ₂ vs. λ₁</h2>
+      <p>Para cada frecuencia mida $\lambda_1$ (medio 1, $x &lt; 0$) y $\lambda_2$ (medio 2, $x &gt; 0$). Calcule $n_\text{exp} = \lambda_1/\lambda_2$ (teórico: 2,00).</p>
+
+      <div style="overflow-x:auto;">
+        <table class="tabla-resultados" id="tabla4" style="min-width:680px;">
+          <thead>
+            <tr>
+              <th rowspan="2">#</th><th rowspan="2">f (Hz)</th>
+              <th rowspan="2">λ₁ medida (u)</th><th rowspan="2">λ₂ medida (u)</th>
+              <th rowspan="2">n_exp = λ₁/λ₂</th><th rowspan="2">ER% vs. n=2</th>
+              <th colspan="2" class="th-unc">Incertidumbre — Ec.(8)</th>
+            </tr>
+            <tr><th class="th-unc">δn</th><th class="th-unc">δn/n (%)</th></tr>
+          </thead>
+          <tbody id="bodyT4"></tbody>
+        </table>
+      </div>
+
+      <span class="area-label">Cálculo de ejemplo para una fila — Ec. (8)</span>
+      <textarea class="trabajo-area" style="min-height:95px;" placeholder="Fila 1 (f=3 Hz): λ₁=___ u, λ₂=___ u&#10;n_exp = λ₁/λ₂ = ___ → ER = |___−2,00|/2,00×100 = ___%&#10;δn/n = √((0,5/___)²+(0,5/___)²) = ___ → δn = ___&#10;Resultado: n_exp = ___ ± ___"></textarea>
+
+      <div class="divider"><span>tabla 5 — datos para la gráfica</span></div>
+
+      <div style="overflow-x:auto;">
+        <table class="tabla-resultados" style="max-width:380px;">
+          <thead><tr><th>Punto</th><th>λ₁ (u)</th><th>λ₂ (u)</th></tr></thead>
+          <tbody id="bodyGraf"></tbody>
+        </table>
+      </div>
+
+      <div class="grafica-box">
+        <div class="grafica-header">
+          <span>Gráfica: λ₂ (u) vs. λ₁ (u) — pendiente = 1/n</span>
+          <span id="pendienteLabel" style="color:rgba(255,255,255,.6);font-size:.9em;">pendiente = —</span>
+          <span class="grafica-info" id="graficaInfo"></span>
+        </div>
+        <canvas id="graficaCanvas" class="grafica-canvas" height="260"></canvas>
+        <div class="grafica-controles">
+          <button class="btn-ctrl activo" id="btnRegresion" onclick="toggleRegresion()">Regresión al origen</button>
+          <button class="btn-ctrl" onclick="limpiarRecta()">Limpiar recta manual</button>
+          <button class="btn-ctrl" onclick="exportarGrafica()">⬇ Exportar imagen</button>
+        </div>
+      </div>
+
+      <div class="result-box col4">
+        <div class="res-campo"><label>Pendiente m_g = 1/n</label><input type="text" id="pendGraf" placeholder="—" readonly></div>
+        <div class="res-campo"><label>n_exp = 1/m_g</label><input type="text" id="nGraf" placeholder="—" readonly style="color:var(--green);font-weight:600;"></div>
+        <div class="res-campo"><label>ER% vs. n=2,00</label><input type="text" id="erGraf" placeholder="—" readonly></div>
+        <div class="res-campo"><label>Calidad</label><input type="text" id="calGraf" placeholder="—" readonly></div>
+      </div>
+      <div class="result-box col2">
+        <div class="res-campo"><label>δn promedio (Tabla 4)</label><input type="text" placeholder="calcule con Ec.(8)"></div>
+        <div class="res-campo"><label>n_exp ± δn</label><input type="text" placeholder="2,000 ± 0,000"></div>
+      </div>
+
+      <span class="area-label">Cálculo de n desde la pendiente gráfica — Ec. (6)</span>
+      <textarea class="trabajo-area" style="min-height:110px;" placeholder="De la pendiente de la regresión al origen:&#10;  m_g = ___  →  n_exp = 1/m_g = 1/___ = ___&#10;  ER = |n_exp − 2,00|/2,00×100% = ___%&#10;&#10;Comparación con promedio de filas (Tabla 4):&#10;  n̄ = ___ ± ___  →  diferencia relativa = ___%"></textarea>
+
+      <span class="area-label">Captura de pantalla — gráfica o modo refracción</span>
+      <div class="adjunto-slot">
+        <input type="file" accept="image/*" onchange="previsualizarImagen(this,'prevGrafica')">
+        <span class="slot-icon">📈</span>
+        <span class="slot-label">Adjuntar captura de la gráfica λ₂ vs. λ₁ o del patrón de refracción</span>
+        <span class="slot-hint">Debe mostrarse la regresión y la pendiente · PNG, JPG</span>
+        <img id="prevGrafica" class="preview-img" alt="">
+      </div>
+    </div>
+
+    <!-- 08. RETO -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">08</span> Reto — Identificación del Material por Velocidad</h2>
+
+      <div class="reto-header">
+        <div>
+          <span class="reto-badge">RETO EXPERIMENTAL</span>
+          <h4>Determina el material midiendo v sin leer el panel</h4>
+          <p>Oculta el menú (botón ☰) · Solo usa la regla y la relación v = f · λ</p>
+        </div>
+      </div>
+      <div class="reto-body">
+
+        <div class="nota" style="margin-top:14px;">
+          <strong>Instrucción:</strong> oculte el panel de datos (☰ MENÚ). Con el Modo Reflexión, mida $\lambda$ para 4 frecuencias distintas. Calcule $v_\text{exp} = f \cdot \lambda$ en cada caso, promedie y compare con la tabla de materiales para identificar el fluido.
+        </div>
+
+        <p style="font-size:.88em; color:var(--ink-muted); font-style:italic; margin: 14px 0 6px;">Tabla 6. Mediciones ciegas para identificación del material.</p>
+        <div style="overflow-x:auto;">
+          <table class="tabla-resultados" style="min-width:500px;">
+            <thead>
+              <tr>
+                <th>#</th><th>f (Hz)</th><th>λ medida (u)</th>
+                <th>v_exp = f·λ (m/s)</th><th class="th-unc">δv (m/s)</th>
+              </tr>
+            </thead>
+            <tbody id="bodyReto"></tbody>
+          </table>
+        </div>
+
+        <div class="result-box">
+          <div class="res-campo"><label>v̄ promedio (m/s)</label><input type="text" placeholder="—"></div>
+          <div class="res-campo"><label>δv̄ = δv / √N (m/s)</label><input type="text" placeholder="—"></div>
+          <div class="res-campo"><label>Material identificado</label><input type="text" placeholder="nombre del fluido"></div>
+        </div>
+
+        <div class="ejemplo-box">
+          <span class="ej-label">Tabla de referencia — materiales del simulador</span>
+          <table style="width:100%;border-collapse:collapse;font-size:.86em;font-family:'JetBrains Mono',monospace;margin-top:6px;">
+            <thead><tr style="background:var(--green);color:#fff;">
+              <th style="padding:5px 8px;border:1px solid #ccc;">Material</th>
+              <th style="padding:5px 8px;border:1px solid #ccc;">v (m/s)</th>
+              <th style="padding:5px 8px;border:1px solid #ccc;">Material</th>
+              <th style="padding:5px 8px;border:1px solid #ccc;">v (m/s)</th>
+            </tr></thead>
+            <tbody>
+              <tr style="background:#f0f7f0;"><td style="padding:4px 8px;border:1px solid #ccc;">Aire</td><td style="padding:4px 8px;border:1px solid #ccc;text-align:center;">15,0</td><td style="padding:4px 8px;border:1px solid #ccc;">Mercurio</td><td style="padding:4px 8px;border:1px solid #ccc;text-align:center;">14,0</td></tr>
+              <tr><td style="padding:4px 8px;border:1px solid #ccc;">Alcohol</td><td style="padding:4px 8px;border:1px solid #ccc;text-align:center;">12,0</td><td style="padding:4px 8px;border:1px solid #ccc;">Agua Dulce</td><td style="padding:4px 8px;border:1px solid #ccc;text-align:center;">11,0</td></tr>
+              <tr style="background:#f0f7f0;"><td style="padding:4px 8px;border:1px solid #ccc;">Agua Salada</td><td style="padding:4px 8px;border:1px solid #ccc;text-align:center;">10,0</td><td style="padding:4px 8px;border:1px solid #ccc;">Aceite</td><td style="padding:4px 8px;border:1px solid #ccc;text-align:center;">8,0</td></tr>
+              <tr><td style="padding:4px 8px;border:1px solid #ccc;">Petróleo</td><td style="padding:4px 8px;border:1px solid #ccc;text-align:center;">7,0</td><td style="padding:4px 8px;border:1px solid #ccc;">Glicerina</td><td style="padding:4px 8px;border:1px solid #ccc;text-align:center;">6,0</td></tr>
+              <tr style="background:#f0f7f0;"><td style="padding:4px 8px;border:1px solid #ccc;">Jarabe</td><td style="padding:4px 8px;border:1px solid #ccc;text-align:center;">5,0</td><td style="padding:4px 8px;border:1px solid #ccc;">Miel</td><td style="padding:4px 8px;border:1px solid #ccc;text-align:center;">4,0</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="result-box col2">
+          <div class="res-campo"><label>v_real del material (m/s)</label><input type="text" placeholder="—"></div>
+          <div class="res-campo"><label>ER% = |v̄ − v_real|/v_real × 100</label><input type="text" placeholder="—"></div>
+        </div>
+
+        <span class="area-label">Cálculo de v̄ y justificación de la identificación (muestre operaciones)</span>
+        <textarea class="trabajo-area" style="min-height:130px;" placeholder="Medición 1: f=___ Hz, λ=___ u → v₁ = ___ m/s,  δv₁ = ___&#10;Medición 2: f=___ Hz, λ=___ u → v₂ = ___ m/s,  δv₂ = ___&#10;Medición 3: f=___ Hz, λ=___ u → v₃ = ___ m/s,  δv₃ = ___&#10;Medición 4: f=___ Hz, λ=___ u → v₄ = ___ m/s,  δv₄ = ___&#10;&#10;v̄ = (v₁+v₂+v₃+v₄)/4 = ___ m/s  →  δv̄ = ___/√4 = ___ m/s&#10;El material más cercano es ___ (v_real = ___ m/s)  →  ER = ___ %"></textarea>
+
+        <span class="area-label">Captura PNG — Modo Reflexión con material identificado</span>
+        <div class="adjunto-slot">
+          <input type="file" accept="image/*" onchange="previsualizarImagen(this,'prevReto')">
+          <span class="slot-icon">🔬</span>
+          <span class="slot-label">Adjuntar captura PNG del reto</span>
+          <span class="slot-hint">Use 📸 Capturar Pantalla en el simulador</span>
+          <img id="prevReto" class="preview-img" alt="">
+        </div>
+
+      </div><!-- /reto-body -->
+    </div>
+
+    <!-- 09. CAPTURAS -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">09</span> Capturas de Pantalla</h2>
+      <p>Use el botón <strong>📸 Capturar Pantalla</strong> del simulador para documentar un estado representativo de cada modo experimental.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div>
+          <span class="area-label">Modo Interferencia — patrón de nodos y antinodos</span>
+          <div class="adjunto-slot"><input type="file" accept="image/*" onchange="previsualizarImagen(this,'p1')">
+            <span class="slot-icon">📷</span><span class="slot-label">Adjuntar PNG</span>
+            <span class="slot-hint">clic o arrastre</span><img id="p1" class="preview-img" alt=""></div>
+        </div>
+        <div>
+          <span class="area-label">Interferencia — distancia d diferente (Tabla 2)</span>
+          <div class="adjunto-slot"><input type="file" accept="image/*" onchange="previsualizarImagen(this,'p2')">
+            <span class="slot-icon">📷</span><span class="slot-label">Adjuntar PNG</span>
+            <span class="slot-hint">clic o arrastre</span><img id="p2" class="preview-img" alt=""></div>
+        </div>
+        <div>
+          <span class="area-label">Modo Reflexión — ondas estacionarias cerca de la barrera</span>
+          <div class="adjunto-slot"><input type="file" accept="image/*" onchange="previsualizarImagen(this,'p3')">
+            <span class="slot-icon">📷</span><span class="slot-label">Adjuntar PNG</span>
+            <span class="slot-hint">clic o arrastre</span><img id="p3" class="preview-img" alt=""></div>
+        </div>
+        <div>
+          <span class="area-label">Modo Refracción — regla sobre λ₁ y λ₂</span>
+          <div class="adjunto-slot"><input type="file" accept="image/*" onchange="previsualizarImagen(this,'p4')">
+            <span class="slot-icon">📷</span><span class="slot-label">Adjuntar PNG</span>
+            <span class="slot-hint">clic o arrastre</span><img id="p4" class="preview-img" alt=""></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 10. DISCUSIÓN -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">10</span> Discusión de Resultados</h2>
+
+      <span class="area-label">10.1 · Con base en sus datos de la Tabla 2, ¿cómo depende el número de antinodos de la razón d/λ? Deduzca la expresión N ≈ 2(d/λ)+1 y verifíquela con sus datos.</span>
+      <textarea class="trabajo-area" placeholder="Cuando d/λ = ___, se observan ___ antinodos. Teóricamente N ≈ 2(d/λ)+1 porque para cada entero m con |m| ≤ d/λ existe un máximo donde Δr = mλ. Verificación: d=___ cm, λ=___ u → d/λ=___ → N_teo=___ vs N_obs=___"></textarea>
+
+      <span class="area-label">10.2 · ¿Por qué la longitud de onda no cambia en la reflexión? ¿Qué grandeza física sí cambia? Relacione con la Ec. (1) y que el medio es el mismo.</span>
+      <textarea class="trabajo-area" placeholder="En la reflexión el medio no cambia (mismo fluido), por lo que v = const. Como v = f·λ y f es impuesta por el vibrador, λ no puede cambiar. Lo que sí cambia es la dirección del vector de onda. Mis datos: diferencia promedio |λ_inc − λ_refl| = ___ u (ER = ___ %)."></textarea>
+
+      <span class="area-label">10.3 · Verifique que la frecuencia se conserva en la refracción usando sus datos de λ₁ y λ₂ de la Tabla 4: calcule f₁ = v₁/λ₁ y f₂ = v₂/λ₂ y compare.</span>
+      <textarea class="trabajo-area" placeholder="Usando v₁ = v_mat y v₂ = v_mat/2:&#10;Fila 1: f₁ = v₁/λ₁ = ___/___ = ___ Hz ; f₂ = v₂/λ₂ = ___/___ = ___ Hz&#10;ER = |f₁−f₂|/f₁×100 = ___% → La frecuencia se conserva con precisión de ___%."></textarea>
+
+      <span class="area-label">10.4 · Para θ₁ = 30° en incidencia oblicua, calcule θ₂ con su n_exp. ¿La onda se dobla hacia o en contra de la normal? Explique con la Ec. (5).</span>
+      <textarea class="trabajo-area" placeholder="Ley de Snell: sin θ₂ = sin 30°/n_exp = 0,500/___ = ___&#10;θ₂ = arcsin(___) = ___°&#10;Como n_exp > 1, la onda se dobla HACIA la normal porque el medio 2 es más 'lento'..."></textarea>
+
+      <span class="area-label">10.5 · Analice los ER obtenidos en los tres modos. ¿En cuál fue más difícil medir λ con precisión y por qué?</span>
+      <textarea class="trabajo-area" placeholder="Interferencia: ER promedio = ___% · Reflexión: ER promedio = ___% · Refracción (n): ER = ___%&#10;El modo más difícil fue ___ porque..."></textarea>
+    </div>
+
+    <!-- 11. CONCLUSIONES -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">11</span> Conclusiones</h2>
+      <p>Redacte cuatro conclusiones concretas que respondan directamente a los objetivos planteados.</p>
+
+      <span class="area-label">Conclusión 1 — Sobre la verificación de v = f·λ y el patrón de interferencia</span>
+      <textarea class="trabajo-area" style="min-height:90px;" placeholder="v_mat = ___ m/s · v_exp promedio = ___ ± ___ m/s · ER = ___% · Los antinodos variaron de ___ a ___ al cambiar d de ___ a ___ cm."></textarea>
+
+      <span class="area-label">Conclusión 2 — Sobre la conservación de λ en la reflexión (Ec. 4)</span>
+      <textarea class="trabajo-area" style="min-height:90px;" placeholder="Diferencia promedio |λ_inc − λ_refl| = ___ u (___%) → λ se conserva con precisión ___. Se observó patrón de ondas estacionarias cerca de la barrera, indicativo de interferencia entre onda incidente y reflejada."></textarea>
+
+      <span class="area-label">Conclusión 3 — Sobre n_exp obtenido (gráfica) y verificación de n = 2</span>
+      <textarea class="trabajo-area" style="min-height:90px;" placeholder="n_exp (gráfica) = ___ ± ___ · ER vs. n_teo=2,00: ___% · La gráfica λ₂ vs. λ₁ mostró linealidad con m_g = ___ ≈ 0,500, confirmando que v₂ = v₁/2."></textarea>
+
+      <span class="area-label">Conclusión 4 — Sobre el Reto: identificación del material</span>
+      <textarea class="trabajo-area" style="min-height:90px;" placeholder="v̄_exp = ___ ± ___ m/s · Material identificado: ___ (v_real = ___ m/s) · ER = ___% · Número de mediciones usadas: ___"></textarea>
+    </div>
+
+    <!-- 12. REFERENCIAS -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">12</span> Referencias</h2>
+      <p style="font-size:.88em; line-height:2.1;">
+        [1] Serway, R. A. &amp; Jewett, J. W. <em>Physics for Scientists and Engineers</em>. 10ª ed. Cengage Learning, 2019. Cap. 17–18 — Sound Waves &amp; Superposition.<br>
+        [2] Young, H. D. &amp; Freedman, R. A. <em>University Physics</em>. 15ª ed. Pearson, 2020. Cap. 15 — Mechanical Waves.<br>
+        [3] Hecht, E. <em>Optics</em>. 5ª ed. Pearson, 2017. Cap. 3 — Wave Phenomena.<br>
+        [4] Taylor, J. R. <em>An Introduction to Error Analysis</em>. 2ª ed. University Science Books, 1997. Cap. 3 — Propagation of Uncertainties.
+      </p>
+    </div>
+
+    <!-- FIRMAS -->
+    <div class="seccion" style="margin-bottom:0;">
+      <div class="firma-grid">
+        <div class="firma-slot">Firma del estudiante</div>
+        <div class="firma-slot">Vo. Bo. Docente</div>
+      </div>
+    </div>
+
+  </div><!-- /body -->
+</div><!-- /documento -->
+
+<button class="btn-imprimir" onclick="window.print()">🖨 Imprimir / PDF</button>
+
+<script>
+/* ══════════════════════════════════════════
+   CONSTANTES
+══════════════════════════════════════════ */
+const nTeo = 2.0, df = 0.1, dlam = 0.5;
+const FREQS = [3, 4, 5, 6, 7];
+const DISTS = [5, 10, 15, 20];
+const NGRAF = 5, NROWS_R = 4;
+function pN(s)    { return parseFloat((s||'').replace(',','.')); }
+function fmt(n,d) { return isNaN(n)||!isFinite(n) ? '—' : n.toFixed(d); }
+function getVmat(){ return pN(document.getElementById('vMat').value) || 11.0; }
+
+/* ══════════════════════════════════════════
+   TABLA 1
+══════════════════════════════════════════ */
+const d1 = FREQS.map(f => ({f, lam:NaN}));
+function buildT1() {
+  const tb = document.getElementById('bodyT1');
+  d1.forEach((row, i) => {
+    const tr = tb.insertRow(-1);
+    tr.innerHTML = `
+      <td class="row-label">${i+1}</td>
+      <td class="row-label">${row.f}</td>
+      <td class="input-cell"><input type="text" id="t1l${i}" placeholder="0.0" oninput="calcT1(${i},this.value)"></td>
+      <td class="input-cell"><input type="text" id="t1lt${i}" readonly style="color:var(--accent);"></td>
+      <td class="input-cell"><input type="text" id="t1v${i}"  readonly style="color:var(--green);font-weight:600;"></td>
+      <td class="input-cell"><input type="text" id="t1er${i}" readonly></td>
+      <td class="input-cell"><input type="text" id="t1an${i}" placeholder="contar"></td>
+      <td class="input-cell"><input type="text" id="t1dv${i}"  readonly style="color:var(--accent2);"></td>
+      <td class="input-cell"><input type="text" id="t1dvp${i}" readonly style="color:var(--accent2);"></td>`;
+  });
+}
+function calcT1(i, val) {
+  const lam = pN(val), f = d1[i].f, v = getVmat();
+  d1[i].lam = lam;
+  const lamT = v/f, vexp = isNaN(lam)?NaN:f*lam;
+  const er   = isNaN(vexp)?NaN:Math.abs(vexp-v)/v*100;
+  const dvv  = isNaN(lam)||lam<=0?NaN:Math.sqrt((df/f)**2+(dlam/lam)**2);
+  const dv   = isNaN(dvv)?NaN:vexp*dvv;
+  document.getElementById('t1lt'+i).value  = fmt(lamT,2);
+  document.getElementById('t1v'+i).value   = fmt(vexp,2);
+  document.getElementById('t1er'+i).value  = isNaN(er) ?'—':fmt(er,2)+'%';
+  document.getElementById('t1dv'+i).value  = isNaN(dv) ?'—':'±'+fmt(dv,3);
+  document.getElementById('t1dvp'+i).value = isNaN(dvv)?'—':fmt(dvv*100,2)+'%';
+}
+document.addEventListener('input', e => {
+  if(e.target === document.getElementById('vMat'))
+    d1.forEach((_,i)=>{ const el=document.getElementById('t1l'+i); if(el&&el.value) calcT1(i,el.value); });
+});
+
+/* ══════════════════════════════════════════
+   TABLA 2
+══════════════════════════════════════════ */
+function buildT2() {
+  const tb = document.getElementById('bodyT2');
+  DISTS.forEach((dd, i) => {
+    tb.insertRow(-1).innerHTML = `
+      <td class="row-label">${i+1}</td><td class="row-label">${dd}</td>
+      <td class="input-cell"><input type="text" id="t2lam${i}" placeholder="—"></td>
+      <td class="input-cell"><input type="text" id="t2r${i}"   placeholder="—"></td>
+      <td class="input-cell"><input type="text" id="t2n${i}"   placeholder="contar"></td>
+      <td class="input-cell"><input type="text" id="t2nt${i}"  placeholder="—" readonly style="color:var(--accent);"></td>`;
+  });
+}
+
+/* ══════════════════════════════════════════
+   TABLA 3
+══════════════════════════════════════════ */
+function buildT3() {
+  const tb = document.getElementById('bodyT3');
+  FREQS.forEach((f, i) => {
+    tb.insertRow(-1).innerHTML = `
+      <td class="row-label">${i+1}</td><td class="row-label">${f}</td>
+      <td class="input-cell"><input type="text" id="t3li${i}" placeholder="0.0" oninput="calcT3(${i})"></td>
+      <td class="input-cell"><input type="text" id="t3lr${i}" placeholder="0.0" oninput="calcT3(${i})"></td>
+      <td class="input-cell"><input type="text" id="t3df${i}" readonly style="color:var(--accent2);"></td>
+      <td class="input-cell"><input type="text" id="t3v${i}"  readonly style="color:var(--green);font-weight:600;"></td>
+      <td class="input-cell"><input type="text" id="t3er${i}" readonly></td>`;
+  });
+}
+function calcT3(i) {
+  const li=pN(document.getElementById('t3li'+i).value), lr=pN(document.getElementById('t3lr'+i).value);
+  const f=FREQS[i], v=getVmat();
+  document.getElementById('t3df'+i).value = isNaN(li)||isNaN(lr)?'—':fmt(Math.abs(li-lr),2);
+  const vexp=isNaN(li)?NaN:f*li;
+  document.getElementById('t3v'+i).value  = isNaN(vexp)?'—':fmt(vexp,2);
+  document.getElementById('t3er'+i).value = isNaN(vexp)?'—':fmt(Math.abs(vexp-v)/v*100,2)+'%';
+}
+
+/* ══════════════════════════════════════════
+   TABLA 4
+══════════════════════════════════════════ */
+const d4 = FREQS.map(f => ({f, lam1:NaN, lam2:NaN}));
+function buildT4() {
+  const tb = document.getElementById('bodyT4');
+  d4.forEach((row, i) => {
+    tb.insertRow(-1).innerHTML = `
+      <td class="row-label">${i+1}</td><td class="row-label">${row.f}</td>
+      <td class="input-cell"><input type="text" id="t4l1${i}" placeholder="0.0" oninput="calcT4(${i})"></td>
+      <td class="input-cell"><input type="text" id="t4l2${i}" placeholder="0.0" oninput="calcT4(${i})"></td>
+      <td class="input-cell"><input type="text" id="t4n${i}"  readonly style="color:var(--accent);font-weight:600;"></td>
+      <td class="input-cell"><input type="text" id="t4er${i}" readonly></td>
+      <td class="input-cell"><input type="text" id="t4dn${i}"  readonly style="color:var(--accent2);"></td>
+      <td class="input-cell"><input type="text" id="t4dnp${i}" readonly style="color:var(--accent2);"></td>`;
+  });
+}
+function calcT4(i) {
+  const l1=pN(document.getElementById('t4l1'+i).value), l2=pN(document.getElementById('t4l2'+i).value);
+  d4[i].lam1=l1; d4[i].lam2=l2;
+  const n=isNaN(l1)||isNaN(l2)||l2<=0?NaN:l1/l2;
+  const er=isNaN(n)?NaN:Math.abs(n-nTeo)/nTeo*100;
+  const dnn=isNaN(l1)||isNaN(l2)||l1<=0||l2<=0?NaN:Math.sqrt((dlam/l1)**2+(dlam/l2)**2);
+  document.getElementById('t4n'+i).value  = fmt(n,3);
+  document.getElementById('t4er'+i).value = isNaN(er) ?'—':fmt(er,2)+'%';
+  document.getElementById('t4dn'+i).value = isNaN(dnn)?'—':'±'+fmt(n*dnn,3);
+  document.getElementById('t4dnp'+i).value= isNaN(dnn)?'—':fmt(dnn*100,2)+'%';
+  sincGrafica(); dibujarGrafica();
+}
+
+/* ══════════════════════════════════════════
+   TABLA RETO
+══════════════════════════════════════════ */
+function buildTablaReto() {
+  const tb = document.getElementById('bodyReto');
+  for(let i=0;i<NROWS_R;i++){
+    tb.insertRow(-1).innerHTML = `
+      <td class="row-label">${i+1}</td>
+      <td class="input-cell"><input type="text" placeholder="Hz" oninput="calcReto(${i},this.closest('tr'))"></td>
+      <td class="input-cell"><input type="text" placeholder="0.0" oninput="calcReto(${i},this.closest('tr'))"></td>
+      <td class="input-cell"><input type="text" readonly style="color:var(--green);font-weight:600;"></td>
+      <td class="input-cell"><input type="text" readonly style="color:var(--accent2);"></td>`;
+  }
+}
+function calcReto(i, tr) {
+  const cells=tr.querySelectorAll('input');
+  const f=pN(cells[0].value), lam=pN(cells[1].value);
+  const v=isNaN(f)||isNaN(lam)?NaN:f*lam;
+  const dvv=isNaN(f)||isNaN(lam)||lam<=0?NaN:Math.sqrt((df/f)**2+(dlam/lam)**2);
+  cells[2].value = fmt(v,2);
+  cells[3].value = isNaN(dvv)?'—':'±'+fmt(v*dvv,3);
+}
+
+/* ══════════════════════════════════════════
+   TABLA GRÁFICA
+══════════════════════════════════════════ */
+const ptosGraf = Array.from({length:NGRAF}, ()=>({lam1:'',lam2:''}));
+function buildTablaGraf() {
+  const tb = document.getElementById('bodyGraf');
+  for(let i=0;i<NGRAF;i++){
+    tb.insertRow(-1).innerHTML = `
+      <td class="row-label">P${i+1}</td>
+      <td class="input-cell"><input type="text" id="g1${i}" placeholder="0.0" oninput="onG(${i},'lam1',this.value)"></td>
+      <td class="input-cell"><input type="text" id="g2${i}" placeholder="0.0" oninput="onG(${i},'lam2',this.value)"></td>`;
+  }
+}
+function sincGrafica() {
+  d4.forEach((row,i)=>{
+    if(!isNaN(row.lam1)&&row.lam1>0){ const e=document.getElementById('g1'+i); if(e){e.value=fmt(row.lam1,2);ptosGraf[i].lam1=String(row.lam1);} }
+    if(!isNaN(row.lam2)&&row.lam2>0){ const e=document.getElementById('g2'+i); if(e){e.value=fmt(row.lam2,2);ptosGraf[i].lam2=String(row.lam2);} }
+  });
+}
+function onG(i,campo,val){ ptosGraf[i][campo]=val; dibujarGrafica(); }
+function getPuntos(){ return ptosGraf.map(p=>({lam1:pN(p.lam1),lam2:pN(p.lam2)})).filter(p=>!isNaN(p.lam1)&&!isNaN(p.lam2)&&p.lam1>0&&p.lam2>0); }
+
+/* ══════════════════════════════════════════
+   GRÁFICA
+══════════════════════════════════════════ */
+const COLORS = ['#1a5276','#c0392b','#1e8449','#b8860b','#6c3483'];
+let mostrarReg=true, rectaManual=null, dragging=false, dragStart=null;
+
+function toggleRegresion(){ mostrarReg=!mostrarReg; document.getElementById('btnRegresion').classList.toggle('activo',mostrarReg); dibujarGrafica(); }
+function limpiarRecta()   { rectaManual=null; dibujarGrafica(); }
+function exportarGrafica(){ const a=document.createElement('a'); a.download='grafica_lambda2_lambda1.png'; a.href=document.getElementById('graficaCanvas').toDataURL(); a.click(); }
+function regOrigen(pts){ const sXY=pts.reduce((s,p)=>s+p.lam1*p.lam2,0),sX2=pts.reduce((s,p)=>s+p.lam1*p.lam1,0); return sX2>0?sXY/sX2:null; }
+
+function dibujarGrafica() {
+  const cv=document.getElementById('graficaCanvas'), ctx=cv.getContext('2d');
+  const W=cv.offsetWidth||760;
+  cv.width=W*devicePixelRatio; cv.height=260*devicePixelRatio;
+  cv.style.width=W+'px'; cv.style.height='260px';
+  ctx.scale(devicePixelRatio,devicePixelRatio);
+  const w=W,h=260,PAD={top:30,right:30,bottom:55,left:65};
+  const pw=w-PAD.left-PAD.right,ph=h-PAD.top-PAD.bottom;
+  ctx.fillStyle='#fafafa'; ctx.fillRect(0,0,w,h);
+  ctx.fillStyle='#f5f5f5'; ctx.fillRect(PAD.left,PAD.top,pw,ph);
+  const pts=getPuntos();
+  let xMax=pts.length>0?Math.max(...pts.map(p=>p.lam1))*1.25:12;
+  let yMax=pts.length>0?Math.max(...pts.map(p=>p.lam2))*1.25:8;
+  xMax=Math.max(xMax,2); yMax=Math.max(yMax,1);
+  const toX=v=>PAD.left+(v/xMax)*pw, toY=v=>PAD.top+ph-(v/yMax)*ph;
+  ctx.strokeStyle='#e8e4dc'; ctx.lineWidth=1;
+  for(let i=0;i<=6;i++){const x=toX(i*xMax/6);ctx.beginPath();ctx.moveTo(x,PAD.top);ctx.lineTo(x,PAD.top+ph);ctx.stroke();}
+  for(let i=0;i<=5;i++){const y=toY(i*yMax/5);ctx.beginPath();ctx.moveTo(PAD.left,y);ctx.lineTo(PAD.left+pw,y);ctx.stroke();}
+  ctx.strokeStyle='#888'; ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(PAD.left,PAD.top);ctx.lineTo(PAD.left,PAD.top+ph);ctx.lineTo(PAD.left+pw,PAD.top+ph);ctx.stroke();
+  // línea teórica dorada
+  ctx.strokeStyle='rgba(184,134,11,0.35)'; ctx.lineWidth=1.5; ctx.setLineDash([5,4]);
+  ctx.beginPath();ctx.moveTo(toX(0),toY(0));ctx.lineTo(toX(xMax),toY(0.5*xMax));ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='#3d3d5c'; ctx.font=`bold 11px 'JetBrains Mono',monospace`;
+  ctx.textAlign='center'; ctx.fillText('λ₁  (u)',PAD.left+pw/2,h-4);
+  ctx.save(); ctx.translate(14,PAD.top+ph/2); ctx.rotate(-Math.PI/2); ctx.fillText('λ₂  (u)',0,0); ctx.restore();
+  ctx.fillStyle='#888'; ctx.font=`10px 'JetBrains Mono',monospace`;
+  for(let i=0;i<=6;i++){const v=i*xMax/6;ctx.textAlign='center';ctx.fillText(v.toFixed(1),toX(v),PAD.top+ph+14);}
+  for(let i=0;i<=5;i++){const v=i*yMax/5;ctx.textAlign='right';ctx.fillText(v.toFixed(1),PAD.left-4,toY(v)+4);}
+  const slope=pts.length>=2?regOrigen(pts):null;
+  if(mostrarReg&&slope!==null){
+    ctx.strokeStyle='#1a5276'; ctx.lineWidth=2.5; ctx.setLineDash([]);
+    ctx.beginPath();ctx.moveTo(toX(0),toY(0));ctx.lineTo(toX(xMax),toY(slope*xMax));ctx.stroke();
+    const nExp=1/slope, er=Math.abs((nExp-nTeo)/nTeo)*100;
+    document.getElementById('pendGraf').value=fmt(slope,4);
+    document.getElementById('nGraf').value=fmt(nExp,3);
+    document.getElementById('erGraf').value=fmt(er,2)+'%';
+    document.getElementById('calGraf').value=er<5?'Excelente':er<15?'Aceptable':'Revisar';
+    document.getElementById('pendienteLabel').textContent='pendiente = '+fmt(slope,4);
+    document.getElementById('graficaInfo').textContent=`n = ${pts.length} puntos · regresión al origen`;
+  }
+  if(rectaManual){
+    ctx.strokeStyle='#c0392b'; ctx.lineWidth=2; ctx.setLineDash([6,3]);
+    ctx.beginPath();ctx.moveTo(rectaManual.x1,rectaManual.y1);ctx.lineTo(rectaManual.x2,rectaManual.y2);ctx.stroke();
+    ctx.setLineDash([]);
+    const dx=(rectaManual.x2-rectaManual.x1)/pw*xMax,dy=-(rectaManual.y2-rectaManual.y1)/ph*yMax;
+    if(dx!==0){const mM=dy/dx;document.getElementById('pendGraf').value=fmt(mM,4)+' (manual)';document.getElementById('nGraf').value=fmt(1/mM,3);}
+  }
+  pts.forEach((p,i)=>{
+    ctx.fillStyle=COLORS[i%COLORS.length]; ctx.setLineDash([]);
+    ctx.beginPath();ctx.arc(toX(p.lam1),toY(p.lam2),5,0,Math.PI*2);ctx.fill();
+    ctx.font='bold 10px JetBrains Mono,monospace';ctx.textAlign='left';
+    ctx.fillText('P'+(i+1),toX(p.lam1)+8,toY(p.lam2)-5);
+  });
+  if(pts.length===0){ctx.fillStyle='#bbb';ctx.font=`14px 'Source Serif 4',serif`;ctx.textAlign='center';ctx.fillText('Ingrese λ₁ y λ₂ en la Tabla 4 para ver los puntos',PAD.left+pw/2,PAD.top+ph/2);}
+}
+const canv=document.getElementById('graficaCanvas');
+canv.addEventListener('mousedown',e=>{if(mostrarReg)return;const r=canv.getBoundingClientRect();dragging=true;dragStart={x:e.clientX-r.left,y:e.clientY-r.top};});
+canv.addEventListener('mousemove',e=>{if(!dragging)return;const r=canv.getBoundingClientRect();rectaManual={x1:dragStart.x,y1:dragStart.y,x2:e.clientX-r.left,y2:e.clientY-r.top};dibujarGrafica();});
+canv.addEventListener('mouseup',()=>dragging=false);
+canv.addEventListener('touchstart',e=>{if(mostrarReg)return;const r=canv.getBoundingClientRect(),t=e.touches[0];dragging=true;dragStart={x:t.clientX-r.left,y:t.clientY-r.top};},{passive:true});
+canv.addEventListener('touchmove',e=>{if(!dragging)return;const r=canv.getBoundingClientRect(),t=e.touches[0];rectaManual={x1:dragStart.x,y1:dragStart.y,x2:t.clientX-r.left,y2:t.clientY-r.top};dibujarGrafica();},{passive:true});
+canv.addEventListener('touchend',()=>dragging=false);
+
+/* ══════════════════════════════════════════
+   ADJUNTO IMAGEN
+══════════════════════════════════════════ */
+function previsualizarImagen(input, previewId) {
+  const file=input.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{const img=document.getElementById(previewId);if(img){img.src=e.target.result;img.style.display='block';}};
+  reader.readAsDataURL(file);
+}
+
+/* ══════════════════════════════════════════
+   INICIALIZACIÓN
+══════════════════════════════════════════ */
+window.addEventListener('load', () => {
+  buildT1(); buildT2(); buildT3(); buildT4();
+  buildTablaGraf(); buildTablaReto();
+  dibujarGrafica();
+  const now=new Date(), sem=now.getMonth()<6?'1':'2';
+  document.getElementById('codigoPractica').textContent=`PRÁCTICA FIS-OND-02 · ${now.getFullYear()}-${sem}`;
+  document.querySelectorAll('input[type="date"]').forEach(i=>i.value=now.toISOString().split('T')[0]);
+});
+window.addEventListener('resize', dibujarGrafica);
+</script>
+</body>
+</html>

@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simuladores de Física — UNIAJC</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
+
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'DM Sans', 'Segoe UI', sans-serif;
+            background: #f4f6fb;
+            color: #1a1a2e;
+            margin: 0;
+        }
+
+        /* ===== NAVBAR idéntico al index ===== */
+        .line li {
+            width: auto;
+            height: 50px;
+            transition: background-position-x 0.9s linear;
+        }
+        .line li a { text-decoration: none; transition: all 0.5s; }
+        .line li:hover {
+            background: url("data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIGlkPSJMYXllcl8xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4PSIwcHgiIHk9IjBweCIgd2lkdGg9IjM5MHB4IiBoZWlnaHQ9IjUwcHgiIHZpZXdCb3g9IjAgMCAzOTAgNTAiIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgMCAwIDM5MCA1MCIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+PHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSIjRkZGRjAwIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLW1pdGVybGltaXQ9IjEwIiBkPSJNMCw0Ny41ODVjMCwwLDk3LjUsMCwxMzAsMCAxMy43NSwwLDI4Ljc0LTM4Ljc3OCw0Ni4xNjgtMTkuNDE2QzE5Mi42NjksNDYuNSwyNDMuNjAzLDQ3LjU4NSwyNjAsNDcuNTg1YzMxLjgyMSwwLDEzMCwwLDEzMCwwIi8+PC9zdmc+");
+            animation: line 0.90s forwards;
+        }
+        .line li:hover a { color: rgb(1, 1, 20); }
+        .line li:not(:last-child) { margin-right: 30px; }
+        @keyframes line {
+            0%   { background-position-x: 600px; }
+            100% { background-position-x: 130px; }
+        }
+
+        /* ===== BREADCRUMB ===== */
+        .breadcrumb-bar {
+            background: white;
+            padding: 12px 40px;
+            border-bottom: 1px solid #e8edf5;
+        }
+        .breadcrumb-bar a {
+            color: #093f7c;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        .breadcrumb-bar a:hover { color: #c0392b; }
+        .breadcrumb-bar span { color: #aaa; margin: 0 8px; font-size: 0.9rem; }
+        .breadcrumb-current { color: #555; font-size: 0.9rem; }
+        @media (max-width: 576px) {
+            .breadcrumb-bar { padding: 10px 15px; overflow-x: auto; white-space: nowrap; }
+        }
+
+        /* ===== HERO ===== */
+        .hero {
+            background: linear-gradient(135deg, #093f7c 0%, #1565c0 60%, #0d47a1 100%);
+            padding: 36px 20px 28px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 70% 30%, rgba(255,209,0,0.1) 0%, transparent 60%);
+            pointer-events: none;
+        }
+        .hero h1 {
+            font-size: clamp(1.3rem, 5vw, 2.2rem);
+            font-weight: 700;
+            color: white;
+            margin-bottom: 8px;
+            position: relative;
+        }
+        .hero p {
+            color: rgba(255,255,255,0.78);
+            font-size: clamp(0.82rem, 2.5vw, 0.98rem);
+            max-width: 540px;
+            margin: 0 auto 20px;
+            position: relative;
+        }
+        .hero-badges {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+            position: relative;
+        }
+        .hero-badge {
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 5px 13px;
+            border-radius: 20px;
+            font-size: clamp(0.7rem, 2vw, 0.8rem);
+            font-weight: 500;
+        }
+
+        /* ===== SECCIÓN ===== */
+        .section-header {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+            padding: 26px 16px 0;
+            flex-wrap: wrap;
+        }
+        .section-header h2 {
+            font-size: clamp(0.95rem, 3.5vw, 1.2rem);
+            font-weight: 700;
+            color: #093f7c;
+            margin: 0;
+        }
+        .section-header .count {
+            font-size: 0.75rem;
+            color: #888;
+            font-weight: 500;
+        }
+        .section-divider {
+            height: 2px;
+            background: linear-gradient(90deg, #093f7c 0%, transparent 100%);
+            margin: 7px 16px 0;
+            border-radius: 2px;
+            opacity: 0.15;
+        }
+
+        /* ===== GRID DE APPS ===== */
+        .app-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px 12px;
+            padding: 16px 16px 24px;
+        }
+
+        .app-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 7px;
+            text-decoration: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .app-item:hover .app-icon-wrap {
+            transform: scale(1.07);
+            box-shadow: 0 10px 26px rgba(0,0,0,0.2);
+        }
+        .app-item:active .app-icon-wrap {
+            transform: scale(0.93);
+            transition: transform 0.08s;
+        }
+
+        .app-icon-wrap {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 20px;
+            overflow: hidden;
+            transition: transform 0.22s cubic-bezier(.34,1.56,.64,1), box-shadow 0.22s;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.14);
+            position: relative;
+        }
+        .app-icon-wrap svg { width: 100%; height: 100%; display: block; }
+
+        .app-label {
+            font-size: clamp(9.5px, 2.6vw, 12px);
+            font-weight: 500;
+            color: #333;
+            text-align: center;
+            line-height: 1.3;
+            width: 100%;
+        }
+
+        .badge-new {
+            position: absolute;
+            top: 6px; right: 6px;
+            background: #e53935;
+            color: white;
+            font-size: 7.5px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 6px;
+            letter-spacing: 0.3px;
+            z-index: 2;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 576px) {
+            .navbar-brand img { width: 90px !important; height: 38px !important; }
+            .line li:not(:last-child) { margin-right: 0 !important; }
+        }
+
+        /* Tablet: 4 columnas */
+        @media (min-width: 600px) {
+            .app-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 20px 16px;
+                padding: 20px 24px 32px;
+            }
+            .section-header { padding: 28px 24px 0; }
+            .section-divider { margin: 8px 24px 0; }
+            .app-icon-wrap { border-radius: 22px; }
+        }
+
+        /* Desktop: 6 columnas */
+        @media (min-width: 900px) {
+            .app-grid {
+                grid-template-columns: repeat(6, 1fr);
+                gap: 22px 18px;
+                padding: 22px 36px 36px;
+            }
+            .section-header { padding: 32px 36px 0; }
+            .section-divider { margin: 10px 36px 0; }
+            .app-icon-wrap { border-radius: 24px; }
+        }
+
+        @media (min-width: 1200px) {
+            .app-grid { grid-template-columns: repeat(7, 1fr); }
+        }
+
+        /* Pantallas muy pequeñas */
+        @media (max-width: 360px) {
+            .app-grid { gap: 14px 10px; padding: 12px 12px 20px; }
+            .app-icon-wrap { border-radius: 16px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== NAVBAR (idéntico al index.html) ===== -->
+    <nav class="navbar navbar-expand-lg" style="background-color:rgb(9, 63, 124);">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="index.html">
+                <img src="resources/logo_camacho.png" alt="Logo" width="120" height="50" class="d-inline-block align-text">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+                    aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse line" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" style="color:white;">
+                            Laboratorios de Física Presencial
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="laboratorio_fisica_presencial_1.html">Laboratorio de Física I Presencial</a></li>
+                            <li><a class="dropdown-item" href="laboratorio_fisica_presencial_2.html">Laboratorio de Física II Presencial</a></li>
+                            <li><a class="dropdown-item" href="laboratorio_fisica_presencial_3.html">Laboratorio de Física III Presencial</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" style="color:white;">
+                            Laboratorios de Física Virtual
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="laboratorio_fisica_virtual_1.html">Laboratorio de Física I Virtual</a></li>
+                            <li><a class="dropdown-item" href="laboratorio_fisica_virtual_2.html">Laboratorio de Física II Virtual</a></li>
+                            <li><a class="dropdown-item" href="laboratorio_fisica_virtual_3.html">Laboratorio de Física III Virtual</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" style="color:white;">
+                            Laboratorios de Física Remotos
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="laboratorio_fisica_remoto_1.html">Laboratorio de Física I Remoto</a></li>
+                            <li><a class="dropdown-item" href="laboratorio_fisica_remoto_2.html">Laboratorio de Física II Remoto</a></li>
+                            <li><a class="dropdown-item" href="laboratorio_fisica_remoto_3.html">Laboratorio de Física III Remoto</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" style="color:white;">
+                            Iniciar Sesión
+                            <img src="resources/is3.png" alt="Iniciar Sesión" width="30" height="24">
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ===== BREADCRUMB ===== -->
+    <div class="breadcrumb-bar">
+        <a href="index.html">🏠 Inicio</a>
+        <span>›</span>
+        <span class="breadcrumb-current">Física Simuladores</span>
+    </div>
+
+    <!-- ===== HERO ===== -->
+    <div class="hero">
+        <h1>🔬 Simuladores Interactivos</h1>
+        <p>Explora, experimenta y aprende desde cualquier lugar. Toca el simulador que deseas usar.</p>
+        <div class="hero-badges">
+            <div class="hero-badge">⚙️ Mecánica</div>
+            <div class="hero-badge">⚡ Electricidad</div>
+            <div class="hero-badge">🌊 Ondas</div>
+            <div class="hero-badge">📏 Medición</div>
+        </div>
+    </div>
+
+    <!-- ===== MECÁNICA Y CINEMÁTICA ===== -->
+    <div class="section-header">
+        <h2>⚙️ Mecánica y Cinemática</h2>
+        <span class="count">7 simuladores</span>
+    </div>
+    <div class="section-divider"></div>
+    <div class="app-grid">
+
+        <a class="app-item" href="lab_fisica1_virtual/Simulador_CaidaLibre.html">
+            <div class="app-icon-wrap">
+                <svg viewBox="0 0 108 108" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="108" height="108" fill="#1565C0"/>
+                    <defs><marker id="arrdown" viewBox="0 0 10 10" refX="5" refY="8" markerWidth="5" markerHeight="5" orient="auto"><path d="M2 2L5 8L8 2" fill="none" stroke="#90CAF9" stroke-width="2" stroke-linecap="round"/></marker></defs>
+                    <circle id="fall-ball" cx="54" cy="22" r="10" fill="#BBDEFB" stroke="#90CAF9" stroke-width="2"/>
+                    <ellipse id="fall-shadow" cx="54" cy="94" rx="12" ry="3" fill="#0D47A1" opacity="0.5"/>
+                    <line x1="20" y1="96" x2="88" y2="96" stroke="#42A5F5" stroke-width="2" stroke-linecap="round"/>
+                    <line id="fall-arrow" x1="54" y1="34" x2="54" y2="52" stroke="#90CAF9" stroke-width="2.5" stroke-linecap="round" marker-end="url(#arrdown)"/>
+                    <text x="61" y="46" font-size="11" fill="#BBDEFB" font-family="DM Sans,sans-serif" font-weight="600">g</text>
+                    <text x="54" y="106" text-anchor="middle" font-size="7.5" fill="#90CAF9" font-family="DM Sans,sans-serif" font-weight="600">CAÍDA LIBRE</text>
+                </svg>
+            </div>
+            <div class="app-label">Caída Libre</div>
+        </a>
+
+        <a class="app-item" href="lab_fisica1_virtual/Simulador_MUR-MUA.html">
+            <div class="app-icon-wrap">
+                <svg viewBox="0 0 108 108" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="108" height="108" fill="#2E7D32"/>
+                    <defs><marker id="arrmur" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#A5D6A7" stroke-width="1.5" stroke-linecap="round"/></marker></defs>
+                    <rect x="10" y="76" width="88" height="10" rx="3" fill="#1B5E20"/>
+                    <rect id="mur-car" x="14" y="58" width="38" height="18" rx="5" fill="#81C784" stroke="#A5D6A7" stroke-width="1.5"/>
+                    <rect id="mur-top" x="20" y="50" width="25" height="12" rx="4" fill="#C8E6C9" stroke="#A5D6A7" stroke-width="1"/>
+                    <circle id="mur-w1" cx="22" cy="76" r="5" fill="#1B5E20" stroke="#4CAF50" stroke-width="1.5"/>
+                    <circle id="mur-w2" cx="44" cy="76" r="5" fill="#1B5E20" stroke="#4CAF50" stroke-width="1.5"/>
+                    <line x1="54" y1="67" x2="82" y2="67" stroke="#A5D6A7" stroke-width="2.5" marker-end="url(#arrmur)"/>
+                    <text x="54" y="28" text-anchor="middle" font-size="11" fill="#C8E6C9" font-family="DM Sans,sans-serif" font-weight="700">MUR</text>
+                    <text x="54" y="41" text-anchor="middle" font-size="9" fill="#81C784" font-family="DM Sans,sans-serif">MUA</text>
+                    <text x="54" y="106" text-anchor="middle" font-size="7.5" fill="#A5D6A7" font-family="DM Sans,sans-serif" font-weight="600">MUR / MUA</text>
+                </svg>
+            </div>
+            <div class="app-label">MUR / MUA</div>
+        </a>
+
+        <a class="app-item" href="lab_fisica1_virtual/Simulador_parabolico_3D.html">
+            <div class="app-icon-wrap" style="position:relative;">
+                <span class="badge-new">NEW</span>
+                <svg viewBox="0 0 108 108" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="108" height="108" fill="#E65100"/>
+                    <defs><marker id="arrpar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#FFCC80" stroke-width="1.5" stroke-linecap="round"/></marker></defs>
+                    <line x1="12" y1="88" x2="96" y2="88" stroke="#FFCC80" stroke-width="1.5" stroke-linecap="round"/>
+                    <path d="M16,88 Q54,22 92,88" fill="none" stroke="#FFB74D" stroke-width="2.5" stroke-dasharray="6,3" marker-end="url(#arrpar)"/>
+                    <circle id="par-ball" cx="16" cy="88" r="7" fill="#FFCC80"/>
+                    <circle cx="16" cy="88" r="4" fill="#E65100"/>
+                    <circle cx="54" cy="24" r="4" fill="#FFCC80" opacity="0.7"/>
+                    <line x1="12" y1="88" x2="12" y2="20" stroke="#FFCC80" stroke-width="1.5" opacity="0.5" marker-end="url(#arrpar)"/>
+                    <text x="17" y="18" font-size="9" fill="#FFCC80" font-family="DM Sans,sans-serif">y</text>
+                    <text x="93" y="98" font-size="9" fill="#FFCC80" font-family="DM Sans,sans-serif">x</text>
+                    <text x="54" y="106" text-anchor="middle" font-size="7" fill="#FFCC80" font-family="DM Sans,sans-serif" font-weight="600">PARABÓLICO 3D</text>
+                </svg>
+            </div>
+            <div class="app-label">Tiro Parabólico 3D</div>
+        </a>
+
+        <a class="app-item" href="lab_fisica1_virtual/Simulador_Leyes_de_Newton_Plano.html">
+            <div class="app-icon-wrap">
+                <svg viewBox="0 0 108 108" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="108" height="108" fill="#4527A0"/>
+                    <defs><marker id="arrnew" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#CE93D8" stroke-width="1.5" stroke-linecap="round"/></marker></defs>
+                    <polygon points="16,90 92,90 92,42" fill="#311B92" stroke="#7E57C2" stroke-width="1.5"/>
+                    <rect x="56" y="56" width="24" height="18" rx="4" fill="#9C27B0" stroke="#CE93D8" stroke-width="1.5" transform="rotate(-28 68 65)"/>
+                    <line x1="68" y1="65" x2="88" y2="52" stroke="#CE93D8" stroke-width="2.5" marker-end="url(#arrnew)"/>
+                    <line x1="68" y1="65" x2="54" y2="80" stroke="#EF9A9A" stroke-width="2" marker-end="url(#arrnew)" opacity="0.7"/>
+                    <text x="54" y="24" text-anchor="middle" font-size="13" fill="#E1BEE7" font-family="DM Sans,sans-serif" font-weight="700">F=ma</text>
+                    <text x="54" y="106" text-anchor="middle" font-size="7" fill="#CE93D8" font-family="DM Sans,sans-serif" font-weight="600">LEYES DE NEWTON</text>
+                </svg>
+            </div>
+            <div class="app-label">Leyes de Newton</div>
+        </a>
+
+        <a class="app-item" href="lab_fisica1_virtual/Simulador_LeyDeHooke.html">
+            <div class="app-icon-wrap">
+                <svg viewBox="0 0 108 108" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="108" height="108" fill="#00695C"/>
+                    <rect x="36" y="12" width="36" height="6" rx="2" fill="#004D40"/>
+                    <path id="hooke-spring" d="M54,18 Q62,22 54,28 Q46,34 54,40 Q62,46 54,52" stroke="#80CBC4" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                    <rect id="hooke-block" x="40" y="52" width="28" height="22" rx="5" fill="#26A69A" stroke="#80CBC4" stroke-width="1.5"/>
+                    <text x="54" y="67" text-anchor="middle" font-size="9" fill="#E0F2F1" font-family="DM Sans,sans-serif" font-weight="600">m</text>
+                    <text x="54" y="24" text-anchor="middle" font-size="9" fill="#B2DFDB" font-family="DM Sans,sans-serif" font-weight="700">F = -kx</text>
+                    <text x="54" y="106" text-anchor="middle" font-size="7.5" fill="#80CBC4" font-family="DM Sans,sans-serif" font-weight="600">LEY DE HOOKE</text>
+                </svg>
+            </div>
+            <div class="app-label">Ley de Hooke</div>
+        </a>
+
+        
+
+        
+
+    </div>
+
+    <!-- ===== ELECTRICIDAD Y MAGNETISMO ===== -->
+    <div class="section-header">
+        <h2>⚡ Electricidad y Magnetismo</h2>
+        <span class="count">6 simuladores</span>
+    </div>
+    <div class="section-divider"></div>
+    <div class="app-grid">
+
+        <a class="app-item" href="lab_fisica2_virtual/Simulador_Cargas_electricas.html">
+            <div class="app-icon-wrap">
+                <svg viewBox="0 0 108 108" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="108" height="108" fill="#4527A0"/>
+                    <defs><marker id="arrcarg" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#B39DDB" stroke-width="1.5" stroke-linecap="round"/></marker></defs>
+                    <circle cx="32" cy="54" r="16" fill="#512DA8" stroke="#B39DDB" stroke-width="2"/>
+                    <text x="32" y="60" text-anchor="middle" font-size="18" fill="#EDE7F6" font-family="DM Sans,sans-serif" font-weight="700">+</text>
+                    <circle cx="76" cy="54" r="16" fill="#311B92" stroke="#7E57C2" stroke-width="2"/>
+                    <text x="76" y="60" text-anchor="middle" font-size="18" fill="#EDE7F6" font-family="DM Sans,sans-serif" font-weight="700">−</text>
+                    <path d="M50,46 Q54,40 58,46" fill="none" stroke="#B39DDB" stroke-width="1.5" marker-end="url(#arrcarg)"/>
+                    <path d="M50,54 L58,54" fill="none" stroke="#B39DDB" stroke-width="1.5" marker-end="url(#arrcarg)"/>
+                    <path d="M50,62 Q54,68 58,62" fill="none" stroke="#B39DDB" stroke-width="1.5" marker-end="url(#arrcarg)"/>
+                    <text x="54" y="106" text-anchor="middle" font-size="7" fill="#B39DDB" font-family="DM Sans,sans-serif" font-weight="600">CARGAS ELÉCTRICAS</text>
+                </svg>
+            </div>
+            <div class="app-label">Cargas Eléctricas</div>
+        </a>
+
+        <a class="app-item" href="lab_fisica2_virtual/Simulador_Ley_Coulomb.html">
+            <div class="app-icon-wrap">
+                <svg viewBox="0 0 108 108" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="108" height="108" fill="#880E4F"/>
+                    <defs>
+                        <marker id="arrcoul" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#F48FB1" stroke-width="1.5" stroke-linecap="round"/></marker>
+                        <marker id="arrcoul2" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M8 1L2 5L8 9" fill="none" stroke="#F48FB1" stroke-width="1.5" stroke-linecap="round"/></marker>
+                    </defs>
+                    <circle cx="28" cy="62" r="14" fill="#AD1457" stroke="#F48FB1" stroke-width="2"/>
+                    <text x="28" y="68" text-anchor="middle" font-size="13" fill="#FCE4EC" font-family="DM Sans,sans-serif" font-weight="700">q₁</text>
+                    <circle cx="80" cy="62" r="14" fill="#880E4F" stroke="#F06292" stroke-width="2"/>
+                    <text x="80" y="68" text-anchor="middle" font-size="13" fill="#FCE4EC" font-family="DM Sans,sans-serif" font-weight="700">q₂</text>
+                    <line x1="14" y1="62" x2="4" y2="62" stroke="#F48FB1" stroke-width="2.5" marker-end="url(#arrcoul2)"/>
+                    <line x1="94" y1="62" x2="104" y2="62" stroke="#F48FB1" stroke-width="2.5" marker-end="url(#arrcoul)"/>
+                    <line x1="28" y1="34" x2="80" y2="34" stroke="#F48FB1" stroke-width="1" stroke-dasharray="3,2"/>
+                    <text x="54" y="30" text-anchor="middle" font-size="8" fill="#F48FB1" font-family="DM Sans,sans-serif">r</text>
+                    <text x="54" y="18" text-anchor="middle" font-size="8.5" fill="#FCE4EC" font-family="DM Sans,sans-serif" font-weight="700">F = kq₁q₂/r²</text>
+                    <text x="54" y="106" text-anchor="middle" font-size="7.5" fill="#F48FB1" font-family="DM Sans,sans-serif" font-weight="600">LEY DE COULOMB</text>
+                </svg>
+            </div>
+            <div class="app-label">Ley de Coulomb</div>
+        </a>
+
+        <a class="app-item" href="lab_fisica2_virtual/Simulador_Lineas_Campo_Electrico-Equipotenciales.html">
+            <div class="app-icon-wrap">
+                <svg viewBox="0 0 108 108" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="108" height="108" fill="#1A237E"/>
+                    <defs><marker id="arrlce" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#90CAF9" stroke-width="1.5" stroke-linecap="round"/></marker></defs>
+                    <circle cx="54" cy="54" r="32" fill="none" stroke="#1565C0" stroke-width="1" stroke-dasharray="4,3"/>
+                    <circle cx="54" cy="54" r="20" fill="none" stroke="#1976D2" stroke-width="1" stroke-dasharray="4,3"/>
+                    <circle cx="54" cy="54" r="10" fill="none" stroke="#1E88E5" stroke-width="1" stroke-dasharray="4,3"/>
+                    <line x1="54" y1="22" x2="54" y2="44" stroke="#90CAF9" stroke-width="1.8" marker-end="url(#arrlce)"/>
+                    <line x1="76" y1="32" x2="65" y2="44" stroke="#90CAF9" stroke-width="1.8" marker-end="url(#arrlce)"/>
+                    <line x1="86" y1="54" x2="74" y2="54" stroke="#90CAF9" stroke-width="1.8" marker-end="url(#arrlce)"/>
+                    <line x1="76" y1="76" x2="65" y2="65" stroke="#90CAF9" stroke-width="1.8" marker-end="url(#arrlce)"/>
+                    <line x1="54" y1="86" x2="54" y2="64" stroke="#90CAF9" stroke-width="1.8" marker-end="url(#arrlce)"/>
+                    <line x1="32" y1="76" x2="43" y2="65" stroke="#90CAF9" stroke-width="1.8" marker-end="url(#arrlce)"/>
+                    <line x1="22" y1="54" x2="34" y2="54" stroke="#90CAF9" stroke-width="1.8" marker-end="url(#arrlce)"/>
+                    <line x1="32" y1="32" x2="43" y2="44" stroke="#90CAF9" stroke-width="1.8" marker-end="url(#arrlce)"/>
+                    <circle cx="54" cy="54" r="8" fill="#1565C0" stroke="#90CAF9" stroke-width="2"/>
+                    <text x="54" y="58" text-anchor="middle" font-size="10" fill="#E3F2FD" font-family="DM Sans,sans-serif" font-weight="700">+</text>
+                    <text x="54" y="106" text-anchor="middle" font-size="6.5" fill="#90CAF9" font-family="DM Sans,sans-serif" font-weight="600">CAMPO ELÉCTRICO</text>
+                </svg>
+            </div>
+            <div class="app-label">Líneas de Campo</div>
+        </a>
+
+        <a class="app-item" href="lab_fisica2_virtual/Simulador_Constante_Dielectrica.html">
+            <div class="app-icon-wrap">
+                <svg viewBox="0 0 108 108" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="108" height="108" fill="#004D40"/>
+                    <rect x="22" y="32" width="8" height="44" rx="2" fill="#1DE9B6" stroke="#80CBC4" stroke-width="1.5"/>
+                    <rect x="78" y="32" width="8" height="44" rx="2" fill="#00BFA5" stroke="#80CBC4" stroke-width="1.5"/>
+                    <rect x="32" y="36" width="44" height="36" rx="3" fill="#00796B" stroke="#4DB6AC" stroke-width="1" stroke-dasharray="4,2" opacity="0.8"/>
+                    <text x="54" y="58" text-anchor="middle" font-size="11" fill="#B2DFDB" font-family="DM Sans,sans-serif" font-weight="700">εᵣ</text>
+                    <text x="26" y="46" text-anchor="middle" font-size="10" fill="#1DE9B6" font-family="DM Sans,sans-serif">+</text>
+                    <text x="26" y="60" text-anchor="middle" font-size="10" fill="#1DE9B6" font-family="DM Sans,sans-serif">+</text>
+                    <text x="82" y="46" text-anchor="middle" font-size="10" fill="#80CBC4" font-family="DM Sans,sans-serif">−</text>
+                    <text x="82" y="60" text-anchor="middle" font-size="10" fill="#80CBC4" font-family="DM Sans,sans-serif">−</text>
+                    <text x="54" y="20" text-anchor="middle" font-size="8.5" fill="#B2DFDB" font-family="DM Sans,sans-serif" font-weight="700">C = ε₀εᵣA/d</text>
+                    <text x="54" y="106" text-anchor="middle" font-size="6.5" fill="#80CBC4" font-family="DM Sans,sans-serif" font-weight="600">CSTE. DIELÉCTRICA</text>
+                </svg>
+            </div>
+            <div class="app-label">Constante Dieléctrica</div>
+        </a>
+
+        <a class="app-item" href="lab_fisica2_virtual/Simulador_Resistividad.html">
+            <div class="app-icon-wrap">
+                <svg viewBox="0 0 108 108" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="108" height="108" fill="#B71C1C"/>
+                    <defs><marker id="arrresis" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#EF9A9A" stroke-width="1.5" stroke-linecap="round"/></marker></defs>
+                    <rect x="20" y="38" width="68" height="32" rx="4" fill="#C62828" stroke="#EF9A9A" stroke-width="1.5"/>
+                    <text x="12" y="56" font-size="9" fill="#FFCDD2" font-family="DM Sans,sans-serif" font-weight="600">A</text>
+                    <line x1="20" y1="82" x2="88" y2="82" stroke="#EF9A9A" stroke-width="1.5" stroke-dasharray="3,2"/>
+                    <text x="54" y="94" text-anchor="middle" font-size="9" fill="#FFCDD2" font-family="DM Sans,sans-serif">L</text>
+                    <circle cx="36" cy="54" r="5" fill="#EF5350" stroke="#FFCDD2" stroke-width="1.5"/>
+                    <text x="36" y="58" text-anchor="middle" font-size="7" fill="#FFCDD2" font-family="DM Sans,sans-serif">e⁻</text>
+                    <circle cx="60" cy="54" r="5" fill="#EF5350" stroke="#FFCDD2" stroke-width="1.5"/>
+                    <text x="60" y="58" text-anchor="middle" font-size="7" fill="#FFCDD2" font-family="DM Sans,sans-serif">e⁻</text>
+                    <line x1="66" y1="54" x2="80" y2="54" stroke="#EF9A9A" stroke-width="2" marker-end="url(#arrresis)"/>
+                    <text x="54" y="20" text-anchor="middle" font-size="9.5" fill="#FFCDD2" font-family="DM Sans,sans-serif" font-weight="700">R = ρL/A</text>
+                    <text x="54" y="106" text-anchor="middle" font-size="7.5" fill="#EF9A9A" font-family="DM Sans,sans-serif" font-weight="600">RESISTIVIDAD</text>
+                </svg>
+            </div>
+            <div class="app-label">Resistividad</div>
+        </a>
+
+        <a class="app-item" href="lab_fisica2_virtual/Simulador_Dependencia_campo_Magnetico.html">
+            <div class="app-icon-wrap">
+                <svg viewBox="0 0 108 108" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="108" height="108" fill="#37474F"/>
+                    <defs><marker id="arrmag" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#80CBC4" stroke-width="1.5" stroke-linecap="round"/></marker></defs>
+                    <ellipse cx="54" cy="54" rx="36" ry="14" fill="none" stroke="#90A4AE" stroke-width="1.5"/>
+                    <ellipse cx="54" cy="54" rx="24" ry="9" fill="none" stroke="#B0BEC5" stroke-width="1.5"/>
+                    <ellipse cx="54" cy="54" rx="12" ry="4" fill="none" stroke="#CFD8DC" stroke-width="1.5"/>
+                    <line x1="10" y1="54" x2="26" y2="54" stroke="#80CBC4" stroke-width="2.5" marker-end="url(#arrmag)"/>
+                    <line x1="82" y1="54" x2="98" y2="54" stroke="#80CBC4" stroke-width="2.5" marker-end="url(#arrmag)"/>
+                    <text x="54" y="30" text-anchor="middle" font-size="14" fill="#B0BEC5" font-family="DM Sans,sans-serif" font-weight="700">B⃗</text>
+                    <circle cx="18" cy="54" r="4" fill="#546E7A" stroke="#90A4AE" stroke-width="1.5"/>
+                    <circle cx="90" cy="54" r="4" fill="#546E7A" stroke="#90A4AE" stroke-width="1.5"/>
+                    <text x="54" y="106" text-anchor="middle" font-size="6.5" fill="#90A4AE" font-family="DM Sans,sans-serif" font-weight="600">CAMPO MAGNÉTICO</text>
+                </svg>
+            </div>
+            <div class="app-label">Campo Magnético</div>
+        </a>
+
+        
+
+    </div>
+
+    <!-- ===== ONDAS, SONIDO Y ÓPTICA ===== -->
+    <div class="section-header">
+        <h2>🌊 Ondas, Sonido y Óptica</h2>
+        <span class="count">4 simuladores</span>
+    </div>
+    <div class="section-divider"></div>
+    <div class="app-grid">
+
+        <a class="app-item" href="lab_fisica3_virtual/Simulador_Pendulo.html">
+            <div class="app-icon-wrap">
+                <svg viewBox="0 0 108 108" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="108" height="108" fill="#1B5E20"/>
+                    <line x1="20" y1="12" x2="88" y2="12" stroke="#A5D6A7" stroke-width="3.5" stroke-linecap="round"/>
+                    <g id="pend-arm">
+                        <line x1="54" y1="12" x2="54" y2="74" stroke="#81C784" stroke-width="2.5" stroke-linecap="round"/>
+                        <circle cx="54" cy="82" r="11" fill="#C8E6C9" stroke="#66BB6A" stroke-width="2"/>
+                        <circle cx="54" cy="82" r="5" fill="#66BB6A"/>
+                    </g>
+                    <path d="M38,28 Q54,22 70,28" fill="none" stroke="#4CAF50" stroke-width="1" stroke-dasharray="3,3" opacity="0.5"/>
+                    <text x="54" y="106" text-anchor="middle" font-size="7.5" fill="#A5D6A7" font-family="DM Sans,sans-serif" font-weight="600">PÉNDULO</text>
+                </svg>
+            </div>
+            <div class="app-label">Péndulo Simple</div>
+        </a>
+
+        <a class="app-item" href="lab_fisica3_virtual/Simulador_Masa-Resorte.html">
+            <div class="app-icon-wrap">
+                <svg viewBox="0 0 108 108" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="108" height="108" fill="#0277BD"/>
+                    <line x1="12" y1="54" x2="28" y2="54" stroke="#81D4FA" stroke-width="2.5" stroke-linecap="round"/>
+                    <polyline points="28,54 32,44 38,64 44,44 50,64 56,44 62,64 68,54" fill="none" stroke="#29B6F6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <rect id="mr-block" x="68" y="40" width="26" height="28" rx="5" fill="#039BE5" stroke="#81D4FA" stroke-width="1.5"/>
+                    <text x="81" y="58" text-anchor="middle" font-size="10" fill="#E1F5FE" font-family="DM Sans,sans-serif" font-weight="600">M</text>
+                    <line x1="12" y1="68" x2="96" y2="68" stroke="#0288D1" stroke-width="1.5"/>
+                    <text x="54" y="24" text-anchor="middle" font-size="9" fill="#B3E5FC" font-family="DM Sans,sans-serif" font-weight="700">ω = √(k/m)</text>
+                    <text x="54" y="106" text-anchor="middle" font-size="7.5" fill="#81D4FA" font-family="DM Sans,sans-serif" font-weight="600">MASA-RESORTE</text>
+                </svg>
+            </div>
+            <div class="app-label">Masa-Resorte</div>
+        </a>
+
+        <a class="app-item" href="lab_fisica3_virtual/Simulador_Cubeta_Ondas.html">
+            <div class="app-icon-wrap">
+                <svg viewBox="0 0 108 108" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="108" height="108" fill="#0D47A1"/>
+                    <rect x="12" y="30" width="84" height="62" rx="4" fill="none" stroke="#42A5F5" stroke-width="2"/>
+                    <circle id="cub-r1a" cx="36" cy="61" r="8" fill="none" stroke="#90CAF9" stroke-width="1.5" opacity="0.9"/>
+                    <circle id="cub-r1b" cx="36" cy="61" r="18" fill="none" stroke="#90CAF9" stroke-width="1" opacity="0.6"/>
+                    <circle id="cub-r1c" cx="36" cy="61" r="28" fill="none" stroke="#90CAF9" stroke-width="0.8" opacity="0.35"/>
+                    <circle id="cub-r2a" cx="72" cy="61" r="8" fill="none" stroke="#64B5F6" stroke-width="1.5" opacity="0.9"/>
+                    <circle id="cub-r2b" cx="72" cy="61" r="18" fill="none" stroke="#64B5F6" stroke-width="1" opacity="0.6"/>
+                    <circle id="cub-r2c" cx="72" cy="61" r="28" fill="none" stroke="#64B5F6" stroke-width="0.8" opacity="0.35"/>
+                    <circle cx="36" cy="61" r="4" fill="#E3F2FD" stroke="#42A5F5" stroke-width="1.5"/>
+                    <circle cx="72" cy="61" r="4" fill="#E3F2FD" stroke="#42A5F5" stroke-width="1.5"/>
+                    <text x="54" y="22" text-anchor="middle" font-size="8" fill="#90CAF9" font-family="DM Sans,sans-serif" font-weight="600">INTERFERENCIA</text>
+                    <text x="54" y="106" text-anchor="middle" font-size="7.5" fill="#90CAF9" font-family="DM Sans,sans-serif" font-weight="600">CUBETA DE ONDAS</text>
+                </svg>
+            </div>
+            <div class="app-label">Cubeta de Ondas</div>
+        </a>
+
+        <a class="app-item" href="lab_fisica3_virtual/Simulador_Efecto_Doppler.html">
+            <div class="app-icon-wrap">
+                <svg viewBox="0 0 108 108" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="108" height="108" fill="#4A148C"/>
+                    <defs><marker id="arrdop" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#CE93D8" stroke-width="1.5" stroke-linecap="round"/></marker></defs>
+                    <ellipse cx="44" cy="54" rx="7" ry="14" fill="none" stroke="#E1BEE7" stroke-width="1.5"/>
+                    <ellipse cx="34" cy="54" rx="16" ry="22" fill="none" stroke="#CE93D8" stroke-width="1"/>
+                    <ellipse cx="22" cy="54" rx="26" ry="30" fill="none" stroke="#BA68C8" stroke-width="0.8" opacity="0.7"/>
+                    <ellipse cx="66" cy="54" rx="11" ry="18" fill="none" stroke="#CE93D8" stroke-width="1"/>
+                    <ellipse cx="82" cy="54" rx="20" ry="26" fill="none" stroke="#BA68C8" stroke-width="0.8" opacity="0.7"/>
+                    <circle cx="54" cy="54" r="7" fill="#7B1FA2" stroke="#CE93D8" stroke-width="2"/>
+                    <line x1="62" y1="54" x2="84" y2="54" stroke="#CE93D8" stroke-width="2.5" marker-end="url(#arrdop)"/>
+                    <text x="54" y="20" text-anchor="middle" font-size="9" fill="#E1BEE7" font-family="DM Sans,sans-serif" font-weight="700">DOPPLER</text>
+                    <text x="54" y="106" text-anchor="middle" font-size="7.5" fill="#CE93D8" font-family="DM Sans,sans-serif" font-weight="600">EFECTO DOPPLER</text>
+                </svg>
+            </div>
+            <div class="app-label">Efecto Doppler</div>
+        </a>
+
+        <a class="app-item" href="lab_fisica3_virtual/Simulador_Ondas_Estacionarias.html">
+            <div class="app-icon-wrap">
+                <svg viewBox="0 0 108 108" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="108" height="108" fill="#004D40"/>
+                    <circle cx="12" cy="54" r="5" fill="#1DE9B6" stroke="#80CBC4" stroke-width="1.5"/>
+                    <circle cx="96" cy="54" r="5" fill="#1DE9B6" stroke="#80CBC4" stroke-width="1.5"/>
+                    <path id="sw-wave" d="M17,54 Q30,30 54,30 Q78,30 91,54" fill="none" stroke="#1DE9B6" stroke-width="3" stroke-linecap="round"/>
+                    <path id="sw-wave2" d="M17,54 Q30,78 54,78 Q78,78 91,54" fill="none" stroke="#4DB6AC" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+                    <circle cx="17" cy="54" r="3" fill="#80CBC4"/>
+                    <circle cx="54" cy="54" r="3" fill="#80CBC4"/>
+                    <circle cx="91" cy="54" r="3" fill="#80CBC4"/>
+                    <line x1="36" y1="30" x2="36" y2="78" stroke="#00BFA5" stroke-width="1" stroke-dasharray="3,3" opacity="0.5"/>
+                    <line x1="72" y1="30" x2="72" y2="78" stroke="#00BFA5" stroke-width="1" stroke-dasharray="3,3" opacity="0.5"/>
+                    <text x="54" y="100" text-anchor="middle" font-size="7" fill="#80CBC4" font-family="DM Sans,sans-serif" font-weight="600">ONDAS ESTACIONARIAS</text>
+                </svg>
+            </div>
+            <div class="app-label">Ondas Estacionarias</div>
+        </a>
+
+        <a class="app-item" href="lab_fisica3_virtual/Simulador_Interferencia_Reflexion_y_Refraccion.html">
+            <div class="app-icon-wrap">
+                <svg viewBox="0 0 108 108" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="108" height="108" fill="#0C447C"/>
+                    <defs>
+                        <marker id="arrref1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#EF5350" stroke-width="1.5" stroke-linecap="round"/></marker>
+                        <marker id="arrref2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#FFCC80" stroke-width="1.5" stroke-linecap="round"/></marker>
+                        <marker id="arrref3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#A5D6A7" stroke-width="1.5" stroke-linecap="round"/></marker>
+                    </defs>
+                    <polygon points="54,18 82,78 26,78" fill="#042C53" stroke="#B5D4F4" stroke-width="2"/>
+                    <line x1="10" y1="48" x2="40" y2="48" stroke="#E6F1FB" stroke-width="2.5" stroke-linecap="round"/>
+                    <line x1="68" y1="57" x2="96" y2="40" stroke="#EF5350" stroke-width="1.8" marker-end="url(#arrref1)" stroke-linecap="round"/>
+                    <line x1="68" y1="60" x2="98" y2="58" stroke="#FFCC80" stroke-width="1.8" marker-end="url(#arrref2)" stroke-linecap="round"/>
+                    <line x1="68" y1="64" x2="96" y2="76" stroke="#A5D6A7" stroke-width="1.8" marker-end="url(#arrref3)" stroke-linecap="round"/>
+                    <text x="54" y="106" text-anchor="middle" font-size="6.5" fill="#90CAF9" font-family="DM Sans,sans-serif" font-weight="600">REFRACCIÓN / REFLEXIÓN</text>
+                </svg>
+            </div>
+            <div class="app-label">Refracción y Reflexión</div>
+        </a>
+
+    </div>
+
+    <!-- ===== MEDICIÓN ===== -->
+    <div class="section-header">
+        <h2>📏 Medición e Instrumentos</h2>
+        <span class="count">1 simulador</span>
+    </div>
+    <div class="section-divider"></div>
+    <div class="app-grid">
+
+        <a class="app-item" href="lab_fisica1_virtual/Simulador_Medidas.html">
+            <div class="app-icon-wrap">
+                <svg viewBox="0 0 108 108" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="108" height="108" fill="#3E2723"/>
+                    <rect x="10" y="44" width="88" height="16" rx="3" fill="#5D4037" stroke="#BCAAA4" stroke-width="1.5"/>
+                    <line x1="18" y1="44" x2="18" y2="52" stroke="#EFEBE9" stroke-width="1.5"/>
+                    <line x1="28" y1="44" x2="28" y2="52" stroke="#EFEBE9" stroke-width="1.5"/>
+                    <line x1="38" y1="44" x2="38" y2="52" stroke="#EFEBE9" stroke-width="1.5"/>
+                    <line x1="48" y1="44" x2="48" y2="52" stroke="#EFEBE9" stroke-width="1.5"/>
+                    <line x1="58" y1="44" x2="58" y2="52" stroke="#EFEBE9" stroke-width="1.5"/>
+                    <line x1="68" y1="44" x2="68" y2="52" stroke="#EFEBE9" stroke-width="1.5"/>
+                    <line x1="78" y1="44" x2="78" y2="52" stroke="#EFEBE9" stroke-width="1.5"/>
+                    <line x1="88" y1="44" x2="88" y2="52" stroke="#EFEBE9" stroke-width="1.5"/>
+                    <rect x="24" y="36" width="32" height="32" rx="3" fill="#6D4C41" stroke="#A1887F" stroke-width="1.5"/>
+                    <rect x="30" y="40" width="20" height="12" rx="2" fill="#1B2838" stroke="#A1887F" stroke-width="1"/>
+                    <text x="40" y="50" text-anchor="middle" font-size="8" fill="#A5D6A7" font-family="DM Sans,sans-serif" font-weight="700">2.35</text>
+                    <text x="54" y="22" text-anchor="middle" font-size="9" fill="#EFEBE9" font-family="DM Sans,sans-serif" font-weight="700">MEDICIÓN</text>
+                    <text x="54" y="95" text-anchor="middle" font-size="7.5" fill="#BCAAA4" font-family="DM Sans,sans-serif" font-weight="600">INSTRUMENTOS</text>
+                </svg>
+            </div>
+            <div class="app-label">Medidas e Instrumentos</div>
+        </a>
+
+    </div>
+
+    <!-- ===== FOOTER ===== -->
+    <footer style="background:#093f7c; color:rgba(255,255,255,0.6); text-align:center; padding:22px 16px; font-size:0.8rem; line-height:1.8; margin-top:16px;">
+        <strong style="color:white;">Institución Universitaria Antonio José Camacho</strong><br>
+        Departamento de Ciencias Básicas · Laboratorios Virtuales de Física
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // === PÉNDULO ===
+        const pendArm = document.getElementById('pend-arm');
+        let pendAngle = 0, pendDir = 1;
+        (function animPend() {
+            pendAngle += pendDir * 1.4;
+            if (pendAngle > 26 || pendAngle < -26) pendDir *= -1;
+            pendArm.setAttribute('transform', `rotate(${pendAngle}, 54, 12)`);
+            requestAnimationFrame(animPend);
+        })();
+
+        // === CAÍDA LIBRE ===
+        const fallBall = document.getElementById('fall-ball');
+        const fallArrow = document.getElementById('fall-arrow');
+        const fallShadow = document.getElementById('fall-shadow');
+        let fallY = 22, fallV = 0;
+        (function animFall() {
+            fallV += 0.38; fallY += fallV;
+            if (fallY > 84) { fallY = 22; fallV = 0; }
+            fallBall.setAttribute('cy', fallY);
+            const len = Math.min(10 + fallV * 2, 26);
+            fallArrow.setAttribute('y1', fallY + 12);
+            fallArrow.setAttribute('y2', fallY + 12 + len);
+            fallShadow.setAttribute('rx', 12 + (1 - (84 - fallY) / 90) * 8);
+            requestAnimationFrame(animFall);
+        })();
+
+        // === LEY DE HOOKE (resorte vertical) ===
+        const hookeBlock = document.getElementById('hooke-block');
+        const hookeSpring = document.getElementById('hooke-spring');
+        let hookeT = 0;
+        (function animHooke() {
+            hookeT += 0.055;
+            const dy = Math.sin(hookeT) * 13;
+            hookeBlock.setAttribute('y', 52 + dy);
+            const y2 = 52 + dy;
+            const step = (y2 - 18) / 4;
+            hookeSpring.setAttribute('d', `M54,18 Q62,${18+step} 54,${18+step*2} Q46,${18+step*3} 54,${y2}`);
+            requestAnimationFrame(animHooke);
+        })();
+
+        // === MASA-RESORTE horizontal ===
+        const mrBlock = document.getElementById('mr-block');
+        let mrT = 0;
+        (function animMR() {
+            mrT += 0.05;
+            mrBlock.setAttribute('x', 68 + Math.sin(mrT) * 13);
+            requestAnimationFrame(animMR);
+        })();
+
+        // === CARRO MUR ===
+        const murCar = document.getElementById('mur-car');
+        const murTop = document.getElementById('mur-top');
+        const murW1  = document.getElementById('mur-w1');
+        const murW2  = document.getElementById('mur-w2');
+        let carOffset = 0;
+        (function animCar() {
+            carOffset = (carOffset + 0.5) % 56;
+            const b = 14 + carOffset;
+            murCar.setAttribute('x', b);
+            murTop.setAttribute('x', b + 6);
+            murW1.setAttribute('cx', b + 8);
+            murW2.setAttribute('cx', b + 30);
+            requestAnimationFrame(animCar);
+        })();
+
+        // === ONDAS ESTACIONARIAS ===
+        const swWave  = document.getElementById('sw-wave');
+        const swWave2 = document.getElementById('sw-wave2');
+        let swT = 0;
+        (function animSW() {
+            swT += 0.06;
+            const a = Math.sin(swT) * 22;
+            swWave.setAttribute('d',  `M17,54 Q30,${54-a} 54,${54-a} Q78,${54-a} 91,54`);
+            swWave2.setAttribute('d', `M17,54 Q30,${54+a} 54,${54+a} Q78,${54+a} 91,54`);
+            requestAnimationFrame(animSW);
+        })();
+
+        // === CUBETA DE ONDAS (pulsos expandiéndose) ===
+        const cubCircles = [
+            document.getElementById('cub-r1a'), document.getElementById('cub-r1b'), document.getElementById('cub-r1c'),
+            document.getElementById('cub-r2a'), document.getElementById('cub-r2b'), document.getElementById('cub-r2c'),
+        ];
+        const cubBase = [8, 18, 28, 8, 18, 28];
+        let cubT = 0;
+        (function animCub() {
+            cubT += 0.04;
+            cubCircles.forEach((c, i) => {
+                if (!c) return;
+                const r = cubBase[i] + Math.sin(cubT + i * 0.6) * 4;
+                c.setAttribute('r', Math.max(2, r));
+            });
+            requestAnimationFrame(animCub);
+        })();
+    </script>
+</body>
+</html>

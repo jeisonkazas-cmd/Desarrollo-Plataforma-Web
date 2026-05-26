@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Constante Dieléctrica — Laboratorio de Física II Virtual</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <style>
+        :root{--am:#FFD100;--p:#7a3a00;--pc:#e67e22;--po:#3d1a00;--na:#c0540a;--no:#6b2800;--gf:#f4f6fb;}
+        *{box-sizing:border-box;margin:0;padding:0;}
+        body{font-family:'Source Sans 3',sans-serif;background:var(--gf);color:#1a1a2e;}
+        /* NAV ANIMATION */
+        .line li{width:auto;height:50px;transition:background-position-x .9s linear;}
+        .line li a{text-decoration:none;transition:all .5s;}
+        .line li:hover{background:url("data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIGlkPSJMYXllcl8xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4PSIwcHgiIHk9IjBweCIgd2lkdGg9IjM5MHB4IiBoZWlnaHQ9IjUwcHgiIHZpZXdCb3g9IjAgMCAzOTAgNTAiIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgMCAwIDM5MCA1MCIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+PHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSIjRkZGRjAwIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLW1pdGVybGltaXQ9IjEwIiBkPSJNMCw0Ny41ODVjMCwwLDk3LjUsMCwxMzAsMCAxMy43NSwwLDI4Ljc0LTM4Ljc3OCw0Ni4xNjgtMTkuNDE2QzE5Mi42NjksNDYuNSwyNDMuNjAzLDQ3LjU4NSwyNjAsNDcuNTg1YzMxLjgyMSwwLDEzMCwwLDEzMCwwIi8+PC9zdmc+");animation:line .90s forwards;}
+        .line li:hover a{color:rgb(1,1,20);}
+        .line li:not(:last-child){margin-right:30px;}
+        @keyframes line{0%{background-position-x:600px}100%{background-position-x:130px}}
+        /* MOBILE DROPDOWN FIX */
+        @media(max-width:991.98px){
+            .navbar-collapse{max-height:80vh;overflow-y:auto;}
+            .dropdown-menu{border:none!important;background:rgba(255,255,255,.1)!important;margin-top:0!important;}
+            .dropdown-item{color:rgba(255,255,255,.9)!important;padding:10px 24px!important;font-size:.95rem;}
+            .dropdown-item:hover,.dropdown-item:focus{background:rgba(255,255,255,.2)!important;color:#fff!important;}
+            .dropdown-item:first-child{padding-top:14px!important;}
+        }
+        /* BREADCRUMB */
+        .breadcrumb-bar{background:white;padding:12px 16px;border-bottom:1px solid #e8edf5;}
+        .breadcrumb-bar a{color:#093f7c;text-decoration:none;font-size:.85rem;}
+        .breadcrumb-bar .sep{color:#aaa;margin:0 6px;}
+        .bc-current{color:#555;font-size:.85rem;font-weight:600;}
+        /* HERO */
+        .hero{background:linear-gradient(135deg,var(--po),var(--p) 55%,var(--pc));padding:28px 20px 36px;color:#fff;position:relative;overflow:hidden;}
+        .hero::before{content:'';position:absolute;top:-50px;right:-50px;width:260px;height:260px;background:radial-gradient(circle,rgba(255,209,0,.14),transparent 70%);border-radius:50%;}
+        .hero-badge{display:inline-block;background:var(--am);color:var(--po);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.72rem;letter-spacing:2.5px;text-transform:uppercase;padding:3px 14px;border-radius:30px;margin-bottom:10px;}
+        .hero h1{font-family:'Rajdhani',sans-serif;font-size:clamp(1.7rem,5vw,2.6rem);font-weight:700;line-height:1.1;}
+        .hero h1 span{color:var(--am);}
+        .hero p{font-size:.9rem;color:#fcd5a8;margin-top:8px;line-height:1.6;}
+        /* PASOS */
+        .pasos-bar{background:#fff;padding:14px 20px;border-bottom:2px solid #eef1f8;display:flex;align-items:center;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.06);}
+        .paso{display:flex;align-items:center;gap:8px;flex:1;position:relative;}
+        .paso:not(:last-child)::after{content:'';position:absolute;left:40px;right:0;top:50%;height:3px;background:#dee3ef;transform:translateY(-50%);z-index:0;transition:background .5s;}
+        .paso.completo:not(:last-child)::after{background:var(--p);}
+        .paso-circulo{width:34px;height:34px;border-radius:50%;background:#dee3ef;color:#aaa;display:flex;align-items:center;justify-content:center;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.95rem;flex-shrink:0;z-index:1;transition:all .4s;}
+        .paso.activo .paso-circulo{background:var(--p);color:#fff;box-shadow:0 0 0 4px rgba(230,126,34,.2);}
+        .paso.completo .paso-circulo{background:var(--p);color:#fff;}
+        .paso-etq{font-size:.58rem;text-transform:uppercase;letter-spacing:1px;color:#aaa;font-weight:600;display:block;}
+        .paso-nom{font-size:.76rem;font-weight:700;color:#bbb;display:block;}
+        .paso.activo .paso-etq,.paso.completo .paso-etq{color:var(--pc);}
+        .paso.activo .paso-nom,.paso.completo .paso-nom{color:#1a1a2e;}
+        /* PANTALLAS */
+        .pantalla{display:none;}.pantalla.activa{display:block;}
+        /* REGISTRO */
+        .reg-wrap{padding:24px 16px 40px;max-width:600px;margin:0 auto;}
+        .reg-intro{text-align:center;margin-bottom:24px;}
+        .reg-intro .ico{font-size:2.6rem;display:block;margin-bottom:10px;}
+        .reg-intro h2{font-family:'Rajdhani',sans-serif;font-size:1.5rem;font-weight:700;color:var(--p);}
+        .reg-intro p{font-size:.9rem;color:#666;margin-top:6px;line-height:1.5;}
+        .campo{margin-bottom:18px;}
+        .campo label{display:block;font-weight:600;font-size:.88rem;color:var(--po);margin-bottom:6px;}
+        .campo input{width:100%;padding:13px 16px;border:2px solid #e0e8f0;border-radius:10px;font-size:.95rem;font-family:'Source Sans 3',sans-serif;background:#fff;transition:border-color .2s;outline:none;}
+        .campo input:focus{border-color:var(--pc);}
+        .campo input.err{border-color:#e74c3c;}
+        .campo .hint{font-size:.78rem;color:#999;margin-top:4px;}
+        /* TARJETA */
+        .quiz-wrap{padding:20px 16px 40px;max-width:700px;margin:0 auto;}
+        .tarjeta{background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(9,63,124,.08);overflow:hidden;margin-bottom:20px;}
+        .t-head{padding:18px 20px;display:flex;align-items:center;gap:14px;color:#fff;background:linear-gradient(90deg,var(--po),var(--pc));}
+        .t-ico{font-size:1.6rem;}
+        .t-head h2{font-family:'Rajdhani',sans-serif;font-size:1.25rem;font-weight:700;margin:0;}
+        .t-head p{font-size:.8rem;color:rgba(255,255,255,.72);margin:2px 0 0;}
+        .t-body{padding:22px 18px;}
+        /* PREGUNTAS */
+        .pregunta{margin-bottom:26px;padding-bottom:22px;border-bottom:1px dashed #e0e8f0;}
+        .pregunta:last-of-type{border-bottom:none;margin-bottom:0;padding-bottom:0;}
+        .preg-txt{font-weight:600;font-size:.95rem;color:var(--po);margin-bottom:14px;line-height:1.6;}
+        .preg-num{display:inline-flex;align-items:center;justify-content:center;background:var(--p);color:#fff;font-family:'Rajdhani',sans-serif;font-weight:700;width:24px;height:24px;border-radius:50%;font-size:.8rem;margin-right:8px;flex-shrink:0;}
+        .opcion{display:flex;align-items:center;gap:12px;padding:13px 16px;border-radius:10px;border:2px solid #e8edf5;margin-bottom:8px;cursor:pointer;transition:all .2s;font-size:.93rem;background:var(--gf);user-select:none;min-height:50px;}
+        .opcion:hover{border-color:var(--pc);background:rgba(230,126,34,.05);}
+        .opcion input[type=radio]{accent-color:var(--p);width:20px;height:20px;flex-shrink:0;cursor:pointer;}
+        .opcion.ok{border-color:var(--pc);background:rgba(230,126,34,.09);color:var(--po);font-weight:600;}
+        .opcion.mal{border-color:#e74c3c;background:rgba(231,76,60,.07);}
+        .opcion.oka{border-color:var(--pc);background:rgba(230,126,34,.15);font-weight:700;}
+        .opcion.lock{pointer-events:none;}
+        .fb{display:none;margin-top:10px;padding:9px 14px;border-radius:8px;font-size:.85rem;font-weight:600;}
+        .fb.ok{background:rgba(230,126,34,.1);color:var(--po);display:block;}
+        .fb.mal{background:rgba(231,76,60,.1);color:#a93226;display:block;}
+        /* RESULTADO */
+        .res-quiz{display:none;text-align:center;padding:26px 16px;border-radius:14px;margin-top:22px;}
+        @keyframes ap{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+        .res-quiz{animation:ap .5s ease;}
+        .res-quiz.ap{background:rgba(230,126,34,.08);border:2px solid rgba(230,126,34,.3);}
+        .res-quiz.rep{background:rgba(231,76,60,.07);border:2px solid rgba(231,76,60,.25);}
+        .puntaje{font-family:'Rajdhani',sans-serif;font-size:3.5rem;font-weight:700;line-height:1;}
+        .res-quiz.ap .puntaje{color:var(--p);}
+        .res-quiz.rep .puntaje{color:#e74c3c;}
+        .res-quiz .msg{font-size:1rem;margin-top:10px;color:#444;}
+        .res-quiz .sub{font-size:.85rem;color:#888;margin-top:6px;}
+        .nota-d{font-size:.92rem;margin-top:10px;font-weight:600;color:#555;}
+        /* BOTONES */
+        .btn-q{background:var(--p);color:#fff;border:none;padding:15px 36px;border-radius:12px;font-weight:700;font-size:1rem;cursor:pointer;transition:background .3s;display:block;width:100%;margin-top:28px;font-family:'Rajdhani',sans-serif;letter-spacing:1px;min-height:52px;}
+        .btn-q:hover{background:var(--pc);}
+        .btn-c{background:var(--pc);color:#fff;border:none;padding:15px 36px;border-radius:12px;font-weight:700;font-size:1rem;cursor:pointer;transition:all .3s;display:block;width:100%;margin-top:14px;font-family:'Rajdhani',sans-serif;letter-spacing:1px;min-height:52px;}
+        .btn-c:hover{background:var(--po);transform:translateY(-1px);}
+        .btn-r{background:#e74c3c;color:#fff;border:none;padding:13px 28px;border-radius:10px;font-weight:700;font-size:.95rem;cursor:pointer;margin-top:12px;font-family:'Rajdhani',sans-serif;min-height:48px;width:100%;}
+        .btn-r:hover{background:#c0392b;}
+        .badge-int{display:inline-flex;align-items:center;gap:6px;background:var(--am);color:var(--po);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.78rem;letter-spacing:1.5px;text-transform:uppercase;padding:4px 14px;border-radius:20px;margin-bottom:14px;}
+        .badge-int.s2{background:#fde8d8;color:var(--no);}
+        /* SELECTOR */
+        .sel-wrap{padding:28px 16px 40px;max-width:700px;margin:0 auto;}
+        .sel-tit{text-align:center;margin-bottom:28px;}
+        .sel-tit .ico-ok{font-size:3rem;display:block;margin-bottom:8px;}
+        .sel-tit h2{font-family:'Rajdhani',sans-serif;font-size:1.6rem;font-weight:700;color:var(--p);}
+        .sel-tit p{font-size:.92rem;color:#666;margin-top:6px;}
+        .sel-nota{background:rgba(230,126,34,.08);border:2px solid rgba(230,126,34,.2);border-radius:12px;padding:14px 18px;margin-bottom:24px;text-align:center;}
+        .sel-nota .nl{font-size:.8rem;color:var(--p);font-weight:600;text-transform:uppercase;letter-spacing:1px;}
+        .sel-nota .nv{font-family:'Rajdhani',sans-serif;font-size:2.2rem;font-weight:700;color:var(--p);line-height:1.2;}
+        .btn-sec{display:flex;align-items:center;gap:18px;width:100%;padding:22px;border-radius:16px;border:none;cursor:pointer;text-align:left;margin-bottom:16px;transition:transform .15s,box-shadow .15s;color:#fff;font-family:'Source Sans 3',sans-serif;box-shadow:0 4px 20px rgba(0,0,0,.15);min-height:90px;}
+        .btn-sec:active{transform:scale(.98);}
+        .btn-sec:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,0,0,.22);}
+        .btn-sec.a{background:linear-gradient(135deg,var(--po),var(--pc));}
+        .btn-sec.b{background:linear-gradient(135deg,var(--no),var(--na));}
+        .btn-sec .bi{font-size:2.4rem;flex-shrink:0;}
+        .btn-sec .binfo{flex:1;}
+        .btn-sec .bt{font-family:'Rajdhani',sans-serif;font-size:1.3rem;font-weight:700;display:block;line-height:1.2;}
+        .btn-sec .bd{font-size:.82rem;color:rgba(255,255,255,.75);display:block;margin-top:3px;}
+        .btn-sec .bf{font-size:1.6rem;opacity:.7;flex-shrink:0;}
+        /* OVERLAY CONTENIDO */
+        .ov-cont{display:none;position:fixed;inset:0;z-index:9999;flex-direction:column;background:#fff;}
+        .ov-cont.activa{display:flex;}
+        .ov-head{display:flex;align-items:center;gap:14px;padding:12px 16px;color:#fff;flex-shrink:0;}
+        .ov-head.a{background:linear-gradient(90deg,var(--po),var(--pc));}
+        .ov-head.b{background:linear-gradient(90deg,var(--no),var(--na));}
+        .btn-volver{background:rgba(255,255,255,.2);border:2px solid rgba(255,255,255,.3);color:#fff;width:42px;height:42px;border-radius:10px;font-size:1.3rem;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:background .2s;font-weight:700;}
+        .btn-volver:hover{background:rgba(255,255,255,.35);}
+        .ov-info{flex:1;min-width:0;}
+        .ov-info h3{font-family:'Rajdhani',sans-serif;font-size:1.1rem;font-weight:700;margin:0;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .ov-info p{font-size:.72rem;color:rgba(255,255,255,.72);margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .ov-iframe{flex:1;width:100%;border:none;display:block;}
+        /* ENVIANDO */
+        .env-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;align-items:center;justify-content:center;flex-direction:column;gap:14px;}
+        .env-ov.activo{display:flex;}
+        .env-ov p{color:#fff;font-weight:600;font-size:1rem;}
+        .spin{width:44px;height:44px;border:5px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:sp .8s linear infinite;}
+        @keyframes sp{to{transform:rotate(360deg)}}
+        footer{background:#1a0a00;color:#8899bb;text-align:center;padding:24px 16px;font-size:.82rem;}
+        footer strong{color:#fff;}
+        /* RESPONSIVE */
+        @media(max-width:768px){
+            .navbar-brand img{width:90px!important;height:38px!important;}
+            .pasos-bar{padding:10px 12px;gap:4px;}
+            .paso-etq{display:none!important;}
+            .paso-nom{font-size:.7rem!important;}
+            .paso-circulo{width:28px;height:28px;font-size:.82rem;}
+            .paso:not(:last-child)::after{left:32px;}
+            .quiz-wrap,.sel-wrap,.reg-wrap{padding:14px 10px 30px;}
+            .t-head{padding:14px;gap:10px;}
+            .t-head h2{font-size:1.05rem!important;}
+            .t-ico{font-size:1.3rem!important;}
+            .t-body{padding:16px 12px;}
+            .preg-txt{font-size:.9rem!important;}
+            .opcion{padding:10px 12px;font-size:.88rem;min-height:44px;gap:10px;}
+            .btn-q,.btn-c{padding:13px 20px;font-size:.92rem;}
+            .btn-sec{padding:16px 14px;min-height:80px;gap:12px;}
+            .btn-sec .bt{font-size:1.1rem!important;}
+            .ov-head{padding:10px 12px;gap:10px;}
+            .ov-info h3{font-size:.95rem!important;}
+        }
+        @media(max-width:480px){
+            .paso-nom{font-size:.65rem!important;}
+            .paso-circulo{width:26px;height:26px;font-size:.78rem;}
+            .t-head h2{font-size:.95rem!important;}
+            .opcion{padding:9px 10px;font-size:.84rem;}
+            .puntaje{font-size:2.4rem!important;}
+            .btn-sec .bi{font-size:1.8rem!important;}
+        }
+    </style>
+
+</head>
+<body>
+<div class="env-ov" id="env-ov"><div class="spin"></div><p>Enviando resultados...</p></div>
+
+<nav class="navbar navbar-expand-lg" style="background-color:rgb(9,63,124);">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="../laboratorio_fisica_virtual_2.html">
+      <img src="../resources/logo_camacho.png" alt="Logo" width="120" height="50">
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+            data-bs-target="#navM" aria-controls="navM" aria-expanded="false"
+            aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse line" id="navM">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="javascript:void(0)" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false" style="color:white;">
+                       Laboratorios de Física Presencial</a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="../laboratorio_fisica_presencial_1.html">Laboratorio de Física I Presencial</a></li>
+                        <li><a class="dropdown-item" href="../laboratorio_fisica_presencial_2.html">Laboratorio de Física II Presencial</a></li>
+                        <li><a class="dropdown-item" href="../laboratorio_fisica_presencial_3.html">Laboratorio de Física III Presencial</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="javascript:void(0)" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false" style="color:white;">
+                       Laboratorios de Física Virtual</a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="../laboratorio_fisica_virtual_1.html">Laboratorio de Física I Virtual</a></li>
+                        <li><a class="dropdown-item fw-bold" href="../laboratorio_fisica_virtual_2.html">Laboratorio de Física II Virtual</a></li>
+                        <li><a class="dropdown-item" href="../laboratorio_fisica_virtual_3.html">Laboratorio de Física III Virtual</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="javascript:void(0)" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false" style="color:white;">
+                       Laboratorios de Física Remotos</a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="../laboratorio_fisica_remoto_1.html">Laboratorio de Física I Remoto</a></li>
+                        <li><a class="dropdown-item" href="../laboratorio_fisica_remoto_2.html">Laboratorio de Física II Remoto</a></li>
+                        <li><a class="dropdown-item" href="../laboratorio_fisica_remoto_3.html">Laboratorio de Física III Remoto</a></li>
+                    </ul>
+                </li>
+
+      </ul>
+      <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+        <li class="nav-item"><a class="nav-link" href="javascript:void(0)" style="color:white;">
+          Iniciar Sesión <img src="../resources/is3.png" alt="" width="30" height="24">
+        </a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div id="zona">
+  <div class="breadcrumb-bar">
+    <a href="../index.html">🏠 Inicio</a><span class="sep">›</span>
+    <a href="../laboratorio_fisica_virtual_2.html">Lab. Física II Virtual</a><span class="sep">›</span>
+    <span class="bc-current">🔲 Constante Dieléctrica</span>
+  </div>
+
+  <div class="hero">
+    <div class="hero-badge">Práctica 04 — Física II Virtual</div>
+    <h1>Capacitores y<br><span>Constante Dieléctrica</span></h1>
+    <p>Completa el quiz para desbloquear la guía y el simulador interactivo.</p>
+  </div>
+
+  <div class="pasos-bar">
+    <div class="paso activo" id="paso1">
+      <div class="paso-circulo" id="cir1">1</div>
+      <div><span class="paso-etq">Paso 1</span><span class="paso-nom">📝 Quiz</span></div>
+    </div>
+    <div class="paso" id="paso2">
+      <div class="paso-circulo" id="cir2">2</div>
+      <div><span class="paso-etq">Paso 2</span><span class="paso-nom">📄 Guía</span></div>
+    </div>
+    <div class="paso" id="paso3">
+      <div class="paso-circulo" id="cir3">3</div>
+      <div><span class="paso-etq">Paso 3</span><span class="paso-nom">🖥️ Simulador</span></div>
+    </div>
+  </div>
+
+  <!-- REGISTRO -->
+  <div class="pantalla activa" id="pantalla-reg">
+    <div class="reg-wrap">
+      <div class="tarjeta">
+        <div class="t-head"><span class="t-ico">👤</span>
+          <div><h2>Identificación del Estudiante</h2>
+          <p>Ingresa tus datos para comenzar el quiz de conocimientos previos.</p></div>
+        </div>
+        <div class="t-body">
+          <div class="reg-intro">
+            <span class="ico">🔲</span>
+            <h2>Quiz — Constante Dieléctrica</h2>
+            <p>Completa <strong>10 preguntas aleatorias</strong> del banco de 50 preguntas.<br>
+            Necesitas mínimo <strong>60 %</strong> para continuar.</p>
+          </div>
+          <div class="campo"><label for="rn">Nombre completo</label>
+            <input type="text" id="rn" placeholder="Ej: María García López" autocomplete="name">
+            <span class="hint">Escribe tu nombre y apellidos completos</span></div>
+          <div class="campo"><label for="rc">Código estudiantil</label>
+            <input type="text" id="rc" placeholder="Ej: 2021023456" autocomplete="off">
+            <span class="hint">Tu código tal como aparece en el carné</span></div>
+          <div class="campo"><label for="re">Correo institucional</label>
+            <input type="email" id="re" placeholder="Ej: estudiante@uniajc.edu.co" autocomplete="email">
+            <span class="hint">Usa tu correo institucional (@uniajc.edu.co)</span></div>
+          <button class="btn-q" onclick="registrar()">Comenzar Quiz →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUIZ -->
+  <div class="pantalla" id="pantalla-quiz">
+    <div class="quiz-wrap">
+      <div class="tarjeta">
+        <div class="t-head"><span class="t-ico">📝</span>
+          <div><h2>Quiz de Conocimientos Previos</h2>
+          <p>Responde todas las preguntas. Necesitas al menos 60 % para continuar.</p></div>
+        </div>
+        <div class="t-body">
+          <div id="badge-int"></div>
+          <div id="cnt-pregs"></div>
+          <button class="btn-q" id="btn-cal" onclick="calificar()">Calificar Quiz ✓</button>
+          <div class="res-quiz" id="res-div">
+            <div class="puntaje" id="pct-txt"></div>
+            <div class="nota-d" id="nota-txt"></div>
+            <p class="msg" id="res-msg"></p>
+            <p class="sub" id="res-sub"></p><br>
+            <button class="btn-c" id="btn-cont" onclick="desbloquear()" style="display:none">Continuar a la práctica →</button>
+            <button class="btn-r" id="btn-rein" onclick="segundoIntento()" style="display:none">🔄 Segundo intento (nota máx. 4.0)</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SELECTOR -->
+  <div class="pantalla" id="pantalla-sel">
+    <div class="sel-wrap">
+      <div class="sel-tit">
+        <span class="ico-ok">🎉</span>
+        <h2>¡Quiz superado!</h2>
+        <p>Selecciona qué quieres abrir. Puedes ir y volver cuando quieras.</p>
+      </div>
+      <div class="sel-nota">
+        <div class="nl">Tu nota del quiz</div>
+        <div class="nv" id="nota-fin">—</div>
+      </div>
+      <button class="btn-sec a" onclick="abrir('guia')">
+        <span class="bi">📄</span>
+        <div class="binfo">
+          <span class="bt">Guía de Práctica</span>
+          <span class="bd">Medición de capacitancia con distintos materiales dieléctricos</span>
+        </div>
+        <span class="bf">›</span>
+      </button>
+      <button class="btn-sec b" onclick="abrir('simulador')">
+        <span class="bi">🖥️</span>
+        <div class="binfo">
+          <span class="bt">Simulador Interactivo</span>
+          <span class="bd">Simulación 3D de capacitores con diferentes dieléctricos</span>
+        </div>
+        <span class="bf">›</span>
+      </button>
+    </div>
+    <footer>
+      <strong>Institución Universitaria Antonio José Camacho</strong> — Departamento de Ciencias Básicas<br>
+      Laboratorio de Física II Virtual · Práctica 04 — Constante Dieléctrica &copy; 2025
+    </footer>
+  </div>
+</div><!-- fin zona -->
+
+<!-- OVERLAY GUIA -->
+<div class="ov-cont" id="ov-guia">
+  <div class="ov-head a">
+    <button class="btn-volver" onclick="cerrar()">←</button>
+    <div class="ov-info">
+      <h3>📄 Guía de Práctica</h3>
+      <p>Constante Dieléctrica — Guía completa</p>
+    </div>
+  </div>
+  <iframe class="ov-iframe" src="Practica_Constante_dielectrica.html" title="Guía de Práctica"></iframe>
+</div>
+
+<!-- OVERLAY SIMULADOR -->
+<div class="ov-cont" id="ov-simulador">
+  <div class="ov-head b">
+    <button class="btn-volver" onclick="cerrar()">←</button>
+    <div class="ov-info">
+      <h3>🖥️ Simulador Interactivo</h3>
+      <p>Constante Dieléctrica — Simulación</p>
+    </div>
+  </div>
+  <iframe class="ov-iframe" src="Simulador_Constante_Dielectrica.html" title="Simulador"></iframe>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const PRACTICA_NOMBRE='Práctica 04 — Constante Dieléctrica';
+const BANCO=[
+  {texto:"La capacitancia C de un capacitor se define como:",ops:["Resistencia al flujo de corriente","Razón entre la carga almacenada Q y la diferencia de potencial V (C=Q/V)","Número de placas del capacitor","Energía disipada"],c:1,fok:"✓ C=Q/V. Mide cuánta carga almacena por volt aplicado.",fmal:"✗ C=Q/V (carga entre voltaje). No es resistencia ni energía."},
+  {texto:"¿Cuál es la unidad de capacitancia en el SI?",ops:["Ohm (Ω)","Henry (H)","Faradio (F = C/V)","Siemens (S)"],c:2,fok:"✓ 1 F=1 C/V. Los faradios son las unidades de capacitancia.",fmal:"✗ La capacitancia se mide en Faradios (F=C/V)."},
+  {texto:"La capacitancia de placas paralelas (área A, separación d, vacío) es:",ops:["C=ε₀d/A","C=ε₀A/d","C=ε₀A·d","C=A/(ε₀d)"],c:1,fok:"✓ C=ε₀A/d. Mayor área→más C; mayor d→menos C.",fmal:"✗ C=ε₀A/d. La separación va en el denominador."},
+  {texto:"¿Qué es un material dieléctrico?",ops:["Conductor perfecto","Aislante que se polariza, reduciendo el campo interior del capacitor","Tipo de resistor","Semiconductor de alta conductividad"],c:1,fok:"✓ El dieléctrico es aislante; al polarizarse reduce el campo interno y aumenta C.",fmal:"✗ Un dieléctrico es un AISLANTE que se polariza en presencia de campo eléctrico."},
+  {texto:"Al insertar un dieléctrico εᵣ>1 (voltaje constante), la capacitancia:",ops:["Se reduce por εᵣ","Se duplica automáticamente","Aumenta por εᵣ: C=εᵣC₀","No cambia"],c:2,fok:"✓ C=εᵣC₀. El dieléctrico multiplica la capacitancia por εᵣ.",fmal:"✗ C=εᵣ·C₀. La capacitancia AUMENTA al insertar el dieléctrico."},
+  {texto:"Con dieléctrico (εᵣ, área A, separación d), la capacitancia es:",ops:["C=ε₀A/(εᵣd)","C=εᵣε₀A/d","C=εᵣε₀d/A","C=ε₀Aεᵣd"],c:1,fok:"✓ C=εᵣε₀A/d. εᵣ aparece como factor multiplicativo.",fmal:"✗ C=εᵣε₀A/d. El dieléctrico está en el numerador como factor εᵣ."},
+  {texto:"C₀=50 pF sin dieléctrico. Con vidrio (εᵣ=5), ¿cuánto vale C?",ops:["10 pF","100 pF","250 pF","500 pF"],c:2,fok:"✓ C=εᵣC₀=5×50=250 pF.",fmal:"✗ C=εᵣ·C₀=5×50 pF=250 pF."},
+  {texto:"La permitividad relativa εᵣ es:",ops:["Resistividad del dieléctrico","Razón ε/ε₀ = C_con/C_sin dieléctrico","Razón carga/campo","Inverso de la capacitancia por área"],c:1,fok:"✓ εᵣ=ε/ε₀=C_con/C_sin. Es adimensional y ≥1.",fmal:"✗ εᵣ=ε/ε₀. Experimentalmente: εᵣ=C_con/C_sin."},
+  {texto:"¿Cómo se determina experimentalmente εᵣ?",ops:["Midiendo resistencia","Midiendo C con y sin dieléctrico: εᵣ=C_con/C_sin","Midiendo campo magnético","Pesando el material"],c:1,fok:"✓ εᵣ=C_con/C_sin. Se comparan las capacitancias con y sin material.",fmal:"✗ εᵣ=C_con/C_sin. Se necesitan dos mediciones de capacitancia."},
+  {texto:"La energía almacenada en un capacitor C con voltaje V es:",ops:["U=C·V","U=½CV²","U=C²V","U=CV²"],c:1,fok:"✓ U=½CV². Es la energía del campo eléctrico almacenada.",fmal:"✗ U=½CV² (también Q²/2C ó ½QV)."},
+  {texto:"Si la separación d se duplica (sin dieléctrico), C:",ops:["Se duplica","Se cuadruplica","Se reduce a la mitad","No cambia"],c:2,fok:"✓ C∝1/d. Si d→2d entonces C→C/2.",fmal:"✗ C∝1/d. Duplicar d reduce C a la mitad."},
+  {texto:"Si el área A se triplica (d constante), C:",ops:["No cambia","Se multiplica por 3","Se divide entre 3","Se multiplica por 9"],c:1,fok:"✓ C∝A. Si A→3A entonces C→3C.",fmal:"✗ C∝A (proporcional). Si A se triplica, C se triplica."},
+  {texto:"¿Cuál material tiene mayor εᵣ?",ops:["Vacío (εᵣ=1)","Aire (εᵣ≈1)","Vidrio (εᵣ≈5–10)","Agua destilada (εᵣ≈80)"],c:3,fok:"✓ El agua destilada (εᵣ≈80) tiene la mayor permitividad relativa de la lista.",fmal:"✗ El agua destilada (εᵣ≈80) supera al vidrio (≈5–10) y al aire (≈1)."},
+  {texto:"¿Por qué el dieléctrico aumenta la capacitancia?",ops:["Aumenta la distancia entre placas","Sus moléculas polarizadas crean campo opuesto → reduce E total → permite más carga al mismo V","Conduce parte de la corriente","Aumenta el potencial entre placas"],c:1,fok:"✓ La polarización crea campo contrario → E↓ → V↓ → más carga Q a igual voltaje.",fmal:"✗ El dieléctrico se polariza, creando un campo contrario que reduce E y permite acumular más Q."},
+  {texto:"ε₀ (permitividad del vacío) vale:",ops:["9×10⁹ C²/(N·m²)","8,85×10⁻¹² F/m","1,6×10⁻¹⁹ C","6,67×10⁻¹¹ N·m²/kg²"],c:1,fok:"✓ ε₀≈8,85×10⁻¹² F/m = 8,85×10⁻¹² C²/(N·m²).",fmal:"✗ ε₀=8,85×10⁻¹² F/m. El valor 9×10⁹ es K₀=1/(4πε₀)."},
+  {texto:"C=10 μF cargado a V=100 V. ¿Cuánta carga Q se almacena?",ops:["0,1 mC","1 mC","10 mC","100 mC"],c:1,fok:"✓ Q=CV=10×10⁻⁶×100=10⁻³ C=1 mC.",fmal:"✗ Q=CV=10⁻⁵×100=10⁻³ C=1 mC."},
+  {texto:"C₁=C₂=4 μF en SERIE. C_eq = ?",ops:["8 μF","4 μF","2 μF","1 μF"],c:2,fok:"✓ 1/C=1/4+1/4=1/2 → C=2 μF.",fmal:"✗ En serie 1/C_eq=1/C₁+1/C₂=2/4 → C_eq=2 μF."},
+  {texto:"C₁=C₂=4 μF en PARALELO. C_eq = ?",ops:["8 μF","4 μF","2 μF","1 μF"],c:0,fok:"✓ En paralelo C_eq=C₁+C₂=4+4=8 μF.",fmal:"✗ En paralelo C_eq=C₁+C₂=8 μF."},
+  {texto:"C_sin=20 pF y C_con=100 pF. ¿Cuánto vale εᵣ?",ops:["εᵣ=2","εᵣ=5","εᵣ=10","εᵣ=20"],c:1,fok:"✓ εᵣ=C_con/C_sin=100/20=5.",fmal:"✗ εᵣ=C_con/C_sin=100/20=5."},
+  {texto:"Con Q fija (sin batería), insertar dieléctrico cambia la energía: U=Q²/(2C). ¿Qué ocurre?",ops:["Aumenta porque εᵣ>1","Disminuye: U=Q²/(2εᵣC₀)<U₀","No cambia","Se vuelve cero"],c:1,fok:"✓ C aumenta por εᵣ y U=Q²/(2C) → U_nueva=U₀/εᵣ < U₀. Disminuye.",fmal:"✗ Con Q=cte y C=εᵣC₀→ U=Q²/2C=U₀/εᵣ. La energía DISMINUYE."},
+  {texto:"¿Qué fenómeno ocurre en las moléculas del dieléctrico bajo campo eléctrico?",ops:["Ionización total","Polarización: centros de carga + y – se desplazan creando dipolos","Fusión por calor","Conducción libre de electrones"],c:1,fok:"✓ La polarización desplaza los centros de carga creando dipolos inducidos.",fmal:"✗ El campo POLARIZA el dieléctrico: desplaza levemente centros de carga +/–."},
+  {texto:"Con V fijo (batería conectada), E entre placas con dieléctrico εᵣ es:",ops:["E=V·d·εᵣ","E=V/(εᵣd)","E=V/d (independiente de εᵣ si V es fijo)","E=εᵣV/d"],c:2,fok:"✓ Con V fijo, E=V/d independientemente de εᵣ.",fmal:"✗ Si V es fijo, E=V/d sin importar el dieléctrico."},
+  {texto:"Titanato de bario εᵣ≈1000. Si C₀=1 nF, ¿C con este dieléctrico?",ops:["1 nF","100 nF","1 μF","10 μF"],c:2,fok:"✓ C=εᵣC₀=1000×1 nF=1000 nF=1 μF.",fmal:"✗ C=εᵣC₀=1000×1 nF=1 μF."},
+  {texto:"¿Por qué los capacitores comerciales se fabrican con dieléctrico sólido?",ops:["Porque el vacío no existe","Aísla las placas, aumenta C por εᵣ y soporta mayor campo (rigidez dieléctrica)","Reduce la capacitancia","Elimina la diferencia de potencial"],c:1,fok:"✓ El dieléctrico sólido aísla las placas, aumenta C y tiene mayor rigidez dieléctrica.",fmal:"✗ El dieléctrico sólido cumple: separar placas, aumentar C y soportar mayor voltaje."},
+  {texto:"C₀=30 pF, d=1 cm. Se comprime a d=0,5 cm. ¿C nueva?",ops:["15 pF","30 pF","60 pF","120 pF"],c:2,fok:"✓ C∝1/d. d→d/2 → C→2C=60 pF.",fmal:"✗ C∝1/d. Si d se reduce a la mitad, C se duplica: 2×30=60 pF."},
+  {texto:"¿Qué es la rigidez dieléctrica de un material?",ops:["Capacitancia máxima","Campo máximo soportable antes de ionizarse y conducir","Permitividad relativa máxima","Temperatura de fusión"],c:1,fok:"✓ Rigidez dieléctrica: campo máximo (V/m) antes de ruptura eléctrica.",fmal:"✗ La rigidez dieléctrica es el campo máximo antes de que el aislante se vuelva conductor."},
+  {texto:"C₁=6 μF y C₂=3 μF en serie. C_eq=?",ops:["9 μF","3 μF","2 μF","1 μF"],c:2,fok:"✓ 1/C_eq=1/6+1/3=1/6+2/6=3/6 → C_eq=2 μF.",fmal:"✗ 1/C_eq=1/6+2/6=3/6 → C_eq=2 μF."},
+  {texto:"La densidad de energía del campo eléctrico (por volumen) es:",ops:["u=ε₀E²","u=½ε₀E²","u=ε₀E²/4","u=2ε₀E²"],c:1,fok:"✓ u=½ε₀E² J/m³ (sin dieléctrico) ó ½εᵣε₀E² (con dieléctrico).",fmal:"✗ La densidad de energía es u=½ε₀E²."},
+  {texto:"C=100 μF, V=50 V. Energía almacenada U=?",ops:["0,125 J","0,25 J","2,5 J","5 J"],c:0,fok:"✓ U=½CV²=½×10⁻⁴×2500=0,125 J.",fmal:"✗ U=½CV²=0,5×10⁻⁴×2500=0,125 J."},
+  {texto:"Nylon εᵣ≈4. C₀=15 nF → C con nylon=?",ops:["3,75 nF","15 nF","60 nF","120 nF"],c:2,fok:"✓ C=εᵣC₀=4×15=60 nF.",fmal:"✗ C=εᵣ·C₀=4×15 nF=60 nF."},
+  {texto:"A=0,01 m², d=0,002 m, εᵣ=2. ¿C? (ε₀=8,85×10⁻¹²)",ops:["44,25 pF","88,5 pF","22,1 pF","177 pF"],c:1,fok:"✓ C=εᵣε₀A/d=2×8,85×10⁻¹²×0,01/0,002=88,5 pF.",fmal:"✗ C=εᵣε₀A/d=2×8,85×10⁻¹²×0,01/0,002=88,5 pF."},
+  {texto:"La relación entre ε del medio y ε₀ es:",ops:["ε=ε₀–εᵣ","ε=εᵣ/ε₀","ε=εᵣε₀","ε=ε₀(1–εᵣ)"],c:2,fok:"✓ ε=εᵣε₀. La permitividad absoluta es la relativa multiplicada por la del vacío.",fmal:"✗ ε=εᵣ·ε₀."},
+  {texto:"C_sin=40 pF, C_con=200 pF. ¿εᵣ=?",ops:["εᵣ=2","εᵣ=5","εᵣ=8","εᵣ=10"],c:1,fok:"✓ εᵣ=C_con/C_sin=200/40=5.",fmal:"✗ εᵣ=200/40=5."},
+  {texto:"Con V fijo (batería), al insertar dieléctrico la energía U=½CV²:",ops:["Disminuye porque C aumenta","Aumenta porque C=εᵣC₀ y U=½CV²","No cambia","Se vuelve negativa"],c:1,fok:"✓ Con V fijo U=½CV². C aumenta → U aumenta. La batería suministra energía extra.",fmal:"✗ V fijo, C→εᵣC₀ → U=½εᵣC₀V²>U₀. La energía AUMENTA."},
+  {texto:"Con batería (V=cte) vs. sin batería (Q=cte) al insertar dieléctrico:",ops:["Igual resultado","Con batería: V=cte, Q↑, U↑. Sin batería: Q=cte, V↓, U↓","Con batería: Q=cte. Sin batería: V=cte","Los capacitores no se conectan a baterías"],c:1,fok:"✓ Con batería V=cte: Q sube, U sube. Sin batería Q=cte: V baja, U baja.",fmal:"✗ Son procesos distintos. Con batería (V=cte): Q↑, U↑. Sin batería (Q=cte): V↓, U↓."},
+  {texto:"¿Con qué instrumento se mide la capacitancia?",ops:["Amperímetro","Voltímetro ordinario","Capacímetro o multímetro con función C","Galvanómetro"],c:2,fok:"✓ Se usa un capacímetro o multímetro digital con función de medición de capacitancia.",fmal:"✗ La capacitancia se mide con un CAPACÍMETRO o multímetro con función C."},
+  {texto:"Si d se cuadruplica y A se duplica (sin dieléctrico), C_nueva vs C₀:",ops:["2C₀","C₀/2","8C₀","C₀/8"],c:1,fok:"✓ C_nueva=ε₀(2A)/(4d)=(1/2)C₀.",fmal:"✗ C_nueva=ε₀·2A/4d=(1/2)C₀."},
+  {texto:"Tres capacitores C₁=C₂=C₃=6 μF en serie. C_eq=?",ops:["18 μF","6 μF","3 μF","2 μF"],c:3,fok:"✓ 1/C_eq=3/6=1/2 → C_eq=2 μF.",fmal:"✗ 1/C_eq=1/6+1/6+1/6=3/6 → C_eq=2 μF."},
+  {texto:"El campo E dentro del dieléctrico (Q fija) vs. campo sin dieléctrico E₀:",ops:["E=εᵣE₀","E=E₀/εᵣ","E=E₀+εᵣ","E=E₀(1–εᵣ)"],c:1,fok:"✓ E=E₀/εᵣ. El dieléctrico reduce el campo interior por εᵣ.",fmal:"✗ El dieléctrico apantalla el campo: E_interior=E₀/εᵣ."},
+  {texto:"Teflón (PTFE) εᵣ≈2,1. C₀=50 pF → C=?",ops:["25 pF","50 pF","105 pF","210 pF"],c:2,fok:"✓ C=εᵣC₀=2,1×50=105 pF.",fmal:"✗ C=εᵣ×50=2,1×50=105 pF."},
+  {texto:"Para que εᵣ=C_con/C_sin sea válido, ¿qué debe mantenerse igual?",ops:["Temperatura del aula","Las dimensiones A y d del capacitor en ambas mediciones","El color del material","La humedad"],c:1,fok:"✓ A y d deben ser idénticas en ambas mediciones (mismo capacitor).",fmal:"✗ Las dimensiones (A y d) deben ser las mismas en ambas mediciones."},
+  {texto:"C_sin=12,5 nF y C_con=100 nF. εᵣ=C_con/C_sin. ¿Qué material podría ser?",ops:["Vacío (εᵣ=1)","Vidrio (εᵣ≈8)","Agua (εᵣ≈80)","Nylon (εᵣ≈4)"],c:1,fok:"✓ εᵣ=100/12,5=8. El vidrio típicamente tiene εᵣ entre 5 y 10.",fmal:"✗ εᵣ=100/12,5=8. Ese valor corresponde al vidrio (εᵣ≈5–10)."},
+  {texto:"¿Cuál aplicación tecnológica importante tienen los materiales con alto εᵣ?",ops:["Fabricación de resistencias de alta potencia","Fabricación de capacitores compactos de alta capacitancia para electrónica","Fabricación de cables de alta tensión","Fabricación de imanes permanentes"],c:1,fok:"✓ Alto εᵣ permite capacitores compactos con alta capacitancia, esenciales en electrónica.",fmal:"✗ Los materiales de alto εᵣ permiten hacer capacitores pequeños y con gran capacitancia."},
+  {texto:"La capacitancia en un condensador de placas paralelas aumenta si:",ops:["Se reduce el área A","Se aumenta la separación d","Se inserta un dieléctrico de mayor εᵣ","Se reduce la carga Q"],c:2,fok:"✓ C=εᵣε₀A/d. Mayor εᵣ→mayor C.",fmal:"✗ C=εᵣε₀A/d. Mayor εᵣ aumenta C; reducir A o aumentar d la disminuye."},
+  {texto:"Un capacitor con dieléctrico (εᵣ=3) tiene C=90 pF. ¿C sin dieléctrico?",ops:["270 pF","90 pF","30 pF","10 pF"],c:2,fok:"✓ C₀=C/εᵣ=90/3=30 pF.",fmal:"✗ C₀=C/εᵣ=90/3=30 pF."},
+  {texto:"Papel parafinado tiene εᵣ≈3,5. C₀=10 nF, V=10 V. Energía con papel=?",ops:["U=1,75 μJ","U=3,5 μJ","U=17,5 μJ","U=0,5 μJ"],c:0,fok:"✓ C=3,5×10 nF=35 nF. U=½×35×10⁻⁹×100=1,75 μJ.",fmal:"✗ C=εᵣC₀=35 nF. U=½CV²=½×35×10⁻⁹×100=1,75 μJ."}
+];
+
+const POWER_AUTOMATE_URL='PEGA_AQUI_TU_URL_DE_POWER_AUTOMATE';
+const NUM_PREGUNTAS=10;
+let est={},intento=1,pregs=[],notaFinal=0;
+
+function mezclar(a){const r=[...a];for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]];}return r;}
+function seleccionar(){return mezclar(BANCO).slice(0,NUM_PREGUNTAS).map(p=>({...p,ops:mezclar(p.ops.map((o,i)=>({t:o,ok:i===p.c})))}));}
+
+function registrar(){
+    const n=document.getElementById('rn').value.trim(),
+          c=document.getElementById('rc').value.trim(),
+          e=document.getElementById('re').value.trim();
+    let v=true;
+    ['rn','rc','re'].forEach(id=>document.getElementById(id).classList.remove('err'));
+    if(!n){document.getElementById('rn').classList.add('err');v=false;}
+    if(!c){document.getElementById('rc').classList.add('err');v=false;}
+    if(!e||!e.includes('@')){document.getElementById('re').classList.add('err');v=false;}
+    if(!v){alert('⚠️ Completa todos los campos correctamente.');return;}
+    est={n,c,e};intento=1;iniciarQuiz();
+}
+
+function iniciarQuiz(){
+    pregs=seleccionar();
+    document.getElementById('badge-int').innerHTML=intento===1
+        ?'<div class="badge-int">📝 Primer intento — Nota máxima: 5.0</div>'
+        :'<div class="badge-int s2">⚠️ Segundo intento — Nota máxima: 4.0</div>';
+    const cnt=document.getElementById('cnt-pregs');
+    cnt.innerHTML='';
+    pregs.forEach((p,i)=>{
+        const ops=p.ops.map((o,j)=>`<label class="opcion"><input type="radio" name="q${i}" value="${j}"> ${o.t}</label>`).join('');
+        cnt.innerHTML+=`<div class="pregunta"><p class="preg-txt"><span class="preg-num">${i+1}</span>${p.texto}</p>${ops}<div class="fb" id="fb${i}"></div></div>`;
+    });
+    document.getElementById('btn-cal').style.display='block';
+    document.getElementById('res-div').style.display='none';
+    document.getElementById('btn-cont').style.display='none';
+    document.getElementById('btn-rein').style.display='none';
+    pantalla('pantalla-quiz');
+}
+
+function calificar(){
+    const sin=[];
+    pregs.forEach((_,i)=>{if(!document.querySelector(`input[name="q${i}"]:checked`))sin.push(i+1);});
+    if(sin.length){alert(`⚠️ Faltan preguntas: ${sin.join(', ')}`);return;}
+    let cor=0;
+    pregs.forEach((p,i)=>{
+        const si=parseInt(document.querySelector(`input[name="q${i}"]:checked`).value);
+        const todas=document.querySelectorAll(`input[name="q${i}"]`);
+        const fb=document.getElementById('fb'+i);
+        todas.forEach(o=>{o.disabled=true;o.closest('.opcion').classList.add('lock');});
+        if(p.ops[si].ok){cor++;todas[si].closest('.opcion').classList.add('ok');fb.className='fb ok';fb.textContent=p.fok;}
+        else{todas[si].closest('.opcion').classList.add('mal');fb.className='fb mal';fb.textContent=p.fmal;
+            p.ops.forEach((o,j)=>{if(o.ok)todas[j].closest('.opcion').classList.add('oka');});}
+    });
+    const pct=Math.round(cor/NUM_PREGUNTAS*100),ap=pct>=60,nb=intento===1?5:4;
+    notaFinal=(cor/NUM_PREGUNTAS*nb).toFixed(1);
+    document.getElementById('btn-cal').style.display='none';
+    const rd=document.getElementById('res-div');
+    rd.style.display='block';rd.className='res-quiz '+(ap?'ap':'rep');
+    document.getElementById('pct-txt').textContent=`${cor} / ${NUM_PREGUNTAS} — ${pct}%`;
+    document.getElementById('nota-txt').textContent=`Nota: ${notaFinal} / ${nb}`;
+    document.getElementById('res-msg').textContent=ap?'🎉 ¡Felicitaciones! Has superado el quiz.':'❌ No alcanzaste el puntaje mínimo (60%).';
+    document.getElementById('res-sub').textContent=ap?'Toca el botón para continuar a la práctica.':intento===1?`Obtuviste ${cor}/${NUM_PREGUNTAS}. Tienes un segundo intento (máx. 4.0).`:`Obtuviste ${cor}/${NUM_PREGUNTAS}. No hay más intentos.`;
+    if(ap){document.getElementById('btn-cont').style.display='block';
+        document.getElementById('paso1').classList.replace('activo','completo');
+        document.getElementById('cir1').textContent='✓';enviar(cor,pct,true);}
+    else{if(intento===1)document.getElementById('btn-rein').style.display='block';enviar(cor,pct,false);}
+}
+
+function segundoIntento(){intento=2;iniciarQuiz();}
+
+function pantalla(id){
+    document.querySelectorAll('.pantalla').forEach(p=>p.classList.remove('activa'));
+    document.getElementById(id).classList.add('activa');
+    window.scrollTo(0,0);
+}
+
+function desbloquear(){
+    document.getElementById('nota-fin').textContent=`${notaFinal} / ${intento===1?'5.0':'4.0'}`;
+    document.getElementById('paso2').classList.add('activo');
+    document.getElementById('paso3').classList.add('activo');
+    pantalla('pantalla-sel');
+}
+
+function abrir(cual){
+    document.getElementById('ov-'+cual).classList.add('activa');
+    document.body.style.overflow='hidden';
+}
+
+function cerrar(){
+    document.querySelectorAll('.ov-cont').forEach(p=>p.classList.remove('activa'));
+    document.body.style.overflow='';
+}
+
+async function enviar(cor,pct,ap){
+    if(!POWER_AUTOMATE_URL||POWER_AUTOMATE_URL==='PEGA_AQUI_TU_URL_DE_POWER_AUTOMATE')return;
+    document.getElementById('env-ov').classList.add('activo');
+    const d={nombre:est.n,codigo:est.c,correo:est.e,practica:PRACTICA_NOMBRE,intento,correctas:cor,total:NUM_PREGUNTAS,porcentaje:pct,nota:parseFloat(notaFinal),notaBase:intento===1?5:4,aprobado:ap,fecha:new Date().toLocaleDateString('es-CO'),hora:new Date().toLocaleTimeString('es-CO')};
+    try{await fetch(POWER_AUTOMATE_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});}catch(e){console.warn(e);}
+    finally{document.getElementById('env-ov').classList.remove('activo');}
+}
+
+</script>
+</body>
+</html>

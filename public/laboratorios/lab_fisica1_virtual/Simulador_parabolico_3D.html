@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Simulador 3D — Movimiento Parabólico</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: 'Segoe UI', Roboto, sans-serif; overflow: hidden; background-color: #ffffff; touch-action: none; transition: background 0.5s; }
+
+        /* ─── PANEL PRINCIPAL ─── */
+        #ui-panel {
+            position: absolute; top: 15px; left: 15px;
+            background: rgba(255,255,255,0.97);
+            padding: 15px; border-radius: 12px;
+            border: 1px solid #d0d0d0; backdrop-filter: blur(10px);
+            width: 275px; max-width: 88vw; z-index: 1500;
+            max-height: 92vh; overflow-y: auto;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            transition: all 0.4s cubic-bezier(0.25,0.8,0.25,1);
+        }
+        #ui-panel.hidden { transform: translateX(-120%); opacity: 0; visibility: hidden; }
+
+        #btn-open-mini {
+            position: absolute; top: 15px; left: 15px;
+            padding: 6px 12px; background: rgba(255,255,255,0.95);
+            border: 1px solid #ccc; border-radius: 6px;
+            cursor: pointer; z-index: 1000; font-size: 0.9em; font-weight: 600;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: none; color: #444;
+        }
+        #btn-noche {
+            position: absolute; top: 15px; right: 15px;
+            width: 45px; height: 45px; border-radius: 50%; border: none;
+            background: #3f51b5; color: white; font-size: 1.3em; cursor: pointer;
+            z-index: 1600; display: flex; align-items: center; justify-content: center;
+        }
+
+        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .panel-header h2 { margin: 0; color: #e63946; font-size: 1.1em; line-height: 1.25; }
+        #btn-hide-internal { background: transparent; border: none; font-size: 1.2em; cursor: pointer; color: #888; padding: 4px; border-radius: 50%; transition: all 0.2s; line-height: 1; flex-shrink: 0; }
+        #btn-hide-internal:hover { background: #f0f0f0; color: #e63946; }
+
+        .section-divider { font-size: 0.67em; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.1em; margin: 10px 0 6px; border-top: 1px solid #e0e0e0; padding-top: 8px; }
+
+        .control-group { margin-bottom: 7px; }
+        label { display: block; font-size: 0.81em; color: #555; margin-bottom: 3px; font-weight: 600; }
+        input[type=number], input[type=text] {
+            width: 100%; padding: 6px 9px; background: #fff; border: 1px solid #ccc;
+            border-radius: 6px; font-size: 13px; transition: border-color 0.2s;
+        }
+        input:focus { outline: none; border-color: #6c3483; }
+        input[readonly], input:disabled { background: #f5f5f5; color: #888; cursor: not-allowed; }
+
+        button.panel-btn { width: 100%; padding: 8px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; margin-top: 5px; font-size: 0.87em; transition: all 0.2s; }
+        button.panel-btn:hover:not(:disabled) { filter: brightness(1.1); transform: translateY(-1px); }
+        #btn-lanzar { background: #003F8A; color: white; font-size: 0.98em; text-transform: uppercase; padding: 10px; }
+        .row-btns { display: flex; gap: 6px; }
+        #btn-pausa   { background: #ff9800; color: white; flex: 1; }
+        #btn-record  { background: #007bff; color: white; flex: 1; }
+        #btn-csv     { background: #28a745; color: white; }
+        #btn-limpiar { background: #003F8A; color: white; }
+        #btn-captura { background: #6c757d; color: white; }
+
+        /* ─── BOTÓN RETO ─── */
+        #btn-reto {
+            background: linear-gradient(135deg, #5b2c6f, #922b21);
+            color: white; font-size: 0.98em; letter-spacing: 0.05em;
+            border: none; width: 100%; padding: 12px 8px; border-radius: 8px;
+            cursor: pointer; font-weight: 700; margin-top: 8px;
+            box-shadow: 0 4px 12px rgba(108,52,131,0.45);
+            transition: all 0.25s; text-transform: uppercase;
+        }
+        #btn-reto:hover { filter: brightness(1.15); transform: translateY(-2px); box-shadow: 0 6px 18px rgba(108,52,131,0.55); }
+        #btn-reto.activo { background: linear-gradient(135deg, #922b21, #5b2c6f); animation: pulse-reto 2s infinite; }
+        @keyframes pulse-reto { 0%,100%{ box-shadow:0 4px 12px rgba(146,43,33,0.5);} 50%{box-shadow:0 4px 22px rgba(146,43,33,0.8);} }
+
+        /* ─── PANEL RETO INFO ─── */
+        #reto-panel {
+            display: none; margin-top: 8px;
+            background: linear-gradient(160deg, #fdf6ff 0%, #fff8f5 100%);
+            border: 1.5px solid #9b59b6; border-radius: 10px;
+            padding: 11px; font-size: 0.8em;
+        }
+        #reto-panel.visible { display: block; }
+        .reto-titulo { font-weight: 700; color: #5b2c6f; font-size: 0.9em; margin-bottom: 7px; display: flex; align-items: center; gap: 5px; }
+        .reto-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 7px; }
+        .reto-cell { background: rgba(108,52,131,0.07); border-radius: 5px; padding: 5px 7px; border: 1px solid rgba(108,52,131,0.15); }
+        .reto-cell-full { grid-column: 1 / -1; }
+        .reto-key  { display: block; font-size: 0.68em; color: #888; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 2px; }
+        .reto-val  { display: block; font-family: 'Courier New', monospace; font-weight: 700; color: #5b2c6f; font-size: 0.97em; }
+        .reto-hint { font-size: 0.76em; color: #999; font-style: italic; margin-top: 7px; line-height: 1.4; background: rgba(108,52,131,0.06); padding: 6px 8px; border-radius: 5px; }
+
+        /* ─── BADGE v0 RETO ─── */
+        #v0-reto-badge {
+            display: none; margin-top: 5px;
+            background: linear-gradient(135deg, #5b2c6f, #922b21);
+            color: white; border-radius: 6px; padding: 7px 10px;
+            font-size: 0.82em; font-weight: 700; text-align: center;
+            letter-spacing: 0.04em;
+        }
+        #v0-reto-badge.visible { display: block; }
+
+        /* ─── FEEDBACK RETO ─── */
+        #reto-feedback {
+            display: none; margin-top: 8px; padding: 9px;
+            border-radius: 6px; text-align: center; font-weight: 700; font-size: 0.88em;
+            line-height: 1.5;
+        }
+        #reto-feedback.ok   { background: #eafaf1; border: 2px solid #1e8449; color: #1e8449; }
+        #reto-feedback.fail { background: #fdf2f2; border: 2px solid #c0392b; color: #c0392b; }
+
+        .results-box { background: rgba(0,136,68,0.05); border-radius: 6px; padding: 8px 11px; margin: 9px 0; border-left: 3px solid #008844; }
+        .res-item { display: flex; justify-content: space-between; font-size: 0.81em; margin: 2px 0; color: #444; }
+        .res-val { font-weight: bold; color: #008844; font-family: 'Courier New', monospace; font-size: 1.04em; }
+
+        .view-buttons { display: flex; gap: 4px; margin-top: 8px; }
+        .view-btn { flex: 1; font-size: 0.71em; padding: 6px 2px; background: #e0e0e0; color: #555; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; }
+        .view-btn.active { background: #333; color: white; }
+
+        .table-container { margin-top: 9px; font-size: 0.71em; border-top: 1px solid #eee; padding-top: 6px; max-height: 120px; overflow-y: auto; }
+        table { width: 100%; border-collapse: collapse; background: white; color: #333; }
+        th, td { border: 1px solid #eee; padding: 2px 4px; text-align: center; }
+        th { background: #f5f5f5; font-weight: 600; }
+
+        /* ─── TABS PARTES A / B / C ─── */
+        .partes-tabs {
+            display: flex; gap: 0; margin-bottom: 10px;
+            border-radius: 8px; overflow: hidden;
+            border: 1.5px solid #d0d0d0;
+        }
+        .parte-tab {
+            flex: 1; padding: 7px 4px; border: none; background: #f0f0f0;
+            font-weight: 700; font-size: 0.82em; cursor: pointer;
+            color: #666; transition: all 0.2s; letter-spacing: 0.03em;
+            border-right: 1px solid #d0d0d0;
+        }
+        .parte-tab:last-child { border-right: none; }
+        .parte-tab.active { background: #003F8A; color: white; }
+        .parte-tab:hover:not(.active) { background: #e0e0e0; }
+
+        .parte-content { display: none; }
+        .parte-content.active { display: block; }
+
+        /* Info box Parte A */
+        .parteA-info {
+            background: rgba(230,57,70,0.06); border-left: 3px solid #e63946;
+            border-radius: 6px; padding: 8px 10px; margin-bottom: 8px;
+            font-size: 0.78em; color: #555; line-height: 1.5;
+        }
+        .parteA-info strong { color: #e63946; }
+
+        /* ─── DARK MODE ─── */
+        body.dark-mode { background-color: #080810; }
+        body.dark-mode #ui-panel { background: rgba(18,18,28,0.97); border-color: #444; color: #ddd; }
+        body.dark-mode .partes-tabs { border-color: #444; }
+        body.dark-mode .parte-tab { background: #1a1a2e; color: #aaa; border-color: #333; }
+        body.dark-mode .parte-tab.active { background: #003F8A; color: white; }
+        body.dark-mode .parte-tab:hover:not(.active) { background: #252535; }
+        body.dark-mode .parteA-info { background: rgba(230,57,70,0.1); color: #aaa; }
+        body.dark-mode input { background: #1a1a2e; color: #eee; border-color: #555; }
+        body.dark-mode input[readonly], body.dark-mode input:disabled { background: #111120; color: #666; }
+        body.dark-mode .res-val { color: #4ade80; }
+        body.dark-mode .section-divider { color: #777; border-color: #2a2a3a; }
+        body.dark-mode #reto-panel { background: linear-gradient(160deg, #1a1028, #1e1015); border-color: #7d3c98; }
+        body.dark-mode .reto-titulo { color: #c39bd3; }
+        body.dark-mode .reto-val { color: #d7bde2; }
+        body.dark-mode .reto-key { color: #aaa; }
+        body.dark-mode .reto-cell { background: rgba(108,52,131,0.18); border-color: rgba(108,52,131,0.3); }
+        body.dark-mode .reto-hint { background: rgba(108,52,131,0.15); color: #aaa; }
+        body.dark-mode table { background: #1a1a2e; color: #ccc; }
+        body.dark-mode th { background: #252535; }
+        body.dark-mode td { border-color: #2a2a3a; }
+        body.dark-mode .results-box { background: rgba(0,180,80,0.07); }
+
+        /* ─── HUD inferior ─── */
+        #reto-hud {
+            display: none; position: absolute; bottom: 22px; left: 50%; transform: translateX(-50%);
+            background: rgba(91,44,111,0.93); color: white; padding: 9px 26px;
+            border-radius: 22px; font-size: 0.9em; font-weight: 600; z-index: 200;
+            pointer-events: none; white-space: nowrap;
+            box-shadow: 0 4px 18px rgba(91,44,111,0.55);
+            transition: opacity 0.4s;
+        }
+        #reto-hud.ok   { background: rgba(26,136,73,0.95); }
+        #reto-hud.fail { background: rgba(192,57,43,0.95); }
+
+        /* ─── MODAL VICTORIA ─── */
+        #modal-victoria {
+            display: none; position: fixed; inset: 0; z-index: 9999;
+            background: rgba(0,0,0,0.80); align-items: center; justify-content: center; padding: 12px;
+        }
+        #modal-victoria.visible { display: flex; }
+        #modal-content {
+            background: linear-gradient(160deg, #0d0d1f 0%, #1a0a2e 60%, #1f0a14 100%);
+            border: 2px solid #f39c12; border-radius: 16px;
+            padding: 0; max-width: 420px; width: 100%;
+            max-height: 88vh; overflow-y: auto;
+            box-shadow: 0 0 40px rgba(243,156,18,0.35);
+            animation: modalIn 0.4s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        @keyframes modalIn { from{opacity:0;transform:scale(0.75);} to{opacity:1;transform:scale(1);} }
+
+        #modal-banner {
+            background: linear-gradient(135deg, #f39c12, #c0392b, #8e44ad);
+            background-size: 300% 300%; animation: gradShift 3s ease infinite;
+            padding: 14px 40px 12px 18px; text-align: center; position: relative;
+            border-radius: 14px 14px 0 0;
+        }
+        @keyframes gradShift { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+        #modal-banner h2 { margin: 0 0 2px; color: white; font-size: 1.45em; font-weight: 900; letter-spacing: 0.04em; }
+        #modal-banner p  { margin: 0; color: rgba(255,255,255,0.82); font-size: 0.8em; }
+        #modal-close-top {
+            position: absolute; top: 8px; right: 10px;
+            background: rgba(0,0,0,0.35); border: none; color: white;
+            font-size: 1em; cursor: pointer; border-radius: 50%;
+            width: 26px; height: 26px; display: flex; align-items: center; justify-content: center;
+        }
+        #modal-close-top:hover { background: rgba(0,0,0,0.6); }
+        #modal-stars { text-align: center; font-size: 1.5em; letter-spacing: 0.1em; padding: 5px 0 2px; }
+        #modal-params { padding: 8px 14px 6px; }
+        #modal-params h3 {
+            color: #f39c12; font-size: 0.68em; text-transform: uppercase;
+            letter-spacing: 0.1em; margin: 0 0 7px;
+            border-bottom: 1px solid rgba(243,156,18,0.25); padding-bottom: 4px;
+        }
+        .param-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+        .param-item { background: rgba(255,255,255,0.05); border-radius: 6px; padding: 5px 8px; border: 1px solid rgba(255,255,255,0.08); }
+        .param-item.wide { grid-column: 1 / -1; }
+        .param-item.highlight .param-value { color: #4ade80; }
+        .param-label { font-size: 0.6em; color: #999; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 1px; display: block; }
+        .param-value { font-family: 'Courier New', monospace; font-size: 0.92em; color: #f39c12; font-weight: 700; display: block; }
+        #modal-footer { padding: 8px 14px 14px; display: flex; gap: 7px; }
+        .modal-btn { flex: 1; padding: 9px 4px; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 0.8em; transition: all 0.2s; }
+        .modal-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        #btn-nuevo-reto { background: linear-gradient(135deg, #5b2c6f, #922b21); color: white; }
+        #btn-cerrar-modal { background: rgba(255,255,255,0.1); color: #ccc; border: 1px solid rgba(255,255,255,0.18); }
+
+        /* ─── CONFETTI ─── */
+        .confetti-piece {
+            position: fixed; width: 10px; height: 10px; top: -10px;
+            border-radius: 2px; opacity: 0;
+            animation: confettiFall linear forwards;
+            pointer-events: none; z-index: 10000;
+        }
+        @keyframes confettiFall {
+            0%   { opacity: 1; transform: translateY(0) rotate(0deg) scale(1); }
+            100% { opacity: 0; transform: translateY(110vh) rotate(720deg) scale(0.5); }
+        }
+    </style>
+</head>
+<body>
+
+<button id="btn-open-mini">▶ Menú</button>
+<button id="btn-noche">🌙</button>
+<div id="reto-hud"></div>
+
+<!-- ═══ MODAL VICTORIA ═══ -->
+<div id="modal-victoria">
+    <div id="modal-content">
+        <div id="modal-banner">
+            <button id="modal-close-top">✕</button>
+            <h2>🏆 ¡PRUEBA SUPERADA!</h2>
+            <p>La esfera atravesó el aro</p>
+        </div>
+        <div id="modal-stars">⭐⭐⭐</div>
+        <div id="modal-params">
+            <h3>📋 Resultados al pasar por el aro</h3>
+            <div class="param-grid" id="param-grid"></div>
+        </div>
+        <div id="modal-footer">
+            <button class="modal-btn" id="btn-nuevo-reto">🎯 Nuevo reto</button>
+            <button class="modal-btn" id="btn-cerrar-modal">✕ Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ PANEL UI ═══ -->
+<div id="ui-panel">
+    <div class="panel-header">
+        <h2>🔬 Lab 3D<br>Mov. Parabólico</h2>
+        <button id="btn-hide-internal">◀</button>
+    </div>
+
+    <!-- TABS -->
+    <div class="partes-tabs">
+        <button class="parte-tab active" id="tab-A" onclick="switchParte('A')">📐 Parte A</button>
+        <button class="parte-tab"        id="tab-B" onclick="switchParte('B')">📊 Parte B</button>
+        <button class="parte-tab"        id="tab-C" onclick="switchParte('C')">🎯 Parte C</button>
+    </div>
+
+    <!-- ══════════════════════════════ PARTE A ══════════════════════════════ -->
+    <div class="parte-content active" id="parte-A">
+        <div class="parteA-info">
+            <strong>Objetivo:</strong> Determina V₀ a partir de la posición de caída.<br>
+            Configura θ e Y₀, lanza y observa dónde cae la esfera. Con el alcance y el tiempo puedes calcular V₀.
+        </div>
+
+        <div class="section-divider">⚙️ Parámetros de lanzamiento</div>
+        <!-- V0 oculto en Parte A — se usa internamente pero no se muestra -->
+        <div id="v0-wrap-A" style="display:none;">
+            <div class="control-group"><label>Velocidad inicial — V₀ (m/s)</label><input type="number" id="v0" value="30" min="1" max="200" step="0.5"></div>
+        </div>
+        <div class="control-group"><label>Ángulo — θ (°)</label><input type="number" id="theta-A" value="45" min="1" max="89" step="1"></div>
+        <div class="control-group"><label>Altura inicial — Y₀ (m)</label><input type="number" id="y0-A" value="0" min="0" step="0.5"></div>
+
+        <button id="btn-lanzar" class="panel-btn">🚀 LANZAR</button>
+
+        <div class="results-box">
+            <div class="res-item"><span>H. Máxima:</span> <span class="res-val"><span id="out-hmax">0</span> m</span></div>
+            <div class="res-item"><strong>Alcance (x caída):</strong> <span class="res-val"><span id="out-dist">0</span> m</span></div>
+            <div class="res-item"><strong>Tiempo vuelo:</strong>      <span class="res-val"><span id="out-t">0</span> s</span></div>
+            <div class="res-item"><span>V. Actual:</span>             <span class="res-val"><span id="out-v">0</span> m/s</span></div>
+        </div>
+
+        <div class="view-buttons">
+            <button class="view-btn active" id="view-front-A" onclick="setViewTab('front','A')">Frontal</button>
+            <button class="view-btn"        id="view-top-A"   onclick="setViewTab('top','A')">Superior</button>
+            <button class="view-btn"        id="view-side-A"  onclick="setViewTab('side','A')">Lateral</button>
+        </div>
+        <button id="btn-captura-A" class="panel-btn" style="background:#6c757d;color:white;margin-top:6px;">📸 Captura imagen</button>
+    </div>
+
+    <!-- ══════════════════════════════ PARTE B ══════════════════════════════ -->
+    <div class="parte-content" id="parte-B">
+        <div class="section-divider">⚙️ Parámetros de lanzamiento</div>
+        <div class="control-group"><label>Velocidad inicial — V₀ (m/s)</label>
+            <input type="number" id="v0-B" value="30" min="1" max="200" step="0.5">
+        </div>
+        <div class="control-group"><label>Ángulo — θ (°)</label><input type="number" id="theta-B" value="45" min="1" max="89" step="1"></div>
+        <div class="control-group"><label>Altura inicial — Y₀ (m)</label><input type="number" id="y0-B" value="0" min="0" step="0.5"></div>
+
+        <!-- Inputs ocultos que lanzar() lee internamente — no borrar -->
+        <input type="hidden" id="theta" value="45">
+        <input type="hidden" id="y0" value="0">
+
+        <!-- Badge v0 bloqueado en modo reto (solo visible si reto activo) -->
+        <div id="v0-reto-badge">🔒 V₀ RETO: <span id="v0-reto-val">—</span> m/s &nbsp;|&nbsp; Solo varía θ</div>
+
+        <button id="btn-lanzar-B" class="panel-btn" style="background:#003F8A;color:white;font-size:0.98em;text-transform:uppercase;padding:10px;">🚀 LANZAR</button>
+
+        <div class="results-box">
+            <div class="res-item"><span>H. Máxima:</span> <span class="res-val"><span id="out-hmax-B">0</span> m</span></div>
+            <div class="res-item"><span>Alcance:</span>   <span class="res-val"><span id="out-dist-B">0</span> m</span></div>
+            <div class="res-item"><span>V. Actual:</span> <span class="res-val"><span id="out-v-B">0</span> m/s</span></div>
+            <div class="res-item"><span>Tiempo:</span>    <span class="res-val"><span id="out-t-B">0</span> s</span></div>
+        </div>
+
+        <div class="section-divider">📊 Registro y herramientas</div>
+        <div class="row-btns">
+            <button id="btn-pausa"  class="panel-btn">⏸ Pausa</button>
+            <button id="btn-record" class="panel-btn">📍 Registrar</button>
+        </div>
+        <button id="btn-csv"     class="panel-btn">⬇ Exportar CSV</button>
+        <button id="btn-limpiar" class="panel-btn">🗑 Limpiar tabla</button>
+        <button id="btn-captura" class="panel-btn">📸 Captura imagen</button>
+
+        <div class="view-buttons">
+            <button class="view-btn active" id="view-front">Frontal</button>
+            <button class="view-btn"        id="view-top">Superior</button>
+            <button class="view-btn"        id="view-side">Lateral</button>
+        </div>
+
+        <div class="table-container">
+            <table id="data-table">
+                <thead><tr><th>T(s)</th><th>X(m)</th><th>Y(m)</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════ PARTE C ══════════════════════════════ -->
+    <div class="parte-content" id="parte-C">
+        <div class="section-divider">🎯 Modo reto</div>
+        <button id="btn-reto">🎯 ACTIVAR MODO RETO</button>
+
+        <div id="reto-panel">
+            <div class="reto-titulo">🎯 Reto — ¡Pasa por el aro!</div>
+            <div class="reto-grid">
+                <div class="reto-cell">
+                    <span class="reto-key">V₀ fija</span>
+                    <span class="reto-val" id="r-v0">—</span>
+                </div>
+                <div class="reto-cell">
+                    <span class="reto-key">g (m/s²)</span>
+                    <span class="reto-val">9.81</span>
+                </div>
+                <div class="reto-cell">
+                    <span class="reto-key">x<sub>aro</sub></span>
+                    <span class="reto-val" id="r-xaro">—</span>
+                </div>
+                <div class="reto-cell">
+                    <span class="reto-key">y<sub>aro</sub></span>
+                    <span class="reto-val" id="r-yaro">—</span>
+                </div>
+                <div class="reto-cell">
+                    <span class="reto-key">d esfera</span>
+                    <span class="reto-val" id="r-desfera">0.100 m</span>
+                </div>
+                <div class="reto-cell">
+                    <span class="reto-key">D aro = 2d</span>
+                    <span class="reto-val" id="r-daro">0.200 m</span>
+                </div>
+                <div class="reto-cell reto-cell-full">
+                    <span class="reto-key">R aro = d esfera</span>
+                    <span class="reto-val" id="r-raro">0.100 m</span>
+                </div>
+            </div>
+            <div class="reto-hint">Calcula θ con las ecuaciones de la guía para que la esfera pase por el interior del aro. Solo puedes cambiar el ángulo θ.</div>
+            <div id="reto-feedback"></div>
+        </div>
+
+        <div class="section-divider">⚙️ Parámetros</div>
+        <div class="control-group"><label>Ángulo — θ (°)</label><input type="number" id="theta-C" value="45" min="1" max="89" step="1"></div>
+        <div class="control-group"><label>Altura inicial — Y₀ (m)</label><input type="number" id="y0-C" value="0" min="0" step="0.5"></div>
+        <button id="btn-lanzar-C" class="panel-btn" style="background:#003F8A;color:white;font-size:0.98em;text-transform:uppercase;padding:10px;">🚀 LANZAR</button>
+
+        <div class="results-box">
+            <div class="res-item"><span>H. Máxima:</span> <span class="res-val"><span id="out-hmax-C">0</span> m</span></div>
+            <div class="res-item"><span>Alcance:</span>   <span class="res-val"><span id="out-dist-C">0</span> m</span></div>
+            <div class="res-item"><span>V. Actual:</span> <span class="res-val"><span id="out-v-C">0</span> m/s</span></div>
+            <div class="res-item"><span>Tiempo:</span>    <span class="res-val"><span id="out-t-C">0</span> s</span></div>
+        </div>
+
+        <div class="view-buttons">
+            <button class="view-btn active" id="view-front-C">Frontal</button>
+            <button class="view-btn"        id="view-top-C">Superior</button>
+            <button class="view-btn"        id="view-side-C">Lateral</button>
+        </div>
+    </div>
+
+</div><!-- fin ui-panel -->
+
+<script type="importmap">{ "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+// ═══════════════════════════════════════
+//  ESCENA
+// ═══════════════════════════════════════
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xffffff);
+const camera = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, 0.01, 100000);
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(devicePixelRatio);
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true;
+document.body.appendChild(renderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.9));
+const sun = new THREE.DirectionalLight(0xffffff, 0.7);
+sun.position.set(500,1000,500); sun.castShadow = true; scene.add(sun);
+scene.add(new THREE.AxesHelper(10000));
+
+// ═══════════════════════════════════════
+//  ESTADO GLOBAL
+// ═══════════════════════════════════════
+const G = 9.81;
+let t=0, tVueloTotal=0, animId;
+let proyectil, rastro, trailPoints=[];
+let v0Sim, thetaRad, y0Sim, vxSim, vy0Sim, currentHMax, currentAlcance, dt, scaleGlobal=1;
+let isPaused=true, isDarkMode=false, dataLog=[];
+let currentView='front';
+
+// Modo reto
+let retoActivo   = false;
+let retoV0       = 0;        // v0 aleatoria fija del reto
+let aroMesh      = null;
+let aroPos       = {x:0,y:0};
+let DIAM_ESFERA  = 0;
+let RAD_ARO      = 0;
+
+// ═══════════════════════════════════════
+//  HELPERS DE TEXTO / ESCALA
+// ═══════════════════════════════════════
+const labelsGroup = new THREE.Group();
+scene.add(labelsGroup);
+
+function makeTextSprite(text, color) {
+    const cv = document.createElement('canvas');
+    const cx = cv.getContext('2d');
+    cv.width=512; cv.height=128;
+    cx.fillStyle = color; cx.font = 'bold 64px Arial';
+    cx.textAlign = 'center'; cx.fillText(text, 256, 88);
+    return new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),transparent:true}));
+}
+
+function createScaleLabels() {
+    labelsGroup.clear();
+
+    // Máximo 4 etiquetas por eje — paso siempre "bonito"
+    const calcStep = (total) => {
+        if(!total || total <= 0) return 1;
+        let raw = total / 4;
+        const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+        const norm = raw / mag;
+        let nice;
+        if(norm < 1.5)      nice = 1;
+        else if(norm < 3.5) nice = 2;
+        else if(norm < 7.5) nice = 5;
+        else                nice = 10;
+        return nice * mag;
+    };
+
+    const fmt = v => {
+        if(v >= 1e6)  return (v/1e6).toFixed(1) + 'Mm';
+        if(v >= 1000) return (v/1000).toFixed(1) + 'km';
+        if(Number.isInteger(v)) return v + 'm';
+        return v.toFixed(1) + 'm';
+    };
+
+    const sx = calcStep(currentAlcance);
+    const sy = calcStep(currentHMax);
+
+    for(let i = sx; i <= currentAlcance * 1.02; i += sx){
+        const l = makeTextSprite(fmt(Math.round(i*100)/100), isDarkMode?'#00ffff':'#e63946');
+        l.position.set(i, -scaleGlobal*6, 0);
+        l.scale.set(scaleGlobal*10, scaleGlobal*3.5, 1);
+        labelsGroup.add(l);
+    }
+    for(let j = sy; j <= currentHMax * 1.02; j += sy){
+        const l = makeTextSprite(fmt(Math.round(j*100)/100), isDarkMode?'#00ff00':'#28a745');
+        l.position.set(-scaleGlobal*10, j, 0);
+        l.scale.set(scaleGlobal*10, scaleGlobal*3.5, 1);
+        labelsGroup.add(l);
+    }
+}
+
+// ═══════════════════════════════════════
+//  VECTORES DE VELOCIDAD
+// ═══════════════════════════════════════
+const lblVx = makeTextSprite('Vx','#007bff');
+const lblVy = makeTextSprite('Vy','#ffaa00');
+const lblVr = makeTextSprite('Vr','#28a745');
+scene.add(lblVx, lblVy, lblVr);
+
+const arrVx   = new THREE.ArrowHelper(new THREE.Vector3(1,0,0), new THREE.Vector3(),1,0x007bff);
+const arrVy   = new THREE.ArrowHelper(new THREE.Vector3(0,1,0), new THREE.Vector3(),1,0xffaa00);
+const arrVtot = new THREE.ArrowHelper(new THREE.Vector3(1,1,0), new THREE.Vector3(),1,0x28a745);
+scene.add(arrVx, arrVy, arrVtot);
+
+// ═══════════════════════════════════════
+//  ARO 3D
+// ═══════════════════════════════════════
+function crearAro3D(x, y, radioAro, scl) {
+    if(aroMesh){ scene.remove(aroMesh); aroMesh=null; }
+    const grp = new THREE.Group();
+
+    // Torus: radio físico fijo (0.10 m), tubo proporcional a la escena
+    const tubeR = Math.max(scl*0.10, radioAro*0.15);   // tubo visible pero no enorme
+    const tGeo  = new THREE.TorusGeometry(radioAro, tubeR, 24, 72);
+    const tMat  = new THREE.MeshPhongMaterial({
+        color: 0xf39c12, emissive: isDarkMode?0x7d4900:0x220e00,
+        shininess: 90, transparent: true, opacity: 0.95
+    });
+    const torus = new THREE.Mesh(tGeo, tMat);
+    torus.rotation.x = Math.PI / 2;  // aro vertical en el plano XY — la bola lo atraviesa de lado
+    grp.add(torus);
+
+    // Poste
+    const poleR = Math.max(scl*0.04, radioAro*0.06);
+    if(y > 0.01) {
+        const pGeo = new THREE.CylinderGeometry(poleR, poleR, y, 10);
+        const pMat = new THREE.MeshPhongMaterial({color:0x888888});
+        const poste = new THREE.Mesh(pGeo, pMat);
+        poste.position.set(0, -y/2, 0);
+        grp.add(poste);
+    }
+    // Base
+    const bR = Math.max(scl*0.3, radioAro*0.4);
+    const bGeo = new THREE.CylinderGeometry(bR, bR*1.2, scl*0.12, 16);
+    const bMat = new THREE.MeshPhongMaterial({color:0x666666});
+    const base = new THREE.Mesh(bGeo, bMat);
+    base.position.set(0, -y - scl*0.06, 0);
+    grp.add(base);
+
+    // Etiqueta — solo muestra los valores físicos reales
+    const dAroStr = (radioAro*2).toFixed(3);
+    const etiq = makeTextSprite(`ARO Ø${dAroStr}m`, isDarkMode?'#f39c12':'#5b2c6f');
+    etiq.position.set(0, radioAro + scl*4.5, 0);
+    etiq.scale.set(scl*8, scl*3.5, 1);
+    grp.add(etiq);
+
+    grp.position.set(x, y, 0);
+    scene.add(grp);
+    aroMesh = grp;
+    return torus;  // para animación de color
+}
+
+function eliminarAro() {
+    if(aroMesh){ scene.remove(aroMesh); aroMesh=null; }
+}
+
+// ═══════════════════════════════════════
+//  CONFETTI
+// ═══════════════════════════════════════
+function lanzarConfetti() {
+    const COLORS = ['#f39c12','#e74c3c','#9b59b6','#3498db','#2ecc71','#f1c40f','#e91e63'];
+    for(let i=0;i<120;i++){
+        const el = document.createElement('div');
+        el.className = 'confetti-piece';
+        el.style.left = Math.random()*100+'vw';
+        el.style.background = COLORS[Math.floor(Math.random()*COLORS.length)];
+        el.style.width  = (6+Math.random()*10)+'px';
+        el.style.height = (6+Math.random()*10)+'px';
+        el.style.borderRadius = Math.random()>0.5 ? '50%' : '2px';
+        const dur = 1.8 + Math.random()*2.2;
+        const del = Math.random()*1.2;
+        el.style.animationDuration  = dur+'s';
+        el.style.animationDelay     = del+'s';
+        document.body.appendChild(el);
+        setTimeout(()=>el.remove(), (dur+del)*1000+200);
+    }
+}
+
+// ═══════════════════════════════════════
+//  MODAL VICTORIA
+// ═══════════════════════════════════════
+function mostrarVictoria(holgura, margen) {
+    lanzarConfetti();
+
+    const thetaDeg = parseFloat(document.getElementById('theta').value);
+    const tAro     = vxSim > 0 ? aroPos.x / vxSim : 0;
+    const vxAro    = vxSim;                        // vx = cte
+    const vyAro    = vy0Sim - G * tAro;            // vy en el instante del aro
+    const axAro    = 0;                            // ax = 0 siempre
+    const ayAro    = -G;                           // ay = -9.81 siempre
+
+    const params = [
+        { label: 'x aro',     value: `${aroPos.x.toFixed(3)} m`,      hi: false },
+        { label: 'y aro',     value: `${aroPos.y.toFixed(3)} m`,      hi: false },
+        { label: 'Vx en aro', value: `${vxAro.toFixed(3)} m/s`,      hi: true  },
+        { label: 'Vy en aro', value: `${vyAro.toFixed(3)} m/s`,      hi: true  },
+        { label: 'ax',        value: `${axAro.toFixed(2)} m/s²`,     hi: false },
+        { label: 'ay',        value: `${ayAro.toFixed(2)} m/s²`,     hi: false },
+        { label: 'V₀',        value: `${retoV0.toFixed(2)} m/s`,     hi: false },
+        { label: 'θ',         value: `${thetaDeg}°`,                  hi: false },
+        { label: 't en aro',  value: `${tAro.toFixed(3)} s`,         hi: false },
+        { label: 'Holgura',   value: `${holgura.toFixed(4)} m`,      hi: true  },
+    ];
+
+    const grid = document.getElementById('param-grid');
+    grid.innerHTML = params.map(p => `
+        <div class="param-item${p.hi ? ' highlight' : ''}">
+            <span class="param-label">${p.label}</span>
+            <span class="param-value">${p.value}</span>
+        </div>`).join('');
+
+    document.getElementById('modal-victoria').classList.add('visible');
+}
+
+// ═══════════════════════════════════════
+//  VERIFICAR PASO POR ARO  (frame a frame)
+// ═══════════════════════════════════════
+// Se llama cada frame desde animar() con la posición REAL de la esfera en escena.
+// También se llama al finalizar el vuelo para reportar fallo si no pasó.
+let retoAprobado = false;   // evitar doble disparo de victoria
+
+function checkAroFrame(bx, by) {
+    if(!retoActivo || retoAprobado) return;
+
+    const dx   = bx - aroPos.x;
+    const dy   = by - aroPos.y;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+
+    // Usar siempre el radio gráfico ACTUAL de la esfera (scaleGlobal puede cambiar con θ)
+    const rEsferaActual = scaleGlobal * 0.6;
+    const pasa = dist <= (RAD_ARO - rEsferaActual);
+
+    if(pasa) {
+        retoAprobado = true;
+        const holgura = RAD_ARO - rEsferaActual - dist;
+
+        const feedback = document.getElementById('reto-feedback');
+        const hud      = document.getElementById('reto-hud');
+        feedback.style.display = 'block';
+        feedback.className = 'ok';
+        feedback.innerHTML = `🏆 ¡PRUEBA SUPERADA!<br><small>dist al centro = ${dist.toFixed(3)} m</small>`;
+        hud.textContent = '🏆 ¡Prueba superada!';
+        hud.className = 'ok'; hud.style.display = 'block';
+
+        if(aroMesh && aroMesh.children[0]){
+            aroMesh.children[0].material.color.set(0x00e676);
+            aroMesh.children[0].material.emissive.set(0x003300);
+        }
+        setTimeout(()=>{ mostrarVictoria(holgura, RAD_ARO - rEsferaActual); }, 800);
+    }
+}
+
+function reportarFallo() {
+    // Se llama al terminar el vuelo si no se aprobó
+    if(!retoActivo || retoAprobado) return;
+
+    // Calcular cuánto le faltó: buscar el instante de mínima distancia al aro
+    const steps = 500;
+    let minDist = Infinity;
+    for(let i = 0; i <= steps; i++){
+        const tc = tVueloTotal * i / steps;
+        const bx = vxSim * tc;
+        const by = y0Sim + vy0Sim*tc - 0.5*G*tc*tc;
+        const dx = bx - aroPos.x;
+        const dy = by - aroPos.y;
+        const d  = Math.sqrt(dx*dx + dy*dy);
+        if(d < minDist) minDist = d;
+    }
+    const rEsfera = scaleGlobal * 0.6;
+    const faltó   = minDist + rEsfera - RAD_ARO;
+
+    const feedback = document.getElementById('reto-feedback');
+    const hud      = document.getElementById('reto-hud');
+    feedback.style.display = 'block';
+    feedback.className = 'fail';
+    feedback.innerHTML = `❌ No pasó por el aro<br><small>Mín. dist = ${minDist.toFixed(3)} m · le faltó ${Math.max(0,faltó).toFixed(3)} m</small>`;
+    hud.textContent = `❌ No pasó · dist mín=${minDist.toFixed(3)} m`;
+    hud.className = 'fail'; hud.style.display = 'block';
+
+    // Flash rojo aro
+    if(aroMesh && aroMesh.children[0]){
+        aroMesh.children[0].material.color.set(0xe63946);
+        setTimeout(()=>{
+            if(aroMesh && aroMesh.children[0])
+                aroMesh.children[0].material.color.set(0xf39c12);
+        }, 1400);
+    }
+    setTimeout(()=>{ hud.style.display='none'; }, 6000);
+}
+
+// ═══════════════════════════════════════
+//  ACTIVAR / DESACTIVAR MODO RETO
+// ═══════════════════════════════════════
+function activarReto() {
+    retoActivo = !retoActivo;
+    const btn     = document.getElementById('btn-reto');
+    const panel   = document.getElementById('reto-panel');
+    const badge   = document.getElementById('v0-reto-badge');
+    const inpV0   = document.getElementById('v0');
+    const hud     = document.getElementById('reto-hud');
+
+    if(retoActivo) {
+        // ── Generar v0 aleatoria entre 5 y 40 m/s ──
+        retoV0 = 5 + Math.random() * 35;  // [5, 40]
+        retoV0 = Math.round(retoV0 * 100) / 100;
+
+        // Bloquear input v0
+        inpV0.value    = retoV0.toFixed(2);
+        inpV0.readOnly = true;
+        inpV0.style.pointerEvents = 'none';
+
+        // Badge informativo
+        document.getElementById('v0-reto-val').textContent = retoV0.toFixed(2);
+        badge.classList.add('visible');
+
+        btn.textContent = '🔓 SALIR DEL RETO';
+        btn.classList.add('activo');
+
+        // ── Calcular parámetros de escena con v0 del reto ──
+        // Alcance máximo (θ=45°) con y0=0
+        const vx45  = retoV0 * Math.cos(Math.PI/4);
+        const vy45  = retoV0 * Math.sin(Math.PI/4);
+        const tV45  = 2*vy45 / G;
+        const alcMax = vx45 * tV45;
+        const hMax   = vy45*vy45 / (2*G);
+
+        // Escala global (igual que lanzar())
+        const scl = Math.max(alcMax, hMax, 1) / 40;
+        // Radio gráfico de la esfera a θ=45° (referencia visual del aro)
+        const rEsfera45 = scl * 0.6;          // igual que SphereGeometry en lanzar()
+        DIAM_ESFERA = rEsfera45 * 2;           // diámetro esfera
+        RAD_ARO     = DIAM_ESFERA;             // R_aro = d_esfera  (D_aro = 2·d_esfera)
+
+        // ── Posición aleatoria del aro garantizando solución real ──
+        let xAro, yAro, intentos=0, ok=false;
+        do {
+            xAro = alcMax * (0.28 + Math.random()*0.44);   // 28%–72% del alcance
+            yAro = hMax   * (0.18 + Math.random()*0.58);   // 18%–76% de la h.máx
+            // Verificar solución real (discriminante ≥ 0) con retoV0 y y0=0
+            const A    = G*xAro*xAro / (2*retoV0*retoV0);
+            const B    = -xAro;
+            const C    = yAro + A;
+            const disc = B*B - 4*A*C;
+            ok = disc >= 0;
+            intentos++;
+        } while(!ok && intentos<200);
+
+        aroPos = {x: xAro, y: yAro};
+
+        // ── Actualizar panel reto ──
+        document.getElementById('r-v0').textContent     = retoV0.toFixed(2)+' m/s';
+        document.getElementById('r-xaro').textContent   = xAro.toFixed(3)+' m';
+        document.getElementById('r-yaro').textContent   = yAro.toFixed(3)+' m';
+        document.getElementById('r-desfera').textContent= DIAM_ESFERA.toFixed(3)+' m';
+        document.getElementById('r-daro').textContent   = (RAD_ARO*2).toFixed(3)+' m';
+        document.getElementById('r-raro').textContent   = RAD_ARO.toFixed(3)+' m';
+        panel.classList.add('visible');
+
+        crearAro3D(xAro, yAro, RAD_ARO, scl);
+        document.getElementById('reto-feedback').style.display = 'none';
+
+        hud.textContent = `🎯 Reto · Aro en (${xAro.toFixed(2)} m, ${yAro.toFixed(2)} m) · V₀=${retoV0.toFixed(2)} m/s`;
+        hud.className=''; hud.style.display='block';
+        setTimeout(()=>{ hud.style.display='none'; }, 5000);
+
+        // Ajustar cámara para ver el aro
+        currentAlcance = alcMax; currentHMax = hMax;
+        scaleGlobal    = scl;
+        aplicarVistaAuto();
+
+    } else {
+        // ── Desactivar ──
+        inpV0.readOnly            = false;
+        inpV0.style.pointerEvents = '';
+        badge.classList.remove('visible');
+        btn.textContent = '🎯 ACTIVAR MODO RETO';
+        btn.classList.remove('activo');
+        panel.classList.remove('visible');
+        eliminarAro();
+        hud.style.display = 'none';
+        document.getElementById('reto-feedback').style.display = 'none';
+    }
+}
+
+// ═══════════════════════════════════════
+//  VISTA AUTOMÁTICA
+// ═══════════════════════════════════════
+function aplicarVistaAuto() {
+    const mx = currentAlcance/2;
+    const my = currentHMax/2;
+    const sz = Math.max(currentAlcance, currentHMax, 1);
+    if(currentView==='front'){
+        camera.position.set(mx, my, sz*0.85);
+        controls.target.set(mx, my, 0);
+    } else if(currentView==='top'){
+        camera.position.set(mx, sz*0.85, 0);
+        controls.target.set(mx,0,0);
+    } else {
+        camera.position.set(-sz*0.85, my, 0);
+        controls.target.set(0, my, 0);
+    }
+    controls.update();
+}
+
+// ═══════════════════════════════════════
+//  LANZAR
+// ═══════════════════════════════════════
+function lanzar() {
+    // Sincronizar inputs según la parte activa antes de leer valores
+    const parte = window.parteActual || 'B';
+    if(parte === 'A') {
+        // V0 aleatoria oculta entre 2 y 850 m/s
+        const v0Aleatorio = (2 + Math.random() * 848).toFixed(2);
+        document.getElementById('v0').value    = v0Aleatorio;
+        document.getElementById('theta').value = document.getElementById('theta-A').value;
+        document.getElementById('y0').value    = document.getElementById('y0-A').value;
+    } else if(parte === 'B') {
+        document.getElementById('v0').value    = document.getElementById('v0-B').value;
+        document.getElementById('theta').value = document.getElementById('theta-B').value;
+        document.getElementById('y0').value    = document.getElementById('y0-B').value;
+    } else if(parte === 'C') {
+        document.getElementById('theta').value = document.getElementById('theta-C').value;
+        document.getElementById('y0').value    = document.getElementById('y0-C').value;
+    }
+
+    // Si reto activo, forzar v0 = retoV0
+    const v0Input = retoActivo ? retoV0 : parseFloat(document.getElementById('v0').value);
+    if(retoActivo) document.getElementById('v0').value = retoV0.toFixed(2);
+
+    v0Sim    = v0Input;
+    thetaRad = parseFloat(document.getElementById('theta').value) * Math.PI/180;
+    y0Sim    = parseFloat(document.getElementById('y0').value) || 0;
+
+    vxSim  = v0Sim * Math.cos(thetaRad);
+    vy0Sim = v0Sim * Math.sin(thetaRad);
+    tVueloTotal  = (vy0Sim + Math.sqrt(vy0Sim*vy0Sim + 2*G*y0Sim)) / G;
+    currentHMax  = y0Sim + vy0Sim*vy0Sim/(2*G);
+    currentAlcance = vxSim * tVueloTotal;
+    dt = tVueloTotal / 300;
+    scaleGlobal = Math.max(currentAlcance, currentHMax, 1) / 40;
+
+    // En modo reto: la escala puede cambiar con el ángulo pero el aro fue creado con scl de θ=45°
+    // Recalculamos DIAM_ESFERA con el scaleGlobal actual del lanzamiento para la detección
+    DIAM_ESFERA = scaleGlobal * 0.6 * 2;   // diámetro = 2 × radio gráfico de la esfera
+    if(!retoActivo) {
+        RAD_ARO = DIAM_ESFERA;   // fuera de reto, mantener consistencia
+    }
+    // En reto: RAD_ARO ya fue fijado al activar (con scl de θ=45°, que es la escala del aro visible)
+
+    createScaleLabels();
+    document.getElementById('out-hmax').textContent = currentHMax.toFixed(2);
+    document.getElementById('out-dist').textContent  = currentAlcance.toFixed(2);
+
+    t=0; isPaused=false;
+    document.getElementById('btn-pausa').textContent='⏸ Pausa';
+
+    if(proyectil) scene.remove(proyectil);
+    if(rastro)    scene.remove(rastro);
+    trailPoints=[];
+
+    proyectil = new THREE.Mesh(
+        new THREE.SphereGeometry(scaleGlobal*0.6,32,32),
+        new THREE.MeshPhongMaterial({color:0xe63946, emissive:isDarkMode?0x440000:0x000000})
+    );
+    proyectil.castShadow=true; scene.add(proyectil);
+
+    rastro = new THREE.Line(
+        new THREE.BufferGeometry(),
+        new THREE.LineBasicMaterial({color:isDarkMode?0x00ffff:0x444444,transparent:true,opacity:0.8})
+    );
+    scene.add(rastro);
+
+    lblVx.scale.set(scaleGlobal*6,scaleGlobal*3,1);
+    lblVy.scale.set(scaleGlobal*6,scaleGlobal*3,1);
+    lblVr.scale.set(scaleGlobal*6,scaleGlobal*3,1);
+
+    // Reset color aro
+    if(aroMesh && aroMesh.children[0] && aroMesh.children[0].material){
+        aroMesh.children[0].material.color.set(0xf39c12);
+        aroMesh.children[0].material.emissive.set(isDarkMode?0x7d4900:0x220e00);
+    }
+    document.getElementById('reto-feedback').style.display='none';
+    document.getElementById('reto-hud').style.display='none';
+    retoAprobado = false;   // reset para nuevo intento
+
+    aplicarVistaAuto();
+    cancelAnimationFrame(animId);
+    animar();
+}
+
+// ═══════════════════════════════════════
+//  ANIMACIÓN
+// ═══════════════════════════════════════
+function animar() {
+    if(isPaused) return;
+    if(t > tVueloTotal + dt*2){
+        arrVx.visible=arrVy.visible=arrVtot.visible=false;
+        lblVx.visible=lblVy.visible=lblVr.visible=false;
+        reportarFallo();   // solo actúa si retoAprobado=false
+        return;
+    }
+    const tc     = Math.min(t,tVueloTotal);
+    const x      = vxSim * tc;
+    const y      = Math.max(0, y0Sim + vy0Sim*tc - 0.5*G*tc*tc);
+    const vyInst = vy0Sim - G*tc;
+    const vMag   = Math.sqrt(vxSim*vxSim + vyInst*vyInst);
+
+    proyectil.position.set(x,y,0);
+
+    // ── Verificación frame a frame ──
+    checkAroFrame(x, y);
+    document.getElementById('out-v').textContent = vMag.toFixed(2);
+    document.getElementById('out-t').textContent = tc.toFixed(2);
+
+    const f   = (currentAlcance/5) / Math.max(v0Sim,1);
+    const off = scaleGlobal*2;
+
+    arrVx.position.copy(proyectil.position);
+    arrVx.setLength(Math.max(0.01,vxSim*f),scaleGlobal,scaleGlobal*0.5);
+    lblVx.position.set(x+vxSim*f+off,y,0);
+
+    arrVy.position.copy(proyectil.position);
+    arrVy.setDirection(new THREE.Vector3(0,vyInst>=0?1:-1,0));
+    arrVy.setLength(Math.max(0.01,Math.abs(vyInst)*f),scaleGlobal,scaleGlobal*0.5);
+    lblVy.position.set(x,y+vyInst*f+(vyInst>=0?off:-off),0);
+
+    arrVtot.position.copy(proyectil.position);
+    arrVtot.setDirection(new THREE.Vector3(vxSim,vyInst,0).normalize());
+    arrVtot.setLength(Math.max(0.01,vMag*f),scaleGlobal,scaleGlobal*0.5);
+    lblVr.position.set(x+vxSim*f+off,y+vyInst*f+(vyInst>=0?off:-off),0);
+
+    arrVx.visible=arrVy.visible=arrVtot.visible=true;
+    lblVx.visible=lblVy.visible=lblVr.visible=true;
+
+    trailPoints.push(new THREE.Vector3(x,y,0));
+    rastro.geometry.setFromPoints(trailPoints);
+    t+=dt; animId=requestAnimationFrame(animar);
+}
+
+// ═══════════════════════════════════════
+//  EVENTOS
+// ═══════════════════════════════════════
+const uiPanel = document.getElementById('ui-panel');
+document.getElementById('btn-hide-internal').addEventListener('click',()=>{
+    uiPanel.classList.add('hidden');
+    document.getElementById('btn-open-mini').style.display='block';
+});
+document.getElementById('btn-open-mini').addEventListener('click',()=>{
+    uiPanel.classList.remove('hidden');
+    document.getElementById('btn-open-mini').style.display='none';
+});
+
+document.getElementById('btn-lanzar').addEventListener('click',lanzar);
+
+document.getElementById('btn-pausa').addEventListener('click',()=>{
+    isPaused=!isPaused;
+    document.getElementById('btn-pausa').textContent=isPaused?'▶ Seguir':'⏸ Pausa';
+    if(!isPaused) animar();
+});
+
+document.getElementById('btn-record').addEventListener('click',()=>{
+    const tc = Math.min(t,tVueloTotal);
+    const xr = (vxSim*tc+(Math.random()*0.005)).toFixed(3).replace('.',',');
+    const yr = (Math.max(0,y0Sim+vy0Sim*tc-0.5*G*tc*tc)+(Math.random()*0.005)).toFixed(3).replace('.',',');
+    const tr = tc.toFixed(3).replace('.',',');
+    dataLog.push({t:tr,x:xr,y:yr});
+    const row=document.querySelector('#data-table tbody').insertRow(-1);
+    row.innerHTML=`<td>${tr}</td><td>${xr}</td><td>${yr}</td>`;
+});
+
+document.getElementById('btn-csv').addEventListener('click',()=>{
+    const BOM='\ufeff', SEP='sep=;\n';
+    const csv='"Tiempo(s)";"X(m)";"Y(m)"\n'+dataLog.map(r=>`"${r.t}";"${r.x}";"${r.y}"`).join('\n');
+    const blob=new Blob([BOM+SEP+csv],{type:'text/csv;charset=utf-8;'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+    a.download='datos_parabolico.csv'; a.click();
+});
+
+document.getElementById('btn-limpiar').addEventListener('click',()=>{
+    if(confirm('¿Limpiar tabla de datos?')){dataLog=[];document.querySelector('#data-table tbody').innerHTML='';}
+});
+
+document.getElementById('btn-captura').addEventListener('click',()=>{
+    renderer.render(scene,camera);
+    const a=document.createElement('a'); a.href=renderer.domElement.toDataURL();
+    a.download='captura_parabolico.png'; a.click();
+});
+
+document.getElementById('btn-reto').addEventListener('click',activarReto);
+
+document.getElementById('modal-close-top').addEventListener('click',()=>{
+    document.getElementById('modal-victoria').classList.remove('visible');
+});
+
+document.getElementById('btn-nuevo-reto').addEventListener('click',()=>{
+    document.getElementById('modal-victoria').classList.remove('visible');
+    retoActivo=true;
+    activarReto();
+    activarReto();
+});
+
+document.getElementById('btn-cerrar-modal').addEventListener('click',()=>{
+    document.getElementById('modal-victoria').classList.remove('visible');
+});
+
+document.getElementById('btn-noche').addEventListener('click',()=>{
+    isDarkMode=!isDarkMode;
+    document.body.classList.toggle('dark-mode');
+    scene.background=new THREE.Color(isDarkMode?0x080810:0xffffff);
+    if(rastro) rastro.material.color.set(isDarkMode?0x00ffff:0x444444);
+    document.getElementById('btn-noche').textContent=isDarkMode?'☀️':'🌙';
+    createScaleLabels();
+});
+
+const setView=(n)=>{
+    currentView=n;
+    document.querySelectorAll('.view-btn').forEach(b=>b.classList.remove('active'));
+    // Activar el botón correcto según la parte activa
+    const suffix = (window.parteActual==='A') ? '-A' : (window.parteActual==='C') ? '-C' : '';
+    const btn = document.getElementById('view-'+n+suffix);
+    if(btn) btn.classList.add('active');
+    aplicarVistaAuto();
+};
+document.getElementById('view-front').addEventListener('click',()=>setView('front'));
+document.getElementById('view-top').addEventListener('click',  ()=>setView('top'));
+document.getElementById('view-side').addEventListener('click', ()=>setView('side'));
+
+window.addEventListener('resize',()=>{
+    camera.aspect=innerWidth/innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth,innerHeight);
+});
+
+// ═══════════════════════════════════════
+//  TABS PARTES A / B / C
+// ═══════════════════════════════════════
+let parteActual = 'A';
+window.parteActual = 'A';
+
+window.switchParte = function(p) {
+    parteActual = p;
+    window.parteActual = p;
+    document.querySelectorAll('.parte-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.parte-content').forEach(c => c.classList.remove('active'));
+    document.getElementById('tab-'+p).classList.add('active');
+    document.getElementById('parte-'+p).classList.add('active');
+
+    // Sincronizar inputs al entrar a cada pestaña
+    if(p === 'A') {
+        document.getElementById('theta-A').value = document.getElementById('theta').value;
+        document.getElementById('y0-A').value    = document.getElementById('y0').value;
+    } else if(p === 'B') {
+        document.getElementById('v0-B').value    = document.getElementById('v0').value;
+        document.getElementById('theta-B').value = document.getElementById('theta').value;
+        document.getElementById('y0-B').value    = document.getElementById('y0').value;
+    } else if(p === 'C') {
+        document.getElementById('theta-C').value = document.getElementById('theta').value;
+        document.getElementById('y0-C').value    = document.getElementById('y0').value;
+    }
+};
+
+window.setViewTab = function(n, p) { setView(n); };
+
+// btn-lanzar (Parte A) usa el listener original que llama lanzar() — lanzar() ya sincroniza internamente
+
+// Lanzar desde Parte B
+document.getElementById('btn-lanzar-B').addEventListener('click', () => { lanzar(); });
+
+// Lanzar desde Parte C
+document.getElementById('btn-lanzar-C').addEventListener('click', () => { lanzar(); });
+
+// Captura imagen desde Parte A
+document.getElementById('btn-captura-A').addEventListener('click', () => {
+    renderer.render(scene, camera);
+    const a = document.createElement('a'); a.href = renderer.domElement.toDataURL();
+    a.download = 'captura_parteA.png'; a.click();
+});
+
+// Vistas Parte C
+document.getElementById('view-front-C').addEventListener('click', () => {
+    setView('front');
+    document.querySelectorAll('#parte-C .view-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('view-front-C').classList.add('active');
+});
+document.getElementById('view-top-C').addEventListener('click', () => {
+    setView('top');
+    document.querySelectorAll('#parte-C .view-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('view-top-C').classList.add('active');
+});
+document.getElementById('view-side-C').addEventListener('click', () => {
+    setView('side');
+    document.querySelectorAll('#parte-C .view-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('view-side-C').classList.add('active');
+});
+
+// Espejo de resultados en tiempo real para Partes B y C
+function syncResultsB() {
+    document.getElementById('out-hmax-B').textContent = document.getElementById('out-hmax').textContent;
+    document.getElementById('out-dist-B').textContent  = document.getElementById('out-dist').textContent;
+    document.getElementById('out-v-B').textContent     = document.getElementById('out-v').textContent;
+    document.getElementById('out-t-B').textContent     = document.getElementById('out-t').textContent;
+}
+function syncResultsC() {
+    document.getElementById('out-hmax-C').textContent = document.getElementById('out-hmax').textContent;
+    document.getElementById('out-dist-C').textContent  = document.getElementById('out-dist').textContent;
+    document.getElementById('out-v-C').textContent     = document.getElementById('out-v').textContent;
+    document.getElementById('out-t-C').textContent     = document.getElementById('out-t').textContent;
+}
+
+// Actualización continua de resultados espejo durante animación
+const _origAnimar = animar;
+// Parchamos el loop para sincronizar
+const _origFrame = () => {
+    if(parteActual === 'B') syncResultsB();
+    if(parteActual === 'C') syncResultsC();
+};
+setInterval(_origFrame, 150);
+
+// ═══════════════════════════════════════
+//  RENDER LOOP
+// ═══════════════════════════════════════
+camera.position.set(20,20,100);
+(function renderLoop(){ requestAnimationFrame(renderLoop); controls.update(); renderer.render(scene,camera); })();
+</script>
+</body>
+</html>

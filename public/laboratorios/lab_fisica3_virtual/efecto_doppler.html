@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>Efecto Doppler — Laboratorio de Física III Virtual</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --amarillo: #FFD100;
+            --primario: #922b21;
+            --primario-claro: #e74c3c;
+            --primario-oscuro: #4a1010;
+            --color2: #1a6fba;
+            --color2-oscuro: #0d3860;
+            --gris-fondo: #f4f6fb;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Source Sans 3', sans-serif; background: var(--gris-fondo); color: #1a1a2e; }
+
+        .line li { width: auto; height: 50px; transition: background-position-x 0.9s linear; }
+        .line li a { text-decoration: none; transition: all 0.5s; }
+        .line li:hover { background: url("data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIGlkPSJMYXllcl8xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4PSIwcHgiIHk9IjBweCIgd2lkdGg9IjM5MHB4IiBoZWlnaHQ9IjUwcHgiIHZpZXdCb3g9IjAgMCAzOTAgNTAiIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgMCAwIDM5MCA1MCIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+PHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSIjRkZGRjAwIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLW1pdGVybGltaXQ9IjEwIiBkPSJNMCw0Ny41ODVjMCwwLDk3LjUsMCwxMzAsMCAxMy43NSwwLDI4Ljc0LTM4Ljc3OCw0Ni4xNjgtMTkuNDE2QzE5Mi42NjksNDYuNSwyNDMuNjAzLDQ3LjU4NSwyNjAsNDcuNTg1YzMxLjgyMSwwLDEzMCwwLDEzMCwwIi8+PC9zdmc+"); animation: line 0.90s forwards; }
+        .line li:hover a { color: rgb(1,1,20); }
+        .line li:not(:last-child) { margin-right: 30px; }
+        @keyframes line { 0% { background-position-x: 600px; } 100% { background-position-x: 130px; } }
+
+        .breadcrumb-bar { background: white; padding: 12px 16px; border-bottom: 1px solid #e8edf5; }
+        .breadcrumb-bar a { color: #093f7c; text-decoration: none; font-size: 0.85rem; }
+        .breadcrumb-bar span.sep { color: #aaa; margin: 0 6px; }
+        .breadcrumb-current { color: #555; font-size: 0.85rem; font-weight: 600; }
+
+        .hero {
+            background: linear-gradient(135deg, var(--primario-oscuro) 0%, var(--primario) 55%, var(--primario-claro) 100%);
+            padding: 28px 20px 36px; color: white; position: relative; overflow: hidden;
+        }
+        .hero::before {
+            content: ''; position: absolute; top: -50px; right: -50px; width: 260px; height: 260px;
+            background: radial-gradient(circle, rgba(255,209,0,0.14) 0%, transparent 70%); border-radius: 50%;
+        }
+        .hero-badge {
+            display: inline-block; background: var(--amarillo); color: var(--primario-oscuro);
+            font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 0.72rem;
+            letter-spacing: 2.5px; text-transform: uppercase; padding: 3px 14px; border-radius: 30px; margin-bottom: 10px;
+        }
+        .hero h1 { font-family: 'Rajdhani', sans-serif; font-size: clamp(1.7rem, 5vw, 2.6rem); font-weight: 700; line-height: 1.1; }
+        .hero h1 span { color: var(--amarillo); }
+        .hero p { font-size: 0.9rem; color: rgba(255,255,255,0.75); margin-top: 8px; line-height: 1.6; }
+
+        .pasos-bar {
+            background: white; padding: 14px 20px; border-bottom: 2px solid #eef1f8;
+            display: flex; align-items: center; position: sticky; top: 0; z-index: 100;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+        .paso { display: flex; align-items: center; gap: 8px; flex: 1; position: relative; }
+        .paso:not(:last-child)::after {
+            content: ''; position: absolute; left: 40px; right: 0; top: 50%;
+            height: 3px; background: #dee3ef; transform: translateY(-50%); z-index: 0; transition: background 0.5s;
+        }
+        .paso.completo:not(:last-child)::after { background: var(--primario); }
+        .paso-circulo {
+            width: 34px; height: 34px; border-radius: 50%; background: #dee3ef; color: #aaa;
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 0.95rem;
+            flex-shrink: 0; z-index: 1; transition: all 0.4s;
+        }
+        .paso.activo .paso-circulo { background: var(--primario); color: white; box-shadow: 0 0 0 4px rgba(0,0,0,0.1); }
+        .paso.completo .paso-circulo { background: var(--primario); color: white; }
+        .paso-etiqueta { font-size: 0.58rem; text-transform: uppercase; letter-spacing: 1px; color: #aaa; font-weight: 600; display: block; }
+        .paso-nombre { font-size: 0.76rem; font-weight: 700; color: #bbb; display: block; }
+        .paso.activo .paso-etiqueta, .paso.completo .paso-etiqueta { color: var(--primario-claro); }
+        .paso.activo .paso-nombre, .paso.completo .paso-nombre { color: #1a1a2e; }
+
+        .pantalla { display: none; }
+        .pantalla.activa { display: block; }
+
+        /* REGISTRO */
+        .pantalla-registro-wrap { padding: 24px 16px 40px; max-width: 600px; margin: 0 auto; }
+        .registro-intro { text-align: center; margin-bottom: 24px; }
+        .registro-intro .icono-reg { font-size: 2.6rem; display: block; margin-bottom: 10px; }
+        .registro-intro h2 { font-family: 'Rajdhani', sans-serif; font-size: 1.5rem; font-weight: 700; color: var(--primario); }
+        .registro-intro p { font-size: 0.9rem; color: #666; margin-top: 6px; line-height: 1.5; }
+        .campo-reg { margin-bottom: 18px; }
+        .campo-reg label { display: block; font-weight: 600; font-size: 0.88rem; color: var(--primario-oscuro); margin-bottom: 6px; }
+        .campo-reg input, .campo-reg select {
+            width: 100%; padding: 13px 16px; border: 2px solid #e0e8f0; border-radius: 10px;
+            font-size: 0.95rem; font-family: 'Source Sans 3', sans-serif; background: white;
+            transition: border-color 0.2s; outline: none;
+        }
+        .campo-reg input:focus, .campo-reg select:focus { border-color: var(--primario-claro); }
+        .campo-reg input.error, .campo-reg select.error { border-color: #e74c3c; }
+        .campo-reg .campo-hint { font-size: 0.78rem; color: #999; margin-top: 4px; }
+        .badge-intento {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: var(--amarillo); color: var(--primario-oscuro);
+            font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 0.78rem;
+            letter-spacing: 1.5px; text-transform: uppercase; padding: 4px 14px; border-radius: 20px; margin-bottom: 14px;
+        }
+        .badge-intento.segundo { background: #fde8d8; color: var(--color2-oscuro); }
+
+        /* QUIZ */
+        .pantalla-quiz-wrap { padding: 20px 16px 40px; max-width: 700px; margin: 0 auto; }
+        .tarjeta { background: white; border-radius: 16px; box-shadow: 0 4px 24px rgba(9,63,124,0.08); overflow: hidden; margin-bottom: 20px; }
+        .tarjeta-header { padding: 18px 20px; display: flex; align-items: center; gap: 14px; color: white; }
+        .tarjeta-header.color-principal { background: linear-gradient(90deg, var(--primario-oscuro), var(--primario-claro)); }
+        .tarjeta-icono { font-size: 1.6rem; }
+        .tarjeta-header h2 { font-family: 'Rajdhani', sans-serif; font-size: 1.25rem; font-weight: 700; margin: 0; }
+        .tarjeta-header p { font-size: 0.8rem; color: rgba(255,255,255,0.72); margin: 2px 0 0; }
+        .tarjeta-cuerpo { padding: 22px 18px; }
+
+        .pregunta { margin-bottom: 26px; padding-bottom: 22px; border-bottom: 1px dashed #e0e8f0; }
+        .pregunta:last-of-type { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .pregunta-texto { font-weight: 600; font-size: 0.95rem; color: var(--primario-oscuro); margin-bottom: 14px; line-height: 1.6; }
+        .pregunta-num {
+            display: inline-flex; align-items: center; justify-content: center;
+            background: var(--primario); color: white; font-family: 'Rajdhani', sans-serif; font-weight: 700;
+            width: 24px; height: 24px; border-radius: 50%; font-size: 0.8rem; margin-right: 8px; flex-shrink: 0;
+        }
+        .opcion {
+            display: flex; align-items: center; gap: 12px; padding: 13px 16px; border-radius: 10px;
+            border: 2px solid #e8edf5; margin-bottom: 8px; cursor: pointer; transition: all 0.2s;
+            font-size: 0.93rem; background: var(--gris-fondo); user-select: none; min-height: 50px;
+        }
+        .opcion:hover { border-color: var(--primario-claro); background: rgba(0,0,0,0.03); }
+        .opcion input[type="radio"] { accent-color: var(--primario); width: 20px; height: 20px; flex-shrink: 0; cursor: pointer; }
+        .opcion.correcta      { border-color: var(--primario-claro); background: rgba(0,0,0,0.04); color: var(--primario-oscuro); font-weight: 600; }
+        .opcion.incorrecta    { border-color: #e74c3c; background: rgba(231,76,60,0.07); }
+        .opcion.resp-correcta { border-color: var(--primario-claro); background: rgba(0,0,0,0.07); font-weight: 700; }
+        .opcion.bloqueada     { pointer-events: none; }
+        .feedback { display: none; margin-top: 10px; padding: 9px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; }
+        .feedback.ok  { background: rgba(0,0,0,0.05); color: var(--primario-oscuro); display: block; }
+        .feedback.mal { background: rgba(231,76,60,0.1); color: #a93226; display: block; }
+
+        .resultado-quiz { display: none; text-align: center; padding: 26px 16px; border-radius: 14px; margin-top: 22px; }
+        @keyframes aparecer { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+        .resultado-quiz { animation: aparecer 0.5s ease; }
+        .resultado-quiz.aprobado  { background: rgba(0,0,0,0.04); border: 2px solid rgba(0,0,0,0.15); }
+        .resultado-quiz.reprobado { background: rgba(231,76,60,0.07); border: 2px solid rgba(231,76,60,0.25); }
+        .puntaje-grande { font-family: 'Rajdhani', sans-serif; font-size: 3.5rem; font-weight: 700; line-height: 1; }
+        .resultado-quiz.aprobado  .puntaje-grande { color: var(--primario); }
+        .resultado-quiz.reprobado .puntaje-grande { color: #e74c3c; }
+        .resultado-quiz .msg { font-size: 1rem; margin-top: 10px; color: #444; }
+        .resultado-quiz .sub { font-size: 0.85rem; color: #888; margin-top: 6px; }
+        .nota-display { font-size: 0.92rem; margin-top: 10px; font-weight: 600; color: #555; }
+
+        .btn-calificar {
+            background: var(--primario); color: white; border: none; padding: 15px 36px; border-radius: 12px;
+            font-weight: 700; font-size: 1rem; cursor: pointer; transition: background 0.3s;
+            display: block; width: 100%; margin-top: 28px; font-family: 'Rajdhani', sans-serif;
+            letter-spacing: 1px; min-height: 52px;
+        }
+        .btn-calificar:hover { background: var(--primario-claro); }
+        .btn-continuar {
+            background: var(--primario-claro); color: white; border: none; padding: 15px 36px; border-radius: 12px;
+            font-weight: 700; font-size: 1rem; cursor: pointer; transition: all 0.3s;
+            display: block; width: 100%; margin-top: 14px; font-family: 'Rajdhani', sans-serif;
+            letter-spacing: 1px; min-height: 52px;
+        }
+        .btn-continuar:hover { background: var(--primario-oscuro); transform: translateY(-1px); }
+        .btn-reintentar {
+            background: #e74c3c; color: white; border: none; padding: 13px 28px; border-radius: 10px;
+            font-weight: 700; font-size: 0.95rem; cursor: pointer; margin-top: 12px;
+            font-family: 'Rajdhani', sans-serif; min-height: 48px; width: 100%;
+        }
+        .btn-reintentar:hover { background: #c0392b; }
+
+        /* SELECTOR */
+        .pantalla-selector-wrap { padding: 28px 16px 40px; max-width: 700px; margin: 0 auto; }
+        .selector-titulo { text-align: center; margin-bottom: 28px; }
+        .selector-titulo .icono-ok { font-size: 3rem; display: block; margin-bottom: 8px; }
+        .selector-titulo h2 { font-family: 'Rajdhani', sans-serif; font-size: 1.6rem; font-weight: 700; color: var(--primario); }
+        .selector-titulo p { font-size: 0.92rem; color: #666; margin-top: 6px; }
+        .selector-nota { background: rgba(0,0,0,0.04); border: 2px solid rgba(0,0,0,0.12); border-radius: 12px; padding: 14px 18px; margin-bottom: 24px; text-align: center; }
+        .selector-nota .nota-label { font-size: 0.8rem; color: var(--primario); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+        .selector-nota .nota-val { font-family: 'Rajdhani', sans-serif; font-size: 2.2rem; font-weight: 700; color: var(--primario); line-height: 1.2; }
+
+        .btn-seccion {
+            display: flex; align-items: center; gap: 18px; width: 100%; padding: 22px;
+            border-radius: 16px; border: none; cursor: pointer; text-align: left; margin-bottom: 16px;
+            transition: transform 0.15s, box-shadow 0.15s; color: white;
+            font-family: 'Source Sans 3', sans-serif; box-shadow: 0 4px 20px rgba(0,0,0,0.15); min-height: 90px;
+        }
+        .btn-seccion:active { transform: scale(0.98); }
+        .btn-seccion:hover  { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,0,0,0.22); }
+        .btn-seccion.btn-guia      { background: linear-gradient(135deg, var(--primario-oscuro), var(--primario-claro)); }
+        .btn-seccion.btn-simulador { background: linear-gradient(135deg, var(--color2-oscuro), var(--color2)); }
+        .btn-seccion .btn-icono  { font-size: 2.4rem; flex-shrink: 0; }
+        .btn-seccion .btn-info   { flex: 1; }
+        .btn-seccion .btn-titulo { font-family: 'Rajdhani', sans-serif; font-size: 1.3rem; font-weight: 700; display: block; line-height: 1.2; }
+        .btn-seccion .btn-desc   { font-size: 0.82rem; color: rgba(255,255,255,0.75); display: block; margin-top: 3px; }
+        .btn-seccion .btn-flecha { font-size: 1.6rem; opacity: 0.7; flex-shrink: 0; }
+
+        /* OVERLAY CONTENIDO */
+        .pantalla-contenido {
+            display: none; position: fixed; inset: 0; z-index: 9999; flex-direction: column; background: white;
+        }
+        .pantalla-contenido.activa { display: flex; }
+        .contenido-header { display: flex; align-items: center; gap: 14px; padding: 12px 16px; color: white; flex-shrink: 0; }
+        .contenido-header.header-guia      { background: linear-gradient(90deg, var(--primario-oscuro), var(--primario-claro)); }
+        .contenido-header.header-simulador { background: linear-gradient(90deg, var(--color2-oscuro), var(--color2)); }
+        .btn-volver {
+            background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.3); color: white;
+            width: 42px; height: 42px; border-radius: 10px; font-size: 1.3rem; cursor: pointer;
+            flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+            transition: background 0.2s; font-weight: 700;
+        }
+        .btn-volver:hover { background: rgba(255,255,255,0.35); }
+        .contenido-header-info { flex: 1; min-width: 0; }
+        .contenido-header-info h3 { font-family: 'Rajdhani', sans-serif; font-size: 1.1rem; font-weight: 700; margin: 0; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .contenido-header-info p  { font-size: 0.72rem; color: rgba(255,255,255,0.72); margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .contenido-iframe { flex: 1; width: 100%; border: none; display: block; }
+
+        /* LOADING */
+        .enviando-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:9999; align-items:center; justify-content:center; flex-direction:column; gap:14px; }
+        .enviando-overlay.activo { display:flex; }
+        .enviando-overlay p { color:white; font-weight:600; font-size:1rem; }
+        .spinner { width:44px; height:44px; border:5px solid rgba(255,255,255,0.3); border-top-color:white; border-radius:50%; animation:spin 0.8s linear infinite; }
+        @keyframes spin { to { transform:rotate(360deg); } }
+
+        footer { background: #0a0a0a; color: #8899bb; text-align: center; padding: 24px 16px; font-size: 0.82rem; }
+        footer strong { color: white; }
+
+        @media (max-width: 768px) {
+            .navbar-brand img { width: 90px !important; height: 38px !important; }
+            .line li:not(:last-child) { margin-right: 0 !important; }
+            .pasos-bar { padding: 10px 12px; gap: 4px; }
+            .paso-etiqueta { display: none !important; }
+            .paso-nombre { font-size: 0.7rem !important; }
+            .paso-circulo { width: 28px; height: 28px; font-size: 0.82rem; }
+            .paso:not(:last-child)::after { left: 32px; }
+            .pantalla-quiz-wrap, .pantalla-selector-wrap, .pantalla-registro-wrap { padding: 14px 10px 30px; }
+            .tarjeta-header { padding: 14px 14px; gap: 10px; }
+            .tarjeta-header h2 { font-size: 1.05rem !important; }
+            .tarjeta-icono { font-size: 1.3rem !important; }
+            .tarjeta-cuerpo { padding: 16px 12px; }
+            .pregunta { margin-bottom: 20px; padding-bottom: 18px; }
+            .pregunta-texto { font-size: 0.9rem !important; }
+            .opcion { padding: 10px 12px; font-size: 0.88rem; min-height: 44px; gap: 10px; }
+            .btn-calificar, .btn-continuar { padding: 13px 20px; font-size: 0.92rem; }
+            .btn-reintentar { padding: 11px 20px; font-size: 0.88rem; }
+            .btn-seccion { padding: 16px 14px; min-height: 80px; gap: 12px; }
+            .btn-seccion .btn-titulo { font-size: 1.1rem !important; }
+            .selector-titulo h2 { font-size: 1.35rem !important; }
+            .contenido-header { padding: 10px 12px; gap: 10px; }
+            .contenido-header-info h3 { font-size: 0.95rem !important; }
+        }
+        @media (max-width: 480px) {
+            .pasos-bar { padding: 8px 10px; }
+            .paso-nombre { font-size: 0.65rem !important; }
+            .paso-circulo { width: 26px; height: 26px; font-size: 0.78rem; }
+            .tarjeta-header h2 { font-size: 0.95rem !important; }
+            .opcion { padding: 9px 10px; font-size: 0.84rem; }
+            .puntaje-grande { font-size: 2.4rem !important; }
+            .btn-seccion .btn-icono { font-size: 1.8rem !important; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="enviando-overlay" id="overlay-enviando">
+    <div class="spinner"></div>
+    <p>Enviando resultados...</p>
+</div>
+
+<nav class="navbar navbar-expand-lg" style="background-color:rgb(9,63,124);">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="../laboratorio_fisica_virtual_3.html">
+            <img src="../resources/logo_camacho.png" alt="Logo" width="120" height="50">
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse line" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" style="color:white;">Laboratorios de Física Presencial</a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="../laboratorio_fisica_presencial_1.html">Laboratorio de Física I Presencial</a></li>
+                        <li><a class="dropdown-item" href="../laboratorio_fisica_presencial_2.html">Laboratorio de Física II Presencial</a></li>
+                        <li><a class="dropdown-item" href="../laboratorio_fisica_presencial_3.html">Laboratorio de Física III Presencial</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" style="color:white;">Laboratorios de Física Virtual</a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="../laboratorio_fisica_virtual_1.html">Laboratorio de Física I Virtual</a></li>
+                        <li><a class="dropdown-item" href="../laboratorio_fisica_virtual_2.html">Laboratorio de Física II Virtual</a></li>
+                        <li><a class="dropdown-item fw-bold" href="../laboratorio_fisica_virtual_3.html">Laboratorio de Física III Virtual</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" style="color:white;">Laboratorios de Física Remotos</a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="../laboratorio_fisica_remoto_1.html">Laboratorio de Física I Remoto</a></li>
+                        <li><a class="dropdown-item" href="../laboratorio_fisica_remoto_2.html">Laboratorio de Física II Remoto</a></li>
+                        <li><a class="dropdown-item" href="../laboratorio_fisica_remoto_3.html">Laboratorio de Física III Remoto</a></li>
+                    </ul>
+                </li>
+            </ul>
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link" href="#" style="color:white;">Iniciar Sesión
+                        <img src="../resources/is3.png" alt="Iniciar Sesión" width="30" height="24">
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div id="zona-principal">
+    <div class="breadcrumb-bar">
+        <a href="../index.html">🏠 Inicio</a>
+        <span class="sep">›</span>
+        <a href="../laboratorio_fisica_virtual_3.html">Lab. Física III Virtual</a>
+        <span class="sep">›</span>
+        <span class="breadcrumb-current">📡 Efecto Doppler</span>
+    </div>
+
+    <div class="hero">
+        <div class="hero-badge">Práctica 06 — Física III Virtual</div>
+        <h1>Efecto<br><span>Doppler</span></h1>
+        <p>Completa el quiz para desbloquear la guía y el simulador interactivo.</p>
+    </div>
+
+    <div class="pasos-bar">
+        <div class="paso activo" id="paso1">
+            <div class="paso-circulo" id="circulo1">1</div>
+            <div><span class="paso-etiqueta">Paso 1</span><span class="paso-nombre">📝 Quiz</span></div>
+        </div>
+        <div class="paso" id="paso2">
+            <div class="paso-circulo" id="circulo2">2</div>
+            <div><span class="paso-etiqueta">Paso 2</span><span class="paso-nombre">📄 Guía</span></div>
+        </div>
+        <div class="paso" id="paso3">
+            <div class="paso-circulo" id="circulo3">3</div>
+            <div><span class="paso-etiqueta">Paso 3</span><span class="paso-nombre">🖥️ Simulador</span></div>
+        </div>
+    </div>
+
+    <!-- PANTALLA REGISTRO -->
+    <div class="pantalla activa" id="pantalla-registro">
+        <div class="pantalla-registro-wrap">
+            <div class="tarjeta">
+                <div class="tarjeta-header color-principal">
+                    <span class="tarjeta-icono">👤</span>
+                    <div>
+                        <h2>Identificación del Estudiante</h2>
+                        <p>Ingresa tus datos para comenzar el quiz de conocimientos previos.</p>
+                    </div>
+                </div>
+                <div class="tarjeta-cuerpo">
+                    <div class="registro-intro">
+                        <span class="icono-reg">📡</span>
+                        <h2>Quiz — Efecto Doppler</h2>
+                        <p>Antes de acceder a la práctica, debes completar un quiz de <strong>10 preguntas aleatorias</strong>.<br>Necesitas mínimo <strong>60%</strong> para continuar.</p>
+                    </div>
+                    <div class="campo-reg">
+                        <label for="reg-nombre">Nombre completo</label>
+                        <input type="text" id="reg-nombre" placeholder="Ej: María García López" autocomplete="name">
+                        <span class="campo-hint">Escribe tu nombre y apellidos completos</span>
+                    </div>
+                    <div class="campo-reg">
+                        <label for="reg-codigo">Código estudiantil</label>
+                        <input type="text" id="reg-codigo" placeholder="Ej: 2021023456" autocomplete="off">
+                        <span class="campo-hint">Tu código tal como aparece en el carné</span>
+                    </div>
+                    <div class="campo-reg">
+                        <label for="reg-grupo">Grupo</label>
+                        <select id="reg-grupo">
+                            <option value="">— Selecciona tu grupo —</option>
+                            <option value="G1">Grupo 1 — Lunes/Miércoles</option>
+                            <option value="G2">Grupo 2 — Martes/Jueves</option>
+                            <option value="G3">Grupo 3 — Viernes</option>
+                            <option value="G4">Grupo 4 — Sábado</option>
+                        </select>
+                        <span class="campo-hint">Selecciona tu grupo de laboratorio</span>
+                    </div>
+                    <div class="campo-reg">
+                        <label for="reg-correo">Correo institucional</label>
+                        <input type="email" id="reg-correo" placeholder="Ej: estudiante@uniajc.edu.co" autocomplete="email">
+                        <span class="campo-hint">Usa tu correo institucional (@uniajc.edu.co)</span>
+                    </div>
+                    <button class="btn-calificar" onclick="iniciarRegistro()">Comenzar Quiz →</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANTALLA QUIZ -->
+    <div class="pantalla" id="pantalla-quiz">
+        <div class="pantalla-quiz-wrap">
+            <div class="tarjeta">
+                <div class="tarjeta-header color-principal">
+                    <span class="tarjeta-icono">📝</span>
+                    <div id="quiz-header-info">
+                        <h2>Quiz de Conocimientos Previos</h2>
+                        <p>Responde todas las preguntas. Necesitas al menos 60% para continuar.</p>
+                    </div>
+                </div>
+                <div class="tarjeta-cuerpo">
+                    <div id="badge-intento-wrap"></div>
+                    <div id="contenedor-preguntas"></div>
+                    <button class="btn-calificar" id="btn-calificar" onclick="calificarQuiz()">Calificar Quiz ✓</button>
+                    <div class="resultado-quiz" id="resultado-quiz">
+                        <div class="puntaje-grande" id="puntaje-txt"></div>
+                        <div class="nota-display" id="nota-txt"></div>
+                        <p class="msg" id="resultado-msg"></p>
+                        <p class="sub" id="resultado-sub"></p>
+                        <br>
+                        <button class="btn-continuar" id="btn-continuar" onclick="desbloquear()" style="display:none;">Continuar a la práctica →</button>
+                        <button class="btn-reintentar" id="btn-reintentar" onclick="segundoIntento()" style="display:none;">🔄 Segundo intento (nota máx. 4.0)</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANTALLA SELECTOR -->
+    <div class="pantalla" id="pantalla-selector">
+        <div class="pantalla-selector-wrap">
+            <div class="selector-titulo">
+                <span class="icono-ok">🎉</span>
+                <h2>¡Quiz superado!</h2>
+                <p>Selecciona qué quieres abrir. Puedes ir y volver cuando quieras.</p>
+            </div>
+            <div class="selector-nota">
+                <div class="nota-label">Tu nota del quiz</div>
+                <div class="nota-val" id="nota-final-display">—</div>
+            </div>
+            <button class="btn-seccion btn-guia" onclick="abrirSeccion('guia')">
+                <span class="btn-icono">📄</span>
+                <div class="btn-info">
+                    <span class="btn-titulo">Guía de Práctica</span>
+                    <span class="btn-desc">Guía del efecto Doppler — cambio de frecuencia por movimiento relativo</span>
+                </div>
+                <span class="btn-flecha">›</span>
+            </button>
+            <button class="btn-seccion btn-simulador" onclick="abrirSeccion('simulador')">
+                <span class="btn-icono">🖥️</span>
+                <div class="btn-info">
+                    <span class="btn-titulo">Simulador — Efecto Doppler</span>
+                    <span class="btn-desc">Simulación 3D del efecto Doppler con seis modos de movimiento</span>
+                </div>
+                <span class="btn-flecha">›</span>
+            </button>
+        </div>
+        <footer>
+            <strong>Institución Universitaria Antonio José Camacho</strong> — Departamento de Ciencias Básicas<br>
+            Laboratorio de Física III Virtual · Práctica 06 — Física III Virtual &copy; 2025 · Todos los derechos reservados
+        </footer>
+    </div>
+</div>
+
+<!-- OVERLAY GUÍA -->
+<div class="pantalla-contenido" id="pantalla-guia">
+    <div class="contenido-header header-guia">
+        <button class="btn-volver" onclick="cerrarSeccion()">←</button>
+        <div class="contenido-header-info">
+            <h3>📄 Guía de Práctica</h3>
+            <p>Efecto Doppler — Laboratorio de Física III Virtual</p>
+        </div>
+    </div>
+    <iframe class="contenido-iframe" src="Practica_Efecto_Doppler.html" title="Guía de Práctica"></iframe>
+</div>
+
+<!-- OVERLAY SIMULADOR -->
+<div class="pantalla-contenido" id="pantalla-simulador">
+    <div class="contenido-header header-simulador">
+        <button class="btn-volver" onclick="cerrarSeccion()">←</button>
+        <div class="contenido-header-info">
+            <h3>🖥️ Simulador — Efecto Doppler</h3>
+            <p>Efecto Doppler — Simulación interactiva</p>
+        </div>
+    </div>
+    <iframe class="contenido-iframe" src="Simulador_Efecto_Doppler.html" title="Simulador"></iframe>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const POWER_AUTOMATE_URL = 'PEGA_AQUI_TU_URL_DE_POWER_AUTOMATE';
+const NUM_PREGUNTAS = 10;
+
+const BANCO_PREGUNTAS = [
+  {texto:"¿Qué describe el Efecto Doppler?",opciones:["El cambio de amplitud de una onda por movimiento","El cambio de frecuencia percibida por movimiento relativo entre fuente y observador","La variación de velocidad del sonido con la temperatura","El cambio de longitud de onda en medios dispersivos"],correcta:1,fb_ok:"✓ Correcto. El Efecto Doppler: cambio en la frecuencia percibida por movimiento relativo fuente-observador.",fb_mal:"✗ Incorrecto. El Efecto Doppler describe el cambio de frecuencia percibida debido al movimiento relativo fuente-observador."},
+  {texto:"Si una fuente sonora se acerca a un observador estático, la frecuencia percibida:",opciones:["Disminuye","Permanece igual","Aumenta (los frentes de onda se comprimen)","Varía aleatoriamente"],correcta:2,fb_ok:"✓ Correcto. Al acercarse la fuente, los frentes de onda se comprimen → λ disminuye → f aumenta.",fb_mal:"✗ Incorrecto. Fuente que se acerca: frentes de onda comprimidos → mayor frecuencia percibida."},
+  {texto:"Si una fuente sonora se aleja de un observador estático, la frecuencia percibida:",opciones:["Aumenta","Permanece igual","Disminuye (los frentes de onda se estiran)","Se duplica"],correcta:2,fb_ok:"✓ Correcto. Al alejarse la fuente, los frentes se estiran → λ aumenta → f disminuye.",fb_mal:"✗ Incorrecto. Fuente alejándose: frentes de onda extendidos → menor frecuencia percibida."},
+  {texto:"La fórmula del Efecto Doppler es f' = f·(v±v_o)/(v∓v_s). ¿Qué es 'v'?",opciones:["La velocidad de la fuente","La velocidad del observador","La velocidad del sonido en el medio","La velocidad relativa fuente-observador"],correcta:2,fb_ok:"✓ Correcto. 'v' es la velocidad del sonido en el medio (≈ 340 m/s en aire a 20°C).",fb_mal:"✗ Incorrecto. En la fórmula Doppler, 'v' es la velocidad del sonido en el medio."},
+  {texto:"¿Cuál es la aplicación médica más importante del Efecto Doppler?",opciones:["Rayos X diagnósticos","Ecografía Doppler para medir flujo sanguíneo","Resonancia magnética","Tomografía computarizada"],correcta:1,fb_ok:"✓ Correcto. La ecografía Doppler usa el efecto Doppler de ultrasonidos para medir la velocidad del flujo sanguíneo.",fb_mal:"✗ Incorrecto. La principal aplicación médica es la ecografía Doppler para medir el flujo sanguíneo."},
+  {texto:"¿Qué ocurre cuando una fuente sonora supera la velocidad del sonido (v_s > v)?",opciones:["El Efecto Doppler desaparece","Se produce un boom sónico (onda de choque conical)","La frecuencia percibida se vuelve negativa","El sonido se propaga hacia adelante sin cambio"],correcta:1,fb_ok:"✓ Correcto. Al superar v_sonido se forma una onda de choque cónica: el boom sónico.",fb_mal:"✗ Incorrecto. Cuando v_fuente > v_sonido se genera una onda de choque (boom sónico)."},
+  {texto:"El número de Mach se define como:",opciones:["La frecuencia dividida por la velocidad","La razón M = v_objeto/v_sonido","La amplitud de la onda de choque","La densidad del medio"],correcta:1,fb_ok:"✓ Correcto. M = v/v_sonido. Mach 1 = velocidad del sonido; Mach 2 = doble de la velocidad del sonido.",fb_mal:"✗ Incorrecto. El número de Mach es M = velocidad del objeto / velocidad del sonido."},
+  {texto:"Una ambulancia se acerca con v_s = 30 m/s emitiendo f = 500 Hz (v_sonido = 340 m/s). ¿Cuál es f' percibida?",opciones:["f' ≈ 455 Hz","f' ≈ 500 Hz","f' ≈ 549 Hz","f' ≈ 600 Hz"],correcta:2,fb_ok:"✓ Correcto. f' = f·v/(v-v_s) = 500·340/(340-30) = 500·340/310 ≈ 548.4 Hz ≈ 549 Hz.",fb_mal:"✗ Incorrecto. f' = 500×340/(340-30) = 170000/310 ≈ 548 Hz."},
+  {texto:"El radar de velocidad que usan las autoridades de tránsito usa el Efecto Doppler con:",opciones:["Ondas sonoras audibles","Ondas de radio o microondas","Ondas de agua","Ondas sísmicas"],correcta:1,fb_ok:"✓ Correcto. Los radares de velocidad usan microondas. La diferencia de frecuencia entre la emitida y la reflejada permite calcular v del vehículo.",fb_mal:"✗ Incorrecto. Los radares de tránsito usan microondas (ondas electromagnéticas) para aplicar el Efecto Doppler."},
+  {texto:"Si tanto la fuente como el observador se acercan mutuamente, la frecuencia percibida:",opciones:["Disminuye","Permanece igual","Aumenta más que si solo uno se acercara","Es igual que la frecuencia fuente"],correcta:2,fb_ok:"✓ Correcto. f' = f·(v+v_o)/(v-v_s). Con ambos acercándose, el efecto se acumula y f' es mayor.",fb_mal:"✗ Incorrecto. Cuando ambos se acercan: f' = f·(v+v_o)/(v-v_s) > f. El efecto es mayor que con uno solo."},
+  {texto:"Si el observador se aleja de la fuente estática con velocidad v_o, la frecuencia percibida es:",opciones:["f' = f·(v+v_o)/v","f' = f·(v-v_o)/v","f' = f·v/(v+v_o)","f' = f·v/(v-v_o)"],correcta:1,fb_ok:"✓ Correcto. Observador que se aleja (fuente estática): f' = f·(v-v_o)/v. El signo - indica menor frecuencia.",fb_mal:"✗ Incorrecto. Observador alejándose (fuente fija): f' = f·(v-v_o)/v."},
+  {texto:"¿Cuál de estos fenómenos cotidianos ilustra claramente el Efecto Doppler?",opciones:["El cambio de tono de una sirena de ambulancia al pasar","La reflexión de la luz en un espejo","El arco iris","La sombra de un objeto"],correcta:0,fb_ok:"✓ Correcto. El cambio de tono de la sirena al pasar (agudo al acercarse, grave al alejarse) es el ejemplo más conocido.",fb_mal:"✗ Incorrecto. El cambio de tono de la sirena de ambulancia al pasar es el ejemplo clásico del Efecto Doppler."},
+  {texto:"¿En qué campo se usa el Efecto Doppler para estudiar la expansión del universo?",opciones:["Geología","Cosmología (corrimiento al rojo de galaxias)","Meteorología","Oceanografía"],correcta:1,fb_ok:"✓ Correcto. El corrimiento al rojo (redshift) de la luz de galaxias es el Efecto Doppler relativista y evidencia la expansión del universo.",fb_mal:"✗ Incorrecto. El corrimiento al rojo de la luz de galaxias (Efecto Doppler relativista) evidencia la expansión del universo."},
+  {texto:"Si la fuente y el observador están en reposo relativo, ¿qué frecuencia percibe el observador?",opciones:["Una frecuencia menor que la emitida","La misma frecuencia que emite la fuente","Una frecuencia mayor que la emitida","Ninguna frecuencia"],correcta:1,fb_ok:"✓ Correcto. Sin movimiento relativo no hay Efecto Doppler: f' = f.",fb_mal:"✗ Incorrecto. Sin movimiento relativo fuente-observador, la frecuencia percibida es igual a la emitida: f' = f."},
+  {texto:"El Efecto Doppler también se aplica en:",opciones:["Solo en sonido","Todas las ondas: sonido, luz, radar, ultrasonido","Solo en luz visible","Solo en microondas"],correcta:1,fb_ok:"✓ Correcto. El Efecto Doppler es universal: aplica a todas las ondas (mecánicas y electromagnéticas).",fb_mal:"✗ Incorrecto. El Efecto Doppler aplica a cualquier tipo de onda: sonido, luz, radar, ultrasonido, etc."},
+  {texto:"Una fuente emite f = 1000 Hz y se aleja a v_s = 85 m/s (v_sonido = 340 m/s). ¿Cuál es f'?",opciones:["f' ≈ 500 Hz","f' ≈ 800 Hz","f' ≈ 1250 Hz","f' ≈ 1000 Hz"],correcta:1,fb_ok:"✓ Correcto. f' = f·v/(v+v_s) = 1000·340/(340+85) = 1000·340/425 ≈ 800 Hz.",fb_mal:"✗ Incorrecto. f' = f·v/(v+v_s) = 1000×340/(340+85) = 340000/425 = 800 Hz."},
+  {texto:"¿Qué es el corrimiento al rojo (redshift) en astronomía?",opciones:["El cambio de color de las estrellas al envejecer","El desplazamiento de la frecuencia de la luz hacia valores menores cuando una galaxia se aleja","La distorsión de la luz por gravedad","El cambio de brillo de una estrella"],correcta:1,fb_ok:"✓ Correcto. El redshift es el desplazamiento Doppler de la luz hacia menor frecuencia (rojo) cuando la fuente se aleja.",fb_mal:"✗ Incorrecto. El corrimiento al rojo es el Efecto Doppler relativista: la luz de galaxias que se alejan tiene menor frecuencia (se desplaza al rojo)."},
+  {texto:"En meteorología, el radar Doppler se usa para:",opciones:["Medir temperatura del suelo","Detectar la velocidad y dirección del viento y precipitación","Medir humedad relativa","Predecir terremotos"],correcta:1,fb_ok:"✓ Correcto. El radar Doppler meteorológico mide la velocidad de partículas de lluvia/granizo, permitiendo detectar vientos y tornados.",fb_mal:"✗ Incorrecto. El radar Doppler meteorológico mide la velocidad de la precipitación para detectar vientos y tormentas."},
+  {texto:"¿Cuál es el valor aproximado de la velocidad del sonido en aire a 0°C?",opciones:["300 m/s","331 m/s","340 m/s","360 m/s"],correcta:1,fb_ok:"✓ Correcto. A 0°C: v_sonido ≈ 331 m/s. A 20°C: v ≈ 340 m/s. La fórmula: v ≈ 331 + 0.6·T°C.",fb_mal:"✗ Incorrecto. A 0°C, v_sonido ≈ 331 m/s. A temperatura T: v ≈ 331 + 0.6T m/s."},
+  {texto:"Un tren emite f = 440 Hz y se acerca al observador estático a 20 m/s (v_sonido = 340 m/s). ¿Cuánto percibe el observador?",opciones:["f' ≈ 416 Hz","f' ≈ 440 Hz","f' ≈ 466 Hz","f' ≈ 490 Hz"],correcta:2,fb_ok:"✓ Correcto. f' = f·v/(v-v_s) = 440·340/(340-20) = 440·340/320 = 440·1.0625 ≈ 467 Hz ≈ 466 Hz.",fb_mal:"✗ Incorrecto. f' = 440·340/(340-20) = 440·340/320 = 149600/320 ≈ 467 Hz."}
+];
+
+let estudiante = { nombre:'', codigo:'', grupo:'', correo:'' };
+let preguntasActuales = [];
+let intentoActual = 1;
+let notaFinal = 0;
+
+function mezclar(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+}
+
+function seleccionarPreguntas() {
+    const mezcladas = mezclar(BANCO_PREGUNTAS);
+    return mezcladas.slice(0, NUM_PREGUNTAS).map(p => ({
+        ...p,
+        opciones: mezclar(p.opciones.map((o, i) => ({ texto: o, esCorrecta: i === p.correcta })))
+    }));
+}
+
+function iniciarRegistro() {
+    const nombre = document.getElementById('reg-nombre').value.trim();
+    const codigo = document.getElementById('reg-codigo').value.trim();
+    const grupo  = document.getElementById('reg-grupo').value;
+    const correo = document.getElementById('reg-correo').value.trim();
+
+    let valido = true;
+    ['reg-nombre','reg-codigo','reg-grupo','reg-correo'].forEach(id => document.getElementById(id).classList.remove('error'));
+
+    if (!nombre) { document.getElementById('reg-nombre').classList.add('error'); valido = false; }
+    if (!codigo || !/^\d{4,}$/.test(codigo)) { document.getElementById('reg-codigo').classList.add('error'); valido = false; }
+    if (!grupo)  { document.getElementById('reg-grupo').classList.add('error'); valido = false; }
+    if (!correo || !correo.includes('@')) { document.getElementById('reg-correo').classList.add('error'); valido = false; }
+
+    if (!valido) { alert('⚠️ Por favor completa todos los campos correctamente.'); return; }
+
+    estudiante = { nombre, codigo, grupo, correo };
+    intentoActual = 1;
+    iniciarQuiz();
+}
+
+function iniciarQuiz() {
+    preguntasActuales = seleccionarPreguntas();
+    const badge = document.getElementById('badge-intento-wrap');
+    badge.innerHTML = intentoActual === 1
+        ? '<div class="badge-intento">📝 Primer intento — Nota máxima: 5.0</div>'
+        : '<div class="badge-intento segundo">⚠️ Segundo intento — Nota máxima: 4.0</div>';
+
+    const cont = document.getElementById('contenedor-preguntas');
+    cont.innerHTML = '';
+    preguntasActuales.forEach((p, idx) => {
+        let opcionesHTML = p.opciones.map((op, i) =>
+            `<label class="opcion"><input type="radio" name="q${idx}" value="${i}"> ${op.texto}</label>`
+        ).join('');
+        cont.innerHTML += `
+            <div class="pregunta" id="preg-${idx}">
+                <p class="pregunta-texto"><span class="pregunta-num">${idx+1}</span>${p.texto}</p>
+                ${opcionesHTML}
+                <div class="feedback" id="fb-${idx}"></div>
+            </div>`;
+    });
+
+    document.getElementById('btn-calificar').style.display = 'block';
+    document.getElementById('resultado-quiz').style.display = 'none';
+    document.getElementById('btn-continuar').style.display = 'none';
+    document.getElementById('btn-reintentar').style.display = 'none';
+    mostrarPantalla('pantalla-quiz');
+}
+
+function calificarQuiz() {
+    const sinResponder = [];
+    preguntasActuales.forEach((p, idx) => {
+        if (!document.querySelector(`input[name="q${idx}"]:checked`)) sinResponder.push(idx + 1);
+    });
+    if (sinResponder.length > 0) { alert(`⚠️ Faltan por responder las preguntas: ${sinResponder.join(', ')}`); return; }
+
+    let correctas = 0;
+    preguntasActuales.forEach((p, idx) => {
+        const selIdx = parseInt(document.querySelector(`input[name="q${idx}"]:checked`).value);
+        const todas = document.querySelectorAll(`input[name="q${idx}"]`);
+        const fb = document.getElementById(`fb-${idx}`);
+
+        todas.forEach(op => { op.disabled = true; op.closest('.opcion').classList.add('bloqueada'); });
+
+        const opcionSeleccionada = p.opciones[selIdx];
+        if (opcionSeleccionada.esCorrecta) {
+            correctas++;
+            todas[selIdx].closest('.opcion').classList.add('correcta');
+            fb.className = 'feedback ok';
+            fb.textContent = p.fb_ok;
+        } else {
+            todas[selIdx].closest('.opcion').classList.add('incorrecta');
+            fb.className = 'feedback mal';
+            fb.textContent = p.fb_mal;
+            p.opciones.forEach((op, i) => {
+                if (op.esCorrecta) todas[i].closest('.opcion').classList.add('resp-correcta');
+            });
+        }
+    });
+
+    const pct = Math.round((correctas / NUM_PREGUNTAS) * 100);
+    const aprobado = pct >= 60;
+    const notaBase = intentoActual === 1 ? 5.0 : 4.0;
+    notaFinal = ((correctas / NUM_PREGUNTAS) * notaBase).toFixed(1);
+
+    document.getElementById('btn-calificar').style.display = 'none';
+    const resDiv = document.getElementById('resultado-quiz');
+    resDiv.style.display = 'block';
+    resDiv.className = 'resultado-quiz ' + (aprobado ? 'aprobado' : 'reprobado');
+    document.getElementById('puntaje-txt').textContent = `${correctas} / ${NUM_PREGUNTAS} — ${pct}%`;
+    document.getElementById('nota-txt').textContent = `Nota: ${notaFinal} / ${notaBase}`;
+    document.getElementById('resultado-msg').textContent = aprobado
+        ? '🎉 ¡Felicitaciones! Has superado el quiz.'
+        : '❌ No alcanzaste el puntaje mínimo (60%).';
+    document.getElementById('resultado-sub').textContent = aprobado
+        ? 'Toca el botón para continuar a la práctica.'
+        : intentoActual === 1
+            ? `Obtuviste ${correctas} de ${NUM_PREGUNTAS}. Tienes un segundo intento (nota máx. 4.0).`
+            : `Obtuviste ${correctas} de ${NUM_PREGUNTAS}. No hay más intentos disponibles.`;
+
+    if (aprobado) {
+        document.getElementById('btn-continuar').style.display = 'block';
+        document.getElementById('paso1').classList.replace('activo', 'completo');
+        document.getElementById('circulo1').textContent = '✓';
+        enviarResultados(correctas, pct, true);
+    } else {
+        if (intentoActual === 1) document.getElementById('btn-reintentar').style.display = 'block';
+        enviarResultados(correctas, pct, false);
+    }
+}
+
+function segundoIntento() { intentoActual = 2; iniciarQuiz(); }
+
+function mostrarPantalla(id) {
+    document.querySelectorAll('.pantalla').forEach(p => p.classList.remove('activa'));
+    document.getElementById(id).classList.add('activa');
+    window.scrollTo(0, 0);
+}
+
+function desbloquear() {
+    document.getElementById('nota-final-display').textContent = `${notaFinal} / ${intentoActual === 1 ? '5.0' : '4.0'}`;
+    document.getElementById('paso2').classList.add('activo');
+    document.getElementById('paso3').classList.add('activo');
+    mostrarPantalla('pantalla-selector');
+}
+
+function abrirSeccion(cual) {
+    document.getElementById('pantalla-' + cual).classList.add('activa');
+    document.body.style.overflow = 'hidden';
+}
+
+function cerrarSeccion() {
+    document.querySelectorAll('.pantalla-contenido').forEach(p => p.classList.remove('activa'));
+    document.body.style.overflow = '';
+}
+
+async function enviarResultados(correctas, pct, aprobado) {
+    if (!POWER_AUTOMATE_URL || POWER_AUTOMATE_URL === 'PEGA_AQUI_TU_URL_DE_POWER_AUTOMATE') return;
+    document.getElementById('overlay-enviando').classList.add('activo');
+    const ahora = new Date();
+    const datos = {
+        nombre: estudiante.nombre, codigo: estudiante.codigo,
+        grupo: estudiante.grupo, correo: estudiante.correo,
+        practica: 'Práctica 06 — Física III Virtual', intento: intentoActual,
+        correctas, total: NUM_PREGUNTAS, porcentaje: pct,
+        nota: parseFloat(notaFinal), notaBase: intentoActual === 1 ? 5.0 : 4.0,
+        aprobado, fecha: ahora.toLocaleDateString('es-CO'), hora: ahora.toLocaleTimeString('es-CO')
+    };
+    try {
+        await fetch(POWER_AUTOMATE_URL, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(datos) });
+    } catch(e) { console.warn('No se pudo enviar:', e); }
+    finally { document.getElementById('overlay-enviando').classList.remove('activo'); }
+}
+</script>
+</body>
+</html>

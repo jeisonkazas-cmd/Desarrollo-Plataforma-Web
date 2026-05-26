@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Práctica 4 — Lanzamiento de Proyectil</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$']]},options:{skipHtmlTags:['script','noscript','style','textarea','pre']}};</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+  :root{--ink:#1a1a2e;--ink-soft:#3d3d5c;--ink-muted:#7a7a9a;--paper:#faf8f3;--paper-alt:#f2ede3;--rule:#d4c9b0;--accent:#1a5276;--accent2:#c0392b;--gold:#b8860b;--green:#1e8449;--mono:'JetBrains Mono',monospace;--serif:'Source Serif 4',Georgia,serif;--display:'Playfair Display',Georgia,serif;}
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}html{scroll-behavior:smooth;}
+  body{background:#dde3e8;font-family:var(--serif);color:var(--ink);font-size:15px;line-height:1.75;padding:0 0 80px;}
+  .documento{max-width:900px;margin:0 auto;background:var(--paper);box-shadow:0 2px 4px rgba(0,0,0,.08),0 8px 32px rgba(0,0,0,.14);position:relative;overflow-x:hidden;}
+  .documento::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:linear-gradient(180deg,var(--accent) 0%,var(--accent2) 50%,var(--gold) 100%);}
+  .header{background:var(--ink);color:#fff;padding:36px 50px 30px 55px;position:relative;overflow:hidden;}
+  .header::after{content:'θ';font-family:var(--display);font-size:260px;font-weight:700;color:rgba(255,255,255,.04);position:absolute;right:-10px;top:-40px;line-height:1;pointer-events:none;user-select:none;}
+  .header-meta{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;gap:20px;}
+  .badge-codigo{font-family:var(--mono);font-size:.7em;background:var(--accent);color:#fff;padding:3px 10px;letter-spacing:.12em;text-transform:uppercase;}
+  .badge-tipo{font-family:var(--mono);font-size:.7em;color:rgba(255,255,255,.5);letter-spacing:.1em;text-transform:uppercase;border:1px solid rgba(255,255,255,.15);padding:3px 10px;}
+  .header h1{font-family:var(--display);font-size:2.1em;font-weight:700;line-height:1.2;color:#fff;margin-bottom:6px;}
+  .header h1 em{font-style:italic;color:rgba(255,255,255,.65);font-size:.82em;}
+  .header-sub{font-size:.82em;color:rgba(255,255,255,.45);font-weight:300;letter-spacing:.04em;margin-top:4px;}
+  .header-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px 24px;margin-top:24px;padding-top:20px;border-top:1px solid rgba(255,255,255,.12);}
+  .field-item label{display:block;font-family:var(--mono);font-size:.65em;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.12em;margin-bottom:4px;}
+  .field-item input{width:100%;background:rgba(255,255,255,.07);border:none;border-bottom:1px solid rgba(255,255,255,.25);color:#fff;font-family:var(--serif);font-size:.9em;padding:4px 0;outline:none;transition:border-color .2s;}
+  .field-item input:focus{border-bottom-color:var(--accent2);}
+  .field-item input::placeholder{color:rgba(255,255,255,.2);}
+  .body{padding:44px 50px 50px 55px;}
+  .seccion{margin-bottom:42px;}
+  .seccion-titulo{font-family:var(--display);font-size:1.15em;font-weight:600;color:var(--ink);display:flex;align-items:center;gap:12px;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--rule);}
+  .seccion-titulo .num{font-family:var(--mono);font-size:.75em;color:var(--accent);background:#e8f0f7;padding:2px 7px;letter-spacing:.05em;min-width:36px;text-align:center;}
+  .subseccion-titulo{font-family:var(--display);font-size:1em;font-weight:600;color:var(--accent);margin:22px 0 10px;display:flex;align-items:center;gap:8px;}
+  .subseccion-titulo::before{content:'';width:14px;height:2px;background:var(--accent);display:inline-block;flex-shrink:0;}
+  p{margin-bottom:10px;color:var(--ink-soft);font-size:.95em;}
+  .objetivos-lista{list-style:none;padding:0;}
+  .objetivos-lista li{display:flex;gap:12px;align-items:flex-start;padding:8px 0;border-bottom:1px dashed var(--rule);font-size:.93em;color:var(--ink-soft);}
+  .objetivos-lista li:last-child{border-bottom:none;}
+  .objetivos-lista li .obj-num{font-family:var(--mono);font-size:.75em;color:#fff;background:var(--accent);min-width:22px;height:22px;display:flex;align-items:center;justify-content:center;margin-top:2px;flex-shrink:0;}
+  .formula-box{background:var(--ink);color:#fff;padding:18px 24px;margin:18px 0;position:relative;overflow:hidden;}
+  .formula-box::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent2);}
+  .formula-box .formula-label{font-family:var(--mono);font-size:.65em;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.12em;margin-bottom:10px;}
+  .formula-main{font-size:1.1em;text-align:center;padding:6px 0;}
+  .formula-num{font-family:var(--mono);font-size:.65em;color:rgba(255,255,255,.35);text-align:right;margin-top:6px;}
+  .formula-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0;}
+  .tabla-wrap{overflow-x:auto;margin:16px 0;}
+  table{width:100%;border-collapse:collapse;font-size:.88em;}
+  thead tr{background:var(--ink);color:#fff;}
+  thead th{font-family:var(--mono);font-size:.72em;font-weight:500;letter-spacing:.06em;text-transform:uppercase;padding:10px 12px;text-align:center;}
+  tbody tr:nth-child(even){background:var(--paper-alt);}
+  tbody tr:hover{background:#e8f0f7;}
+  tbody td{padding:6px 10px;border-bottom:1px solid var(--rule);text-align:center;color:var(--ink-soft);font-size:.9em;}
+  tbody td.fila-label{font-family:var(--mono);font-size:.8em;color:var(--ink-muted);text-align:left;padding-left:12px;}
+  input.celda{width:80px;border:none;border-bottom:1px solid var(--rule);background:transparent;font-family:var(--mono);font-size:.85em;color:var(--ink);text-align:center;padding:2px 4px;outline:none;transition:border-color .2s;}
+  input.celda:focus{border-bottom-color:var(--accent);}
+  input.celda.calc{color:var(--accent);background:rgba(26,82,118,.06);border-bottom-color:rgba(26,82,118,.3);}
+  input.celda.prom{color:var(--green);background:rgba(30,132,73,.06);border-bottom-color:rgba(30,132,73,.3);font-weight:500;}
+  .resultados-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:18px 0;}
+  .res-card{background:var(--paper-alt);border:1px solid var(--rule);padding:14px 18px;}
+  .res-card label{font-family:var(--mono);font-size:.65em;color:var(--ink-muted);text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:6px;}
+  .res-card input{width:100%;border:none;border-bottom:2px solid var(--rule);background:transparent;font-family:var(--mono);font-size:1.1em;color:var(--accent);font-weight:500;padding:4px 0;outline:none;}
+  .res-card.destacado{border-color:var(--accent);border-left:3px solid var(--accent);}
+  .res-card.error-card{border-left:3px solid var(--accent2);}
+  .res-card.error-card input{color:var(--accent2);}
+  .grafica-wrap{background:#fff;border:1px solid var(--rule);padding:20px;margin:20px 0;}
+  .grafica-titulo{font-family:var(--mono);font-size:.72em;color:var(--ink-muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;}
+  canvas{display:block;width:100%;}
+  .grafica-controles{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;}
+  .btn{font-family:var(--mono);font-size:.72em;letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--rule);background:var(--paper-alt);color:var(--ink-soft);padding:6px 14px;cursor:pointer;transition:all .15s;}
+  .btn:hover{background:var(--ink);color:#fff;border-color:var(--ink);}
+  .btn.activo{background:var(--accent);color:#fff;border-color:var(--accent);}
+  .pregunta{display:flex;gap:14px;padding:14px 0;border-bottom:1px dashed var(--rule);align-items:flex-start;}
+  .pregunta:last-child{border-bottom:none;}
+  .preg-num{font-family:var(--mono);font-size:.72em;color:#fff;background:var(--gold);min-width:28px;height:28px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;}
+  .preg-texto{font-size:.93em;color:var(--ink-soft);flex:1;}
+  textarea.respuesta{width:100%;min-height:70px;margin-top:8px;border:1px solid var(--rule);background:var(--paper-alt);font-family:var(--serif);font-size:.88em;color:var(--ink);padding:10px 12px;outline:none;resize:vertical;line-height:1.6;transition:border-color .2s;}
+  textarea.respuesta:focus{border-color:var(--accent);}
+  .info-box{background:#e8f0f7;border-left:3px solid var(--accent);padding:12px 16px;font-size:.88em;color:var(--accent);margin:14px 0;font-style:italic;}
+  .tab-bar{display:flex;gap:0;margin-bottom:20px;border-bottom:2px solid var(--rule);}
+  .tab{font-family:var(--mono);font-size:.72em;text-transform:uppercase;letter-spacing:.08em;padding:10px 20px;cursor:pointer;color:var(--ink-muted);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s;}
+  .tab.activo{color:var(--accent);border-bottom-color:var(--accent);}
+  .tab-panel{display:none;}
+  .tab-panel.activo{display:block;}
+  @media(max-width:640px){.header{padding:24px 20px 20px 26px;}.body{padding:28px 20px 30px 26px;}.header-fields,.resultados-grid,.formula-grid{grid-template-columns:1fr;}}
+
+  /* MONTAJE */
+  .montaje-box{background:var(--paper-alt);border:1px solid var(--rule);padding:20px 24px;margin:16px 0;}
+  .montaje-materiales{list-style:none;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;margin-bottom:18px;}
+  .montaje-materiales li{display:flex;align-items:center;gap:8px;font-size:.88em;color:var(--ink-soft);}
+  .montaje-materiales li::before{content:'';width:6px;height:6px;background:var(--accent2);flex-shrink:0;}
+  .pasos-lista{list-style:none;padding:0;counter-reset:pasos;}
+  .pasos-lista li{counter-increment:pasos;display:flex;gap:14px;padding:10px 0;border-bottom:1px dashed var(--rule);font-size:.9em;color:var(--ink-soft);align-items:flex-start;}
+  .pasos-lista li:last-child{border-bottom:none;}
+  .pasos-lista li::before{content:counter(pasos);font-family:var(--mono);font-size:.75em;color:#fff;background:var(--ink);min-width:24px;height:24px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .mont-fotos{display:flex;gap:16px;flex-wrap:wrap;margin-top:16px;justify-content:center;}
+  .mont-fig{text-align:center;flex:1;min-width:200px;max-width:420px;}
+  .mont-fig img{max-width:100%;height:auto;border:1px solid var(--rule);display:block;margin:0 auto;}
+  .mont-fig figcaption{font-family:var(--mono);font-size:.68em;color:var(--ink-muted);margin-top:6px;text-transform:uppercase;letter-spacing:.06em;}
+  .precaucion-box{background:#fff3cd;border-left:3px solid var(--gold);padding:10px 14px;font-size:.85em;color:#7c5c00;margin:14px 0;}
+  .precaucion-box strong{font-family:var(--mono);font-size:.85em;letter-spacing:.05em;}
+  @media(max-width:640px){.montaje-materiales{grid-template-columns:1fr;}.mont-fotos{flex-direction:column;}}
+
+
+  /* ════════════════════════════════════════════
+     MEJORAS GLOBALES: FUENTE + RESPONSIVE + PRINT
+     ════════════════════════════════════════════ */
+
+  /* — Fuente base más grande — */
+  html { font-size: 17px; }
+  body { font-size: 1rem !important; line-height: 1.8; }
+  p { font-size: 1rem !important; margin-bottom: 12px; }
+  .header h1 { font-size: 2.3em !important; }
+  .seccion-titulo { font-size: 1.25em !important; }
+  .subseccion-titulo { font-size: 1.08em !important; }
+  .objetivos-lista li,
+  .pasos-lista li,
+  .preg-texto { font-size: 1rem !important; }
+  .formula-main { font-size: 1.2em !important; }
+  .res-card input { font-size: 1.2em !important; }
+  input.celda { font-size: .95em !important; width: 90px !important; }
+  table { font-size: .95em !important; }
+  thead th { font-size: .78em !important; padding: 12px 10px !important; }
+  tbody td { font-size: .95em !important; padding: 8px 10px !important; }
+  .precaucion-box, .info-box { font-size: .95em !important; }
+
+  /* — Área de respuesta: div contenteditable en lugar de textarea — */
+  .respuesta-div {
+    width: 100%;
+    min-height: 90px;
+    margin-top: 8px;
+    border: 1px solid var(--rule);
+    background: var(--paper-alt);
+    font-family: var(--serif);
+    font-size: .95em;
+    color: var(--ink);
+    padding: 10px 12px;
+    outline: none;
+    line-height: 1.6;
+    cursor: text;
+    white-space: pre-wrap;
+    word-break: break-word;
+    /* Sin overflow, sin height fija: crece siempre con el contenido */
+  }
+  .respuesta-div:focus {
+    border-color: var(--accent);
+  }
+  .respuesta-div:empty::before {
+    content: attr(data-placeholder);
+    color: var(--ink-muted);
+    font-style: italic;
+    pointer-events: none;
+  }
+
+  /* — Placeholder de canvas para impresión — */
+  .vis-print-placeholder {
+    display: none;
+    border: 1px dashed #bbb;
+    background: #f9f9f9;
+    padding: 18px 20px;
+    font-family: var(--mono);
+    font-size: .82em;
+    color: var(--ink-muted);
+    text-align: center;
+    margin: 12px 0;
+  }
+  .valor-angulo-print {
+    display: none;
+    font-family: var(--mono);
+    font-size: .9em;
+    color: var(--accent);
+    font-weight: 600;
+    margin-left: 10px;
+  }
+
+  /* — Botón imprimir — */
+  .btn-imprimir-wrap {
+    text-align: center;
+    padding: 28px 0 10px;
+    border-top: 2px solid var(--rule);
+    margin-top: 40px;
+  }
+  .btn-imprimir {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: var(--ink); color: #fff; border: none;
+    padding: 13px 32px; font-family: var(--mono); font-size: .9em;
+    letter-spacing: .1em; text-transform: uppercase; cursor: pointer;
+    transition: background .2s, transform .15s;
+    box-shadow: 0 4px 16px rgba(0,0,0,.18); border-radius: 4px;
+  }
+  .btn-imprimir:hover { background: var(--accent); transform: translateY(-2px); }
+  .btn-imprimir svg { width: 20px; height: 20px; flex-shrink: 0; }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 900px) {
+    html { font-size: 16px; }
+    .documento { max-width: 100% !important; margin: 0 !important; }
+    .header { padding: 28px 24px 24px 30px !important; }
+    .body   { padding: 28px 24px 32px 30px !important; }
+    .header-fields, .formula-grid { grid-template-columns: 1fr 1fr !important; }
+    .resultados-grid { grid-template-columns: 1fr 1fr !important; }
+  }
+  @media (max-width: 640px) {
+    html { font-size: 15px; }
+    .header { padding: 20px 16px 18px 20px !important; }
+    .body   { padding: 20px 16px 24px 20px !important; }
+    .header h1 { font-size: 1.7em !important; }
+    .header-fields, .resultados-grid,
+    .formula-grid, .montaje-materiales { grid-template-columns: 1fr !important; }
+    .tabla-wrap { -webkit-overflow-scrolling: touch; }
+    table { min-width: 480px; }
+    input.celda { width: 70px !important; }
+    canvas { max-width: 100%; height: auto !important; }
+  }
+  @media (max-width: 400px) {
+    html { font-size: 14px; }
+    .header h1 { font-size: 1.5em !important; }
+  }
+
+  /* ─── IMPRESIÓN ─── */
+  @media print {
+    body { background: white !important; padding: 0 !important; }
+    .documento { box-shadow: none !important; max-width: 100% !important; }
+    .btn-imprimir-wrap { display: none !important; }
+
+    /* Colores sólidos preservados */
+    .header, .formula-box, thead tr,
+    .objetivos-lista li .obj-num,
+    .preg-num, .seccion-titulo .num,
+    .pasos-lista li::before {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    /* Área de respuesta: sin borde scroll, expande completo */
+    .respuesta-div {
+      border: 1px solid #aaa !important;
+      background: white !important;
+      min-height: 0 !important;
+      overflow: visible !important;
+      page-break-inside: avoid;
+    }
+    .respuesta-div:empty::before {
+      content: '' !important;   /* ocultar placeholder en PDF */
+    }
+
+    /* Campos numéricos */
+    input.celda, input.celda.calc, input.celda.prom {
+      border-bottom: 1px solid #999 !important;
+      -webkit-appearance: none !important;
+    }
+    .res-card input { border-bottom: 2px solid #999 !important; }
+
+    /* Deslizador oculto, mostrar valor en texto */
+    input[type="range"] { display: none !important; }
+    .valor-angulo-print { display: inline !important; }
+
+    /* Canvas oculto, mostrar placeholder */
+    canvas { display: none !important; }
+    .vis-print-placeholder { display: block !important; }
+    .visualizador .vis-controles { display: none !important; }
+
+    /* Paginado limpio */
+    .seccion, .visualizador, .montaje-box { page-break-inside: avoid; }
+    table { page-break-inside: auto; min-width: 0 !important; width: 100% !important; }
+    tr { page-break-inside: avoid; page-break-after: auto; }
+    thead { display: table-header-group; }
+    .tabla-wrap { overflow: visible !important; }
+  }
+
+</style>
+</head>
+<body>
+<div class="documento">
+  <div class="header">
+    <div class="header-meta">
+      <span class="badge-codigo" id="codigoPractica">PRÁCTICA FIS-PRY-04</span>
+      <span class="badge-tipo">Mecánica · Cinemática 2D</span>
+    </div>
+    <h1>Lanzamiento<br><em>de Proyectil</em></h1>
+    <div class="header-sub">Departamento de Ciencias Básicas · Institución Universitaria Antonio José Camacho · Cali 2025</div>
+    <div class="header-fields">
+      <div class="field-item"><label>Nombre del estudiante</label><input type="text" placeholder="Apellidos, Nombres"></div>
+      <div class="field-item"><label>Grupo / Sección</label><input type="text" placeholder="Ej. Física I – G2"></div>
+      <div class="field-item"><label>Docente</label><input type="text" placeholder="Nombre del profesor"></div>
+      <div class="field-item"><label>Fecha de realización</label><input type="date"></div>
+    </div>
+  </div>
+
+  <div class="body">
+    <div class="seccion">
+      <div class="seccion-titulo"><span class="num">01</span> Objetivos</div>
+      <ul class="objetivos-lista">
+        <li><span class="obj-num">1</span>Determinar la trayectoria de un cuerpo lanzado como proyectil a partir de datos experimentales.</li>
+        <li><span class="obj-num">2</span>Determinar la velocidad inicial $v_0$ para cada ángulo de lanzamiento.</li>
+      </ul>
+    </div>
+
+    <div class="seccion">
+      <div class="seccion-titulo"><span class="num">02</span> Modelo Teórico</div>
+      <p>Una pelota lanzada con velocidad inicial $v_0$ y ángulo $\theta_0$ describe una trayectoria parabólica. Las ecuaciones de movimiento son:</p>
+      <div class="formula-grid">
+        <div class="formula-box">
+          <div class="formula-label">Eje X (uniforme)</div>
+          <div class="formula-main">$$x = x_0 + v_0\cos(\theta_0)\,t$$</div>
+          <div class="formula-num">(1)</div>
+        </div>
+        <div class="formula-box">
+          <div class="formula-label">Eje Y (acelerado)</div>
+          <div class="formula-main">$$y = y_0 + v_0\sin(\theta_0)\,t + \tfrac{1}{2}a_y\,t^2$$</div>
+          <div class="formula-num">(2)</div>
+        </div>
+      </div>
+      <div class="formula-box">
+        <div class="formula-label">Trayectoria (eliminando t)</div>
+        <div class="formula-main">$$y = y_0 + x\tan(\theta_0) - \frac{g}{2v_0^2\cos^2(\theta_0)}\,x^2$$</div>
+        <div class="formula-num">(3)</div>
+      </div>
+      <p>De la ecuación (3) se puede despejar $v_0$ conociendo el alcance horizontal $x$ y el ángulo $\theta_0$.</p>
+    </div>
+
+    
+    <div class="seccion" id="sec-montaje">
+      <div class="seccion-titulo"><span class="num">M</span> Montaje Experimental</div>
+
+      <div class="montaje-box">
+        <div class="subseccion-titulo">Materiales PASCO</div>
+        <ul class="montaje-materiales">
+          <li>Disparador parabólico con cuadrante ME-6800</li>
+          <li>Pelota de pasta maciza</li>
+          <li>Flexómetro de 3 m</li>
+          <li>Transportador</li>
+          <li>Cinta de enmascarar</li>
+          <li>Calculadora</li>
+          <li>Gafas protectoras (obligatorio)</li>
+        </ul>
+
+        <ol class="pasos-lista">
+          <li><strong>USE LAS GAFAS PROTECTORAS</strong> antes de manipular el lanzador. Es obligatorio durante toda la práctica.</li>
+          <li>Sitúe el lanzador de proyectiles sobre una mesa resistente. Fíjelo con la cinta de enmascarar o con la abrazadera si dispone de ella.</li>
+          <li>Fije la posición inicial $x_0 = 0$ marcando con la cinta la base del lanzador. Mida y registre la altura inicial $y_0$ desde el suelo.</li>
+          <li>Ajuste el ángulo de lanzamiento con el cuadrante integrado. Comience con el ángulo indicado por el docente (30°, 45° o 60°).</li>
+          <li>Cargue la pelota con <strong>extremo cuidado</strong>, empujándola suavemente hasta el tope. No apunte el lanzador hacia personas.</li>
+          <li>Dispare y marque el punto de caída con la cinta. Mida el alcance horizontal $x$ con el flexómetro.</li>
+          <li>Repita el disparo 3 veces por cada ángulo. Calcule el promedio del alcance.</li>
+          <li>Cambie el ángulo y repita. Realice el procedimiento para las tres velocidades iniciales (corta, media, larga).</li>
+        </ol>
+
+        <div class="mont-fotos">
+          <figure class="mont-fig"><img src="data:image/png;base64,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" alt="Lanzador parabólico PASCO" loading="lazy"><figcaption>Fig. 1 — Disparador parabólico PASCO ME-6800 con cuadrante de ángulo</figcaption></figure>
+        </div>
+
+        <div class="precaucion-box"><strong>⚠ Precauciones:</strong> NUNCA apunte el lanzador hacia personas o animales. Use siempre gafas protectoras. Verifique que el área de caída esté despejada antes de disparar. Cargue la pelota solo cuando esté listo para disparar.</div>
+      </div>
+    </div>
+
+    <div class="seccion">
+      <div class="seccion-titulo"><span class="num">03</span> Toma de Datos</div>
+      <div class="info-box">Instrumento: Disparador Parabólico con Cuadrante · Flexómetro 3 m · g = 9,80 m/s²</div>
+
+      <div class="tab-bar">
+        <div class="tab activo" onclick="switchTab(0)">v₀ corta</div>
+        <div class="tab" onclick="switchTab(1)">v₀ media</div>
+        <div class="tab" onclick="switchTab(2)">v₀ larga</div>
+      </div>
+
+      <div id="paneles-velocidad"><!-- se construye dinámicamente --></div>
+    </div>
+
+    <div class="seccion">
+      <div class="seccion-titulo"><span class="num">04</span> Trayectoria Calculada</div>
+      <div class="grafica-wrap">
+        <div class="grafica-titulo">Trayectoria parabólica simulada (con v₀ y θ ingresados)</div>
+        <div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:14px;">
+          <div>
+            <label style="font-family:var(--mono);font-size:.7em;color:var(--ink-muted);text-transform:uppercase;">v₀ (m/s)</label><br>
+            <input id="in-v0" class="celda" type="text" placeholder="5.0" oninput="dibujarTray()" style="width:90px;border:1px solid var(--rule);padding:4px 6px;">
+          </div>
+          <div>
+            <label style="font-family:var(--mono);font-size:.7em;color:var(--ink-muted);text-transform:uppercase;">θ (°)</label><br>
+            <input id="in-theta" class="celda" type="text" placeholder="30" oninput="dibujarTray()" style="width:90px;border:1px solid var(--rule);padding:4px 6px;"><span class="valor-angulo-print" id="print-theta">30°</span>
+          </div>
+          <div>
+            <label style="font-family:var(--mono);font-size:.7em;color:var(--ink-muted);text-transform:uppercase;">y₀ (m)</label><br>
+            <input id="in-y0" class="celda" type="text" placeholder="0.0" oninput="dibujarTray()" style="width:90px;border:1px solid var(--rule);padding:4px 6px;">
+          </div>
+        </div>
+        <canvas id="canvas-tray" height="300"></canvas>
+<div class="vis-print-placeholder">[ Diagrama interactivo — visible en pantalla ]</div>
+        <div class="grafica-controles">
+          <span id="info-tray" style="font-family:var(--mono);font-size:.72em;color:var(--ink-muted);"></span>
+          <button class="btn" onclick="exportTray()">Exportar PNG</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="seccion">
+      <div class="seccion-titulo"><span class="num">05</span> Preguntas</div>
+      <div class="pregunta"><span class="preg-num">1</span><div class="preg-texto">¿Las ecuaciones de movimiento parabólico son iguales en el eje x y en el eje y? Explique.<div class="respuesta-div" contenteditable="true" data-placeholder="Desarrolle aquí su respuesta…"></div></div></div>
+      <div class="pregunta"><span class="preg-num">2</span><div class="preg-texto">¿Por qué no hay aceleración en el eje x?<div class="respuesta-div" contenteditable="true" data-placeholder="Desarrolle aquí su respuesta…"></div></div></div>
+      <div class="pregunta"><span class="preg-num">3</span><div class="preg-texto">¿Por qué hay aceleración en el eje y y por qué es negativa?<div class="respuesta-div" contenteditable="true" data-placeholder="Desarrolle aquí su respuesta…"></div></div></div>
+      <div class="pregunta"><span class="preg-num">4</span><div class="preg-texto">¿Cuál es el comportamiento de la velocidad en la altura máxima alcanzada?<div class="respuesta-div" contenteditable="true" data-placeholder="Desarrolle aquí su respuesta…"></div></div></div>
+    </div>
+
+    <div class="seccion">
+      <div class="seccion-titulo"><span class="num">06</span> Referencias</div>
+      <p style="font-size:1rem;color:var(--ink-muted);">[1] Serway, R. A. &amp; Jewett, J. W. (2009). <em>Física para Ciencias e Ingeniería</em> (7ª ed.). Cengage.</p>
+      <p style="font-size:1rem;color:var(--ink-muted);">[2] Guías PASCO, Projectile Launcher ME-6800.</p>
+      <p style="font-size:1rem;color:var(--ink-muted);">[3] Sears, F. W., Zemansky, M. W., Young, H. D. &amp; Freedman, R. A. (2013). <em>Física Universitaria Vol. 1</em> (13ª ed.). Pearson.</p>
+      <p style="font-size:1rem;color:var(--ink-muted);">[4] Giancoli, D. C. (2008). <em>Física para Ciencias e Ingeniería Vol. 1</em> (4ª ed.). Pearson.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const G = 9.80;
+const ANGULOS = [30, 45, 60];
+const LABELS_V = ['v₀ corta','v₀ media','v₀ larga'];
+let tabActiva = 0;
+
+// datos[velocidad][angulo] = {x1,x2,x3,xprom,v0,t}
+let datos = Array.from({length:3}, () => ANGULOS.map(theta => ({x:[null,null,null],xprom:null,v0:null,t:null,theta})));
+
+function switchTab(i) {
+  tabActiva = i;
+  document.querySelectorAll('.tab').forEach((t,j) => t.classList.toggle('activo', j===i));
+  document.querySelectorAll('.vel-panel').forEach((p,j) => p.classList.toggle('activo', j===i));
+}
+
+function buildPaneles() {
+  const cont = document.getElementById('paneles-velocidad');
+  cont.innerHTML = '';
+  datos.forEach((vel, vi) => {
+    const div = document.createElement('div');
+    div.className = 'vel-panel tab-panel' + (vi===0?' activo':'');
+    let html = `<p>Registre tres medidas del alcance horizontal para cada ángulo. El promedio, $v_0$ y el tiempo de vuelo se calculan automáticamente.</p>`;
+    html += `<div class="tabla-wrap"><table><thead><tr><th>Ángulo θ (°)</th><th>x₁ (m)</th><th>x₂ (m)</th><th>x₃ (m)</th><th>x̄ (m)</th><th>v₀ (m/s)</th><th>t vuelo (s)</th></tr></thead><tbody>`;
+    vel.forEach((fila, ai) => {
+      html += `<tr><td class="fila-label">${fila.theta}°</td>`;
+      for(let j=0;j<3;j++) html += `<td><input class="celda" type="text" inputmode="decimal" placeholder="0.00" oninput="onDato(${vi},${ai},${j},this.value)"></td>`;
+      html += `<td><input class="celda prom" id="xp-${vi}-${ai}" readonly placeholder="—"></td>`;
+      html += `<td><input class="celda calc" id="v0-${vi}-${ai}" readonly placeholder="—"></td>`;
+      html += `<td><input class="celda calc" id="tv-${vi}-${ai}" readonly placeholder="—"></td></tr>`;
+    });
+    html += `</tbody></table></div>`;
+    html += `<div class="resultados-grid">
+      <div class="res-card destacado"><label>v₀ promedio (m/s)</label><input id="v0prom-${vi}" readonly placeholder="—"></div>
+    </div>`;
+    div.innerHTML = html;
+    cont.appendChild(div);
+  });
+}
+
+function pn(s){return parseFloat((s||'').replace(',','.'))}
+function ft(n,d){return isNaN(n)||n===null?'—':n.toFixed(d)}
+
+function onDato(vi, ai, j, val) {
+  datos[vi][ai].x[j] = pn(val);
+  calcFila(vi, ai);
+  calcResumen(vi);
+}
+
+function calcFila(vi, ai) {
+  const fila = datos[vi][ai];
+  const vs = fila.x.filter(v => !isNaN(v) && v !== null && v > 0);
+  if(!vs.length) return;
+  const xp = vs.reduce((a,b)=>a+b,0)/vs.length;
+  fila.xprom = xp;
+  const th = fila.theta * Math.PI / 180;
+  // Desde x = v0*cos(theta)*t y y=0 cuando y0=0:
+  // t = 2*v0*sin(theta)/g => x = v0*cos(theta)*2*v0*sin(theta)/g = v0²*sin(2theta)/g
+  // => v0 = sqrt(x*g/sin(2theta))
+  const s2 = Math.sin(2*th);
+  fila.v0 = s2 > 0 ? Math.sqrt(xp * G / s2) : NaN;
+  fila.t = 2 * fila.v0 * Math.sin(th) / G;
+  document.getElementById(`xp-${vi}-${ai}`).value = ft(xp, 3);
+  document.getElementById(`v0-${vi}-${ai}`).value = ft(fila.v0, 3);
+  document.getElementById(`tv-${vi}-${ai}`).value = ft(fila.t, 3);
+}
+
+function calcResumen(vi) {
+  const v0s = datos[vi].filter(r=>r.v0&&!isNaN(r.v0)).map(r=>r.v0);
+  if(!v0s.length) return;
+  const v0p = v0s.reduce((a,b)=>a+b,0)/v0s.length;
+  document.getElementById(`v0prom-${vi}`).value = ft(v0p,3)+' m/s';
+}
+
+// Trayectoria
+function dibujarTray() {
+  const v0 = pn(document.getElementById('in-v0').value)||5;
+  const th = (pn(document.getElementById('in-theta').value)||30)*Math.PI/180;
+  const y0 = pn(document.getElementById('in-y0').value)||0;
+
+  const cv = document.getElementById('canvas-tray');
+  const ctx = cv.getContext('2d');
+  const W = cv.offsetWidth||700;
+  cv.width=W*devicePixelRatio; cv.height=300*devicePixelRatio;
+  cv.style.width=W+'px'; cv.style.height='300px';
+  ctx.scale(devicePixelRatio,devicePixelRatio);
+  const w=W,h=300,PAD={top:28,right:28,bottom:50,left:62};
+  const pw=w-PAD.left-PAD.right, ph=h-PAD.top-PAD.bottom;
+
+  // calcular puntos
+  const tMax = (v0*Math.sin(th) + Math.sqrt((v0*Math.sin(th))**2 + 2*G*y0)) / G;
+  const N = 200;
+  const pts = [];
+  for(let i=0;i<=N;i++){
+    const t=i*tMax/N;
+    const x=v0*Math.cos(th)*t;
+    const y=y0+v0*Math.sin(th)*t-0.5*G*t*t;
+    if(y>=0) pts.push({x,y});
+  }
+  const xMax=pts.length?Math.max(...pts.map(p=>p.x))*1.15:5;
+  const yMax=Math.max(pts.length?Math.max(...pts.map(p=>p.y))*1.3:2, 0.5);
+
+  const cx=v=>PAD.left+(v/xMax)*pw, cy=v=>PAD.top+ph-(v/yMax)*ph;
+
+  ctx.fillStyle='#fafafa';ctx.fillRect(0,0,w,h);
+  ctx.fillStyle='#eef3f7';ctx.fillRect(PAD.left,PAD.top,pw,ph);
+
+  // grid
+  ctx.strokeStyle='#e0e0e0';ctx.lineWidth=1;
+  for(let i=0;i<=6;i++){const x=cx(i*xMax/6);ctx.beginPath();ctx.moveTo(x,PAD.top);ctx.lineTo(x,PAD.top+ph);ctx.stroke();}
+  for(let i=0;i<=5;i++){const y=cy(i*yMax/5);ctx.beginPath();ctx.moveTo(PAD.left,y);ctx.lineTo(PAD.left+pw,y);ctx.stroke();}
+
+  ctx.strokeStyle='#333';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(PAD.left,PAD.top);ctx.lineTo(PAD.left,PAD.top+ph);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(PAD.left,PAD.top+ph);ctx.lineTo(PAD.left+pw,PAD.top+ph);ctx.stroke();
+
+  ctx.fillStyle='#555';ctx.font='11px JetBrains Mono, monospace';ctx.textAlign='center';
+  for(let i=0;i<=6;i++)ctx.fillText((i*xMax/6).toFixed(2),cx(i*xMax/6),PAD.top+ph+16);
+  ctx.textAlign='right';
+  for(let i=0;i<=5;i++)ctx.fillText((i*yMax/5).toFixed(2),PAD.left-6,cy(i*yMax/5)+4);
+  ctx.fillStyle='#333';ctx.font='bold 12px Source Serif 4, serif';ctx.textAlign='center';
+  ctx.fillText('Posición horizontal  x  (m)',PAD.left+pw/2,h-8);
+  ctx.save();ctx.translate(14,PAD.top+ph/2);ctx.rotate(-Math.PI/2);ctx.fillText('Altura  y  (m)',0,0);ctx.restore();
+
+  // trayectoria
+  if(pts.length>1){
+    ctx.strokeStyle='#1a5276';ctx.lineWidth=2.5;
+    ctx.beginPath();ctx.moveTo(cx(pts[0].x),cy(pts[0].y));
+    pts.forEach(p=>ctx.lineTo(cx(p.x),cy(p.y)));
+    ctx.stroke();
+    // vector inicial
+    const vscale=0.06;
+    ctx.strokeStyle='#c0392b';ctx.lineWidth=2;
+    const ex=cx(0)+v0*Math.cos(th)*vscale*pw/xMax, ey=cy(y0)-v0*Math.sin(th)*vscale*ph/yMax;
+    ctx.beginPath();ctx.moveTo(cx(0),cy(y0));ctx.lineTo(ex,ey);ctx.stroke();
+    // punta
+    const ang=Math.atan2(cy(y0)-ey,ex-cx(0));
+    ctx.fillStyle='#c0392b';
+    ctx.beginPath();ctx.moveTo(ex,ey);ctx.lineTo(ex-8*Math.cos(ang-0.3),ey+8*Math.sin(ang-0.3));ctx.lineTo(ex-8*Math.cos(ang+0.3),ey+8*Math.sin(ang+0.3));ctx.closePath();ctx.fill();
+    const xAlc=pts[pts.length-1].x, yMax2=Math.max(...pts.map(p=>p.y));
+    const tAlt=v0*Math.sin(th)/G;
+    const xAlt=v0*Math.cos(th)*tAlt;
+    document.getElementById('info-tray').textContent=`Alcance = ${ft(xAlc,3)} m  ·  Altura máx = ${ft(yMax2,3)} m  ·  Tiempo vuelo = ${ft(tMax,3)} s`;
+  }
+}
+
+function exportTray(){const a=document.createElement('a');a.download='trayectoria_proyectil.png';a.href=document.getElementById('canvas-tray').toDataURL();a.click();}
+
+window.addEventListener('load',()=>{
+  buildPaneles();
+  dibujarTray();
+  const now=new Date(),sem=now.getMonth()<6?'1':'2';
+  document.getElementById('codigoPractica').textContent=`PRÁCTICA FIS-PRY-04 · ${now.getFullYear()}-${sem}`;
+  document.querySelectorAll('input[type="date"]').forEach(i=>i.value=new Date().toISOString().split('T')[0]);
+});
+window.addEventListener('resize',dibujarTray);
+</script>
+
+<script>
+// Sincronizar valor del ángulo para impresión
+(function(){
+  var sl = document.getElementById('in-theta');
+  if(!sl) return;
+  sl.addEventListener('input', function(){
+    var sp = document.getElementById('print-theta');
+    if(sp) sp.textContent = sl.value + '°';
+  });
+})();
+</script>
+
+<div class="btn-imprimir-wrap">
+  <button class="btn-imprimir" onclick="window.print()">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="6 9 6 2 18 2 18 9"/>
+      <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+      <rect x="6" y="14" width="12" height="8"/>
+    </svg>
+    Imprimir / Guardar como PDF
+  </button>
+</div>
+
+</body>
+</html>

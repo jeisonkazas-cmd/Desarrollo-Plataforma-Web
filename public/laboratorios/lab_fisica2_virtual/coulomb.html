@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>Ley de Coulomb — Laboratorio de Física II Virtual</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --amarillo: #FFD100;
+            --primario: #7a3a00;
+            --primario-claro: #e67e22;
+            --primario-oscuro: #3d1a00;
+            --naranja: #c0540a;
+            --naranja-oscuro: #6b2800;
+            --gris-fondo: #f4f6fb;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Source Sans 3', sans-serif; background: var(--gris-fondo); color: #1a1a2e; }
+
+        .line li { width: auto; height: 50px; transition: background-position-x 0.9s linear; }
+        .line li a { text-decoration: none; transition: all 0.5s; }
+        .line li:hover { background: url("data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIGlkPSJMYXllcl8xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4PSIwcHgiIHk9IjBweCIgd2lkdGg9IjM5MHB4IiBoZWlnaHQ9IjUwcHgiIHZpZXdCb3g9IjAgMCAzOTAgNTAiIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgMCAwIDM5MCA1MCIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+PHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSIjRkZGRjAwIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLW1pdGVybGltaXQ9IjEwIiBkPSJNMCw0Ny41ODVjMCwwLDk3LjUsMCwxMzAsMCAxMy43NSwwLDI4Ljc0LTM4Ljc3OCw0Ni4xNjgtMTkuNDE2QzE5Mi42NjksNDYuNSwyNDMuNjAzLDQ3LjU4NSwyNjAsNDcuNTg1YzMxLjgyMSwwLDEzMCwwLDEzMCwwIi8+PC9zdmc+"); animation: line 0.90s forwards; }
+        .line li:hover a { color: rgb(1,1,20); }
+        .line li:not(:last-child) { margin-right: 30px; }
+        @keyframes line { 0% { background-position-x: 600px; } 100% { background-position-x: 130px; } }
+
+        .breadcrumb-bar { background: white; padding: 12px 16px; border-bottom: 1px solid #e8edf5; }
+        .breadcrumb-bar a { color: #093f7c; text-decoration: none; font-size: 0.85rem; }
+        .breadcrumb-bar span.sep { color: #aaa; margin: 0 6px; }
+        .breadcrumb-current { color: #555; font-size: 0.85rem; font-weight: 600; }
+
+        .hero {
+            background: linear-gradient(135deg, var(--primario-oscuro) 0%, var(--primario) 55%, var(--primario-claro) 100%);
+            padding: 28px 20px 36px; color: white; position: relative; overflow: hidden;
+        }
+        .hero::before {
+            content: ''; position: absolute; top: -50px; right: -50px; width: 260px; height: 260px;
+            background: radial-gradient(circle, rgba(255,209,0,0.14) 0%, transparent 70%); border-radius: 50%;
+        }
+        .hero-badge {
+            display: inline-block; background: var(--amarillo); color: var(--primario-oscuro);
+            font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 0.72rem;
+            letter-spacing: 2.5px; text-transform: uppercase; padding: 3px 14px; border-radius: 30px; margin-bottom: 10px;
+        }
+        .hero h1 { font-family: 'Rajdhani', sans-serif; font-size: clamp(1.7rem, 5vw, 2.6rem); font-weight: 700; line-height: 1.1; }
+        .hero h1 span { color: var(--amarillo); }
+        .hero p { font-size: 0.9rem; color: #fcd5a8; margin-top: 8px; line-height: 1.6; }
+
+        .pasos-bar {
+            background: white; padding: 14px 20px; border-bottom: 2px solid #eef1f8;
+            display: flex; align-items: center; position: sticky; top: 0; z-index: 100;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+        .paso { display: flex; align-items: center; gap: 8px; flex: 1; position: relative; }
+        .paso:not(:last-child)::after {
+            content: ''; position: absolute; left: 40px; right: 0; top: 50%;
+            height: 3px; background: #dee3ef; transform: translateY(-50%); z-index: 0; transition: background 0.5s;
+        }
+        .paso.completo:not(:last-child)::after { background: var(--primario); }
+        .paso-circulo {
+            width: 34px; height: 34px; border-radius: 50%; background: #dee3ef; color: #aaa;
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 0.95rem;
+            flex-shrink: 0; z-index: 1; transition: all 0.4s;
+        }
+        .paso.activo .paso-circulo { background: var(--primario); color: white; box-shadow: 0 0 0 4px rgba(230,126,34,0.2); }
+        .paso.completo .paso-circulo { background: var(--primario); color: white; }
+        .paso-etiqueta { font-size: 0.58rem; text-transform: uppercase; letter-spacing: 1px; color: #aaa; font-weight: 600; display: block; }
+        .paso-nombre { font-size: 0.76rem; font-weight: 700; color: #bbb; display: block; }
+        .paso.activo .paso-etiqueta, .paso.completo .paso-etiqueta { color: var(--primario-claro); }
+        .paso.activo .paso-nombre, .paso.completo .paso-nombre { color: #1a1a2e; }
+
+        .pantalla { display: none; }
+        .pantalla.activa { display: block; }
+
+        /* ===== REGISTRO ===== */
+        .pantalla-registro-wrap { padding: 24px 16px 40px; max-width: 600px; margin: 0 auto; }
+        .registro-intro { text-align: center; margin-bottom: 24px; }
+        .registro-intro .icono-reg { font-size: 2.6rem; display: block; margin-bottom: 10px; }
+        .registro-intro h2 { font-family: 'Rajdhani', sans-serif; font-size: 1.5rem; font-weight: 700; color: var(--primario); }
+        .registro-intro p { font-size: 0.9rem; color: #666; margin-top: 6px; line-height: 1.5; }
+        .campo-reg { margin-bottom: 18px; }
+        .campo-reg label { display: block; font-weight: 600; font-size: 0.88rem; color: var(--primario-oscuro); margin-bottom: 6px; }
+        .campo-reg input {
+            width: 100%; padding: 13px 16px; border: 2px solid #e0e8f0; border-radius: 10px;
+            font-size: 0.95rem; font-family: 'Source Sans 3', sans-serif; background: white;
+            transition: border-color 0.2s; outline: none;
+        }
+        .campo-reg input:focus { border-color: var(--primario-claro); }
+        .campo-reg input.error { border-color: #e74c3c; }
+        .campo-reg .campo-hint { font-size: 0.78rem; color: #999; margin-top: 4px; }
+        .badge-intento {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: var(--amarillo); color: var(--primario-oscuro);
+            font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 0.78rem;
+            letter-spacing: 1.5px; text-transform: uppercase; padding: 4px 14px; border-radius: 20px; margin-bottom: 14px;
+        }
+        .badge-intento.segundo { background: #fde8d8; color: var(--naranja-oscuro); }
+
+        /* ===== QUIZ ===== */
+        .pantalla-quiz-wrap { padding: 20px 16px 40px; max-width: 700px; margin: 0 auto; }
+        .tarjeta { background: white; border-radius: 16px; box-shadow: 0 4px 24px rgba(9,63,124,0.08); overflow: hidden; margin-bottom: 20px; }
+        .tarjeta-header { padding: 18px 20px; display: flex; align-items: center; gap: 14px; color: white; }
+        .tarjeta-header.naranja-oscuro { background: linear-gradient(90deg, var(--primario-oscuro), var(--primario-claro)); }
+        .tarjeta-icono { font-size: 1.6rem; }
+        .tarjeta-header h2 { font-family: 'Rajdhani', sans-serif; font-size: 1.25rem; font-weight: 700; margin: 0; }
+        .tarjeta-header p { font-size: 0.8rem; color: rgba(255,255,255,0.72); margin: 2px 0 0; }
+        .tarjeta-cuerpo { padding: 22px 18px; }
+
+        .pregunta { margin-bottom: 26px; padding-bottom: 22px; border-bottom: 1px dashed #e0e8f0; }
+        .pregunta:last-of-type { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .pregunta-texto { font-weight: 600; font-size: 0.95rem; color: var(--primario-oscuro); margin-bottom: 14px; line-height: 1.6; }
+        .pregunta-num {
+            display: inline-flex; align-items: center; justify-content: center;
+            background: var(--primario); color: white; font-family: 'Rajdhani', sans-serif; font-weight: 700;
+            width: 24px; height: 24px; border-radius: 50%; font-size: 0.8rem; margin-right: 8px; flex-shrink: 0;
+        }
+        .opcion {
+            display: flex; align-items: center; gap: 12px; padding: 13px 16px; border-radius: 10px;
+            border: 2px solid #e8edf5; margin-bottom: 8px; cursor: pointer; transition: all 0.2s;
+            font-size: 0.93rem; background: var(--gris-fondo); user-select: none; min-height: 50px;
+        }
+        .opcion:hover { border-color: var(--primario-claro); background: rgba(230,126,34,0.05); }
+        .opcion input[type="radio"] { accent-color: var(--primario); width: 20px; height: 20px; flex-shrink: 0; cursor: pointer; }
+        .opcion.correcta      { border-color: var(--primario-claro); background: rgba(230,126,34,0.09); color: var(--primario-oscuro); font-weight: 600; }
+        .opcion.incorrecta    { border-color: #e74c3c; background: rgba(231,76,60,0.07); }
+        .opcion.resp-correcta { border-color: var(--primario-claro); background: rgba(230,126,34,0.15); font-weight: 700; }
+        .opcion.bloqueada     { pointer-events: none; }
+        .feedback { display: none; margin-top: 10px; padding: 9px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; }
+        .feedback.ok  { background: rgba(230,126,34,0.1); color: var(--primario-oscuro); display: block; }
+        .feedback.mal { background: rgba(231,76,60,0.1); color: #a93226; display: block; }
+
+        .resultado-quiz { display: none; text-align: center; padding: 26px 16px; border-radius: 14px; margin-top: 22px; }
+        @keyframes aparecer { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+        .resultado-quiz { animation: aparecer 0.5s ease; }
+        .resultado-quiz.aprobado  { background: rgba(230,126,34,0.08); border: 2px solid rgba(230,126,34,0.3); }
+        .resultado-quiz.reprobado { background: rgba(231,76,60,0.07); border: 2px solid rgba(231,76,60,0.25); }
+        .puntaje-grande { font-family: 'Rajdhani', sans-serif; font-size: 3.5rem; font-weight: 700; line-height: 1; }
+        .resultado-quiz.aprobado  .puntaje-grande { color: var(--primario); }
+        .resultado-quiz.reprobado .puntaje-grande { color: #e74c3c; }
+        .resultado-quiz .msg { font-size: 1rem; margin-top: 10px; color: #444; }
+        .resultado-quiz .sub { font-size: 0.85rem; color: #888; margin-top: 6px; }
+        .nota-display { font-size: 0.92rem; margin-top: 10px; font-weight: 600; color: #555; }
+
+        .btn-calificar {
+            background: var(--primario); color: white; border: none; padding: 15px 36px; border-radius: 12px;
+            font-weight: 700; font-size: 1rem; cursor: pointer; transition: background 0.3s;
+            display: block; width: 100%; margin-top: 28px; font-family: 'Rajdhani', sans-serif;
+            letter-spacing: 1px; min-height: 52px;
+        }
+        .btn-calificar:hover { background: var(--primario-claro); }
+        .btn-continuar {
+            background: var(--primario-claro); color: white; border: none; padding: 15px 36px; border-radius: 12px;
+            font-weight: 700; font-size: 1rem; cursor: pointer; transition: all 0.3s;
+            display: block; width: 100%; margin-top: 14px; font-family: 'Rajdhani', sans-serif;
+            letter-spacing: 1px; min-height: 52px;
+        }
+        .btn-continuar:hover { background: var(--primario-oscuro); transform: translateY(-1px); }
+        .btn-reintentar {
+            background: #e74c3c; color: white; border: none; padding: 13px 28px; border-radius: 10px;
+            font-weight: 700; font-size: 0.95rem; cursor: pointer; margin-top: 12px;
+            font-family: 'Rajdhani', sans-serif; min-height: 48px; width: 100%;
+        }
+        .btn-reintentar:hover { background: #c0392b; }
+
+        /* ===== SELECTOR ===== */
+        .pantalla-selector-wrap { padding: 28px 16px 40px; max-width: 700px; margin: 0 auto; }
+        .selector-titulo { text-align: center; margin-bottom: 28px; }
+        .selector-titulo .icono-ok { font-size: 3rem; display: block; margin-bottom: 8px; }
+        .selector-titulo h2 { font-family: 'Rajdhani', sans-serif; font-size: 1.6rem; font-weight: 700; color: var(--primario); }
+        .selector-titulo p { font-size: 0.92rem; color: #666; margin-top: 6px; }
+        .selector-nota { background: rgba(230,126,34,0.08); border: 2px solid rgba(230,126,34,0.2); border-radius: 12px; padding: 14px 18px; margin-bottom: 24px; text-align: center; }
+        .selector-nota .nota-label { font-size: 0.8rem; color: var(--primario); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+        .selector-nota .nota-val { font-family: 'Rajdhani', sans-serif; font-size: 2.2rem; font-weight: 700; color: var(--primario); line-height: 1.2; }
+
+        .btn-seccion {
+            display: flex; align-items: center; gap: 18px; width: 100%; padding: 22px;
+            border-radius: 16px; border: none; cursor: pointer; text-align: left; margin-bottom: 16px;
+            transition: transform 0.15s, box-shadow 0.15s; color: white;
+            font-family: 'Source Sans 3', sans-serif; box-shadow: 0 4px 20px rgba(0,0,0,0.15); min-height: 90px;
+        }
+        .btn-seccion:active { transform: scale(0.98); }
+        .btn-seccion:hover  { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,0,0,0.22); }
+        .btn-seccion.naranja-btn { background: linear-gradient(135deg, var(--primario-oscuro), var(--primario-claro)); }
+        .btn-seccion.naranja2-btn{ background: linear-gradient(135deg, var(--naranja-oscuro), var(--naranja)); }
+        .btn-seccion .btn-icono  { font-size: 2.4rem; flex-shrink: 0; }
+        .btn-seccion .btn-info   { flex: 1; }
+        .btn-seccion .btn-titulo { font-family: 'Rajdhani', sans-serif; font-size: 1.3rem; font-weight: 700; display: block; line-height: 1.2; }
+        .btn-seccion .btn-desc   { font-size: 0.82rem; color: rgba(255,255,255,0.75); display: block; margin-top: 3px; }
+        .btn-seccion .btn-flecha { font-size: 1.6rem; opacity: 0.7; flex-shrink: 0; }
+
+        /* ===== OVERLAY CONTENIDO ===== */
+        .pantalla-contenido {
+            display: none; position: fixed; inset: 0; z-index: 9999; flex-direction: column; background: white;
+        }
+        .pantalla-contenido.activa { display: flex; }
+        .contenido-header { display: flex; align-items: center; gap: 14px; padding: 12px 16px; color: white; flex-shrink: 0; }
+        .contenido-header.naranja-oscuro { background: linear-gradient(90deg, var(--primario-oscuro), var(--primario-claro)); }
+        .contenido-header.naranja2       { background: linear-gradient(90deg, var(--naranja-oscuro), var(--naranja)); }
+        .btn-volver {
+            background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.3); color: white;
+            width: 42px; height: 42px; border-radius: 10px; font-size: 1.3rem; cursor: pointer;
+            flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+            transition: background 0.2s; font-weight: 700;
+        }
+        .btn-volver:hover { background: rgba(255,255,255,0.35); }
+        .contenido-header-info { flex: 1; min-width: 0; }
+        .contenido-header-info h3 { font-family: 'Rajdhani', sans-serif; font-size: 1.1rem; font-weight: 700; margin: 0; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .contenido-header-info p  { font-size: 0.72rem; color: rgba(255,255,255,0.72); margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .contenido-iframe { flex: 1; width: 100%; border: none; display: block; }
+
+        /* ===== LOADING ===== */
+        .enviando-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:9999; align-items:center; justify-content:center; flex-direction:column; gap:14px; }
+        .enviando-overlay.activo { display:flex; }
+        .enviando-overlay p { color:white; font-weight:600; font-size:1rem; }
+        .spinner { width:44px; height:44px; border:5px solid rgba(255,255,255,0.3); border-top-color:white; border-radius:50%; animation:spin 0.8s linear infinite; }
+        @keyframes spin { to { transform:rotate(360deg); } }
+
+        footer { background: #1a0a00; color: #8899bb; text-align: center; padding: 24px 16px; font-size: 0.82rem; }
+        footer strong { color: white; }
+
+        @media (max-width: 768px) {
+            .navbar-brand img { width: 90px !important; height: 38px !important; }
+            .line li:not(:last-child) { margin-right: 0 !important; }
+            .pasos-bar { padding: 10px 12px; gap: 4px; }
+            .paso-etiqueta { display: none !important; }
+            .paso-nombre { font-size: 0.7rem !important; }
+            .paso-circulo { width: 28px; height: 28px; font-size: 0.82rem; }
+            .paso:not(:last-child)::after { left: 32px; }
+            .pantalla-quiz-wrap, .pantalla-selector-wrap, .pantalla-registro-wrap { padding: 14px 10px 30px; }
+            .tarjeta-header { padding: 14px 14px; gap: 10px; }
+            .tarjeta-header h2 { font-size: 1.05rem !important; }
+            .tarjeta-icono { font-size: 1.3rem !important; }
+            .tarjeta-cuerpo { padding: 16px 12px; }
+            .pregunta { margin-bottom: 20px; padding-bottom: 18px; }
+            .pregunta-texto { font-size: 0.9rem !important; }
+            .opcion { padding: 10px 12px; font-size: 0.88rem; min-height: 44px; gap: 10px; }
+            .btn-calificar, .btn-continuar { padding: 13px 20px; font-size: 0.92rem; }
+            .btn-reintentar { padding: 11px 20px; font-size: 0.88rem; }
+            .btn-seccion { padding: 16px 14px; min-height: 80px; gap: 12px; }
+            .btn-seccion .btn-titulo { font-size: 1.1rem !important; }
+            .selector-titulo h2 { font-size: 1.35rem !important; }
+            .contenido-header { padding: 10px 12px; gap: 10px; }
+            .contenido-header-info h3 { font-size: 0.95rem !important; }
+        }
+        @media (max-width: 480px) {
+            .pasos-bar { padding: 8px 10px; }
+            .paso-nombre { font-size: 0.65rem !important; }
+            .paso-circulo { width: 26px; height: 26px; font-size: 0.78rem; }
+            .tarjeta-header h2 { font-size: 0.95rem !important; }
+            .opcion { padding: 9px 10px; font-size: 0.84rem; }
+            .puntaje-grande { font-size: 2.4rem !important; }
+            .btn-seccion .btn-icono { font-size: 1.8rem !important; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- OVERLAY ENVIANDO -->
+<div class="enviando-overlay" id="overlay-enviando">
+    <div class="spinner"></div>
+    <p>Enviando resultados...</p>
+</div>
+
+<nav class="navbar navbar-expand-lg" style="background-color:rgb(9,63,124);">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="../laboratorio_fisica_virtual_2.html">
+            <img src="../resources/logo_camacho.png" alt="Logo" width="120" height="50">
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse line" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" style="color:white;">Laboratorios de Física Presencial</a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="../laboratorio_fisica_presencial_1.html">Laboratorio de Física I Presencial</a></li>
+                        <li><a class="dropdown-item" href="../laboratorio_fisica_presencial_2.html">Laboratorio de Física II Presencial</a></li>
+                        <li><a class="dropdown-item" href="../laboratorio_fisica_presencial_3.html">Laboratorio de Física III Presencial</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" style="color:white;">Laboratorios de Física Virtual</a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="../laboratorio_fisica_virtual_1.html">Laboratorio de Física I Virtual</a></li>
+                        <li><a class="dropdown-item fw-bold" href="../laboratorio_fisica_virtual_2.html">Laboratorio de Física II Virtual</a></li>
+                        <li><a class="dropdown-item" href="../laboratorio_fisica_virtual_3.html">Laboratorio de Física III Virtual</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" style="color:white;">Laboratorios de Física Remotos</a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="../laboratorio_fisica_remoto_1.html">Laboratorio de Física I Remoto</a></li>
+                        <li><a class="dropdown-item" href="../laboratorio_fisica_remoto_2.html">Laboratorio de Física II Remoto</a></li>
+                        <li><a class="dropdown-item" href="../laboratorio_fisica_remoto_3.html">Laboratorio de Física III Remoto</a></li>
+                    </ul>
+                </li>
+            </ul>
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link" href="#" style="color:white;">Iniciar Sesión
+                        <img src="../resources/is3.png" alt="Iniciar Sesión" width="30" height="24">
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div id="zona-principal">
+    <div class="breadcrumb-bar">
+        <a href="../index.html">🏠 Inicio</a>
+        <span class="sep">›</span>
+        <a href="../laboratorio_fisica_virtual_2.html">Lab. Física II Virtual</a>
+        <span class="sep">›</span>
+        <span class="breadcrumb-current">🔌 Ley de Coulomb — Fuerza Eléctrica</span>
+    </div>
+
+    <div class="hero">
+        <div class="hero-badge">Práctica 02 — Física II Virtual</div>
+        <h1>Fuerza Eléctrica y<br><span>Ley de Coulomb</span></h1>
+        <p>Completa el quiz para desbloquear la guía y el simulador 3D interactivo.</p>
+    </div>
+
+    <div class="pasos-bar">
+        <div class="paso activo" id="paso1">
+            <div class="paso-circulo" id="circulo1">1</div>
+            <div><span class="paso-etiqueta">Paso 1</span><span class="paso-nombre">📝 Quiz</span></div>
+        </div>
+        <div class="paso" id="paso2">
+            <div class="paso-circulo" id="circulo2">2</div>
+            <div><span class="paso-etiqueta">Paso 2</span><span class="paso-nombre">📄 Guía</span></div>
+        </div>
+        <div class="paso" id="paso3">
+            <div class="paso-circulo" id="circulo3">3</div>
+            <div><span class="paso-etiqueta">Paso 3</span><span class="paso-nombre">🖥️ Simulador</span></div>
+        </div>
+    </div>
+
+    <!-- ═══ PANTALLA REGISTRO ═══ -->
+    <div class="pantalla activa" id="pantalla-registro">
+        <div class="pantalla-registro-wrap">
+            <div class="tarjeta">
+                <div class="tarjeta-header naranja-oscuro">
+                    <span class="tarjeta-icono">👤</span>
+                    <div>
+                        <h2>Identificación del Estudiante</h2>
+                        <p>Ingresa tus datos para comenzar el quiz de conocimientos previos.</p>
+                    </div>
+                </div>
+                <div class="tarjeta-cuerpo">
+                    <div class="registro-intro">
+                        <span class="icono-reg">⚡</span>
+                        <h2>Quiz — Ley de Coulomb</h2>
+                        <p>Antes de acceder a la práctica, debes completar un quiz de <strong>8 preguntas aleatorias</strong> sobre los conceptos de la Ley de Coulomb.<br>Necesitas mínimo <strong>60%</strong> para continuar.</p>
+                    </div>
+                    <div class="campo-reg">
+                        <label for="reg-nombre">Nombre completo</label>
+                        <input type="text" id="reg-nombre" placeholder="Ej: María García López" autocomplete="name">
+                        <span class="campo-hint">Escribe tu nombre y apellidos completos</span>
+                    </div>
+                    <div class="campo-reg">
+                        <label for="reg-codigo">Código estudiantil</label>
+                        <input type="text" id="reg-codigo" placeholder="Ej: 2021023456" autocomplete="off">
+                        <span class="campo-hint">Tu código tal como aparece en el carné</span>
+                    </div>
+                    <div class="campo-reg">
+                        <label for="reg-correo">Correo institucional</label>
+                        <input type="email" id="reg-correo" placeholder="Ej: estudiante@uniajc.edu.co" autocomplete="email">
+                        <span class="campo-hint">Usa tu correo institucional (@uniajc.edu.co)</span>
+                    </div>
+                    <button class="btn-calificar" onclick="iniciarRegistro()">Comenzar Quiz →</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ PANTALLA QUIZ ═══ -->
+    <div class="pantalla" id="pantalla-quiz">
+        <div class="pantalla-quiz-wrap">
+            <div class="tarjeta">
+                <div class="tarjeta-header naranja-oscuro">
+                    <span class="tarjeta-icono">📝</span>
+                    <div id="quiz-header-info">
+                        <h2>Quiz de Conocimientos Previos</h2>
+                        <p>Responde todas las preguntas. Necesitas al menos 60% para continuar.</p>
+                    </div>
+                </div>
+                <div class="tarjeta-cuerpo">
+                    <div id="badge-intento-wrap"></div>
+                    <div id="contenedor-preguntas"></div>
+                    <button class="btn-calificar" id="btn-calificar" onclick="calificarQuiz()">Calificar Quiz ✓</button>
+                    <div class="resultado-quiz" id="resultado-quiz">
+                        <div class="puntaje-grande" id="puntaje-txt"></div>
+                        <div class="nota-display" id="nota-txt"></div>
+                        <p class="msg" id="resultado-msg"></p>
+                        <p class="sub" id="resultado-sub"></p>
+                        <br>
+                        <button class="btn-continuar" id="btn-continuar" onclick="desbloquear()" style="display:none;">Continuar a la práctica →</button>
+                        <button class="btn-reintentar" id="btn-reintentar" onclick="segundoIntento()" style="display:none;">🔄 Segundo intento (nota máx. 4.0)</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ PANTALLA SELECTOR ═══ -->
+    <div class="pantalla" id="pantalla-selector">
+        <div class="pantalla-selector-wrap">
+            <div class="selector-titulo">
+                <span class="icono-ok">🎉</span>
+                <h2>¡Quiz superado!</h2>
+                <p>Selecciona qué quieres abrir. Puedes ir y volver cuando quieras.</p>
+            </div>
+            <div class="selector-nota">
+                <div class="nota-label">Tu nota del quiz</div>
+                <div class="nota-val" id="nota-final-display">—</div>
+            </div>
+            <button class="btn-seccion naranja-btn" onclick="abrirSeccion('guia')">
+                <span class="btn-icono">📄</span>
+                <div class="btn-info">
+                    <span class="btn-titulo">Guía de Práctica</span>
+                    <span class="btn-desc">Ley de Coulomb — Fuerza eléctrica, medios dieléctricos y análisis gráfico F vs 1/r²</span>
+                </div>
+                <span class="btn-flecha">›</span>
+            </button>
+            <button class="btn-seccion naranja2-btn" onclick="abrirSeccion('simulador')">
+                <span class="btn-icono">🖥️</span>
+                <div class="btn-info">
+                    <span class="btn-titulo">Simulador 3D — Ley de Coulomb</span>
+                    <span class="btn-desc">Simulación 3D interactiva de cargas puntuales en distintos medios dieléctricos</span>
+                </div>
+                <span class="btn-flecha">›</span>
+            </button>
+        </div>
+        <footer>
+            <strong>Institución Universitaria Antonio José Camacho</strong> — Departamento de Ciencias Básicas<br>
+            Laboratorio de Física II Virtual · Práctica 02 — Ley de Coulomb &copy; 2025 · Todos los derechos reservados
+        </footer>
+    </div>
+</div>
+
+<!-- OVERLAY GUÍA -->
+<div class="pantalla-contenido" id="pantalla-guia">
+    <div class="contenido-header naranja-oscuro">
+        <button class="btn-volver" onclick="cerrarSeccion()">←</button>
+        <div class="contenido-header-info">
+            <h3>📄 Guía de Práctica</h3>
+            <p>Ley de Coulomb — Fuerza eléctrica, medios dieléctricos y análisis gráfico</p>
+        </div>
+    </div>
+    <iframe class="contenido-iframe" src="Practica_LeyCoulomb.html" title="Guía de Práctica"></iframe>
+</div>
+
+<!-- OVERLAY SIMULADOR -->
+<div class="pantalla-contenido" id="pantalla-simulador">
+    <div class="contenido-header naranja2">
+        <button class="btn-volver" onclick="cerrarSeccion()">←</button>
+        <div class="contenido-header-info">
+            <h3>🖥️ Simulador 3D — Ley de Coulomb</h3>
+            <p>Simulación 3D interactiva de cargas puntuales en distintos medios dieléctricos</p>
+        </div>
+    </div>
+    <iframe class="contenido-iframe" src="Simulador_Ley_Coulomb.html" title="Simulador 3D Coulomb"></iframe>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// ══════════════════════════════════════════════════════════════════
+//  CONFIGURACIÓN — REEMPLAZA LA URL POR LA DE TU POWER AUTOMATE
+// ══════════════════════════════════════════════════════════════════
+const POWER_AUTOMATE_URL = 'PEGA_AQUI_TU_URL_DE_POWER_AUTOMATE';
+
+// Número de preguntas a mostrar por quiz
+const NUM_PREGUNTAS = 10;
+
+// ══════════════════════════════════════════════════════════════════
+//  BANCO DE 100 PREGUNTAS — LEY DE COULOMB
+// ══════════════════════════════════════════════════════════════════
+const BANCO_PREGUNTAS = [
+  // 1 — Conceptos fundamentales
+  { texto:"¿Qué establece la Ley de Coulomb sobre la fuerza entre dos cargas puntuales?", opciones:["Es proporcional a la suma de las cargas e inversamente proporcional a la distancia","Es proporcional al producto de las cargas e inversamente proporcional al cuadrado de la distancia","Es proporcional al cuadrado de las cargas e inversamente proporcional a la distancia","Es constante independientemente de la distancia"], correcta:1, fb_ok:"✓ Correcto. F = K₀·|Q₁|·|Q₂| / (εᵣ·r²). Proporcional al producto de cargas e inversamente proporcional a r².", fb_mal:"✗ Incorrecto. F = K₀·|Q₁|·|Q₂| / (εᵣ·r²). Es proporcional al PRODUCTO de cargas e inversamente proporcional al CUADRADO de la distancia." },
+  // 2
+  { texto:"¿Cuál es el valor de la constante de Coulomb K₀ en el vacío?", opciones:["6.67 × 10⁻¹¹ N·m²/C²","1.6 × 10⁻¹⁹ N·m²/C²","9.0 × 10⁹ N·m²/C²","8.85 × 10⁻¹² N·m²/C²"], correcta:2, fb_ok:"✓ Correcto. K₀ = 9.0 × 10⁹ N·m²/C² es la constante de Coulomb en el vacío.", fb_mal:"✗ Incorrecto. K₀ = 9.0 × 10⁹ N·m²/C². No confundir con G (6.67×10⁻¹¹), la carga del electrón (1.6×10⁻¹⁹ C) ni ε₀ (8.85×10⁻¹²)." },
+  // 3
+  { texto:"Dos cargas del mismo signo se encuentran próximas. ¿Qué tipo de fuerza actúa entre ellas?", opciones:["Atractiva","Nula","Repulsiva","Gravitacional"], correcta:2, fb_ok:"✓ Correcto. Cargas del mismo signo (++ ó --) se repelen entre sí.", fb_mal:"✗ Incorrecto. Cargas del mismo signo siempre se repelen, sin importar su magnitud o distancia." },
+  // 4
+  { texto:"Dos cargas de signo contrario (una positiva y una negativa) se aproximan. ¿Qué tipo de fuerza actúa entre ellas?", opciones:["Repulsiva","Nula","Gravitacional","Atractiva"], correcta:3, fb_ok:"✓ Correcto. Cargas de signo contrario (+ y -) se atraen mutuamente.", fb_mal:"✗ Incorrecto. Cargas de signos opuestos siempre se atraen." },
+  // 5
+  { texto:"Si la distancia entre dos cargas se duplica, ¿qué le ocurre a la fuerza eléctrica?", opciones:["Se duplica","Se reduce a la mitad","Se reduce a la cuarta parte","Se cuadruplica"], correcta:2, fb_ok:"✓ Correcto. F ∝ 1/r². Si r → 2r, entonces F → F/4. La fuerza se reduce a la cuarta parte.", fb_mal:"✗ Incorrecto. Como F ∝ 1/r², si la distancia se duplica, la fuerza se divide entre 4, no entre 2." },
+  // 6
+  { texto:"¿Qué establece el principio de superposición en electrostática?", opciones:["Solo actúa la fuerza de la carga más cercana","La fuerza neta sobre una carga es la suma vectorial de todas las fuerzas individuales","Las fuerzas eléctricas siempre se cancelan entre sí","La fuerza neta es el promedio de todas las fuerzas individuales"], correcta:1, fb_ok:"✓ Correcto. El principio de superposición establece que la fuerza neta es la suma vectorial de todas las fuerzas individuales.", fb_mal:"✗ Incorrecto. El principio de superposición dice que la fuerza neta es la SUMA VECTORIAL de las fuerzas individuales de cada carga." },
+  // 7
+  { texto:"¿Cómo afecta la permitividad relativa εᵣ del medio a la fuerza eléctrica entre dos cargas?", opciones:["A mayor εᵣ, mayor es la fuerza eléctrica","εᵣ no afecta la fuerza, solo cambia la dirección","A mayor εᵣ, menor es la fuerza eléctrica (el medio apantalla la interacción)","La fuerza eléctrica es independiente del medio"], correcta:2, fb_ok:"✓ Correcto. F = K₀·|Q₁Q₂| / (εᵣ·r²). A mayor εᵣ, menor es F. El medio apantalla la interacción.", fb_mal:"✗ Incorrecto. La permitividad relativa εᵣ aparece en el denominador: F = K₀·|Q₁Q₂|/(εᵣ·r²). Por eso, a mayor εᵣ, menor es la fuerza." },
+  // 8
+  { texto:"Para linealizar la Ley de Coulomb y obtener una gráfica de la forma F = C·u, ¿qué variable u se grafica en el eje x?", opciones:["u = r","u = 1/r²","u = r²","u = 1/r"], correcta:1, fb_ok:"✓ Correcto. Si u = 1/r², entonces F = C·u es una recta de pendiente C = K₀·|Q₁Q₂|/εᵣ.", fb_mal:"✗ Incorrecto. Para linealizar F = C/r², se define u = 1/r², con lo que F = C·u es una recta." },
+  // 9
+  { texto:"Si Q₁ se triplica (manteniendo todo lo demás constante), ¿qué ocurre con la fuerza eléctrica?", opciones:["Se reduce a la tercera parte","Se cuadruplica","Se multiplica por 9","Se triplica"], correcta:3, fb_ok:"✓ Correcto. F ∝ Q₁. Si Q₁ → 3Q₁, entonces F → 3F. La fuerza se triplica.", fb_mal:"✗ Incorrecto. F es proporcional a Q₁. Si Q₁ se triplica, F también se triplica." },
+  // 10
+  { texto:"¿Con qué expresión matemática se relaciona K₀ con la permitividad del vacío ε₀?", opciones:["K₀ = 4πε₀","K₀ = ε₀/(4π)","K₀ = 1/(4πε₀)","K₀ = 4π/ε₀"], correcta:2, fb_ok:"✓ Correcto. K₀ = 1/(4πε₀). Con ε₀ = 8.85×10⁻¹² C²/(N·m²) se obtiene K₀ ≈ 9×10⁹ N·m²/C².", fb_mal:"✗ Incorrecto. La relación correcta es K₀ = 1/(4πε₀). ε₀ es la permitividad del vacío." },
+  // 11
+  { texto:"¿Cuál es el valor de la permitividad del vacío ε₀?", opciones:["9.0 × 10⁹ C²/(N·m²)","8.85 × 10⁻¹² C²/(N·m²)","6.67 × 10⁻¹¹ C²/(N·m²)","1.6 × 10⁻¹⁹ C²/(N·m²)"], correcta:1, fb_ok:"✓ Correcto. ε₀ = 8.85 × 10⁻¹² C²/(N·m²) es la permitividad eléctrica del vacío.", fb_mal:"✗ Incorrecto. ε₀ = 8.85 × 10⁻¹² C²/(N·m²). No confundir con K₀ = 9×10⁹ N·m²/C²." },
+  // 12
+  { texto:"¿En qué unidades se mide la carga eléctrica en el Sistema Internacional?", opciones:["Amperio (A)","Voltio (V)","Coulomb (C)","Faradio (F)"], correcta:2, fb_ok:"✓ Correcto. La carga eléctrica se mide en Coulombs (C) en el SI.", fb_mal:"✗ Incorrecto. La carga eléctrica se mide en Coulombs (C). El amperio mide corriente, el voltio mide potencial y el faradio mide capacitancia." },
+  // 13
+  { texto:"Si la distancia entre dos cargas se reduce a la mitad, ¿qué le ocurre a la fuerza eléctrica?", opciones:["Se duplica","Se reduce a la mitad","Se multiplica por 4","No cambia"], correcta:2, fb_ok:"✓ Correcto. F ∝ 1/r². Si r → r/2, F → 4F. La fuerza se cuadruplica.", fb_mal:"✗ Incorrecto. F = K₀Q₁Q₂/(εᵣ·(r/2)²) = 4·K₀Q₁Q₂/(εᵣ·r²) = 4F. La fuerza se cuadruplica al reducir r a la mitad." },
+  // 14
+  { texto:"¿Cuál es la carga eléctrica del electrón?", opciones:["+1.6 × 10⁻¹⁹ C","-1.6 × 10⁻¹⁹ C","9.11 × 10⁻³¹ C","-9.11 × 10⁻³¹ C"], correcta:1, fb_ok:"✓ Correcto. La carga del electrón es -1.6 × 10⁻¹⁹ C. El valor 9.11×10⁻³¹ es su masa en kg.", fb_mal:"✗ Incorrecto. La carga del electrón es -1.6 × 10⁻¹⁹ C (negativa). 9.11×10⁻³¹ es la masa del electrón en kg." },
+  // 15
+  { texto:"Si se cambia el signo de ambas cargas simultáneamente, ¿qué le ocurre a la magnitud de la fuerza?", opciones:["La fuerza cambia de atractiva a repulsiva y su magnitud aumenta","La magnitud de la fuerza no cambia","La fuerza se vuelve cero","La fuerza se duplica"], correcta:1, fb_ok:"✓ Correcto. F = K₀·|Q₁|·|Q₂|/(εᵣ·r²) usa valores absolutos. Cambiar el signo de ambas cargas no altera la magnitud de F.", fb_mal:"✗ Incorrecto. La fórmula usa valores absolutos de las cargas. La magnitud de F no cambia; solo cambia si es atractiva o repulsiva." },
+  // 16
+  { texto:"En la Ley de Coulomb, si ambas cargas Q₁ y Q₂ se duplican simultáneamente, ¿qué ocurre con F?", opciones:["Se duplica","Se triplica","Se cuadruplica","Se mantiene igual"], correcta:2, fb_ok:"✓ Correcto. F ∝ Q₁·Q₂. Si Q₁→2Q₁ y Q₂→2Q₂, entonces F_nueva = 4·F. La fuerza se cuadruplica.", fb_mal:"✗ Incorrecto. F_nueva = K₀·(2Q₁)·(2Q₂)/(εᵣ·r²) = 4·K₀Q₁Q₂/(εᵣ·r²) = 4F. La fuerza se cuadruplica." },
+  // 17
+  { texto:"¿Para qué tipo de cargas es válida directamente la Ley de Coulomb en su forma simple?", opciones:["Cargas distribuidas uniformemente en volumen","Cargas puntuales en reposo","Cargas en movimiento uniforme","Cargas sobre superficies conductoras cóncavas"], correcta:1, fb_ok:"✓ Correcto. La Ley de Coulomb aplica directamente para cargas puntuales en reposo (electrostática).", fb_mal:"✗ Incorrecto. La Ley de Coulomb en su forma básica aplica para cargas puntuales en reposo. Para distribuciones se debe integrar." },
+  // 18
+  { texto:"¿Qué significa que la fuerza eléctrica sea una magnitud vectorial?", opciones:["Tiene solo magnitud, no dirección","Tiene magnitud, dirección y sentido","Solo actúa en la dirección vertical","No depende de la distancia entre las cargas"], correcta:1, fb_ok:"✓ Correcto. La fuerza eléctrica es un vector: tiene magnitud, dirección (la línea que une las cargas) y sentido (atracción o repulsión).", fb_mal:"✗ Incorrecto. Al ser vectorial, la fuerza eléctrica tiene magnitud, dirección y sentido. Actúa a lo largo de la línea que une las cargas." },
+  // 19
+  { texto:"Si εᵣ = 1, ¿qué representa el medio en el que se encuentran las cargas?", opciones:["Agua destilada (εᵣ ≈ 80)","Aceite mineral (εᵣ ≈ 2.2)","Vacío o aire seco (εᵣ ≈ 1)","Vidrio (εᵣ ≈ 5)"], correcta:2, fb_ok:"✓ Correcto. εᵣ = 1 corresponde al vacío. El aire seco tiene εᵣ ≈ 1.0006, muy próximo al vacío.", fb_mal:"✗ Incorrecto. εᵣ = 1 es el vacío. Para otros medios: agua εᵣ≈80, aceite εᵣ≈2.2, vidrio εᵣ≈5." },
+  // 20
+  { texto:"¿Cuál de los siguientes medios dieléctricos reduce MÁS la fuerza eléctrica entre dos cargas?", opciones:["Aire (εᵣ ≈ 1)","Aceite mineral (εᵣ ≈ 2.2)","Vidrio (εᵣ ≈ 5)","Agua destilada (εᵣ ≈ 80)"], correcta:3, fb_ok:"✓ Correcto. F = K₀·|Q₁Q₂|/(εᵣ·r²). A mayor εᵣ, menor F. El agua (εᵣ ≈ 80) reduce más la fuerza.", fb_mal:"✗ Incorrecto. Mayor εᵣ → menor F. El agua destilada (εᵣ ≈ 80) tiene la mayor permitividad y reduce más la fuerza." },
+  // 21 — Proporcionalidades
+  { texto:"Si Q₁ se duplica y Q₂ se triplica (manteniendo r constante), ¿en qué factor cambia la fuerza?", opciones:["Se multiplica por 2","Se multiplica por 3","Se multiplica por 5","Se multiplica por 6"], correcta:3, fb_ok:"✓ Correcto. F ∝ Q₁·Q₂. Si Q₁→2Q₁ y Q₂→3Q₂, F_nueva = 2×3 × F = 6F.", fb_mal:"✗ Incorrecto. F ∝ Q₁·Q₂. F_nueva = K₀·(2Q₁)·(3Q₂)/(εᵣ·r²) = 6·F." },
+  // 22
+  { texto:"Si la distancia r se triplica, ¿en qué factor cambia la fuerza eléctrica?", opciones:["Se divide entre 3","Se divide entre 6","Se divide entre 9","Se divide entre 12"], correcta:2, fb_ok:"✓ Correcto. F ∝ 1/r². Si r → 3r, F → F/9. La fuerza se reduce a la novena parte.", fb_mal:"✗ Incorrecto. F ∝ 1/r². F_nueva = K₀Q₁Q₂/(εᵣ·(3r)²) = K₀Q₁Q₂/(9εᵣr²) = F/9." },
+  // 23
+  { texto:"Si la distancia se cuadruplica, ¿cuánto vale la nueva fuerza respecto a la original?", opciones:["F/4","F/8","F/16","F/64"], correcta:2, fb_ok:"✓ Correcto. F ∝ 1/r². Si r → 4r, F_nueva = F/(4²) = F/16.", fb_mal:"✗ Incorrecto. F ∝ 1/r². F_nueva = K₀Q₁Q₂/(εᵣ·(4r)²) = F/16." },
+  // 24
+  { texto:"Si Q₁ se duplica y r también se duplica, ¿qué le ocurre a la fuerza?", opciones:["Se mantiene igual","Se duplica","Se reduce a la mitad","Se cuadruplica"], correcta:2, fb_ok:"✓ Correcto. F_nueva = K₀·(2Q₁)·Q₂/(εᵣ·(2r)²) = 2K₀Q₁Q₂/(4εᵣr²) = F/2. La fuerza se reduce a la mitad.", fb_mal:"✗ Incorrecto. F_nueva = K₀·(2Q₁)·Q₂/(εᵣ·(2r)²) = 2/(4) × F = F/2. La fuerza se reduce a la mitad." },
+  // 25
+  { texto:"Si εᵣ se cuadruplica (mismo medio más denso), ¿qué ocurre con la fuerza?", opciones:["Se cuadruplica","Se divide entre 2","Se divide entre 4","Se mantiene igual"], correcta:2, fb_ok:"✓ Correcto. F = K₀Q₁Q₂/(εᵣ·r²). Si εᵣ → 4εᵣ, F_nueva = F/4. La fuerza se reduce a la cuarta parte.", fb_mal:"✗ Incorrecto. εᵣ está en el denominador. Si εᵣ se cuadruplica, F_nueva = K₀Q₁Q₂/(4εᵣ·r²) = F/4." },
+  // 26
+  { texto:"Si ambas cargas Q₁ y Q₂ se reducen a la mitad, ¿qué ocurre con la fuerza?", opciones:["Se reduce a la mitad","Se reduce a la cuarta parte","Se duplica","No cambia"], correcta:1, fb_ok:"✓ Correcto. F ∝ Q₁·Q₂. F_nueva = K₀·(Q₁/2)·(Q₂/2)/(εᵣ·r²) = F/4. La fuerza se reduce a la cuarta parte.", fb_mal:"✗ Incorrecto. F_nueva = K₀·(Q₁/2)·(Q₂/2)/(εᵣ·r²) = (1/4)·K₀Q₁Q₂/(εᵣ·r²) = F/4." },
+  // 27
+  { texto:"Si r se reduce a 1/3 de su valor original, ¿qué le ocurre a la fuerza?", opciones:["Se multiplica por 3","Se multiplica por 6","Se multiplica por 9","Se mantiene igual"], correcta:2, fb_ok:"✓ Correcto. F ∝ 1/r². Si r → r/3, F_nueva = K₀Q₁Q₂/(εᵣ·(r/3)²) = 9·K₀Q₁Q₂/(εᵣ·r²) = 9F.", fb_mal:"✗ Incorrecto. F ∝ 1/r². F_nueva = K₀Q₁Q₂/(εᵣ·(r/3)²) = 9F. La fuerza se multiplica por 9." },
+  // 28
+  { texto:"Si εᵣ se reduce a la mitad (por cambio de medio), ¿cómo cambia la fuerza?", opciones:["Se reduce a la mitad","Se multiplica por 2","Se cuadruplica","No cambia"], correcta:1, fb_ok:"✓ Correcto. F = K₀Q₁Q₂/(εᵣ·r²). Si εᵣ → εᵣ/2, F_nueva = 2F. La fuerza se duplica.", fb_mal:"✗ Incorrecto. Si εᵣ se reduce a la mitad, el denominador es menor y la fuerza se duplica: F_nueva = 2F." },
+  // 29
+  { texto:"¿Qué ocurre con la fuerza si Q₁ se triplica y r también se triplica?", opciones:["F permanece igual","F se triplica","F se reduce a la tercera parte","F se multiplica por 9"], correcta:2, fb_ok:"✓ Correcto. F_nueva = K₀·(3Q₁)·Q₂/(εᵣ·(3r)²) = 3/(9) × F = F/3. La fuerza se reduce a la tercera parte.", fb_mal:"✗ Incorrecto. F_nueva = K₀·(3Q₁)·Q₂/(εᵣ·9r²) = (3/9)·F = F/3. La fuerza se reduce a la tercera parte." },
+  // 30
+  { texto:"Si la distancia entre dos cargas pasa de 1 m a 5 m, ¿en qué factor se reduce la fuerza?", opciones:["5 veces","10 veces","25 veces","50 veces"], correcta:2, fb_ok:"✓ Correcto. F ∝ 1/r². F_nueva/F = (1m)²/(5m)² = 1/25. La fuerza se reduce 25 veces.", fb_mal:"✗ Incorrecto. F ∝ 1/r². F_nueva = F · (1/5)² = F/25. La fuerza se reduce 25 veces." },
+  // 31 — Cálculos numéricos
+  { texto:"Q₁ = 1 μC, Q₂ = 1 μC, r = 1 m, vacío. ¿Cuánto vale F? (K₀ = 9×10⁹ N·m²/C²)", opciones:["9 × 10⁻³ N","9 × 10³ N","9 × 10⁻⁶ N","9 × 10⁶ N"], correcta:0, fb_ok:"✓ Correcto. F = 9×10⁹ × (10⁻⁶)² / 1² = 9×10⁹ × 10⁻¹² = 9×10⁻³ N = 0.009 N.", fb_mal:"✗ Incorrecto. F = K₀·Q₁·Q₂/r² = 9×10⁹ × 10⁻⁶ × 10⁻⁶ / 1 = 9×10⁻³ N." },
+  // 32
+  { texto:"Q₁ = 2 μC, Q₂ = 2 μC, r = 1 m, vacío. ¿Cuánto vale F?", opciones:["0.018 N","0.036 N","0.072 N","0.009 N"], correcta:1, fb_ok:"✓ Correcto. F = 9×10⁹ × (2×10⁻⁶)² / 1² = 9×10⁹ × 4×10⁻¹² = 36×10⁻³ N = 0.036 N.", fb_mal:"✗ Incorrecto. F = 9×10⁹ × (2×10⁻⁶)² / 1 = 9×10⁹ × 4×10⁻¹² = 0.036 N." },
+  // 33
+  { texto:"Q₁ = 3 μC, Q₂ = 3 μC, r = 0.1 m, vacío. ¿Cuánto vale F?", opciones:["0.81 N","8.1 N","81 N","0.081 N"], correcta:1, fb_ok:"✓ Correcto. F = 9×10⁹ × (3×10⁻⁶)² / (0.1)² = 9×10⁹ × 9×10⁻¹² / 0.01 = 8.1 N.", fb_mal:"✗ Incorrecto. F = 9×10⁹ × 9×10⁻¹² / 0.01 = 81×10⁻³/0.01 = 8.1 N." },
+  // 34
+  { texto:"Q₁ = 3 μC, Q₂ = 5 μC, F = 0.0273 N, aceite mineral (εᵣ = 2.2). ¿Cuál es r? (K₀ = 9×10⁹)", opciones:["r ≈ 1.50 m","r ≈ 0.75 m","r ≈ 2.25 m","r ≈ 0.50 m"], correcta:0, fb_ok:"✓ Correcto. r = √(K₀·|Q₁Q₂|/(εᵣ·F)) = √(9×10⁹×15×10⁻¹²/(2.2×0.0273)) = √2.248 ≈ 1.50 m.", fb_mal:"✗ Incorrecto. r = √(K₀·|Q₁Q₂|/(εᵣ·F)) = √(135×10⁻³/0.06006) = √2.248 ≈ 1.50 m." },
+  // 35
+  { texto:"Q₁ = 4 μC, Q₂ = 9 μC, r = 3 m, vacío. ¿Cuánto vale F?", opciones:["0.036 N","0.018 N","0.009 N","0.072 N"], correcta:0, fb_ok:"✓ Correcto. F = 9×10⁹ × 4×10⁻⁶ × 9×10⁻⁶ / 3² = 9×10⁹ × 36×10⁻¹² / 9 = 36×10⁻³ N = 0.036 N.", fb_mal:"✗ Incorrecto. F = 9×10⁹ × (4×10⁻⁶)(9×10⁻⁶) / 9 = 9×10⁹ × 4×10⁻¹² = 0.036 N." },
+  // 36
+  { texto:"Q₁ = Q₂ = 1 μC, F = 0.009 N, vacío. ¿Cuál es la distancia r entre las cargas?", opciones:["r = 1 m","r = 3 m","r = 0.1 m","r = 10 m"], correcta:0, fb_ok:"✓ Correcto. r = √(K₀·Q²/F) = √(9×10⁹×10⁻¹²/0.009) = √(9×10⁻³/0.009) = √1 = 1 m.", fb_mal:"✗ Incorrecto. r = √(9×10⁹×10⁻¹²/0.009) = √(0.009/0.009) = √1 = 1 m." },
+  // 37
+  { texto:"Q₁ = 10 μC, Q₂ = 10 μC, r = 1 m, aceite (εᵣ = 2). ¿Cuánto vale F?", opciones:["0.45 N","0.9 N","0.225 N","4.5 N"], correcta:0, fb_ok:"✓ Correcto. F = 9×10⁹ × (10⁻⁵)² / (2×1) = 9×10⁹×10⁻¹⁰/2 = 0.9/2 = 0.45 N.", fb_mal:"✗ Incorrecto. F = 9×10⁹×10⁻¹⁰/(2×1) = 0.9/2 = 0.45 N." },
+  // 38
+  { texto:"Q₁ = 2 μC, Q₂ = 8 μC, r = 2 m, vidrio (εᵣ = 4). ¿Cuánto vale F?", opciones:["0.009 N","0.018 N","0.036 N","0.045 N"], correcta:0, fb_ok:"✓ Correcto. F = 9×10⁹ × 2×10⁻⁶ × 8×10⁻⁶ / (4×4) = 9×10⁹×16×10⁻¹²/16 = 9×10⁻³ N = 0.009 N.", fb_mal:"✗ Incorrecto. F = 9×10⁹ × 16×10⁻¹² / (4×4) = 144×10⁻³/16 = 9×10⁻³ N = 0.009 N." },
+  // 39
+  { texto:"Dos cargas iguales Q = 3 μC están separadas r = 3 m en el vacío. ¿Cuánto vale F?", opciones:["3 mN","1 mN","9 mN","0.3 mN"], correcta:0, fb_ok:"✓ Correcto. F = 9×10⁹ × (3×10⁻⁶)² / 3² = 9×10⁹×9×10⁻¹²/9 = 9×10⁻³ N = 9 mN.", fb_mal:"✗ Incorrecto. F = 9×10⁹×9×10⁻¹²/9 = 9×10⁻³ N = 9 mN." },
+  // 40
+  { texto:"Dos cargas Q₁ = 5 μC y Q₂ = 5 μC están a 1 m en vacío. Si se acercan a 0.5 m, ¿cuánto vale la nueva fuerza?", opciones:["La misma que antes","El doble","El cuádruple","La mitad"], correcta:2, fb_ok:"✓ Correcto. F ∝ 1/r². Si r se reduce a la mitad, F se cuadruplica: F_nueva = 4·F original.", fb_mal:"✗ Incorrecto. Al reducir r a la mitad, r² se reduce a 1/4, por lo que F se cuadruplica." },
+  // 41 — Medios dieléctricos
+  { texto:"¿Qué es la permitividad relativa εᵣ de un material?", opciones:["La razón entre la permitividad del material y la del vacío (εᵣ = ε/ε₀)","La razón entre la permeabilidad y la permitividad","El número de cargas por unidad de volumen","La inversa de la constante de Coulomb"], correcta:0, fb_ok:"✓ Correcto. εᵣ = ε/ε₀. Es la razón entre la permitividad del medio y la del vacío. Es adimensional.", fb_mal:"✗ Incorrecto. εᵣ = ε/ε₀ es la permitividad relativa. Es adimensional y siempre ≥ 1 para materiales reales." },
+  // 42
+  { texto:"¿Cuál es el orden de magnitud típico de εᵣ para el agua destilada?", opciones:["εᵣ ≈ 1","εᵣ ≈ 2","εᵣ ≈ 10","εᵣ ≈ 80"], correcta:3, fb_ok:"✓ Correcto. El agua destilada tiene εᵣ ≈ 80, una de las permitividades relativas más altas entre líquidos comunes.", fb_mal:"✗ Incorrecto. El agua destilada tiene εᵣ ≈ 80. Este valor alto reduce la fuerza eléctrica entre cargas sumergidas en ella." },
+  // 43
+  { texto:"Si la fuerza entre dos cargas en el vacío es F₀, ¿cuánto vale F al sumergirlas en agua (εᵣ = 80)?", opciones:["F = 80·F₀","F = F₀/40","F = F₀/80","F = F₀/8"], correcta:2, fb_ok:"✓ Correcto. F = K₀Q₁Q₂/(εᵣ·r²) = F₀/80. El agua reduce la fuerza 80 veces.", fb_mal:"✗ Incorrecto. F = K₀Q₁Q₂/(80·r²) = F₀/80. El agua reduce la fuerza en un factor de 80." },
+  // 44
+  { texto:"¿Por qué los materiales dieléctricos reducen la fuerza eléctrica entre cargas sumergidas en ellos?", opciones:["Porque absorben las cargas eléctricas","Porque sus moléculas se polarizan y 'apantallan' el campo eléctrico externo","Porque disminuyen la velocidad de la luz en el medio","Porque aumentan la masa de las cargas"], correcta:1, fb_ok:"✓ Correcto. Los dipolos del dieléctrico se polarizan y crean un campo opuesto, reduciendo el campo neto (apantallamiento).", fb_mal:"✗ Incorrecto. La polarización de las moléculas del dieléctrico crea un campo opuesto al externo, reduciendo la fuerza neta." },
+  // 45
+  { texto:"¿Cuál de los siguientes NO es un dieléctrico común?", opciones:["Vidrio","Aceite mineral","Cobre","Porcelana"], correcta:2, fb_ok:"✓ Correcto. El cobre es un conductor, no un dieléctrico. Los dieléctricos son aislantes eléctricos.", fb_mal:"✗ Incorrecto. El cobre es un conductor eléctrico, no un dieléctrico. Los dielectricos son materiales aislantes." },
+  // 46
+  { texto:"En aceite mineral con εᵣ = 2.2, la fuerza entre dos cargas comparada con el vacío es:", opciones:["2.2 veces mayor","La misma","2.2 veces menor","4.84 veces menor"], correcta:2, fb_ok:"✓ Correcto. F_aceite = F_vacío/εᵣ = F_vacío/2.2. La fuerza se reduce 2.2 veces.", fb_mal:"✗ Incorrecto. F = K₀Q₁Q₂/(εᵣ·r²). Con εᵣ = 2.2 la fuerza es F_vac/2.2, es decir 2.2 veces menor." },
+  // 47
+  { texto:"¿Qué ocurre con la fuerza eléctrica si se pasa de un medio con εᵣ = 4 a otro con εᵣ = 2 (mismas cargas y distancia)?", opciones:["Se duplica","Se reduce a la mitad","Se cuadruplica","No cambia"], correcta:0, fb_ok:"✓ Correcto. F ∝ 1/εᵣ. Pasar de εᵣ = 4 a εᵣ = 2 reduce εᵣ a la mitad, por lo que F se duplica.", fb_mal:"✗ Incorrecto. F ∝ 1/εᵣ. Si εᵣ pasa de 4 a 2 (se reduce), F se incrementa: F_nueva = 2·F_anterior." },
+  // 48
+  { texto:"¿En cuál de estos medios es MAYOR la fuerza entre dos cargas para la misma distancia?", opciones:["Agua (εᵣ = 80)","Vidrio (εᵣ = 5)","Aceite (εᵣ = 2.2)","Vacío (εᵣ = 1)"], correcta:3, fb_ok:"✓ Correcto. F es mayor cuando εᵣ es menor. El vacío tiene εᵣ = 1 (mínimo posible), por lo que la fuerza es máxima.", fb_mal:"✗ Incorrecto. F = K₀Q₁Q₂/(εᵣ·r²). Menor εᵣ → mayor F. El vacío (εᵣ = 1) da la fuerza máxima." },
+  // 49
+  { texto:"La permitividad relativa εᵣ es siempre:", opciones:["Menor que 1","Igual a 1 para todos los materiales","Mayor o igual a 1","Negativa para conductores"], correcta:2, fb_ok:"✓ Correcto. εᵣ ≥ 1 siempre. εᵣ = 1 para el vacío, y εᵣ > 1 para cualquier material real.", fb_mal:"✗ Incorrecto. εᵣ = ε/ε₀ ≥ 1 siempre. El vacío tiene εᵣ = 1 y todos los materiales reales tienen εᵣ > 1." },
+  // 50
+  { texto:"Si εᵣ del vidrio es 5 y del aceite es 2.5, ¿en cuál de los dos medios es mayor la fuerza eléctrica entre cargas?", opciones:["Vidrio","Aceite","Son iguales","Depende de la temperatura"], correcta:1, fb_ok:"✓ Correcto. F ∝ 1/εᵣ. El aceite (εᵣ = 2.5) tiene menor εᵣ que el vidrio (εᵣ = 5), por lo que F es mayor en aceite.", fb_mal:"✗ Incorrecto. F ∝ 1/εᵣ. Menor εᵣ → mayor F. El aceite tiene εᵣ menor, así que F es mayor en aceite." },
+  // 51 — Linealización y gráficas
+  { texto:"Al graficar F (eje y) vs 1/r² (eje x), la pendiente de la recta resultante es igual a:", opciones:["K₀·εᵣ","K₀·r²/(Q₁·Q₂)","K₀·|Q₁·Q₂|/εᵣ","K₀²·|Q₁·Q₂|"], correcta:2, fb_ok:"✓ Correcto. F = C·(1/r²) con C = K₀·|Q₁Q₂|/εᵣ. La pendiente de F vs 1/r² es C = K₀|Q₁Q₂|/εᵣ.", fb_mal:"✗ Incorrecto. De F = K₀|Q₁Q₂|/(εᵣ·r²), si u = 1/r² entonces F = C·u con C = K₀|Q₁Q₂|/εᵣ." },
+  // 52
+  { texto:"Si en la gráfica F vs 1/r² la pendiente es C = 18×10⁻³ N·m² y Q₁ = Q₂ = 1 μC, ¿cuánto vale εᵣ?", opciones:["εᵣ = 0.5","εᵣ = 1","εᵣ = 2","εᵣ = 4"], correcta:0, fb_ok:"✓ Correcto. C = K₀Q₁Q₂/εᵣ → εᵣ = K₀Q₁Q₂/C = 9×10⁹×10⁻¹²/18×10⁻³ = 9×10⁻³/18×10⁻³ = 0.5. Vacío εᵣ=1 por lo que aquí εᵣ=0.5 indica un error experimental.", fb_mal:"✗ Incorrecto. εᵣ = K₀Q₁Q₂/C = (9×10⁹×10⁻¹²)/(18×10⁻³) = 9×10⁻³/18×10⁻³ = 0.5." },
+  // 53
+  { texto:"¿Por qué se prefiere graficar F vs 1/r² en lugar de F vs r?", opciones:["Porque F vs r es siempre una línea recta","Porque F vs 1/r² produce una línea recta que facilita el análisis","Porque F vs r da valores negativos","Porque los instrumentos no miden r directamente"], correcta:1, fb_ok:"✓ Correcto. F = C/r² es no lineal (hipérbola). Al graficar F vs u=1/r² se obtiene F = C·u, una recta que facilita determinar C.", fb_mal:"✗ Incorrecto. F vs r es una curva no lineal. F vs 1/r² es una recta cuya pendiente C = K₀|Q₁Q₂|/εᵣ." },
+  // 54
+  { texto:"Si la pendiente de la recta F vs 1/r² es C, ¿qué se puede determinar experimentalmente a partir de C?", opciones:["La distancia r","El valor de K₀ directamente","El producto K₀·|Q₁Q₂|/εᵣ","La temperatura del experimento"], correcta:2, fb_ok:"✓ Correcto. C = K₀·|Q₁Q₂|/εᵣ. Conociendo Q₁, Q₂ y εᵣ se puede determinar K₀ (o verificar su valor).", fb_mal:"✗ Incorrecto. La pendiente C = K₀|Q₁Q₂|/εᵣ permite determinar K₀ si se conocen Q₁, Q₂ y εᵣ." },
+  // 55
+  { texto:"En la gráfica F vs 1/r², si se duplica la carga Q₁, ¿cómo cambia la pendiente de la recta?", opciones:["No cambia","Se duplica","Se cuadruplica","Se reduce a la mitad"], correcta:1, fb_ok:"✓ Correcto. C = K₀·|Q₁Q₂|/εᵣ. Si Q₁ → 2Q₁, C → 2C. La pendiente se duplica.", fb_mal:"✗ Incorrecto. C = K₀|Q₁Q₂|/εᵣ ∝ Q₁. Si Q₁ se duplica, la pendiente también se duplica." },
+  // 56 — Principio de superposición
+  { texto:"Una carga Q₃ = +1 μC se encuentra entre Q₁ = +2 μC y Q₂ = -2 μC, a 1 m de cada una. ¿Cuál es la dirección de la fuerza neta sobre Q₃?", opciones:["Hacia Q₁","Hacia Q₂","Perpendicular a la línea Q₁-Q₂","La fuerza neta es cero"], correcta:1, fb_ok:"✓ Correcto. Q₁(+) repele a Q₃(+) hacia Q₂; Q₂(-) atrae a Q₃(+) también hacia Q₂. Las fuerzas se suman hacia Q₂.", fb_mal:"✗ Incorrecto. Q₁(+) repele Q₃(+) hacia Q₂, y Q₂(-) atrae Q₃(+) hacia Q₂. Ambas fuerzas apuntan hacia Q₂." },
+  // 57
+  { texto:"¿Qué propiedad de la fuerza eléctrica permite aplicar el principio de superposición?", opciones:["La fuerza es siempre atractiva","La fuerza eléctrica es lineal en las cargas","La fuerza no depende del medio","La fuerza es siempre mayor que la gravitacional"], correcta:1, fb_ok:"✓ Correcto. La Ley de Coulomb es lineal en las cargas (F ∝ Q₁ y F ∝ Q₂), lo que permite aplicar superposición.", fb_mal:"✗ Incorrecto. La linealidad de F respecto a las cargas (F ∝ Q) es lo que permite sumar vectorialmente las fuerzas." },
+  // 58
+  { texto:"Tres cargas iguales Q = +2 μC están en los vértices de un triángulo equilátero de lado 1 m. La fuerza neta sobre cualquiera de ellas es:", opciones:["Cero, porque se cancelan","Diferente de cero, apuntando hacia afuera del centro del triángulo","La misma que si solo hubiera una carga opuesta","Solo la fuerza de la carga más cercana"], correcta:1, fb_ok:"✓ Correcto. Las fuerzas repulsivas de las otras dos cargas se suman vectorialmente apuntando radialmente hacia afuera del centro.", fb_mal:"✗ Incorrecto. Por simetría, las dos fuerzas repulsivas no se anulan; la resultante apunta hacia afuera del centroide." },
+  // 59
+  { texto:"Q₁ = +3 μC y Q₂ = +3 μC están separadas 2 m. Se coloca Q₃ = -1 μC en el punto medio. La fuerza neta sobre Q₃ es:", opciones:["Cero","Hacia Q₁","Hacia Q₂","Perpendicular a Q₁Q₂"], correcta:0, fb_ok:"✓ Correcto. Por simetría, Q₁ y Q₂ atraen Q₃ con fuerzas iguales y opuestas. La fuerza neta sobre Q₃ es cero.", fb_mal:"✗ Incorrecto. Q₁ y Q₂ son iguales y equidistantes de Q₃. Sus fuerzas sobre Q₃ son iguales y opuestas → fuerza neta = 0." },
+  // 60
+  { texto:"Al aplicar el principio de superposición, ¿con qué tipo de suma se calcula la fuerza neta?", opciones:["Suma algebraica de magnitudes","Suma vectorial","Suma geométrica de módulos","Promedio ponderado"], correcta:1, fb_ok:"✓ Correcto. El principio de superposición requiere una suma vectorial, teniendo en cuenta la dirección y sentido de cada fuerza.", fb_mal:"✗ Incorrecto. La fuerza neta se calcula con suma VECTORIAL, no solo sumando magnitudes. Hay que considerar dirección y sentido." },
+  // 61 — Aplicaciones y contexto
+  { texto:"¿Cuál de estas afirmaciones sobre la Ley de Coulomb y la Ley de Gravitación Universal es CORRECTA?", opciones:["Ambas son proporcionales a la distancia al cuadrado","Ambas son inversamente proporcionales al cuadrado de la distancia","Solo la de Coulomb depende del cuadrado de la distancia","La gravitacional es más fuerte a escala atómica"], correcta:1, fb_ok:"✓ Correcto. Ambas leyes tienen la misma dependencia espacial: F ∝ 1/r². Se llama 'fuerza de ley inversa al cuadrado'.", fb_mal:"✗ Incorrecto. Tanto F_Coulomb como F_grav ∝ 1/r². Esta es la analogía formal entre ambas fuerzas fundamentales." },
+  // 62
+  { texto:"En escala atómica, ¿cuál de estas fuerzas es predominante?", opciones:["Gravitacional","Eléctrica (Coulomb)","Son exactamente iguales","Magnética exclusivamente"], correcta:1, fb_ok:"✓ Correcto. La fuerza eléctrica entre protón y electrón es ~10³⁹ veces mayor que la gravitacional a la misma distancia.", fb_mal:"✗ Incorrecto. A escala atómica la fuerza eléctrica domina. La fuerza gravitacional es despreciable comparada con la eléctrica." },
+  // 63
+  { texto:"¿En qué consiste la 'ley inversa al cuadrado' que comparten Coulomb y la gravitación?", opciones:["La fuerza disminuye proporcionalmente a la distancia","La fuerza es proporcional al cuadrado de las fuentes","La fuerza disminuye con el cuadrado de la distancia","La fuerza aumenta al cuadrado con la distancia"], correcta:2, fb_ok:"✓ Correcto. La fuerza decrece como 1/r²: al duplicar la distancia, la fuerza se reduce a la cuarta parte.", fb_mal:"✗ Incorrecto. 'Ley inversa al cuadrado' significa F ∝ 1/r². La fuerza disminuye con el cuadrado de la distancia." },
+  // 64
+  { texto:"¿Qué diferencia fundamental existe entre la fuerza eléctrica y la gravitacional respecto al signo?", opciones:["La gravitacional puede ser repulsiva; la eléctrica no","La eléctrica puede ser atractiva o repulsiva; la gravitacional es siempre atractiva","Ambas son siempre atractivas","Ambas pueden ser repulsivas o atractivas"], correcta:1, fb_ok:"✓ Correcto. La fuerza eléctrica puede ser atractiva (cargas opuestas) o repulsiva (misma carga). La gravitacional es siempre atractiva.", fb_mal:"✗ Incorrecto. La fuerza eléctrica puede ser atractiva o repulsiva según los signos. La gravitacional es siempre atractiva." },
+  // 65
+  { texto:"Si se tiene una carga Q = +5 μC aislada en el espacio, ¿qué fuerza eléctrica actúa sobre ella debido a sí misma?", opciones:["Una fuerza repulsiva interna muy grande","Una fuerza atractiva hacia su centro","Ninguna fuerza (una carga no ejerce fuerza sobre sí misma)","Una fuerza igual a K₀Q²"], correcta:2, fb_ok:"✓ Correcto. La Ley de Coulomb aplica entre cargas DISTINTAS. Una sola carga no ejerce fuerza sobre sí misma.", fb_mal:"✗ Incorrecto. La Ley de Coulomb describe la fuerza entre dos cargas separadas. Una carga no ejerce fuerza sobre sí misma." },
+  // 66 — Fórmula y despeje
+  { texto:"¿Cómo se despeja r de la fórmula F = K₀·|Q₁Q₂|/(εᵣ·r²)?", opciones:["r = K₀·Q₁Q₂/(εᵣ·F)","r = √(K₀·|Q₁Q₂|/(εᵣ·F))","r = K₀·|Q₁Q₂|·εᵣ·F","r = (K₀·|Q₁Q₂|)²/(εᵣ·F)"], correcta:1, fb_ok:"✓ Correcto. Despejando: r² = K₀|Q₁Q₂|/(εᵣ·F), por lo tanto r = √(K₀|Q₁Q₂|/(εᵣ·F)).", fb_mal:"✗ Incorrecto. De F = K₀|Q₁Q₂|/(εᵣ·r²) → r² = K₀|Q₁Q₂|/(εᵣ·F) → r = √(K₀|Q₁Q₂|/(εᵣ·F))." },
+  // 67
+  { texto:"¿Cómo se despeja Q₁ de la fórmula F = K₀·|Q₁Q₂|/(εᵣ·r²)?", opciones:["Q₁ = F·εᵣ·r²/(K₀·Q₂)","Q₁ = K₀·Q₂/(F·εᵣ·r²)","Q₁ = √(F·εᵣ·r²/K₀)","Q₁ = F/(K₀·Q₂·εᵣ·r²)"], correcta:0, fb_ok:"✓ Correcto. Despejando Q₁: Q₁ = F·εᵣ·r²/(K₀·Q₂).", fb_mal:"✗ Incorrecto. De F = K₀Q₁Q₂/(εᵣ·r²) → Q₁ = F·εᵣ·r²/(K₀·Q₂)." },
+  // 68
+  { texto:"¿Cómo se despeja εᵣ de la fórmula F = K₀·|Q₁Q₂|/(εᵣ·r²)?", opciones:["εᵣ = F·r²/(K₀·Q₁Q₂)","εᵣ = K₀·|Q₁Q₂|/(F·r²)","εᵣ = K₀·|Q₁Q₂|·F/r²","εᵣ = F/(K₀·|Q₁Q₂|·r²)"], correcta:1, fb_ok:"✓ Correcto. De F·εᵣ·r² = K₀|Q₁Q₂|, despejando: εᵣ = K₀|Q₁Q₂|/(F·r²).", fb_mal:"✗ Incorrecto. εᵣ = K₀·|Q₁Q₂|/(F·r²). Multiplicar cruzado desde F = K₀|Q₁Q₂|/(εᵣ·r²)." },
+  // 69
+  { texto:"¿Cuál es la unidad resultante de la fuerza en la Ley de Coulomb al usar unidades del SI?", opciones:["Joule (J)","Newton (N)","Pascal (Pa)","Watt (W)"], correcta:1, fb_ok:"✓ Correcto. La fuerza se mide en Newtons (N) en el SI. 1 N = 1 kg·m/s².", fb_mal:"✗ Incorrecto. La unidad de fuerza en el SI es el Newton (N), no el Joule (energía), Pascal (presión) ni Watt (potencia)." },
+  // 70
+  { texto:"¿Cuántos Coulombs hay en 1 μC (microculombio)?", opciones:["10⁻³ C","10⁻⁶ C","10⁻⁹ C","10⁻¹² C"], correcta:1, fb_ok:"✓ Correcto. El prefijo 'micro' (μ) significa 10⁻⁶. Entonces 1 μC = 10⁻⁶ C.", fb_mal:"✗ Incorrecto. μ = micro = 10⁻⁶. Por tanto 1 μC = 10⁻⁶ C." },
+  // 71
+  { texto:"¿Cuántos Coulombs hay en 1 nC (nanoculombio)?", opciones:["10⁻³ C","10⁻⁶ C","10⁻⁹ C","10⁻¹² C"], correcta:2, fb_ok:"✓ Correcto. El prefijo 'nano' (n) significa 10⁻⁹. Entonces 1 nC = 10⁻⁹ C.", fb_mal:"✗ Incorrecto. n = nano = 10⁻⁹. Por tanto 1 nC = 10⁻⁹ C." },
+  // 72
+  { texto:"¿Cuántos Coulombs hay en 1 pC (picoculombio)?", opciones:["10⁻⁶ C","10⁻⁹ C","10⁻¹² C","10⁻¹⁵ C"], correcta:2, fb_ok:"✓ Correcto. El prefijo 'pico' (p) significa 10⁻¹². Entonces 1 pC = 10⁻¹² C.", fb_mal:"✗ Incorrecto. p = pico = 10⁻¹². Por tanto 1 pC = 10⁻¹² C." },
+  // 73
+  { texto:"En la expresión K₀ = 1/(4πε₀), ¿qué representa 4π?", opciones:["El área de una esfera de radio unitario","La carga eléctrica elemental","La permeabilidad magnética del vacío","El ángulo sólido total alrededor de un punto en el espacio (4π sr)"], correcta:3, fb_ok:"✓ Correcto. 4π es el ángulo sólido total alrededor de un punto. Aparece naturalmente en leyes con simetría esférica.", fb_mal:"✗ Incorrecto. En geometría esférica 4π sr es el ángulo sólido total. El factor 4π en K₀ = 1/(4πε₀) refleja la simetría esférica." },
+  // 74
+  { texto:"¿Cuál de las siguientes es la fórmula CORRECTA de la Ley de Coulomb en un medio dieléctrico?", opciones:["F = K₀·Q₁·Q₂·εᵣ / r²","F = K₀·Q₁·Q₂ / r","F = K₀·|Q₁|·|Q₂| / (εᵣ·r²)","F = ε₀·Q₁·Q₂ / r²"], correcta:2, fb_ok:"✓ Correcto. F = K₀·|Q₁|·|Q₂| / (εᵣ·r²). Se usan los valores absolutos de las cargas para la magnitud de la fuerza.", fb_mal:"✗ Incorrecto. La fórmula correcta es F = K₀·|Q₁|·|Q₂| / (εᵣ·r²). εᵣ va en el denominador y se usan valores absolutos." },
+  // 75
+  { texto:"Si Q₁ = -4 μC y Q₂ = +3 μC, ¿qué valor se usa para calcular la magnitud de F con la Ley de Coulomb?", opciones:["|Q₁|·|Q₂| = 12×10⁻¹² C²","Q₁·Q₂ = -12×10⁻¹² C²","|Q₁ + Q₂| = 1×10⁻⁶ C","Q₁² + Q₂² = 25×10⁻¹² C²"], correcta:0, fb_ok:"✓ Correcto. Para la magnitud se usan valores absolutos: |Q₁|·|Q₂| = 4×10⁻⁶ × 3×10⁻⁶ = 12×10⁻¹² C².", fb_mal:"✗ Incorrecto. La magnitud de F usa |Q₁|·|Q₂| = 4μC × 3μC = 12×10⁻¹² C². El signo determina si es atractiva o repulsiva." },
+  // 76 — Conceptos avanzados
+  { texto:"¿Qué diferencia hay entre la fuerza gravitacional y la eléctrica en cuanto a su intensidad entre partículas subatómicas?", opciones:["Son iguales en intensidad","La gravitacional es mucho mayor","La eléctrica es aproximadamente 10³⁹ veces mayor que la gravitacional","La gravitacional es 10³⁹ veces mayor"], correcta:2, fb_ok:"✓ Correcto. Entre protón y electrón, F_eléctrica/F_grav ≈ 10³⁹. La fuerza eléctrica domina enormemente a escala subatómica.", fb_mal:"✗ Incorrecto. F_eléctrica entre protón y electrón es ~10³⁹ veces mayor que F_gravitacional entre ellos." },
+  // 77
+  { texto:"Si dos protones están separados 1 fm (1×10⁻¹⁵ m), ¿qué tipo de fuerza los mantiene unidos en el núcleo atómico pese a la repulsión coulombiana?", opciones:["Fuerza gravitacional","Fuerza electromagnética","Fuerza nuclear fuerte","Fuerza nuclear débil"], correcta:2, fb_ok:"✓ Correcto. La fuerza nuclear fuerte vence a la repulsión coulombiana a distancias del orden del fm para mantener unidos los nucleones.", fb_mal:"✗ Incorrecto. Es la fuerza nuclear fuerte la que supera la repulsión coulombiana y mantiene unidos los protones en el núcleo." },
+  // 78
+  { texto:"La constante K₀ = 9×10⁹ N·m²/C² es válida para cargas en:", opciones:["Agua destilada","Aceite mineral","Cualquier medio dieléctrico","El vacío solamente"], correcta:3, fb_ok:"✓ Correcto. K₀ es la constante de Coulomb en el vacío. En otros medios se usa F = K₀|Q₁Q₂|/(εᵣ·r²).", fb_mal:"✗ Incorrecto. K₀ = 9×10⁹ es válido solo en el vacío. Para otros medios se incluye εᵣ: F = K₀|Q₁Q₂|/(εᵣ·r²)." },
+  // 79
+  { texto:"¿Cuántos electrones equivalen aproximadamente a 1 Coulomb de carga?", opciones:["6.24 × 10⁶ electrones","6.24 × 10¹² electrones","6.24 × 10¹⁸ electrones","6.24 × 10²⁴ electrones"], correcta:2, fb_ok:"✓ Correcto. 1 C / 1.6×10⁻¹⁹ C = 6.24×10¹⁸ electrones. ¡El Coulomb es una carga enorme comparada con la del electrón!", fb_mal:"✗ Incorrecto. 1C / 1.6×10⁻¹⁹C = 6.24×10¹⁸ electrones. El Coulomb es una cantidad de carga muy grande." },
+  // 80
+  { texto:"Si en un experimento se mide F = 0.081 N entre dos cargas iguales Q = 3 μC. ¿A qué distancia están? (vacío, K₀=9×10⁹)", opciones:["r = 0.5 m","r = 1.0 m","r = 2.0 m","r = 3.0 m"], correcta:1, fb_ok:"✓ Correcto. r = √(K₀Q²/F) = √(9×10⁹×9×10⁻¹²/0.081) = √(81×10⁻³/0.081) = √1 = 1.0 m.", fb_mal:"✗ Incorrecto. r = √(K₀Q²/F) = √(9×10⁹×9×10⁻¹²/0.081) = √1 = 1 m." },
+  // 81
+  { texto:"¿Cuál es la relación entre la permitividad absoluta ε y la relativa εᵣ?", opciones:["ε = εᵣ - ε₀","ε = εᵣ + ε₀","ε = εᵣ · ε₀","ε = εᵣ / ε₀"], correcta:2, fb_ok:"✓ Correcto. ε = εᵣ · ε₀. La permitividad absoluta es el producto de la relativa por la del vacío.", fb_mal:"✗ Incorrecto. ε = εᵣ · ε₀. De la definición εᵣ = ε/ε₀ se despeja ε = εᵣ·ε₀." },
+  // 82
+  { texto:"Si Q₁ = 6 μC, Q₂ = 6 μC, r = 1 m en vacío. Si Q₁ se reduce a 2 μC, ¿cuánto vale la nueva fuerza?", opciones:["Se reduce a 1/3 del valor original","Se reduce a 1/6","Se duplica","Se reduce a la cuarta parte"], correcta:0, fb_ok:"✓ Correcto. F ∝ Q₁. Si Q₁ pasa de 6μC a 2μC (se reduce a 1/3), F_nueva = F_orig/3.", fb_mal:"✗ Incorrecto. F ∝ Q₁. Q₁ pasa de 6μC a 2μC = Q₁_orig/3, por lo que F_nueva = F/3." },
+  // 83
+  { texto:"¿Cuál es la expresión para la fuerza eléctrica entre Q₁ y Q₂ en forma vectorial?", opciones:["⃗F = K₀·Q₁·Q₂/r² (sin dirección definida)","⃗F₁₂ = K₀·Q₁·Q₂/r²·r̂₁₂ (donde r̂₁₂ es el vector unitario de Q₁ hacia Q₂)","⃗F = K₀/|Q₁Q₂|·r²","⃗F = εᵣ·K₀·Q₁Q₂/r²"], correcta:1, fb_ok:"✓ Correcto. La forma vectorial incluye r̂₁₂ (vector unitario de Q₁ a Q₂) para especificar la dirección de la fuerza.", fb_mal:"✗ Incorrecto. La Ley de Coulomb vectorial: ⃗F₁₂ = K₀Q₁Q₂/r²·r̂₁₂. El signo del producto Q₁Q₂ determina si es atractiva o repulsiva." },
+  // 84
+  { texto:"¿La Ley de Coulomb cumple la Tercera Ley de Newton (acción-reacción)?", opciones:["No, porque las fuerzas son de distinto origen","Sí: la fuerza de Q₁ sobre Q₂ es igual en magnitud y opuesta en dirección a la de Q₂ sobre Q₁","Solo si las cargas son iguales","Solo si son del mismo signo"], correcta:1, fb_ok:"✓ Correcto. ⃗F₁sobre₂ = -⃗F₂sobre₁. La Ley de Coulomb cumple estrictamente la Tercera Ley de Newton.", fb_mal:"✗ Incorrecto. Sí cumple la 3ª Ley de Newton: la fuerza que Q₁ ejerce sobre Q₂ es igual en magnitud y opuesta a la que Q₂ ejerce sobre Q₁." },
+  // 85
+  { texto:"En un experimento, se miden tres puntos (r, F): (1m, 36mN), (2m, 9mN), (3m, 4mN). ¿Es consistente con la Ley de Coulomb?", opciones:["No, porque los valores no disminuyen linealmente","Sí: F ∝ 1/r² se verifica: 36×1²=36, 9×4=36, 4×9=36","Solo parcialmente","No se puede determinar sin conocer las cargas"], correcta:1, fb_ok:"✓ Correcto. Si F·r² = constante: 0.036×1=0.036, 0.009×4=0.036, 0.004×9=0.036. ¡Se verifica F ∝ 1/r²!", fb_mal:"✗ Incorrecto. Se verifica porque F·r² = cte: 36mN×1m²=36, 9mN×4m²=36, 4mN×9m²=36. Sí cumple F ∝ 1/r²." },
+  // 86
+  { texto:"¿Qué ocurre con la fuerza coulombiana si se aumenta la distancia de 2m a 6m (se triplica)?", opciones:["Se reduce 3 veces","Se reduce 6 veces","Se reduce 9 veces","Se reduce 18 veces"], correcta:2, fb_ok:"✓ Correcto. F ∝ 1/r². Si r se triplica, F_nueva = F/3² = F/9.", fb_mal:"✗ Incorrecto. F ∝ 1/r². Si r → 3r, F_nueva = K₀Q₁Q₂/(εᵣ(3r)²) = F/9." },
+  // 87
+  { texto:"Dos cargas de Q₁ = +5 μC y Q₂ = -5 μC están a 0.5 m en vacío. La fuerza entre ellas es:", opciones:["Repulsiva de 9 N","Atractiva de 9 N","Atractiva de 4.5 N","Repulsiva de 4.5 N"], correcta:1, fb_ok:"✓ Correcto. Son de signo contrario → se atraen. F = 9×10⁹×(5×10⁻⁶)²/(0.5)² = 9×10⁹×25×10⁻¹²/0.25 = 9×10⁹×10⁻¹⁰ = 0.9 N. (Atractiva)", fb_mal:"✗ Incorrecto. Signos contrarios → fuerza atractiva. F = 9×10⁹×25×10⁻¹²/0.25 = 0.9 N (atractiva)." },
+  // 88
+  { texto:"¿Qué tipo de carga tiene el protón?", opciones:["Negativa","Nula","Positiva","Varía según el estado de energía"], correcta:2, fb_ok:"✓ Correcto. El protón tiene carga positiva: +1.6×10⁻¹⁹ C (igual en magnitud a la del electrón pero con signo opuesto).", fb_mal:"✗ Incorrecto. El protón tiene carga positiva +1.6×10⁻¹⁹ C. El electrón tiene carga negativa -1.6×10⁻¹⁹ C." },
+  // 89
+  { texto:"¿Qué carga tiene el neutrón?", opciones:["Positiva (+1.6×10⁻¹⁹ C)","Negativa (-1.6×10⁻¹⁹ C)","Nula (carga cero)","Varía entre +e y -e"], correcta:2, fb_ok:"✓ Correcto. El neutrón tiene carga cero (es neutro). Por eso no interactúa por fuerza de Coulomb con otras cargas.", fb_mal:"✗ Incorrecto. El neutrón tiene carga NULA (cero). No participa en interacciones coulombianas por esa razón." },
+  // 90
+  { texto:"Si en la práctica se mide la pendiente C = K₀·|Q₁Q₂|/εᵣ = 45×10⁻³ N·m², Q₁ = Q₂ = 5 μC, ¿cuál es εᵣ del medio?", opciones:["εᵣ = 1","εᵣ = 2","εᵣ = 3","εᵣ = 5"], correcta:0, fb_ok:"✓ Correcto. εᵣ = K₀Q₁Q₂/C = 9×10⁹×(5×10⁻⁶)²/(45×10⁻³) = 9×10⁹×25×10⁻¹²/0.045 = 225×10⁻³/0.045 = 5. Entonces εᵣ=5.", fb_mal:"✗ Incorrecto. εᵣ = K₀Q₁Q₂/C = 9×10⁹×25×10⁻¹²/45×10⁻³ = 225×10⁻³/45×10⁻³ = 5." },
+  // 91
+  { texto:"¿La Ley de Coulomb aplica directamente si las cargas están en movimiento a alta velocidad (relativista)?", opciones:["Sí, sin ninguna modificación","No, a altas velocidades se requiere electrodinámica relativista","Solo si se mantiene la distancia constante","Solo para cargas negativas en movimiento"], correcta:1, fb_ok:"✓ Correcto. Para cargas en movimiento a velocidades relativistas, la Ley de Coulomb debe corregirse con electrodinámica relativista.", fb_mal:"✗ Incorrecto. La Ley de Coulomb aplica a cargas en reposo (electrostática). A velocidades relativistas se requiere corrección." },
+  // 92
+  { texto:"¿Cuál es la fuerza neta entre Q₁ = +2 μC y Q₂ = +2 μC si Q₃ = -4 μC se coloca justo en el punto medio entre ellas (a 1 m de cada una)?", opciones:["La fuerza neta sobre Q₁ es solo la de Q₂","La fuerza neta sobre Q₁ incluye la atracción de Q₃ y repulsión de Q₂","La fuerza de Q₃ sobre Q₁ es cero por simetría","Solo actúa la fuerza de la carga más cercana"], correcta:1, fb_ok:"✓ Correcto. Sobre Q₁ actúan: repulsión de Q₂ (alejándose) y atracción de Q₃ (acercándose hacia el centro). Hay que sumar vectorialmente.", fb_mal:"✗ Incorrecto. Por superposición, sobre Q₁ actúan TODAS las fuerzas: de Q₂ (repulsión) y de Q₃ (atracción). Se suman vectorialmente." },
+  // 93
+  { texto:"¿Qué ocurre con la fuerza de Coulomb si se introduce un conductor entre las dos cargas?", opciones:["La fuerza aumenta","La fuerza se mantiene igual","La fuerza puede cambiar significativamente (el conductor se polariza)","La fuerza exactamente se reduce a la mitad"], correcta:2, fb_ok:"✓ Correcto. Un conductor se polariza (redistribuye cargas) y esto modifica el campo y la fuerza. La Ley de Coulomb simple ya no aplica directamente.", fb_mal:"✗ Incorrecto. Un conductor se polariza cuando se introduce entre cargas, alterando la distribución de carga y cambiando la fuerza neta." },
+  // 94
+  { texto:"¿Por qué el 1 Coulomb es una cantidad de carga muy grande en la práctica?", opciones:["Porque equivale solo a 1000 electrones","Porque equivale a ~6.24×10¹⁸ electrones, lo que generaría fuerzas enormes","Porque solo se puede almacenar en superconductores","Porque es más pequeño que la carga del electrón"], correcta:1, fb_ok:"✓ Correcto. 1C = 6.24×10¹⁸ electrones. Dos cargas de 1C a 1m de distancia tendrían una fuerza de 9×10⁹ N, ¡equivalente a ~900 000 toneladas!", fb_mal:"✗ Incorrecto. 1C = 6.24×10¹⁸ electrones. La fuerza entre dos cargas de 1C a 1m es F = 9×10⁹ N, una fuerza inmensa." },
+  // 95
+  { texto:"Si se tienen 4 cargas iguales Q en los vértices de un cuadrado, ¿cuántas interacciones (pares) hay que considerar para calcular la fuerza neta sobre una de ellas?", opciones:["1 interacción","2 interacciones","3 interacciones","6 interacciones"], correcta:2, fb_ok:"✓ Correcto. Cada carga interactúa con las otras 3 (los otros 3 vértices): 2 adyacentes y 1 diagonal. Son 3 interacciones por carga.", fb_mal:"✗ Incorrecto. Una carga en un vértice interactúa con las otras 3 (2 lados adyacentes + 1 diagonal). Son 3 pares de interacción por carga." },
+  // 96
+  { texto:"Para determinar εᵣ de un medio experimentalmente con la Ley de Coulomb, ¿qué se compara?", opciones:["La masa de las cargas en distintos medios","La fuerza entre las mismas cargas a la misma distancia, primero en vacío y luego en el medio","La velocidad de la luz en el medio","El calor generado por las cargas"], correcta:1, fb_ok:"✓ Correcto. εᵣ = F_vacío/F_medio. Midiendo la fuerza en el vacío y en el medio (mismas Q y r), se obtiene εᵣ directamente.", fb_mal:"✗ Incorrecto. Se mide la fuerza en el mismo montaje en vacío (F₀) y en el medio (F). εᵣ = F₀/F." },
+  // 97
+  { texto:"¿Cuánto vale F entre Q₁ = 1 μC y Q₂ = 1 μC a r = 0.1 m en vacío?", opciones:["9 mN","0.9 N","90 mN","9 N"], correcta:1, fb_ok:"✓ Correcto. F = 9×10⁹×(10⁻⁶)²/(0.1)² = 9×10⁹×10⁻¹²/0.01 = 9×10⁻³/0.01 = 0.9 N.", fb_mal:"✗ Incorrecto. F = 9×10⁹×10⁻¹²/(10⁻²) = 9×10⁻³/10⁻² = 0.9 N." },
+  // 98
+  { texto:"¿Cuánto vale F entre Q₁ = 1 μC y Q₂ = 1 μC a r = 10 m en vacío?", opciones:["9 μN","9 mN","0.9 mN","9 nN"], correcta:0, fb_ok:"✓ Correcto. F = 9×10⁹×(10⁻⁶)²/(10)² = 9×10⁹×10⁻¹²/100 = 9×10⁻³/100 = 9×10⁻⁵ N = 90 μN. Aprox 9×10⁻⁵ N.", fb_mal:"✗ Incorrecto. F = 9×10⁹×10⁻¹²/100 = 90×10⁻⁶ N = 90 μN ≈ 9×10⁻⁵ N." },
+  // 99
+  { texto:"Si se tiene Q₁ = 2 μC y se quiere obtener F = 0.018 N en vacío con Q₂ = 2 μC, ¿a qué distancia deben estar?", opciones:["r ≈ 1.41 m","r ≈ 2 m","r = 1 m","r = 0.5 m"], correcta:0, fb_ok:"✓ Correcto. r = √(K₀Q₁Q₂/F) = √(9×10⁹×4×10⁻¹²/0.018) = √(36×10⁻³/0.018) = √2 ≈ 1.41 m.", fb_mal:"✗ Incorrecto. r = √(K₀Q₁Q₂/F) = √(9×10⁹×4×10⁻¹²/0.018) = √2 ≈ 1.41 m." },
+  // 100
+  { texto:"¿Cuál de las siguientes opciones describe correctamente la Ley de Coulomb en palabras?", opciones:["La fuerza entre dos cargas es inversamente proporcional a su producto y directamente proporcional al cuadrado de la distancia","La fuerza entre dos cargas es directamente proporcional al producto de sus magnitudes e inversamente proporcional al cuadrado de la distancia","La fuerza entre dos cargas es proporcional a la suma de sus magnitudes","La fuerza entre dos cargas no depende del medio en que se encuentran"], correcta:1, fb_ok:"✓ Correcto. F = K₀|Q₁Q₂|/(εᵣ·r²): directamente proporcional al producto de las cargas e inversamente proporcional a r².", fb_mal:"✗ Incorrecto. La Ley de Coulomb: F es DIRECTAMENTE proporcional a |Q₁|·|Q₂| e INVERSAMENTE proporcional a r²." }
+];
+
+// ══════════════════════════════════════════════════════════════════
+//  ESTADO GLOBAL
+// ══════════════════════════════════════════════════════════════════
+let estudiante = { nombre:'', codigo:'', correo:'' };
+let preguntasActuales = [];
+let intentoActual = 1; // 1 = primer intento (sobre 5), 2 = segundo intento (sobre 4)
+let notaFinal = 0;
+
+// ══════════════════════════════════════════════════════════════════
+//  UTILIDADES
+// ══════════════════════════════════════════════════════════════════
+function mezclar(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+}
+
+function seleccionarPreguntas() {
+    const mezcladas = mezclar(BANCO_PREGUNTAS);
+    return mezcladas.slice(0, NUM_PREGUNTAS).map(p => ({
+        ...p,
+        opciones: mezclar(p.opciones.map((o, i) => ({ texto: o, esCorrecta: i === p.correcta })))
+    }));
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  REGISTRO
+// ══════════════════════════════════════════════════════════════════
+function iniciarRegistro() {
+    const nombre = document.getElementById('reg-nombre').value.trim();
+    const codigo = document.getElementById('reg-codigo').value.trim();
+    const correo = document.getElementById('reg-correo').value.trim();
+
+    let valido = true;
+    ['reg-nombre','reg-codigo','reg-correo'].forEach(id => document.getElementById(id).classList.remove('error'));
+
+    if (!nombre) { document.getElementById('reg-nombre').classList.add('error'); valido = false; }
+    if (!codigo) { document.getElementById('reg-codigo').classList.add('error'); valido = false; }
+    if (!correo || !correo.includes('@')) { document.getElementById('reg-correo').classList.add('error'); valido = false; }
+
+    if (!valido) { alert('⚠️ Por favor completa todos los campos correctamente.'); return; }
+
+    estudiante = { nombre, codigo, correo };
+    intentoActual = 1;
+    iniciarQuiz();
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  QUIZ
+// ══════════════════════════════════════════════════════════════════
+function iniciarQuiz() {
+    preguntasActuales = seleccionarPreguntas();
+
+    // Badge de intento
+    const badge = document.getElementById('badge-intento-wrap');
+    if (intentoActual === 1) {
+        badge.innerHTML = '<div class="badge-intento">📝 Primer intento — Nota máxima: 5.0</div>';
+    } else {
+        badge.innerHTML = '<div class="badge-intento segundo">⚠️ Segundo intento — Nota máxima: 4.0</div>';
+    }
+
+    // Renderizar preguntas
+    const cont = document.getElementById('contenedor-preguntas');
+    cont.innerHTML = '';
+    preguntasActuales.forEach((p, idx) => {
+        const letras = ['a','b','c','d'];
+        let opcionesHTML = p.opciones.map((op, i) =>
+            `<label class="opcion"><input type="radio" name="q${idx}" value="${i}"> ${op.texto}</label>`
+        ).join('');
+        cont.innerHTML += `
+            <div class="pregunta" id="preg-${idx}">
+                <p class="pregunta-texto"><span class="pregunta-num">${idx+1}</span>${p.texto}</p>
+                ${opcionesHTML}
+                <div class="feedback" id="fb-${idx}"></div>
+            </div>`;
+    });
+
+    // Resetear resultado
+    document.getElementById('btn-calificar').style.display = 'block';
+    document.getElementById('resultado-quiz').style.display = 'none';
+    document.getElementById('btn-continuar').style.display = 'none';
+    document.getElementById('btn-reintentar').style.display = 'none';
+
+    mostrarPantalla('pantalla-quiz');
+}
+
+function calificarQuiz() {
+    // Verificar que respondió todo
+    const sinResponder = [];
+    preguntasActuales.forEach((p, idx) => {
+        if (!document.querySelector(`input[name="q${idx}"]:checked`)) sinResponder.push(idx + 1);
+    });
+    if (sinResponder.length > 0) { alert(`⚠️ Faltan por responder las preguntas: ${sinResponder.join(', ')}`); return; }
+
+    let correctas = 0;
+    preguntasActuales.forEach((p, idx) => {
+        const selIdx = parseInt(document.querySelector(`input[name="q${idx}"]:checked`).value);
+        const todas = document.querySelectorAll(`input[name="q${idx}"]`);
+        const fb = document.getElementById(`fb-${idx}`);
+
+        todas.forEach(op => {
+            op.disabled = true;
+            op.closest('.opcion').classList.add('bloqueada');
+        });
+
+        const opcionSeleccionada = p.opciones[selIdx];
+        if (opcionSeleccionada.esCorrecta) {
+            correctas++;
+            todas[selIdx].closest('.opcion').classList.add('correcta');
+            fb.className = 'feedback ok';
+            fb.textContent = p.fb_ok;
+        } else {
+            todas[selIdx].closest('.opcion').classList.add('incorrecta');
+            fb.className = 'feedback mal';
+            fb.textContent = p.fb_mal;
+            // Mostrar la correcta
+            p.opciones.forEach((op, i) => {
+                if (op.esCorrecta) todas[i].closest('.opcion').classList.add('resp-correcta');
+            });
+        }
+    });
+
+    const pct = Math.round((correctas / NUM_PREGUNTAS) * 100);
+    const aprobado = pct >= 60;
+
+    // Calcular nota sobre 5 o sobre 4
+    const notaBase = intentoActual === 1 ? 5.0 : 4.0;
+    notaFinal = ((correctas / NUM_PREGUNTAS) * notaBase).toFixed(1);
+
+    document.getElementById('btn-calificar').style.display = 'none';
+    const resDiv = document.getElementById('resultado-quiz');
+    resDiv.style.display = 'block';
+    resDiv.className = 'resultado-quiz ' + (aprobado ? 'aprobado' : 'reprobado');
+    document.getElementById('puntaje-txt').textContent = `${correctas} / ${NUM_PREGUNTAS} — ${pct}%`;
+    document.getElementById('nota-txt').textContent = `Nota: ${notaFinal} / ${notaBase}`;
+    document.getElementById('resultado-msg').textContent = aprobado
+        ? '🎉 ¡Felicitaciones! Has superado el quiz.'
+        : '❌ No alcanzaste el puntaje mínimo (60%).';
+    document.getElementById('resultado-sub').textContent = aprobado
+        ? 'Toca el botón para continuar a la práctica.'
+        : intentoActual === 1
+            ? `Obtuviste ${correctas} de ${NUM_PREGUNTAS}. Tienes un segundo intento (nota máx. 4.0).`
+            : `Obtuviste ${correctas} de ${NUM_PREGUNTAS}. No hay más intentos disponibles.`;
+
+    if (aprobado) {
+        document.getElementById('btn-continuar').style.display = 'block';
+        document.getElementById('paso1').classList.replace('activo', 'completo');
+        document.getElementById('circulo1').textContent = '✓';
+        enviarResultados(correctas, pct, true);
+    } else {
+        if (intentoActual === 1) {
+            document.getElementById('btn-reintentar').style.display = 'block';
+        }
+        enviarResultados(correctas, pct, false);
+    }
+}
+
+function segundoIntento() {
+    intentoActual = 2;
+    iniciarQuiz();
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  NAVEGACIÓN
+// ══════════════════════════════════════════════════════════════════
+function mostrarPantalla(id) {
+    document.querySelectorAll('.pantalla').forEach(p => p.classList.remove('activa'));
+    document.getElementById(id).classList.add('activa');
+    window.scrollTo(0, 0);
+}
+
+function desbloquear() {
+    document.getElementById('nota-final-display').textContent = `${notaFinal} / ${intentoActual === 1 ? '5.0' : '4.0'}`;
+    document.getElementById('paso2').classList.add('activo');
+    document.getElementById('paso3').classList.add('activo');
+    mostrarPantalla('pantalla-selector');
+}
+
+function abrirSeccion(cual) {
+    document.getElementById('pantalla-' + cual).classList.add('activa');
+    document.body.style.overflow = 'hidden';
+    document.getElementById('paso2').classList.toggle('activo', cual === 'guia');
+    document.getElementById('paso3').classList.toggle('activo', cual === 'simulador');
+}
+
+function cerrarSeccion() {
+    document.querySelectorAll('.pantalla-contenido').forEach(p => p.classList.remove('activa'));
+    document.body.style.overflow = '';
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  ENVÍO A POWER AUTOMATE
+// ══════════════════════════════════════════════════════════════════
+async function enviarResultados(correctas, pct, aprobado) {
+    if (!POWER_AUTOMATE_URL || POWER_AUTOMATE_URL === 'PEGA_AQUI_TU_URL_DE_POWER_AUTOMATE') return;
+
+    document.getElementById('overlay-enviando').classList.add('activo');
+    const ahora = new Date();
+    const datos = {
+        nombre:      estudiante.nombre,
+        codigo:      estudiante.codigo,
+        correo:      estudiante.correo,
+        practica:    'Práctica 02 — Ley de Coulomb',
+        intento:     intentoActual,
+        correctas:   correctas,
+        total:       NUM_PREGUNTAS,
+        porcentaje:  pct,
+        nota:        parseFloat(notaFinal),
+        notaBase:    intentoActual === 1 ? 5.0 : 4.0,
+        aprobado:    aprobado,
+        fecha:       ahora.toLocaleDateString('es-CO'),
+        hora:        ahora.toLocaleTimeString('es-CO')
+    };
+
+    try {
+        await fetch(POWER_AUTOMATE_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(datos)
+        });
+    } catch(e) {
+        console.warn('No se pudo enviar a Power Automate:', e);
+    } finally {
+        document.getElementById('overlay-enviando').classList.remove('activo');
+    }
+}
+</script>
+</body>
+</html>

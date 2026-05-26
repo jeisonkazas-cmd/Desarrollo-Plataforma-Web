@@ -1,0 +1,1763 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Plano Inclinado – Retos A · B · C</title>
+<style>
+  :root{
+    --bg:#f1f5f9; --panel:#ffffff; --border:#e5e7eb;
+    --ink:#111827; --muted:#6b7280;
+    --accent:#22c55e; --accent2:#3b82f6; --accent3:#ef4444;
+    --accent4:#a855f7; --comp:#f59e0b;
+    --radius:12px; --gap:10px;
+    --bar-h:52px;   /* mode-bar height */
+    --fab-h:60px;   /* floating action bar height on mobile */
+  }
+  *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+  html { height:100%; }
+  body {
+    font-family:system-ui,Segoe UI,Roboto,Inter,Arial,sans-serif;
+    background:var(--bg); color:var(--ink);
+    min-height:100%; overflow-x:hidden;
+  }
+
+  /* ══════════════════════════════
+     BARRA DE MODOS
+  ══════════════════════════════ */
+  .mode-bar {
+    position:sticky; top:0; z-index:100;
+    display:flex; align-items:center; flex-wrap:nowrap;
+    gap:6px; padding:8px 12px;
+    background:#fff; border-bottom:1px solid var(--border);
+    min-height:var(--bar-h);
+  }
+  .mode-bar h1 {
+    font-size:clamp(12px,1.8vw,17px); font-weight:700;
+    flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .mode-btns { display:flex; gap:5px; flex-shrink:0; }
+  .mode-btn {
+    padding:6px 12px; border-radius:999px; border:2px solid var(--border);
+    background:#f8fafc; cursor:pointer; font-size:13px; font-weight:600;
+    white-space:nowrap; transition:all .15s; line-height:1.2;
+    touch-action:manipulation; min-height:36px;
+  }
+  .mode-btn.active { background:#1d4ed8; color:#fff; border-color:#1d4ed8; }
+  .mode-btn:hover:not(.active) { border-color:#93c5fd; background:#eff6ff; }
+
+  /* ══════════════════════════════
+     LAYOUT PRINCIPAL
+  ══════════════════════════════ */
+  .wrap {
+    display:grid;
+    grid-template-columns:360px 1fr;
+    grid-template-rows:auto;
+    gap:var(--gap); padding:var(--gap);
+    min-height:calc(100vh - var(--bar-h));
+    align-items:start;
+  }
+
+  /* Panel genérico */
+  .panel {
+    background:#fff; border:1px solid var(--border);
+    border-radius:var(--radius); padding:12px;
+  }
+
+  /* ══════════════════════════════
+     PANEL DE CONTROLES (izquierdo)
+  ══════════════════════════════ */
+  .controls {
+    overflow-y:auto;
+    max-height:calc(100vh - var(--bar-h) - var(--gap)*2);
+    position:sticky; top:calc(var(--bar-h) + var(--gap));
+  }
+
+  /* Pestañas móvil (ocultas en desktop) */
+  .ctrl-tabs { display:none; }
+
+  /* Secciones del panel */
+  .ctrl-section { display:block; }
+  .ctrl-section.hidden { display:none; }
+
+  /* Inputs y labels */
+  .row { margin-bottom:10px; }
+  .controls label { display:block; font-size:14px; color:#374151; margin-bottom:5px; }
+  .controls input[type="range"] {
+    width:100%; height:28px; cursor:pointer;
+    accent-color:#2563eb;
+  }
+  .controls input[type="number"],
+  .controls select {
+    width:100%; background:#fff; color:var(--ink);
+    border:1px solid var(--border); border-radius:8px;
+    padding:10px; outline:none; font-size:14px;
+    touch-action:manipulation;
+  }
+  .controls .grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+
+  /* Botones */
+  .buttons { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
+  .btn {
+    background:#fff; color:var(--ink); border:1px solid var(--border);
+    border-radius:10px; padding:9px 13px; cursor:pointer;
+    font-size:13px; line-height:1.2; touch-action:manipulation;
+    min-height:40px; white-space:nowrap;
+    transition:transform .1s, box-shadow .1s;
+  }
+  .btn.primary  { border-color:#2563eb; background:#eff6ff; color:#1d4ed8; font-weight:700; }
+  .btn.success  { border-color:#16a34a; background:#f0fdf4; color:#15803d; font-weight:700; }
+  .btn.danger   { border-color:#dc2626; background:#fef2f2; color:#b91c1c; }
+  .btn:active   { transform:translateY(1px); }
+
+  /* Flags / checkboxes */
+  .flags { display:flex; gap:10px; align-items:center; margin-top:8px; flex-wrap:wrap; }
+  .flags label {
+    display:flex; gap:5px; align-items:center;
+    cursor:pointer; color:#374151; font-size:13px;
+  }
+
+  /* Pills, chips, leyenda */
+  .legend { display:flex; gap:8px; flex-wrap:wrap; font-size:12px; color:#374151; margin-top:8px; }
+  .chip { display:inline-flex; gap:4px; align-items:center; background:#fff; border:1px solid var(--border); border-radius:999px; padding:3px 8px; }
+  .dot  { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+  .dot.w  { background:var(--accent3) } .dot.n { background:var(--accent2) }
+  .dot.f  { background:var(--accent) }  .dot.r { background:var(--accent4) }
+  .dot.cp { background:var(--comp) }    .dot.ext{ background:#f97316 } .dot.ap{ background:#06b6d4 }
+  .state  { display:flex; gap:8px; flex-wrap:wrap; margin-top:6px; }
+  .pill   { display:inline-block; border:1px solid var(--border); background:#fff; padding:3px 8px; border-radius:999px; font-size:12px; color:#374151; }
+  .readout{ font-family:ui-monospace,Menlo,Consolas,monospace; font-size:11.5px; line-height:1.55; white-space:pre-wrap; }
+
+  /* Reto box */
+  .reto-box {
+    border-radius:10px; padding:10px 12px; margin-top:10px;
+    font-size:13px; line-height:1.55;
+    border:1px solid var(--border); background:#f8fafc;
+  }
+  .reto-box.info { border-color:#93c5fd; background:#eff6ff; }
+  .reto-box.warn { border-color:#fbbf24; background:#fffbeb; }
+  .reto-box.ok   { border-color:#86efac; background:#f0fdf4; }
+  .reto-box strong { display:block; margin-bottom:4px; font-size:14px; }
+
+  /* Parte A */
+  #partA-check { display:none; margin-top:8px; }
+  #partA-check input[type="number"] {
+    width:100%; border:1px solid var(--border); border-radius:8px;
+    padding:8px; font-size:14px;
+  }
+
+  /* Parte C: masas */
+  .mass-item {
+    display:flex; align-items:center; gap:8px;
+    background:#f8fafc; border:1px solid var(--border);
+    border-radius:8px; padding:6px 10px; font-size:13px;
+  }
+  .mass-item input { width:70px; border:1px solid var(--border); border-radius:6px; padding:4px 6px; font-size:13px; }
+  .mass-item .rm   { border:none; background:none; cursor:pointer; color:#ef4444; font-size:18px; padding:0 4px; line-height:1; }
+
+  /* ══════════════════════════════
+     CANVAS (derecho)
+  ══════════════════════════════ */
+  .canvas-wrap {
+    position:sticky;
+    top:calc(var(--bar-h) + var(--gap));
+    align-self:start;
+  }
+  .canvas-toolbar {
+    display:flex; align-items:center; gap:8px;
+    margin-bottom:8px; font-size:13px; color:#374151;
+  }
+  .canvas-toolbar span { white-space:nowrap; }
+  #zoomSlider { flex:1; accent-color:#2563eb; height:24px; }
+  canvas {
+    width:100%; display:block; touch-action:none;
+    background:#fff; border-radius:var(--radius);
+    height:clamp(380px,calc(100vh - var(--bar-h) - 70px),900px);
+  }
+
+  /* ══════════════════════════════
+     FLOATING ACTION BAR (solo móvil)
+  ══════════════════════════════ */
+  .fab-bar { display:none; }
+
+  /* ══════════════════════════════
+     TOAST
+  ══════════════════════════════ */
+  #toast {
+    position:fixed; bottom:80px; left:50%;
+    transform:translateX(-50%) translateY(200px);
+    background:#15803d; color:#fff; padding:12px 24px;
+    border-radius:12px; font-size:15px; font-weight:600;
+    box-shadow:0 8px 24px #0004; z-index:999; pointer-events:none;
+    transition:transform .4s cubic-bezier(.34,1.56,.64,1);
+    max-width:90vw; text-align:center;
+    visibility:hidden;
+  }
+  #toast.show { transform:translateX(-50%) translateY(0); visibility:visible; }
+
+  /* ══════════════════════════════
+     TABLET  640 – 1023 px
+  ══════════════════════════════ */
+  @media(max-width:1023px){
+    .wrap {
+      grid-template-columns:1fr;
+      grid-template-rows:auto auto;
+      padding:8px;
+    }
+    /* Canvas arriba */
+    .canvas-wrap { order:-1; position:relative; top:0; }
+    canvas {
+      height:clamp(260px,42vw,480px);
+    }
+    /* Controles debajo, sin sticky ni max-height */
+    .controls {
+      position:static; max-height:none; overflow-y:visible;
+    }
+    .controls .grid { grid-template-columns:1fr 1fr; }
+  }
+
+  /* ══════════════════════════════
+     MÓVIL  < 640 px
+  ══════════════════════════════ */
+  @media(max-width:639px){
+    :root{ --bar-h:50px; --fab-h:62px; }
+
+    /* Mode bar compacta */
+    .mode-bar { padding:6px 10px; gap:4px; }
+    .mode-bar h1 { font-size:13px; }
+    .mode-btn { padding:5px 9px; font-size:12px; min-height:32px; }
+
+    .wrap { padding:6px; gap:6px; }
+
+    /* Canvas altura móvil */
+    canvas { height:clamp(220px,52vw,360px); }
+
+    /* Pestañas móvil activas */
+    .ctrl-tabs {
+      display:flex; overflow-x:auto; gap:4px;
+      padding:4px 0 6px;
+      scrollbar-width:none; -webkit-overflow-scrolling:touch;
+    }
+    .ctrl-tabs::-webkit-scrollbar { display:none; }
+    .ctrl-tab {
+      flex-shrink:0; padding:6px 14px; border-radius:999px;
+      border:1.5px solid var(--border); background:#f8fafc;
+      font-size:12px; font-weight:600; cursor:pointer;
+      touch-action:manipulation; min-height:32px;
+      transition:all .15s;
+    }
+    .ctrl-tab.active { background:#1d4ed8; color:#fff; border-color:#1d4ed8; }
+
+    /* Sections ocultas por defecto — JS las muestra */
+    .ctrl-section.hidden { display:none; }
+
+    /* Espacio para la barra flotante */
+    .wrap { padding-bottom:calc(var(--fab-h) + 10px); }
+
+    /* Barra flotante de acciones */
+    .fab-bar {
+      display:flex; position:fixed; bottom:0; left:0; right:0; z-index:200;
+      background:#fff; border-top:1px solid var(--border);
+      padding:8px 10px; gap:6px;
+      padding-bottom:max(8px, env(safe-area-inset-bottom));
+      box-shadow:0 -4px 16px #0002;
+    }
+    .fab-bar .btn {
+      flex:1; text-align:center; font-size:13px;
+      padding:10px 6px; min-height:42px;
+    }
+    /* Ocultar botones toggle/reset del panel en móvil (están en FAB) */
+    #stdBtns .btn-mob-hide { display:none; }
+
+    /* Toast sube para no tapar FAB */
+    #toast { bottom:calc(var(--fab-h) + 16px); }
+
+    /* Inputs más grandes */
+    .controls input[type="number"],
+    .controls select { padding:11px 10px; font-size:15px; }
+    .controls input[type="range"] { height:36px; }
+    .btn { min-height:44px; font-size:14px; }
+
+    /* Readout más compacto */
+    .readout { font-size:11px; }
+    .legend  { gap:5px; }
+    .chip    { font-size:11px; padding:2px 6px; }
+
+    /* Ocultar toggle/reset del panel — están en FAB */
+    .btn-mob-hide { display:none !important; }
+
+    /* Reto box */
+    .reto-box { font-size:12.5px; }
+    .reto-box strong { font-size:13px; }
+  }
+
+  /* ══════════════════════════════
+     PANTALLAS MUY GRANDES  > 1400px
+  ══════════════════════════════ */
+  @media(min-width:1400px){
+    .wrap { grid-template-columns:400px 1fr; gap:16px; padding:16px; }
+    canvas { height:clamp(500px,calc(100vh - var(--bar-h) - 80px),1000px); }
+  }
+
+  /* ── Accesibilidad ── */
+  @media(prefers-reduced-motion:reduce){ .btn:active{ transform:none; } }
+  @media(pointer:coarse){
+    .mode-btn { min-height:40px; }
+    .btn { min-height:44px; }
+    .controls input[type="range"] { height:36px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══ BARRA DE MODOS ══ -->
+<div class="mode-bar">
+  <h1>🔬 Plano Inclinado – Retos</h1>
+  <div class="mode-btns">
+    <button class="mode-btn" id="btnModeLib" onclick="setMode('libre')">⚙️ Libre</button>
+    <button class="mode-btn active" id="btnModeA"  onclick="setMode('A')">🔴 A</button>
+    <button class="mode-btn" id="btnModeB"  onclick="setMode('B')">🟠 B</button>
+    <button class="mode-btn" id="btnModeC"  onclick="setMode('C')">🟢 C</button>
+  </div>
+</div>
+
+<!-- ══ LAYOUT ══ -->
+<div class="wrap">
+  <!-- Panel izquierdo -->
+  <div class="panel controls" id="leftPanel">
+
+    <!-- PESTAÑAS MÓVIL -->
+    <div class="ctrl-tabs" id="ctrlTabs">
+      <button class="ctrl-tab active" data-target="sec-params" onclick="switchTab(this)">⚙️ Parámetros</button>
+      <button class="ctrl-tab" data-target="sec-reto"   onclick="switchTab(this)">🎯 Reto</button>
+      <button class="ctrl-tab" data-target="sec-visual"  onclick="switchTab(this)">📊 Visual</button>
+    </div>
+
+    <!-- SECCIÓN: Parámetros -->
+    <div class="ctrl-section" id="sec-params">
+
+    <!-- CONTROLES BASE (visibles siempre) -->
+    <div class="row" id="rowAngle" style="margin-top:10px">
+      <label>Ángulo del plano: <span id="angleOut" class="pill">0°</span></label>
+      <input id="angle" type="range" min="0" max="89" step="0.5" value="0" aria-label="Ángulo del plano">
+    </div>
+    <div class="grid">
+      <div class="row">
+        <label>Masa del bloque <b>(m₁)</b> (kg)</label>
+        <input id="mass" type="number" min="0.1" step="0.1" value="2.0" inputmode="decimal" aria-label="Masa">
+      </div>
+      <div class="row">
+        <label>Gravedad g (m/s²)</label>
+        <input id="grav" type="number" min="0.1" step="0.01" value="9.81" inputmode="decimal" aria-label="Gravedad">
+      </div>
+    </div>
+    <div class="row" id="rowMat">
+      <label>Material del objeto</label>
+      <select id="matObj" aria-label="Material del objeto"></select>
+    </div>
+    <div class="row" id="rowMatP">
+      <label>Material del plano</label>
+      <select id="matPlane" aria-label="Material del plano"></select>
+    </div>
+
+    <!-- μ info (oculto en Parte B) -->
+    <div class="state">
+      <span id="muInfo" class="pill">μs = —, μk = —</span>
+      <span id="status" class="pill">Estado: —</span>
+    </div>
+
+    <!-- BOTONES ESTÁNDAR -->
+    <div class="buttons" id="stdBtns">
+      <button id="toggle" class="btn primary btn-mob-hide">▶ Iniciar</button>
+      <button id="reset"  class="btn btn-mob-hide">⟲ Reiniciar</button>
+      <button id="step"   class="btn btn-mob-hide">⏭ Paso</button>
+      <button id="crit"   class="btn" title="Fijar ángulo crítico">∠ Ángulo crítico</button>
+      <button id="save"   class="btn">💾 PNG</button>
+      <button id="csv"    class="btn">📄 CSV</button>
+    </div>
+
+    <!-- FLAGS -->
+    <div class="flags">
+      <label><input id="showVectors" type="checkbox" checked> Vectores</label>
+      <label><input id="showValues"  type="checkbox" checked> Valores</label>
+      <label><input id="showDecomp"  type="checkbox"> Descomponer peso</label>
+    </div>
+    </div><!-- /sec-params -->
+
+    <!-- SECCIÓN: Reto -->
+    <div class="ctrl-section hidden" id="sec-reto">
+    <div id="retoDesc" class="reto-box info" style="margin-top:0; display:none">
+      <strong>🔴 Parte A – Equilibrio de fuerzas</strong>
+      El plano está horizontal (θ = 0°). Se aplican dos fuerzas externas aleatorias sobre el bloque.
+      Calcula la fuerza aplicada necesaria para mantener el sistema en <b>equilibrio estático</b> e ingrésala abajo.
+    </div>
+
+    <!-- ══ PARTE A: fuerzas externas + verificación ══ -->
+    <div id="secA" style="display:none; margin-top:10px">
+      <div class="reto-box warn" id="extForcesBox">
+        <strong>⚡ Fuerzas externas del problema</strong>
+        <span id="extF1Label">F₁ = —</span><br>
+        <span id="extF2Label">F₂ = —</span><br>
+        <small style="color:var(--muted)">Positivo = hacia la derecha (↗), Negativo = hacia la izquierda (↙)</small>
+      </div>
+      <div id="partA-check" style="display:block; margin-top:8px">
+        <label style="display:block;font-size:13px;margin-bottom:4px">💡 Tu respuesta – Fuerza aplicada F_ap (N):</label>
+        <div style="display:flex;gap:6px">
+          <input id="userFap" type="number" step="0.01" placeholder="ej: 5.20" style="flex:1;border:1px solid var(--border);border-radius:8px;padding:8px;font-size:14px;">
+          <button class="btn success" onclick="checkA()">✓ Verificar</button>
+        </div>
+        <div id="feedbackA" style="margin-top:6px;font-size:13px"></div>
+      </div>
+      <button class="btn" style="margin-top:8px;width:100%" onclick="newProblemA()">🔀 Nuevo problema</button>
+    </div>
+
+    <!-- ══ PARTE B: encontrar ángulo crítico ══ -->
+    <div id="secB" style="display:none; margin-top:10px">
+      <div class="reto-box warn" style="display:none">
+        Aumenta el ángulo lentamente hasta que el bloque comience a deslizarse.
+        Ese ángulo te permite calcular <b>μs = tan(θ_crítico)</b>.<br>
+        Los coeficientes de fricción están ocultos — ¡descúbrelos tú!
+      </div>
+      <div style="margin-top:8px">
+        <label style="font-size:13px;display:block;margin-bottom:4px">💡 Ingresa el ángulo crítico que encontraste (°):</label>
+        <div style="display:flex;gap:6px">
+          <input id="userThetaC" type="number" step="0.1" placeholder="ej: 21.8" style="flex:1;border:1px solid var(--border);border-radius:8px;padding:8px;font-size:14px;">
+          <button class="btn success" onclick="checkB()">✓ Verificar</button>
+        </div>
+        <div id="feedbackB" style="margin-top:6px;font-size:13px"></div>
+      </div>
+    </div>
+
+    <!-- ══ PARTE C: polea + masas colgantes ══ -->
+    <div id="secC" style="display:none; margin-top:10px">
+      <div class="reto-box info" style="display:none"><br><br>
+
+        🟡 El bloque sobre el plano = <b>m₁</b><br>
+        🟣 La masa que cuelga de la polea = <b>m₂</b> (Fase 1) y <b>m₂'</b> (Fase 2)<br>
+        <small style="color:#6b7280">⚠️ m₂ y m₂' se colocan en el <b>mismo gancho</b> — es la misma masa colgante que ajustas en cada fase.</small><br><br>
+
+        <b>📌 Fase 1 — Encuentra m₂:</b><br>
+        Agrega masa al gancho poco a poco y presiona <b>Iniciar</b>.<br>
+        <u>Cuando la masa sea suficiente, m₁ comenzará a <b>bajar</b>.</u><br>
+        El sistema registra la aceleración <b>a₁</b> cuando es constante (barra |a| estable ✅).<br>
+        Ese valor es <b>m₂</b> — la aceleración a₁ queda guardada.<br><br>
+
+        <b>📌 Fase 2 — Encuentra m₂':</b><br>
+        Agrega <b>más masa</b> hasta que m₁ <b>suba</b> con aceleración constante <b>a₂ ≈ a₁</b>.<br>
+        El método es válido solo si <b>|a₁ − a₂| / promedio ≤ 2%</b>.<br><br>
+
+        <b>¿Cómo sabes que lograste aceleración constante?</b><br>
+        Mira el indicador: <b>barra |a| estable (verde)</b> + <b>v ≠ 0</b> = ¡aceleración constante! ✅<br><br>
+
+        Resultado: <b>μd = (m₂' − m₂) / (2·m₁·cos45°)</b>
+      </div>
+
+      <!-- Indicador de fase -->
+      <div id="phaseIndicator" style="display:none;margin-top:8px;padding:8px 12px;border-radius:8px;background:#eff6ff;border:1px solid #93c5fd;font-size:13px;font-weight:600;color:#1d4ed8;">
+        📍 Fase 1: Encuentra <b>m₂</b> — ajusta la masa colgante hasta que <b>m₁ BAJE</b> con aceleración constante
+      </div>
+
+      <!-- FASE 1: campo m₂ -->
+      <div id="panelM2" style="margin-top:10px;padding:10px 14px;border-radius:10px;border:2px solid #93c5fd;background:#eff6ff;">
+        <div style="font-size:13px;font-weight:700;color:#1d4ed8;margin-bottom:6px">📌 Fase 1 — Masa colgante m₂ (m₁ debe BAJAR con aceleración constante)</div>
+        <div style="font-size:12px;color:#374151;margin-bottom:8px">
+          Escribe un valor, presiona <b>Aplicar</b> e <b>Iniciar</b>. Si m₁ baja con aceleración constante (barra |a| estable), ¡ese es tu <b>m₂</b>!
+        </div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <label style="font-size:13px;font-weight:600;color:#1d4ed8;white-space:nowrap">m₂ =</label>
+          <input id="inputM2" type="number" min="0.01" step="0.1" value="0.50"
+            style="flex:1;border:2px solid #93c5fd;border-radius:8px;padding:8px;font-size:15px;font-weight:700;color:#1d4ed8;">
+          <label style="font-size:13px;color:#374151">kg</label>
+          <button class="btn primary" onclick="applyM2()">▶ Aplicar</button>
+        </div>
+        <div id="m2AppliedLabel" style="font-size:12px;color:#6b7280;margin-top:5px">Sin aplicar aún</div>
+      </div>
+
+      <!-- FASE 2: campo m₂' — visible desde el inicio -->
+      <div id="panelM2prime" style="margin-top:10px;padding:10px 14px;border-radius:10px;border:2px solid #fbbf24;background:#fffbeb;">
+        <div style="font-size:13px;font-weight:700;color:#92400e;margin-bottom:6px">📌 Fase 2 — Masa colgante m₂' (m₁ debe SUBIR con aceleración constante)</div>
+        <div style="font-size:12px;color:#374151;margin-bottom:8px">
+          Escribe un valor <b>mayor que m₂</b>, presiona <b>Aplicar</b> e <b>Iniciar</b>. Si m₁ sube con aceleración constante, ¡ese es tu <b>m₂'</b>!
+        </div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <label style="font-size:13px;font-weight:600;color:#92400e;white-space:nowrap">m₂' =</label>
+          <input id="inputM2prime" type="number" min="0.01" step="0.1" value="1.00"
+            style="flex:1;border:2px solid #fbbf24;border-radius:8px;padding:8px;font-size:15px;font-weight:700;color:#92400e;">
+          <label style="font-size:13px;color:#374151">kg</label>
+          <button class="btn" style="border-color:#f59e0b;background:#fffbeb;color:#92400e;font-weight:600" onclick="applyM2prime()">▶ Aplicar</button>
+        </div>
+        <div id="m2primeAppliedLabel" style="font-size:12px;color:#6b7280;margin-top:5px">Sin aplicar aún</div>
+      </div>
+
+      <!-- Indicador visual de aceleración constante -->
+      <div style="margin-top:10px;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:#f8fafc;">
+        <div style="font-size:12px;color:#6b7280;margin-bottom:4px">Indicador de aceleración constante:</div>
+        <div style="display:flex;gap:10px;align-items:center">
+          <div style="flex:1">
+            <div style="font-size:11px;color:#6b7280;margin-bottom:2px">Aceleración |a|</div>
+            <div style="background:#e5e7eb;border-radius:999px;height:10px;overflow:hidden">
+              <div id="aBar" style="height:100%;width:100%;background:#ef4444;border-radius:999px;transition:width .2s,background .2s"></div>
+            </div>
+            <div style="font-size:11px;margin-top:2px"><span id="aVal" style="font-weight:700;color:#ef4444">— m/s²</span> <span style="color:#6b7280">(meta: estable)</span></div>
+          </div>
+          <div style="flex:1">
+            <div style="font-size:11px;color:#6b7280;margin-bottom:2px">Velocidad |v|</div>
+            <div style="background:#e5e7eb;border-radius:999px;height:10px;overflow:hidden">
+              <div id="vBar" style="height:100%;width:0%;background:#3b82f6;border-radius:999px;transition:width .2s"></div>
+            </div>
+            <div style="font-size:11px;margin-top:2px"><span id="vVal" style="font-weight:700;color:#3b82f6">— m/s</span> <span id="vDir" style="color:#6b7280"></span></div>
+          </div>
+        </div>
+        <div id="cteLabel" style="margin-top:6px;font-size:12px;font-weight:600;color:#6b7280;text-align:center">⏳ Ajusta la masa colgante y presiona Iniciar</div>
+      </div>
+
+      <!-- Botón calcular μd -->
+      <button onclick="verificarMuD()" class="btn success" style="width:100%;margin-top:12px;font-size:14px;padding:10px;">
+        ✓ Calcular μd con mis valores de m₂ y m₂'
+      </button>
+
+      <div id="hangMassList" style="display:none"></div><!-- oculto, solo para compatibilidad interna -->
+
+      <!-- Indicador claro de m₂ / m₂' actual -->
+      <div id="totalHangLabel" style="margin-top:10px;padding:10px 14px;border-radius:10px;border:2px solid #93c5fd;background:#eff6ff;font-size:14px;">
+        <span style="color:#6b7280;font-size:12px;display:block;margin-bottom:2px">Masa colgante total actual =</span>
+        <span id="totalHangValue" style="font-size:22px;font-weight:700;color:#1d4ed8">0.00 kg</span>
+        <span id="totalHangName" style="font-size:13px;font-weight:600;color:#1d4ed8;margin-left:6px">← esta será tu <b>m₂</b></span>
+        <div id="totalHangHint" style="font-size:12px;color:#6b7280;margin-top:4px">
+          Ajusta hasta que m₁ <b>baje</b> con aceleración constante (a estable y v &lt; 0)
+        </div>
+      </div>
+
+      <!-- Resultados registrados -->
+      <div id="m2Results" style="margin-top:8px;font-size:13px;display:none">
+        <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:8px 10px;">
+          <span id="m2downLabel">✅ m₂ = — kg</span><br>
+          <span id="m2upLabel" style="color:#6b7280">⏳ m₂' = pendiente</span>
+        </div>
+      </div>
+
+      <div id="feedbackC" style="margin-top:8px;font-size:13px"></div>
+    </div>
+    </div><!-- /sec-reto -->
+
+    <!-- SECCIÓN: Visual -->
+    <div class="ctrl-section hidden" id="sec-visual">
+    <!-- LEYENDA -->
+    <div class="legend" style="margin-top:10px">
+      <span class="chip"><span class="dot w"></span> Peso</span>
+      <span class="chip"><span class="dot n"></span> Normal</span>
+      <span class="chip"><span class="dot f"></span> Fricción</span>
+      <span class="chip"><span class="dot r"></span> ΣF‖</span>
+      <span class="chip"><span class="dot ext"></span> F ext</span>
+      <span class="chip"><span class="dot ap"></span> F aplicada</span>
+    </div>
+
+    <div id="readout" class="panel readout" style="margin-top:10px"></div>
+    </div><!-- /sec-visual -->
+  </div>
+
+  <!-- Panel canvas -->
+  <div class="panel canvas-wrap">
+    <div class="canvas-toolbar">
+      <span>🔍 Zoom:</span>
+      <input id="zoomSlider" type="range" min="0.5" max="2.0" step="0.05" value="1.0" aria-label="Zoom del simulador">
+      <span id="zoomOut" class="pill" style="min-width:44px;text-align:center;">100%</span>
+    </div>
+    <canvas id="cv"></canvas>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast">🎉 ¡Reto aprobado!</div>
+
+<!-- Barra flotante de acciones (solo móvil) -->
+<div class="fab-bar" id="fabBar">
+  <button id="fabToggle" class="btn primary" style="flex:1.5">▶ Iniciar</button>
+  <button id="fabReset"  class="btn" style="flex:1">⟲ Reset</button>
+  <button id="fabStep"   class="btn" style="flex:1">⏭ Paso</button>
+</div>
+
+<script>
+// ── TAB SYSTEM (móvil) ──
+function switchTab(btn){
+  document.querySelectorAll('.ctrl-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const target = btn.getAttribute('data-target');
+  document.querySelectorAll('.ctrl-section').forEach(s=>{
+    s.classList.toggle('hidden', s.id !== target);
+  });
+}
+window.switchTab = switchTab;
+
+// En desktop: mostrar todas las secciones siempre
+function checkTabLayout(){
+  const isMobile = window.innerWidth < 640;
+  const sections = document.querySelectorAll('.ctrl-section');
+  if(!isMobile){
+    sections.forEach(s => s.classList.remove('hidden'));
+  } else {
+    // Mostrar solo la activa
+    const activeTab = document.querySelector('.ctrl-tab.active');
+    if(activeTab){
+      const target = activeTab.getAttribute('data-target');
+      sections.forEach(s => s.classList.toggle('hidden', s.id !== target));
+    }
+  }
+}
+window.addEventListener('resize', checkTabLayout);
+checkTabLayout();
+
+// ── FAB SYNC con botones del panel ──
+const fabToggleBtn = document.getElementById('fabToggle');
+const fabResetBtn  = document.getElementById('fabReset');
+const fabStepBtn   = document.getElementById('fabStep');
+const panelToggle  = document.getElementById('toggle');
+const panelReset   = document.getElementById('reset');
+const panelStep    = document.getElementById('step');
+
+fabToggleBtn.addEventListener('click', ()=> panelToggle.click());
+fabResetBtn.addEventListener('click',  ()=> panelReset.click());
+fabStepBtn.addEventListener('click',   ()=> panelStep.click());
+
+// Mantener texto del FAB sincronizado con el toggle
+const origToggleClick = panelToggle.onclick;
+new MutationObserver(()=>{
+  fabToggleBtn.textContent = panelToggle.textContent;
+  fabToggleBtn.className   = panelToggle.className + ' fab-sync';
+}).observe(panelToggle, { characterData:true, childList:true, subtree:true, attributes:true });
+</script>
+
+<script>
+(() => {
+// ═══════════════════════════════════════════
+//  MATERIALES
+// ═══════════════════════════════════════════
+const MATERIALS = ["Caucho","Madera","Acero","Teflón","Hielo","Concreto"];
+const MU = new Map();
+const muKey = (a,b)=>[a,b].sort().join("|");
+const setMu = (a,b,us,uk)=> MU.set(muKey(a,b),{us,uk});
+
+setMu("Caucho","Concreto", 0.90,0.80); setMu("Caucho","Madera",  0.80,0.60);
+setMu("Caucho","Acero",   0.70,0.50); setMu("Caucho","Teflón",  0.20,0.15);
+setMu("Caucho","Hielo",   0.10,0.05); setMu("Caucho","Caucho",  1.00,0.90);
+setMu("Madera","Concreto",0.62,0.50); setMu("Madera","Madera",  0.40,0.30);
+setMu("Madera","Acero",   0.50,0.30); setMu("Madera","Teflón",  0.10,0.05);
+setMu("Madera","Hielo",   0.05,0.03); setMu("Acero","Concreto", 0.60,0.45);
+setMu("Acero","Acero",    0.60,0.40); setMu("Acero","Teflón",   0.04,0.04);
+setMu("Acero","Hielo",    0.03,0.02); setMu("Teflón","Concreto",0.05,0.04);
+setMu("Teflón","Teflón",  0.04,0.04); setMu("Teflón","Hielo",   0.02,0.01);
+setMu("Hielo","Concreto", 0.05,0.03); setMu("Hielo","Hielo",    0.03,0.02);
+setMu("Concreto","Concreto",0.70,0.60);
+
+// ═══════════════════════════════════════════
+//  MODO ACTUAL
+// ═══════════════════════════════════════════
+let currentMode = 'A';   // 'libre' | 'A' | 'B' | 'C'
+
+// ═══════════════════════════════════════════
+//  REFERENCIAS DOM
+// ═══════════════════════════════════════════
+const cv         = document.getElementById('cv');
+const ctx        = cv.getContext('2d');
+const angleEl    = document.getElementById('angle');
+const angleOut   = document.getElementById('angleOut');
+const massEl     = document.getElementById('mass');
+const gravEl     = document.getElementById('grav');
+const showVectorsEl = document.getElementById('showVectors');
+const showValuesEl  = document.getElementById('showValues');
+const showDecompEl  = document.getElementById('showDecomp');
+const toggleBtn  = document.getElementById('toggle');
+const resetBtn   = document.getElementById('reset');
+const stepBtn    = document.getElementById('step');
+const critBtn    = document.getElementById('crit');
+const saveBtn    = document.getElementById('save');
+const csvBtn     = document.getElementById('csv');
+const muInfo     = document.getElementById('muInfo');
+const statusEl   = document.getElementById('status');
+const readout    = document.getElementById('readout');
+const matObjEl   = document.getElementById('matObj');
+const matPlaneEl = document.getElementById('matPlane');
+const toastEl    = document.getElementById('toast');
+
+// ═══════════════════════════════════════════
+//  POBLAR SELECTORES DE MATERIAL
+// ═══════════════════════════════════════════
+MATERIALS.forEach(m=>{
+  const o1=document.createElement('option'); o1.value=m; o1.textContent=m;
+  const o2=document.createElement('option'); o2.value=m; o2.textContent=m;
+  matObjEl.appendChild(o1); matPlaneEl.appendChild(o2);
+});
+matObjEl.value = "Madera";
+matPlaneEl.value = "Madera";
+
+// ═══════════════════════════════════════════
+//  GEOMETRÍA / ESCALA
+// ═══════════════════════════════════════════
+let scalePxPerM  = 110;
+let planePxLen   = 700;
+let zoomFactor   = 1.0;   // zoom del canvas (0.5 – 2.0)
+const planeThickness = 24;
+const boxPx      = 52;
+let boxHalfPx    = boxPx/2;
+const geom = { cssW:980, cssH:540, dpr: window.devicePixelRatio||1 };
+
+// ═══════════════════════════════════════════
+//  ESTADO PRINCIPAL
+// ═══════════════════════════════════════════
+const state = {
+  angleDeg: 0,
+  mass: 2.0,
+  g: 9.81,
+  matObj: "Madera",
+  matPlane: "Madera",
+  mu_s: 0.4, mu_k: 0.3,
+  showVectors: true, showValues: true, showDecomp: false,
+  running: false,
+  s: 1.8, v: 0.0, a: 0.0,
+};
+
+// Parte A: fuerzas externas aleatorias
+let extF1 = 0, extF2 = 0, correctFap = 0;
+
+// Parte C: masas colgantes
+let hangMasses = [];   // array de números (kg)
+let cRetoDone  = false;
+let sC_init    = 0;    // posición s del bloque al entrar al modo C
+let hangPhase  = 'up'; // 'up' = buscar m₂ (bloque sube) | 'down' = buscar m₂' (bloque baja)
+let m2_up      = null; // masa registrada para subida
+let m2_down    = null; // masa registrada para bajada
+let prevAccel  = 0;    // aceleración del frame anterior (para detectar a constante)
+let stableAccelFrames = 0; // contador de frames con aceleración estable
+let a_m2_down  = null; // aceleración registrada en Fase 1 (m₁ baja)
+let a_m2_up    = null; // aceleración registrada en Fase 2 (m₁ sube)
+
+// ═══════════════════════════════════════════
+//  UTILIDADES μ
+// ═══════════════════════════════════════════
+function getMu(a,b){ return MU.get(muKey(a,b)) || {us:0.3, uk:0.2}; }
+function updateMu(){
+  const {us,uk} = getMu(state.matObj, state.matPlane);
+  state.mu_s = us; state.mu_k = uk;
+  if (currentMode === 'B'){
+    muInfo.textContent = 'μs = ???, μk = ???';
+  } else {
+    muInfo.textContent = `μs = ${us.toFixed(2)}, μk = ${uk.toFixed(2)}`;
+  }
+}
+updateMu();
+
+// ═══════════════════════════════════════════
+//  GEOMETRÍA RESPONSIVE / HiDPI
+// ═══════════════════════════════════════════
+function recomputeGeom(){
+  const rect = cv.getBoundingClientRect();
+  geom.cssW = Math.max(320, rect.width|0);
+  geom.cssH = Math.max(240, rect.height|0);
+  scalePxPerM = Math.max(80, Math.min(140, geom.cssW/9)) * zoomFactor;
+  planePxLen  = Math.max(geom.cssW-160, Math.min(7.2*(scalePxPerM/zoomFactor), geom.cssW*0.92)) * zoomFactor;
+  boxHalfPx   = boxPx/2;
+  const marginM = (boxHalfPx + planeThickness/2)/scalePxPerM;
+  const sMax    = planePxLen/scalePxPerM - marginM;
+  state.s = Math.min(Math.max(state.s, marginM), sMax);
+}
+let _resizeLock = false;
+function resizeCanvas(){
+  if(_resizeLock) return;
+  const rect = cv.getBoundingClientRect();
+  const cssW = Math.max(1, rect.width);
+  const cssH = Math.max(1, rect.height);
+  const dpr  = window.devicePixelRatio||1;
+  cv.width   = Math.round(cssW*dpr);
+  cv.height  = Math.round(cssH*dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  geom.dpr = dpr;
+  recomputeGeom();
+}
+const ro = new ResizeObserver(()=> resizeCanvas());
+ro.observe(cv);
+window.addEventListener('resize', resizeCanvas, {passive:true});
+resizeCanvas();
+
+function baseStart(){ return { x:120, y: currentMode==='C' ? geom.cssH-115 : geom.cssH-50 }; }
+
+// ═══════════════════════════════════════════
+//  FÍSICA – PASO DE INTEGRACIÓN
+// ═══════════════════════════════════════════
+function physicsStep(dt){
+  const m=state.mass, g=state.g, th=state.angleDeg*Math.PI/180;
+  const N = m*g*Math.cos(th);
+  const Fw_par = -m*g*Math.sin(th);   // componente paralela (−u = bajar)
+  const mu_s=state.mu_s, mu_k=state.mu_k;
+
+  // Fuerzas externas (Parte A y Libre) sobre el eje +u
+  let F_ext = 0;
+  if (currentMode === 'A' || currentMode === 'libre'){
+    F_ext = (state.F_ext1||0) + (state.F_ext2||0) + (state.F_ap||0);
+  }
+  // Parte C: tensión de la cuerda (masa colgante * g − rozamiento la vence)
+  let T = 0;
+  if (currentMode === 'C'){
+    const mH = hangMasses.reduce((a,b)=>a+b, 0);
+    // La tensión en la cuerda (polea ideal) traccionando +u al bloque
+    // se calcula junto con la dinámica del conjunto
+    // Sistema: bloque (m) en plano + masa colgante (mH)
+    // Dirección positiva: bloque sube = masa colgante baja
+    // a*(m+mH) = mH*g - m*g*sinθ - μk*N*sign(v)  (cinético)
+    // Lo integramos directamente aquí:
+    const epsV = 1e-4;
+    let signV = Math.sign(state.v);
+    if (Math.abs(state.v) < epsV) signV = Math.sign(mH*g - m*g*Math.sin(th));
+    const Ff_dir = Math.abs(state.v)<epsV ? 0 : -signV*mu_k*N;
+    const F_net = mH*g + Fw_par + Ff_dir;   // neto sobre eje del bloque (+u)
+    const aNet  = F_net / (m + mH);
+
+    // Fricción estática: ¿puede el sistema estar en reposo?
+    const F_extStatic = mH*g + Fw_par;
+    if (Math.abs(state.v) < epsV && Math.abs(F_extStatic) <= mu_s*N){
+      state.a = 0; state.v = 0;
+      const Ff = -F_extStatic;
+      T = mH*g;
+      const F_res = 0;
+      finalizarStep(dt, N, Ff, F_res, m*g);
+      return { Fw_par, F_n:N, F_f:Ff, F_w:m*g, F_res:0, T };
+    }
+
+    state.a = aNet;
+    state.v += aNet*dt;
+    state.s += state.v*dt;
+    clampS();
+
+    // Rastrear estabilidad de la aceleración
+    if (Math.abs(state.v) > 0.03) {
+      if (Math.abs(aNet - prevAccel) < 0.015) stableAccelFrames++;
+      else stableAccelFrames = 0;
+    } else {
+      stableAccelFrames = 0;
+    }
+    prevAccel = aNet;
+
+    // Rebote automático al llegar al extremo para poder seguir midiendo
+    {
+      const _marg = (boxHalfPx + planeThickness/2) / scalePxPerM;
+      const _sMax = planePxLen/scalePxPerM - _marg;
+      if (state.v < 0 && state.s <= _marg + 0.05){ state.s = _sMax * 0.80; state.v = 0; stableAccelFrames=0; sC_init = state.s; }
+      if (state.v > 0 && state.s >= _sMax - 0.05){ state.s = _marg + (_sMax-_marg)*0.20; state.v = 0; stableAccelFrames=0; sC_init = state.s; }
+    }
+
+    // Guardar aceleración medida en tiempo real (disponible para verificarMuD)
+    if (stableAccelFrames > 45 && Math.abs(state.v) > 0.03){
+      if (state.v < 0) a_m2_down = Math.abs(aNet);   // m₁ baja → candidata a₁
+      if (state.v > 0) a_m2_up   = Math.abs(aNet);   // m₁ sube → candidata a₂
+    }
+
+    const Ff = Ff_dir;
+    const F_res = F_net;
+    T = mH*(g - aNet);
+    return { Fw_par, F_n:N, F_f:Ff, F_w:m*g, F_res, T };
+  }  // fin if(currentMode === 'C')
+
+  // Ramas libre / A / B
+  let F_f=0, a=0;
+  const epsV=1e-4;
+  const F_total_par = Fw_par + F_ext;
+
+  if (Math.abs(state.v) < epsV){
+    if (Math.abs(F_total_par) <= mu_s*N){
+      F_f = -F_total_par; a=0; state.v=0;
+    } else {
+      const dir = Math.sign(F_total_par)||1;
+      F_f = -dir*mu_k*N;
+      a = (F_total_par + F_f)/m;
+    }
+  } else {
+    const signV = Math.sign(state.v);
+    F_f = -signV*mu_k*N;
+    a = (F_total_par + F_f)/m;
+    if (Math.sign(state.v+a*dt)!==signV && Math.abs(F_total_par)<=mu_s*N){
+      state.v=0; a=0; F_f=-F_total_par;
+    }
+  }
+  state.a = a;
+  state.v += a*dt;
+  state.s += state.v*dt;
+  clampS();
+  const F_res = F_total_par + F_f;
+  return { Fw_par, F_n:N, F_f, F_w:m*g, F_res,
+           F_ext1: state.F_ext1||0, F_ext2: state.F_ext2||0, F_ap: state.F_ap||0 };
+}
+
+function finalizarStep(dt, N, Ff, F_res, Fw){
+  // usado solo en Parte C rama estática
+  state.a=0; state.s+=state.v*dt; clampS();
+}
+
+function clampS(){
+  const marginM = (boxHalfPx+planeThickness/2)/scalePxPerM;
+  const sMax = planePxLen/scalePxPerM - marginM;
+  if (state.s < marginM){ state.s=marginM; state.v=0; }
+  if (state.s > sMax)   { state.s=sMax;    state.v=0; }
+}
+
+// ═══════════════════════════════════════════
+//  DIBUJO
+// ═══════════════════════════════════════════
+function drawArrow(p0, vec, color, label, valueText, style='solid'){
+  const x0=p0.x,y0=p0.y, x1=x0+vec.x, y1=y0+vec.y;
+  if (Math.hypot(vec.x,vec.y)<2) return;
+  const ang=Math.atan2(y1-y0,x1-x0), head=10;
+  ctx.save();
+  ctx.strokeStyle=color; ctx.lineWidth=3;
+  if(style==='dash') ctx.setLineDash([8,6]); else ctx.setLineDash([]);
+  ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1,y1); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.beginPath();
+  ctx.moveTo(x1,y1);
+  ctx.lineTo(x1-head*Math.cos(ang-Math.PI/8), y1-head*Math.sin(ang-Math.PI/8));
+  ctx.lineTo(x1-head*Math.cos(ang+Math.PI/8), y1-head*Math.sin(ang+Math.PI/8));
+  ctx.closePath();
+  ctx.fillStyle=color; ctx.fill();
+
+  const text = valueText ? `${label}: ${valueText}` : label;
+  ctx.font='12px system-ui,Segoe UI,Roboto';
+  ctx.textBaseline='top';
+  const pad=4, tw=ctx.measureText(text).width;
+  const midx=(x0+x1)/2, midy=(y0+y1)/2;
+  ctx.fillStyle='#e5e7eb';
+  ctx.fillRect(midx-tw/2-pad, midy-10-pad, tw+2*pad, 16+2*pad);
+  ctx.strokeStyle='#d1d5db'; ctx.lineWidth=1;
+  ctx.strokeRect(midx-tw/2-pad, midy-10-pad, tw+2*pad, 16+2*pad);
+  ctx.fillStyle='#111827';
+  ctx.fillText(text, midx-tw/2, midy-10);
+  ctx.restore();
+}
+
+function drawPulley(endPt, n){
+  // Polea en el extremo superior del plano
+  const r=14;
+  const cx = endPt.x + n.x*planeThickness/2;
+  const cy = endPt.y + n.y*planeThickness/2;
+  ctx.save();
+  ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
+  ctx.fillStyle='#cbd5e1'; ctx.fill();
+  ctx.strokeStyle='#475569'; ctx.lineWidth=2.5; ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx,cy,r*0.4,0,Math.PI*2);
+  ctx.fillStyle='#94a3b8'; ctx.fill();
+  ctx.restore();
+  return {cx,cy};
+}
+
+function drawHangingMasses(cx, cy, totalM, offset){
+  if (totalM <= 0) return;
+  const ropeLen = Math.min(120, 30 + totalM*18);
+  const dy = Math.max(-(ropeLen * 0.85), offset || 0); // la masa siempre cuelga hacia abajo
+  ctx.save();
+  // cuerda vertical
+  ctx.strokeStyle='#374151'; ctx.lineWidth=2; ctx.setLineDash([]);
+  ctx.beginPath(); ctx.moveTo(cx, cy+14); ctx.lineTo(cx, cy+14+ropeLen+dy); ctx.stroke();
+  // caja de masas
+  const bw=44, bh=30+totalM*4, by=cy+14+ropeLen+dy;
+  ctx.fillStyle='#6366f1';
+  ctx.strokeStyle='#111827'; ctx.lineWidth=2;
+  ctx.beginPath();
+  ctx.roundRect(cx-bw/2, by, bw, Math.min(bh,60), 6);
+  ctx.fill(); ctx.stroke();
+  ctx.fillStyle='#fff'; ctx.font='bold 12px system-ui';
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(`${totalM.toFixed(2)} kg`, cx, by+Math.min(bh,60)/2);
+  ctx.restore();
+}
+
+function render(forces){
+  ctx.clearRect(0,0,geom.cssW,geom.cssH);
+
+  // Fondo + cuadrícula
+  ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,geom.cssW,geom.cssH);
+  ctx.strokeStyle='#f3f4f6'; ctx.lineWidth=1;
+  ctx.beginPath();
+  for(let x=0;x<geom.cssW;x+=40){ ctx.moveTo(x,0); ctx.lineTo(x,geom.cssH); }
+  for(let y=0;y<geom.cssH;y+=40){ ctx.moveTo(0,y); ctx.lineTo(geom.cssW,y); }
+  ctx.stroke();
+
+  const th = state.angleDeg*Math.PI/180;
+  const u  = {x:Math.cos(th),  y:-Math.sin(th)};
+  const nv = {x:-Math.sin(th), y:-Math.cos(th)};
+  const start = baseStart();
+  const end   = {x:start.x+u.x*planePxLen, y:start.y+u.y*planePxLen};
+  const halfT = planeThickness/2;
+
+  const A={x:start.x+nv.x*halfT, y:start.y+nv.y*halfT};
+  const B={x:end.x+nv.x*halfT,   y:end.y+nv.y*halfT};
+  const C={x:end.x-nv.x*halfT,   y:end.y-nv.y*halfT};
+  const D={x:start.x-nv.x*halfT, y:start.y-nv.y*halfT};
+
+  const planeGrad = ctx.createLinearGradient(A.x,A.y,C.x,C.y);
+  planeGrad.addColorStop(0,'#e5e7eb'); planeGrad.addColorStop(1,'#cbd5e1');
+  ctx.fillStyle=planeGrad; ctx.strokeStyle='#94a3b8'; ctx.lineWidth=2;
+  ctx.beginPath();
+  ctx.moveTo(A.x,A.y); ctx.lineTo(B.x,B.y); ctx.lineTo(C.x,C.y); ctx.lineTo(D.x,D.y);
+  ctx.closePath(); ctx.fill(); ctx.stroke();
+
+  // Polea (solo Parte C)
+  let pulleyCtr = null;
+  if (currentMode === 'C'){
+    pulleyCtr = drawPulley(end, nv);
+    const mH = hangMasses.reduce((a,b)=>a+b,0);
+    // Cuando el bloque sube (s > sC_init), la masa colgante baja (+offset en px)
+    const hangOffset = (state.s - sC_init) * scalePxPerM;
+    drawHangingMasses(pulleyCtr.cx, pulleyCtr.cy, mH, hangOffset);
+  }
+
+  // Bloque
+  const sPx = state.s*scalePxPerM;
+  const center={
+    x:start.x+u.x*sPx+nv.x*(halfT+boxHalfPx),
+    y:start.y+u.y*sPx+nv.y*(halfT+boxHalfPx)
+  };
+  const half=boxHalfPx, ux=u.x, uy=u.y, nx=nv.x, ny=nv.y;
+  const P1={x:center.x-ux*half-nx*half, y:center.y-uy*half-ny*half};
+  const P2={x:center.x+ux*half-nx*half, y:center.y+uy*half-ny*half};
+  const P3={x:center.x+ux*half+nx*half, y:center.y+uy*half+ny*half};
+  const P4={x:center.x-ux*half+nx*half, y:center.y-uy*half+ny*half};
+  ctx.fillStyle='#eab308'; ctx.strokeStyle='#111827'; ctx.lineWidth=2.2;
+  ctx.beginPath();
+  [P1,P2,P3,P4].forEach((p,i)=> i? ctx.lineTo(p.x,p.y): ctx.moveTo(p.x,p.y));
+  ctx.closePath(); ctx.fill(); ctx.stroke();
+
+  // Cuerda desde bloque a polea (Parte C)
+  if (currentMode === 'C' && pulleyCtr){
+    ctx.save();
+    ctx.strokeStyle='#374151'; ctx.lineWidth=2.5; ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(center.x+ux*half, center.y+uy*half);
+    ctx.lineTo(pulleyCtr.cx, pulleyCtr.cy); ctx.stroke();
+    ctx.restore();
+  }
+
+  // Vectores base
+  if (state.showVectors && forces){
+    const mags=[Math.abs(forces.F_w),Math.abs(forces.F_n||0),Math.abs(forces.F_f||0),Math.abs(forces.F_res||0)];
+    const maxMag=Math.max(1,...mags);
+    const maxLen=Math.min(160,Math.max(120,geom.cssW*0.18));
+    const S=maxLen/maxMag;
+    drawArrow(center,{x:0,y:forces.F_w*S},'#ef4444','Peso',state.showValues?`${forces.F_w.toFixed(2)} N`:'');
+    drawArrow(center,{x:nv.x*(forces.F_n||0)*S,y:nv.y*(forces.F_n||0)*S},'#3b82f6','Normal',state.showValues?`${(forces.F_n||0).toFixed(2)} N`:'');
+    drawArrow(center,{x:u.x*(forces.F_f||0)*S,y:u.y*(forces.F_f||0)*S},'#22c55e','Fricción',state.showValues?`${(forces.F_f||0).toFixed(2)} N`:'');
+    drawArrow(center,{x:u.x*(forces.F_res||0)*S,y:u.y*(forces.F_res||0)*S},'#a855f7','ΣF‖',state.showValues?`${(forces.F_res||0).toFixed(2)} N`:'');
+
+    // Fuerzas externas (solo Parte A)
+    if ((currentMode==='A'||currentMode==='libre') && (forces.F_ext1||forces.F_ext2||forces.F_ap)){
+      const allF = Math.max(Math.abs(forces.F_ext1||0),Math.abs(forces.F_ext2||0),Math.abs(forces.F_ap||0),1);
+      const SE = maxLen/allF;
+      if (forces.F_ext1) drawArrow(center,{x:u.x*(forces.F_ext1)*SE,y:u.y*(forces.F_ext1)*SE},'#f97316','F₁ ext',state.showValues?`${(forces.F_ext1).toFixed(2)} N`:'');
+      if (forces.F_ext2) drawArrow(center,{x:u.x*(forces.F_ext2)*SE+6,y:u.y*(forces.F_ext2)*SE+6},'#fb923c','F₂ ext',state.showValues?`${(forces.F_ext2).toFixed(2)} N`:'');
+      if (forces.F_ap)   drawArrow(center,{x:u.x*(forces.F_ap)*SE,y:u.y*(forces.F_ap)*SE-10},'#06b6d4','F_ap',state.showValues?`${(forces.F_ap).toFixed(2)} N`:'');
+    }
+  }
+
+  // Descomposición del peso
+  if (state.showVectors && state.showDecomp){
+    const W=state.mass*state.g;
+    const th2=state.angleDeg*Math.PI/180;
+    const Wpar=W*Math.sin(th2), Wper=W*Math.cos(th2);
+    const maxLen=Math.min(160,Math.max(120,geom.cssW*0.18));
+    const S=maxLen/Math.max(W,1);
+    drawArrow(center,{x:(-Wpar*S)*u.x,y:(-Wpar*S)*u.y},'#f59e0b','mg·sinθ',state.showValues?`${(-W*Math.sin(th2)).toFixed(2)} N`:'',' dash');
+    drawArrow(center,{x:(-Wper*S)*nv.x,y:(-Wper*S)*nv.y},'#f59e0b','mg·cosθ',state.showValues?`${(-W*Math.cos(th2)).toFixed(2)} N`:'','dash');
+  }
+
+  // Ángulo
+  ctx.font='13px system-ui,Segoe UI,Roboto';
+  ctx.fillStyle='#374151';
+  ctx.fillText(`θ = ${state.angleDeg.toFixed(1)}°`, start.x+8, start.y-12);
+}
+
+// ═══════════════════════════════════════════
+//  READOUT
+// ═══════════════════════════════════════════
+function updateReadout(forces){
+  // Barras indicadoras de aceleración constante (solo Parte C) — siempre corren
+  if(currentMode === 'C' && forces){
+    const aAbs = Math.abs(state.a);
+    const vAbs = Math.abs(state.v);
+    const aBarEl = document.getElementById('aBar');
+    const vBarEl = document.getElementById('vBar');
+    const aValEl = document.getElementById('aVal');
+    const vValEl = document.getElementById('vVal');
+    const vDirEl = document.getElementById('vDir');
+    const cteLbl = document.getElementById('cteLabel');
+    if(aBarEl){
+      const aPct = Math.min(100, aAbs / 2 * 100);
+      const aColor = stableAccelFrames > 45 && Math.abs(state.v) > 0.03 ? '#22c55e' : stableAccelFrames > 15 ? '#f59e0b' : '#ef4444';
+      aBarEl.style.width = aPct + '%';
+      aBarEl.style.background = aColor;
+      aValEl.textContent = aAbs.toFixed(3) + ' m/s²';
+      aValEl.style.color = aColor;
+    }
+    if(vBarEl){
+      const vPct = Math.min(100, vAbs / 1 * 100);
+      vBarEl.style.width = vPct + '%';
+      vValEl.textContent = vAbs.toFixed(3) + ' m/s';
+      if(vDirEl) vDirEl.textContent = state.v > 0.01 ? '↑ sube' : state.v < -0.01 ? '↓ baja' : '— quieto';
+    }
+    if(cteLbl){
+      const isCte = stableAccelFrames > 45 && Math.abs(state.v) > 0.03;
+      if(isCte && state.v < 0){
+        const aVal = Math.abs(state.a).toFixed(4);
+        cteLbl.innerHTML = `✅ <b style="color:#15803d">¡a₁ estable! m₁ BAJA — a₁ = ${aVal} m/s² — anota <u>m₂</u> en el campo arriba</b>`;
+      } else if(isCte && state.v > 0){
+        const aVal = Math.abs(state.a).toFixed(4);
+        const aRef = a_m2_down !== null ? ` (a₁ ref = ${a_m2_down.toFixed(4)})` : '';
+        cteLbl.innerHTML = `✅ <b style="color:#15803d">¡a₂ estable! m₁ SUBE — a₂ = ${aVal} m/s²${aRef} — anota <u>m₂'</u> arriba</b>`;
+      } else if(Math.abs(state.v) < 0.01){
+        cteLbl.innerHTML = '⏳ m₁ quieto — escribe una masa, presiona <b>Aplicar</b> e <b>Iniciar</b>';
+      } else {
+        cteLbl.innerHTML = `🔄 Midiendo... a = ${Math.abs(state.a).toFixed(4)} m/s² — espera que se estabilice`;
+      }
+    }
+  }
+
+  if (!state.showValues||!forces){ readout.textContent=''; return; }
+  const th=state.angleDeg*Math.PI/180;
+  const moving=Math.abs(state.v)>=1e-4;
+  const regime=moving?'cinética':(Math.abs(forces.Fw_par+(forces.F_f||0))<1e-6?'estática':'—');
+  const mH = hangMasses.reduce((a,b)=>a+b,0);
+  const lines=[
+    `θ = ${state.angleDeg.toFixed(1)}°  |  m = ${state.mass.toFixed(2)} kg  |  g = ${state.g.toFixed(2)} m/s²`,
+    `── Fuerzas ──`,
+    `|mg| = ${(state.mass*state.g).toFixed(3)} N`,
+    `Normal N = ${(state.mass*state.g*Math.cos(th)).toFixed(3)} N`,
+    `Fricción (${regime}) = ${(forces.F_f||0).toFixed(3)} N`,
+    `Resultante ΣF‖ = ${(forces.F_res||0).toFixed(3)} N`,
+    currentMode==='C'?`Masa colgante total = ${mH.toFixed(2)} kg`:'',
+    currentMode==='C'?`a₁ medida = ${a_m2_down!==null?a_m2_down.toFixed(4)+' m/s²':'(pendiente)'}  |  a₂ medida = ${a_m2_up!==null?a_m2_up.toFixed(4)+' m/s²':'(pendiente)'}`:'' ,
+    `── Cinemática ──`,
+    `a = ${state.a.toFixed(4)} m/s²  |  v = ${state.v.toFixed(4)} m/s  |  s = ${state.s.toFixed(3)} m`,
+  ].filter(Boolean);
+  readout.textContent=lines.join('\n');
+
+  if(moving) statusEl.textContent='Estado: deslizándose';
+  else if(Math.abs(forces.F_res||0)<1e-6 && Math.abs(state.v)<1e-4) statusEl.textContent='Estado: equilibrio estático';
+  else statusEl.textContent='Estado: en reposo';
+}
+
+// ═══════════════════════════════════════════
+//  BUCLE DE ANIMACIÓN
+// ═══════════════════════════════════════════
+let lastT=0, tSim=0;
+let log=[];
+
+function loop(t){
+  if(!lastT) lastT=t;
+  let dt=(t-lastT)/1000;
+  dt=Math.max(0,Math.min(0.05,dt));
+  lastT=t;
+
+  let forces=null;
+  if(state.running){
+    forces=physicsStep(dt);
+    tSim+=dt;
+    log.push({t:tSim,s:state.s,v:state.v,a:state.a,Fsum:forces.F_res,theta:state.angleDeg,mu_s:state.mu_s,mu_k:state.mu_k});
+  } else {
+    // Estático
+    const m=state.mass,g=state.g,th=state.angleDeg*Math.PI/180;
+    const N=m*g*Math.cos(th);
+    const Fw_par=-m*g*Math.sin(th);
+    let F_ext=0;
+    if(currentMode==='A'||currentMode==='libre') F_ext=(state.F_ext1||0)+(state.F_ext2||0)+(state.F_ap||0);
+    let mH=hangMasses.reduce((a,b)=>a+b,0);
+    let F_total_par = currentMode==='C' ? Fw_par+mH*g : Fw_par+F_ext;
+    let F_f=0;
+    if(Math.abs(F_total_par)<=state.mu_s*N) F_f=-F_total_par;
+    else { const dir=Math.sign(F_total_par)||1; F_f=-dir*state.mu_k*N; }
+    const F_res=(Math.abs(F_total_par)>state.mu_s*N)?(F_total_par+F_f):0;
+    forces={Fw_par,F_n:N,F_f,F_w:m*g,F_res,
+            F_ext1:state.F_ext1||0, F_ext2:state.F_ext2||0, F_ap:state.F_ap||0};
+  }
+  render(forces);
+  updateReadout(forces);
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+// ═══════════════════════════════════════════
+//  PARTE A – PROBLEMA ALEATORIO
+// ═══════════════════════════════════════════
+function newProblemA(){
+  // Fuerzas aleatorias entre −25 y +25 N, no nulas
+  const rnd = ()=> (Math.random()*46+4)*(Math.random()<0.5?1:-1);
+  extF1 = parseFloat(rnd().toFixed(2));
+  extF2 = parseFloat(rnd().toFixed(2));
+  // La fuerza aplicada para equilibrio: ΣF=0 → F_ap = −(F1+F2)
+  // Recordar que en θ=0 no hay componente del peso paralela
+  correctFap = parseFloat((-(extF1+extF2)).toFixed(2));
+
+  state.F_ext1 = extF1;
+  state.F_ext2 = extF2;
+  state.F_ap   = 0;  // El alumno la tiene que encontrar
+
+  document.getElementById('extF1Label').textContent = `F₁ = ${extF1 > 0 ? '+' : ''}${extF1} N`;
+  document.getElementById('extF2Label').textContent = `F₂ = ${extF2 > 0 ? '+' : ''}${extF2} N`;
+  document.getElementById('feedbackA').textContent = '';
+  document.getElementById('userFap').value = '';
+
+  // Forzar θ=0
+  angleEl.value = 0; applyAngle();
+}
+
+function checkA(){
+  const val = parseFloat(document.getElementById('userFap').value);
+  if (isNaN(val)){ document.getElementById('feedbackA').textContent='⚠️ Ingresa un número válido.'; return; }
+  const tol = 0.15; // N de tolerancia
+  if (Math.abs(val - correctFap) <= tol){
+    // Aplicar la fuerza correcta y detener la simulación para mostrar equilibrio
+    state.F_ap = correctFap;
+    state.running = false;
+    state.v = 0; state.a = 0;
+    toggleBtn.textContent = '▶ Iniciar';
+    toggleBtn.classList.add('primary');
+    document.getElementById('feedbackA').innerHTML =
+      `<div class="reto-box ok">
+        <strong>✅ ¡Correcto! Equilibrio estático logrado</strong>
+        F₁ = ${extF1 > 0 ? '+' : ''}${extF1.toFixed(2)} N<br>
+        F₂ = ${extF2 > 0 ? '+' : ''}${extF2.toFixed(2)} N<br>
+        <b>F_ap = ${correctFap > 0 ? '+' : ''}${correctFap.toFixed(2)} N</b> ← tu respuesta<br>
+        <small style="color:#6b7280">Verificación: F₁ + F₂ + F_ap = ${(extF1 + extF2 + correctFap).toFixed(2)} N ≈ 0 ✅</small><br>
+        <button class="btn primary" style="margin-top:8px;width:100%" onclick="newProblemA()">🔀 Intentar nuevo problema</button>
+      </div>`;
+    showToast('✅ ¡Respuesta correcta!');
+  } else {
+    document.getElementById('feedbackA').innerHTML =
+      `<div class="reto-box warn">❌ No es correcto. Recuerda: para equilibrio ΣF = 0.<br>
+      Pista: F₁ + F₂ + F_ap = 0 → F_ap = −(F₁+F₂)</div>`;
+  }
+}
+
+// ═══════════════════════════════════════════
+//  PARTE B – VERIFICAR ÁNGULO CRÍTICO
+// ═══════════════════════════════════════════
+function checkB(){
+  const val = parseFloat(document.getElementById('userThetaC').value);
+  if (isNaN(val)){ document.getElementById('feedbackB').textContent='⚠️ Ingresa un número.'; return; }
+  const thetaC_real = Math.atan(state.mu_s)*180/Math.PI;
+  const mu_s_user   = Math.tan(val*Math.PI/180);
+  const tol = 1.5; // grados
+  if (Math.abs(val - thetaC_real) <= tol){
+    document.getElementById('feedbackB').innerHTML =
+      `<div class="reto-box ok">✅ ¡Correcto! θ_crítico ≈ ${thetaC_real.toFixed(1)}°<br>
+      μs = tan(${val.toFixed(1)}°) = <b>${mu_s_user.toFixed(3)}</b><br>
+      Valor real: μs = ${state.mu_s.toFixed(3)}</div>`;
+    showToast('✅ ¡Coeficiente encontrado!');
+  } else {
+    document.getElementById('feedbackB').innerHTML =
+      `<div class="reto-box warn">❌ No coincide. El bloque aún no desliza o ya pasaste el ángulo.<br>
+      Busca el ángulo exacto donde el bloque <i>empieza</i> a moverse.</div>`;
+  }
+}
+
+// ═══════════════════════════════════════════
+//  PARTE C – CALCULAR μd  (ec7 del laboratorio)
+//  μd = (m₂ − m₂') / (2·m₁·cos θ)    con θ = 45°
+// ═══════════════════════════════════════════
+function calcularMuD(){
+  const th  = state.angleDeg * Math.PI / 180;
+  // m₂ = m2_down (m₁ baja), m₂' = m2_up (m₁ sube)
+  // μd = (m₂' − m₂) / (2·m₁·cosθ)
+  const mud = (m2_up - m2_down) / (2 * state.mass * Math.cos(th));
+
+  // Validar que |a₁| ≈ |a₂| con tolerancia del 2%
+  const aDown = a_m2_down !== null ? a_m2_down : Math.abs(state.a);
+  const aUp   = a_m2_up   !== null ? a_m2_up   : Math.abs(state.a);
+  const aAvg  = (aDown + aUp) / 2;
+  const aErr  = aAvg > 1e-6 ? Math.abs(aDown - aUp) / aAvg : 0;
+  const aOk   = aErr <= 0.02;
+
+  document.getElementById('m2upLabel').textContent   = `✅ m₂  = ${m2_down.toFixed(3)} kg  |  a₁ = ${aDown.toFixed(3)} m/s²  (m₁ baja)`;
+  document.getElementById('m2downLabel').textContent = `✅ m₂' = ${m2_up.toFixed(3)} kg  |  a₂ = ${aUp.toFixed(3)} m/s²  (m₁ sube)`;
+  document.getElementById('m2Results').style.display = 'block';
+  document.getElementById('phaseIndicator').style.background  = aOk ? '#f0fdf4' : '#fffbeb';
+  document.getElementById('phaseIndicator').style.borderColor = aOk ? '#86efac' : '#fbbf24';
+  document.getElementById('phaseIndicator').style.color       = aOk ? '#15803d' : '#92400e';
+  document.getElementById('phaseIndicator').textContent       = aOk ? '🎉 ¡Ambas fases completadas!' : '⚠️ Las aceleraciones difieren más del 2% — repite las fases';
+
+  const aErrPct = (aErr * 100).toFixed(1);
+  const mat1 = state.matObj, mat2 = state.matPlane;
+
+  if(aOk){
+    document.getElementById('feedbackC').innerHTML =
+      `<div class="reto-box ok">
+        <strong>🎉 ¡Reto aprobado!</strong><br>
+        <b>Materiales:</b> ${mat1} sobre ${mat2}<br>
+        m₁ = ${state.mass.toFixed(2)} kg &nbsp;|&nbsp; θ = ${state.angleDeg.toFixed(1)}°<br>
+        m₂  = ${m2_down.toFixed(3)} kg &nbsp;|&nbsp; a₁ = ${aDown.toFixed(4)} m/s² &nbsp;(m₁ baja)<br>
+        m₂' = ${m2_up.toFixed(3)} kg &nbsp;|&nbsp; a₂ = ${aUp.toFixed(4)} m/s² &nbsp;(m₁ sube)<br>
+        Error entre aceleraciones: <b>${aErrPct}%</b> ✅<br>
+        <b>μd = (m₂' − m₂) / (2·m₁·cos45°) = ${mud.toFixed(4)}</b><br>
+        <small style="color:#6b7280">μk real del simulador (${mat1}/${mat2}): ${state.mu_k.toFixed(4)}</small>
+      </div>`;
+    showToast(`🎉 ¡Reto aprobado! μd = ${mud.toFixed(4)}`);
+  } else {
+    document.getElementById('feedbackC').innerHTML =
+      `<div class="reto-box warn">
+        <strong>⚠️ Aceleraciones no coinciden (error = ${aErrPct}%)</strong><br>
+        a₁ = ${aDown.toFixed(4)} m/s² (m₁ baja) &nbsp;|&nbsp; a₂ = ${aUp.toFixed(4)} m/s² (m₁ sube)<br>
+        Para que el método sea válido, ambas aceleraciones deben ser iguales (error ≤ 2%).<br>
+        Ajusta m₂ y m₂' hasta que el bloque baje y suba con la <b>misma aceleración</b>.
+      </div>`;
+    cRetoDone = false;
+  }
+}
+window.calcularMuD = calcularMuD;
+// ── Parte C: aplicar m₂ y m₂' desde sus campos separados ──
+function applyM2(){
+  const v = parseFloat(document.getElementById('inputM2').value);
+  if(isNaN(v)||v<=0){ return; }
+  hangMasses = [parseFloat(v.toFixed(3))];
+  renderHangList();
+  state.v = 0; state.a = 0;
+  stableAccelFrames = 0; prevAccel = 0;
+  a_m2_down = null;  // nueva masa → medir de nuevo
+  const _marg = (boxHalfPx+planeThickness/2)/scalePxPerM;
+  const _sMax = planePxLen/scalePxPerM - _marg;
+  state.s = _sMax * 0.80; sC_init = state.s;  // bloque arriba: bajará
+  document.getElementById('m2AppliedLabel').innerHTML =
+    `✅ Aplicado: <b>${v.toFixed(3)} kg</b> — presiona <b>Iniciar</b> y observa si m₁ <b>baja</b> con a constante`;
+  document.getElementById('m2AppliedLabel').style.color='#1d4ed8';
+}
+function applyM2prime(){
+  const v = parseFloat(document.getElementById('inputM2prime').value);
+  if(isNaN(v)||v<=0){ return; }
+  hangMasses = [parseFloat(v.toFixed(3))];
+  renderHangList();
+  state.v = 0; state.a = 0;
+  stableAccelFrames = 0; prevAccel = 0;
+  a_m2_up = null;    // nueva masa → medir de nuevo
+  const _marg = (boxHalfPx+planeThickness/2)/scalePxPerM;
+  const _sMax = planePxLen/scalePxPerM - _marg;
+  state.s = _marg + (_sMax-_marg)*0.20; sC_init = state.s;  // bloque abajo: subirá
+  document.getElementById('m2primeAppliedLabel').innerHTML =
+    `✅ Aplicado: <b>${v.toFixed(3)} kg</b> — presiona <b>Iniciar</b> y observa si m₁ <b>sube</b> con a constante`;
+  document.getElementById('m2primeAppliedLabel').style.color='#92400e';
+}
+window.applyM2      = applyM2;
+window.applyM2prime = applyM2prime;
+
+// Verificar μd con los valores escritos manualmente en los campos m₂ y m₂'
+function verificarMuD(){
+  const v2  = parseFloat(document.getElementById('inputM2').value);
+  const v2p = parseFloat(document.getElementById('inputM2prime').value);
+  if(isNaN(v2)||v2<=0||isNaN(v2p)||v2p<=0){
+    document.getElementById('feedbackC').innerHTML =
+      '<div class="reto-box warn">⚠️ Ingresa valores válidos en m₂ y m₂\'.</div>'; return;
+  }
+  if(v2p <= v2){
+    document.getElementById('feedbackC').innerHTML =
+      '<div class="reto-box warn">⚠️ m₂\' debe ser <b>mayor</b> que m₂ (se necesita más masa para que m₁ suba).</div>'; return;
+  }
+
+  // Exigir que el alumno haya medido ambas aceleraciones corriendo la simulación
+  if(a_m2_down === null || a_m2_up === null){
+    const falta = a_m2_down === null ? 'm₂ (m₁ bajando)' : 'm₂\' (m₁ subiendo)';
+    document.getElementById('feedbackC').innerHTML =
+      `<div class="reto-box warn">⚠️ Aún no se midió la aceleración de <b>${falta}</b>.<br>
+      Aplica la masa, presiona <b>Iniciar</b> y espera a que la barra |a| quede <b style="color:#22c55e">verde</b> — el sistema captura a₁ y a₂ automáticamente.</div>`;
+    return;
+  }
+
+  const th  = state.angleDeg * Math.PI / 180;
+  const mud = (v2p - v2) / (2 * state.mass * Math.cos(th));
+
+  // Usar aceleraciones medidas en simulación
+  const aDown = a_m2_down;
+  const aUp   = a_m2_up;
+  const aAvg  = (aDown + aUp) / 2;
+  const aErr  = aAvg > 1e-6 ? Math.abs(aDown - aUp) / aAvg : 0;
+  const aOk   = aErr <= 0.02;
+  const aErrPct = (aErr * 100).toFixed(1);
+
+  const mat1 = state.matObj, mat2 = state.matPlane;
+
+  // Si las aceleraciones coinciden ≤ 2%, la física garantiza que μd es correcto
+  if(!aOk){
+    document.getElementById('feedbackC').innerHTML =
+      `<div class="reto-box warn"><strong>⚠️ Aceleraciones no coinciden (error = ${aErrPct}%)</strong><br>
+      a₁ = ${aDown.toFixed(4)} m/s² (m₁ baja) &nbsp;|&nbsp; a₂ = ${aUp.toFixed(4)} m/s² (m₁ sube)<br>
+      Para que el método sea válido, ambas deben ser iguales (error ≤ 2%).<br>
+      Ajusta m₂ y/o m₂' y vuelve a medir hasta que coincidan.</div>`;
+    return;
+  }
+
+  // ¡Aprobado! Las aceleraciones coinciden → μd es válido
+  cRetoDone = true;
+  m2_down = v2; m2_up = v2p;
+  document.getElementById('m2Results').style.display = 'block';
+  document.getElementById('m2upLabel').textContent   = `✅ m₂  = ${v2.toFixed(3)} kg  |  a₁ = ${aDown.toFixed(3)} m/s²  (m₁ baja)`;
+  document.getElementById('m2downLabel').textContent = `✅ m₂' = ${v2p.toFixed(3)} kg  |  a₂ = ${aUp.toFixed(3)} m/s²  (m₁ sube)`;
+  document.getElementById('phaseIndicator').style.background  = '#f0fdf4';
+  document.getElementById('phaseIndicator').style.borderColor = '#86efac';
+  document.getElementById('phaseIndicator').style.color       = '#15803d';
+  document.getElementById('phaseIndicator').textContent       = '🎉 ¡Reto superado!';
+  document.getElementById('feedbackC').innerHTML =
+    `<div class="reto-box ok"><strong>🎉 ¡Reto aprobado!</strong><br>
+    <b>Materiales:</b> ${mat1} sobre ${mat2}<br>
+    m₁ = ${state.mass.toFixed(2)} kg &nbsp;|&nbsp; θ = ${state.angleDeg.toFixed(1)}°<br>
+    m₂  = ${v2.toFixed(3)} kg &nbsp;|&nbsp; a₁ = ${aDown.toFixed(4)} m/s² &nbsp;(m₁ baja)<br>
+    m₂' = ${v2p.toFixed(3)} kg &nbsp;|&nbsp; a₂ = ${aUp.toFixed(4)} m/s² &nbsp;(m₁ sube)<br>
+    Error entre aceleraciones: <b>${aErrPct}%</b> ✅<br>
+    <b>μd = (m₂' − m₂) / (2·m₁·cos45°) = ${mud.toFixed(4)}</b><br>
+    <small style="color:#6b7280">μk real del simulador (${mat1}/${mat2}): ${state.mu_k.toFixed(4)}</small></div>`;
+  showToast(`🎉 ¡Reto aprobado! μd = ${mud.toFixed(4)}`);
+}
+window.verificarMuD = verificarMuD;
+
+function addHangMass(){
+  const v = parseFloat(document.getElementById('newHangMass').value);
+  if(isNaN(v)||v<=0){ return; }
+  hangMasses.push(parseFloat(v.toFixed(2)));
+  cRetoDone = false;
+  document.getElementById('feedbackC').textContent = '';
+  renderHangList();
+}
+function removeHangMass(i){
+  hangMasses.splice(i,1);
+  cRetoDone = false;
+  document.getElementById('feedbackC').textContent = '';
+  renderHangList();
+}
+function renderHangList(){
+  const list = document.getElementById('hangMassList');
+  list.innerHTML = '';
+  hangMasses.forEach((m,i)=>{
+    const div=document.createElement('div');
+    div.className='mass-item';
+    div.innerHTML=`<span style="flex:1">Masa ${i+1}: <b>${m.toFixed(2)} kg</b></span>
+      <button class="rm" onclick="removeHangMass(${i})">✕</button>`;
+    list.appendChild(div);
+  });
+  const total = hangMasses.reduce((a,b)=>a+b, 0);
+  const valEl  = document.getElementById('totalHangValue');
+  const nameEl = document.getElementById('totalHangName');
+  const hintEl = document.getElementById('totalHangHint');
+  const boxEl  = document.getElementById('totalHangLabel');
+  if(valEl) valEl.textContent = total.toFixed(3) + ' kg';
+  if(currentMode === 'C'){
+    if(nameEl) nameEl.innerHTML = '';
+    if(hintEl) hintEl.innerHTML = 'Aplica como m₂ (bajar) o m₂\' (subir) según la fase que estés midiendo';
+    if(boxEl)  { boxEl.style.borderColor='#93c5fd'; boxEl.style.background='#eff6ff'; }
+    if(nameEl) nameEl.style.color='#1d4ed8';
+    if(valEl)  valEl.style.color='#1d4ed8';
+  } else {
+    if(nameEl) nameEl.textContent = '';
+    if(hintEl) hintEl.textContent = '';
+  }
+}
+// Exponer globalmente para los onclick inline
+window.removeHangMass = removeHangMass;
+
+// ═══════════════════════════════════════════
+//  CAMBIO DE MODO
+// ═══════════════════════════════════════════
+function setMode(mode){
+  currentMode = mode;
+  // Botones de modo
+  ['libre','A','B','C'].forEach(m=>{
+    const b=document.getElementById(`btnMode${m==='libre'?'Lib':m}`);
+    if(b) b.classList.toggle('active', m===mode);
+  });
+  document.getElementById('btnModeLib').classList.toggle('active', mode==='libre');
+
+  // Mostrar / ocultar secciones
+  document.getElementById('secA').style.display = mode==='A' ? 'block':'none';
+  document.getElementById('secB').style.display = mode==='B' ? 'block':'none';
+  document.getElementById('secC').style.display = mode==='C' ? 'block':'none';
+
+  // En móvil: cambiar al tab de Reto si hay contenido de reto
+  if(window.innerWidth < 640 && mode !== 'libre'){
+    const retoTab = document.querySelector('.ctrl-tab[data-target="sec-reto"]');
+    if(retoTab){ switchTab(retoTab); }
+  }
+
+  // μ info
+  document.getElementById('muInfo').style.visibility = (mode==='B'||mode==='C') ? 'hidden':'visible';
+  // Ocultar selectores de material en B y C (el alumno no debe verlos)
+  document.getElementById('rowMat').style.display  = (mode==='B'||mode==='C') ? 'none':'';
+  document.getElementById('rowMatP').style.display = (mode==='B'||mode==='C') ? 'none':'';
+  // Botón ángulo crítico: oculto en Parte B (sería hacer trampa)
+  critBtn.style.display = (mode==='A'||mode==='B'||mode==='C') ? 'none' : '';
+
+  // Descripción del reto
+  const desc = document.getElementById('retoDesc');
+  const descs = {
+    libre: {cls:'info', title:'⚙️ Modo Libre', txt:'Explora el simulador sin restricciones. Ajusta todos los parámetros libremente.'},
+    A: {cls:'info', title:'🔴 Parte A – Equilibrio de fuerzas',
+        txt:'El plano está horizontal (θ = 0°). Se aplican dos fuerzas externas aleatorias. Calcula la fuerza aplicada para equilibrio e ingrésala abajo.'},
+    B: {cls:'warn', title:'🟠 Parte B – Ángulo crítico y μs',
+        txt:'Sin fuerzas externas. Aumenta el ángulo lentamente hasta que el bloque empiece a deslizarse. Los coeficientes están ocultos — ¡descúbrelos!'},
+    C: {cls:'warn', title:'🟢 Parte C – Polea y aceleración constante',
+        txt:'Una polea conecta el bloque con masas colgantes. Agrega/quita masas hasta que el bloque se mueva con aceleración constante (a estable). El sistema revelará μk.'},
+  };
+  const d=descs[mode];
+  desc.className=`reto-box ${d.cls}`;
+  desc.innerHTML=`<strong>${d.title}</strong>${d.txt}`;
+
+  // Ángulo
+  if(mode==='A'){
+    angleEl.value=0; applyAngle();
+    angleEl.disabled=true;
+  } else if(mode==='C'){
+    angleEl.value=45; applyAngle();   // θ=45° fijo según procedimiento del laboratorio
+    // Zoom al 60% para que se vea completa la simulación en modo C
+    zoomFactor = 0.60;
+    document.getElementById('zoomSlider').value = 0.60;
+    document.getElementById('zoomOut').textContent = '60%';
+    resizeCanvas();
+    _resizeLock = true;
+    requestAnimationFrame(()=>{ _resizeLock = false; });
+    angleEl.disabled=true;
+  } else {
+    angleEl.disabled=false;
+  }
+
+  // Resetear estado
+  state.running=false;
+  toggleBtn.textContent='▶ Iniciar';
+  toggleBtn.classList.add('primary');
+  state.v=0; state.a=0;
+  state.F_ext1=0; state.F_ext2=0; state.F_ap=0;
+  hangMasses=[]; cRetoDone=false; hangPhase='down'; m2_up=null; m2_down=null;
+  prevAccel=0; stableAccelFrames=0; a_m2_down=null; a_m2_up=null;
+  if(mode==='C') hangMasses=[0.50];
+  if(mode==='C') sC_init = state.s;
+  if(mode==='C'){
+    // Bloque empieza en la parte alta para que pueda bajar en Fase 1
+    const _marg = (boxHalfPx + planeThickness/2) / scalePxPerM;
+    const _sMax = planePxLen/scalePxPerM - _marg;
+    state.s = _sMax * 0.80; sC_init = state.s;
+    // Reiniciar indicadores HTML
+    const pi = document.getElementById('phaseIndicator');
+    if(pi){ pi.style.background='#eff6ff'; pi.style.borderColor='#93c5fd'; pi.style.color='#1d4ed8';
+      pi.innerHTML='📍 Fase 1: Encuentra <b>m₂</b> — ajusta la masa colgante hasta que <b>m₁ BAJE</b> con aceleración constante'; }
+    const mr = document.getElementById('m2Results');
+    if(mr) mr.style.display='none';
+    const pl = document.getElementById('hangPhaseLabel');
+    if(pl) pl.textContent = '(m₂)';
+    const cl = document.getElementById('cteLabel');
+    if(cl) cl.innerHTML = '⏳ Ajusta la masa colgante y presiona Iniciar';
+  }
+  if(mode==='B'||mode==='C'){
+    // Elegir par de materiales al azar — el alumno debe descubrir μs (B) o μk (C)
+    const r1 = MATERIALS[Math.floor(Math.random()*MATERIALS.length)];
+    const r2 = MATERIALS[Math.floor(Math.random()*MATERIALS.length)];
+    state.matObj = r1; state.matPlane = r2;
+  }
+  renderHangList();
+  log=[]; tSim=0;
+  initPosition();
+  updateMu();
+
+  if(mode==='A') newProblemA();
+}
+window.setMode = setMode;
+
+// ═══════════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════════
+let toastTimer=null;
+function showToast(msg){
+  toastEl.textContent=msg;
+  toastEl.classList.add('show');
+  if(toastTimer) clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>{ toastEl.classList.remove('show'); },3500);
+}
+
+// ═══════════════════════════════════════════
+//  UTILIDADES
+// ═══════════════════════════════════════════
+function applyAngle(){ state.angleDeg=parseFloat(angleEl.value); angleOut.textContent=`${state.angleDeg}°`; }
+function initPosition(){
+  const marginM=(boxHalfPx+planeThickness/2)/scalePxPerM;
+  state.s=Math.max((planePxLen/scalePxPerM)*0.3, marginM);
+}
+function ts(){
+  const d=new Date();
+  const z=num=>String(num).padStart(2,'0');
+  return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}_${z(d.getHours())}-${z(d.getMinutes())}-${z(d.getSeconds())}`;
+}
+
+// ═══════════════════════════════════════════
+//  LISTENERS
+// ═══════════════════════════════════════════
+angleEl.addEventListener('input', ()=>{
+  if(currentMode==='A') return;
+  applyAngle();
+});
+massEl.addEventListener('change', ()=>{
+  const v=parseFloat(massEl.value);
+  if(isNaN(v)||v<=0){ massEl.value=state.mass.toFixed(2); return; }
+  state.mass=Math.max(0.01,v); massEl.value=state.mass.toFixed(2);
+});
+gravEl.addEventListener('change', ()=>{
+  const v=parseFloat(gravEl.value);
+  if(isNaN(v)||v<=0){ gravEl.value=state.g.toFixed(2); return; }
+  state.g=Math.max(0.01,v); gravEl.value=state.g.toFixed(2);
+});
+matObjEl.addEventListener('change',   ()=>{ state.matObj=matObjEl.value;   updateMu(); });
+matPlaneEl.addEventListener('change', ()=>{ state.matPlane=matPlaneEl.value; updateMu(); });
+
+showVectorsEl.addEventListener('change', ()=>{ state.showVectors=showVectorsEl.checked; });
+showValuesEl.addEventListener('change',  ()=>{ state.showValues=showValuesEl.checked; });
+showDecompEl.addEventListener('change',  ()=>{ state.showDecomp=showDecompEl.checked; });
+
+document.getElementById('zoomSlider').addEventListener('input', e=>{
+  zoomFactor = parseFloat(e.target.value);
+  document.getElementById('zoomOut').textContent = Math.round(zoomFactor*100)+'%';
+  resizeCanvas();
+  _resizeLock = true;
+  requestAnimationFrame(()=>{ _resizeLock = false; });
+});
+
+toggleBtn.addEventListener('click', ()=>{
+  state.running=!state.running;
+  const txt = state.running ? '⏸ Pausar' : '▶ Iniciar';
+  toggleBtn.textContent = txt;
+  toggleBtn.classList.toggle('primary',!state.running);
+  // Sync FAB
+  const fab = document.getElementById('fabToggle');
+  if(fab){ fab.textContent=txt; fab.className = toggleBtn.className.replace('btn-mob-hide','').trim(); }
+});
+resetBtn.addEventListener('click', ()=>{
+  state.v=0; state.a=0; initPosition(); log=[]; tSim=0; cRetoDone=false;
+  prevAccel=0; stableAccelFrames=0; a_m2_down=null; a_m2_up=null;
+  document.getElementById('feedbackC').textContent='';
+});
+stepBtn.addEventListener('click', ()=>{
+  const forces=physicsStep(1/60); tSim+=1/60;
+  log.push({t:tSim,s:state.s,v:state.v,a:state.a,Fsum:forces.F_res,theta:state.angleDeg,mu_s:state.mu_s,mu_k:state.mu_k});
+  render(forces); updateReadout(forces);
+});
+critBtn.addEventListener('click', ()=>{
+  const thC=Math.atan(state.mu_s)*180/Math.PI;
+  angleEl.value=thC.toFixed(2); applyAngle();
+});
+saveBtn.addEventListener('click', ()=>{
+  // Determinar estado de aprobación (solo modos A, B, C)
+  let stamp = null;
+  if(currentMode !== 'libre'){
+    let aprobado = false;
+    if(currentMode === 'A'){
+      aprobado = document.getElementById('feedbackA').querySelector('.reto-box.ok') !== null;
+    } else if(currentMode === 'B'){
+      aprobado = document.getElementById('feedbackB').querySelector('.reto-box.ok') !== null;
+    } else if(currentMode === 'C'){
+      aprobado = cRetoDone;
+    }
+    stamp = aprobado ? 'APROBADO' : 'NO APROBADO';
+  }
+
+  // Dibujar stamp sobre el canvas sin modificar el original
+  const tmp = document.createElement('canvas');
+  tmp.width = cv.width; tmp.height = cv.height;
+  const tctx = tmp.getContext('2d');
+  tctx.drawImage(cv, 0, 0);
+
+  if(stamp){
+    const isOk = stamp === 'APROBADO';
+    const fontSize = Math.round(tmp.height * 0.08);
+    tctx.save();
+    // Fondo semitransparente
+    tctx.globalAlpha = 0.82;
+    tctx.fillStyle = isOk ? '#15803d' : '#b91c1c';
+    const pad = fontSize * 0.5;
+    const tw = tctx.measureText(stamp).width + pad * 2;
+    // Medir con la fuente real
+    tctx.font = `bold ${fontSize}px sans-serif`;
+    const tw2 = tctx.measureText(stamp).width + pad * 2;
+    const th2 = fontSize * 1.4;
+    const rx = tmp.width - tw2 - 16, ry = 16;
+    tctx.fillRect(rx, ry, tw2, th2);
+    // Texto
+    tctx.globalAlpha = 1;
+    tctx.fillStyle = '#fff';
+    tctx.textBaseline = 'middle';
+    tctx.textAlign = 'left';
+    tctx.fillText(stamp, rx + pad, ry + th2 / 2);
+    // Ícono
+    tctx.font = `bold ${Math.round(fontSize * 0.9)}px sans-serif`;
+    tctx.textAlign = 'right';
+    tctx.fillText(isOk ? '✅' : '❌', rx - 6, ry + th2 / 2);
+    tctx.restore();
+  }
+
+  const link = document.createElement('a');
+  link.download = `plano-inclinado_${state.angleDeg.toFixed(1)}deg_${ts()}.png`;
+  link.href = tmp.toDataURL('image/png');
+  link.click();
+});
+csvBtn.addEventListener('click', ()=>{
+  const th = state.angleDeg * Math.PI / 180;
+  const mH = hangMasses.reduce((a,b)=>a+b, 0);
+  const moving = Math.abs(state.v) >= 1e-4;
+  const regime = moving ? 'cinetica' : (Math.abs(state.a) < 1e-6 ? 'estatica' : '—');
+
+  // Estado de aprobación
+  let estadoReto = 'N/A';
+  if(currentMode !== 'libre'){
+    let aprobado = false;
+    if(currentMode === 'A') aprobado = document.getElementById('feedbackA').querySelector('.reto-box.ok') !== null;
+    else if(currentMode === 'B') aprobado = document.getElementById('feedbackB').querySelector('.reto-box.ok') !== null;
+    else if(currentMode === 'C') aprobado = cRetoDone;
+    estadoReto = aprobado ? 'APROBADO' : 'NO APROBADO';
+  }
+
+  // Datos de la ventana de lectura (snapshot actual)
+  const snapshot = [
+    ['Parametro', 'Valor', 'Unidad'],
+    ['Modo', currentMode, ''],
+    ['Material_bloque', state.matObj || '—', ''],
+    ['Material_plano', state.matPlane || '—', ''],
+    ['Estado_reto', estadoReto, ''],
+    ['Angulo', state.angleDeg.toFixed(2), 'deg'],
+    ['Masa_m1', state.mass.toFixed(3), 'kg'],
+    ['Gravedad', state.g.toFixed(2), 'm/s2'],
+    ['Peso_mg', (state.mass * state.g).toFixed(4), 'N'],
+    ['Normal_N', (state.mass * state.g * Math.cos(th)).toFixed(4), 'N'],
+    ['mu_s', state.mu_s.toFixed(4), ''],
+    ['mu_k', state.mu_k.toFixed(4), ''],
+    ['Friccion_regimen', regime, ''],
+    ['Aceleracion_a', state.a.toFixed(6), 'm/s2'],
+    ['Velocidad_v', state.v.toFixed(6), 'm/s'],
+    ['Posicion_s', state.s.toFixed(6), 'm'],
+    ['Masa_colgante_total', mH.toFixed(3), 'kg'],
+    ['a1_medida', a_m2_down !== null ? a_m2_down.toFixed(6) : '', 'm/s2'],
+    ['a2_medida', a_m2_up   !== null ? a_m2_up.toFixed(6)   : '', 'm/s2'],
+  ];
+
+  const BOM = '\uFEFF';
+  const csv = BOM + snapshot.map(r => r.join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `datos_plano_${ts()}.csv`; a.click();
+  URL.revokeObjectURL(url);
+});
+window.addEventListener('keydown', e=>{
+  if(currentMode==='A') return;
+  if(e.key==='ArrowLeft'){ angleEl.value=Math.max(0,(+angleEl.value)-0.5); applyAngle(); }
+  if(e.key==='ArrowRight'){ angleEl.value=Math.min(89,(+angleEl.value)+0.5); applyAngle(); }
+  if(e.key===' '){ e.preventDefault(); toggleBtn.click(); }
+});
+
+// Exponer para HTML inline
+window.checkA       = checkA;
+window.newProblemA  = newProblemA;
+window.checkB       = checkB;
+window.addHangMass  = addHangMass;
+
+// ═══════════════════════════════════════════
+//  INICIALIZACIÓN
+// ═══════════════════════════════════════════
+applyAngle();
+requestAnimationFrame(()=>{ resizeCanvas(); initPosition(); setMode('A'); });
+
+})();
+</script>
+</body>
+</html>

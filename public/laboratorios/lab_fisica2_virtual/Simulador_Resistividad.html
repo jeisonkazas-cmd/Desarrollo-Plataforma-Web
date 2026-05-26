@@ -1,0 +1,1616 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulador Resistividad — Modos de Práctica</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <style>
+    :root {
+      --accent: #1a5276;
+      --accent2: #c0392b;
+      --gold: #b8860b;
+      --green: #1e8449;
+      --modeA: #6c3483;
+      --modeReto: #b84a00;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: #ecf0f1;
+      color: #333;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ── MODE BAR ── */
+    #modeBar {
+      width: 100%;
+      display: flex;
+      background: #1a1a2e;
+      z-index: 200;
+      position: sticky;
+      top: 0;
+      box-shadow: 0 3px 12px rgba(0,0,0,.4);
+    }
+    .mode-btn {
+      flex: 1;
+      padding: 13px 10px;
+      background: transparent;
+      color: rgba(255,255,255,.55);
+      border: none;
+      border-bottom: 3px solid transparent;
+      font-size: .85rem;
+      font-weight: 600;
+      cursor: pointer;
+      letter-spacing: .05em;
+      transition: all .25s;
+    }
+    .mode-btn:hover { color: #fff; background: rgba(255,255,255,.06); }
+    .mode-btn.active-abierto { color: #5dade2; border-bottom-color: #5dade2; background: rgba(93,173,226,.08); }
+    .mode-btn.active-A       { color: #a569bd; border-bottom-color: #a569bd; background: rgba(165,105,189,.08); }
+    .mode-btn.active-reto    { color: #f0b27a; border-bottom-color: #f0b27a; background: rgba(240,178,122,.08); }
+    .mode-label-bar {
+      width: 100%;
+      padding: 6px 16px;
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .mode-label-bar.abierto { background: #1b4f72; color: #85c1e9; }
+    .mode-label-bar.A       { background: #4a235a; color: #c39bd3; }
+    .mode-label-bar.reto    { background: #6e2c00; color: #f0b27a; }
+
+    /* ── METRICS ── */
+    #metricsPanel {
+      background-color: #2c3e50;
+      color: white;
+      padding: 10px 20px;
+      width: 100%;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      font-size: 1.05rem;
+      box-shadow: 0 4px 8px rgba(0,0,0,.2);
+    }
+    .metric { text-align: center; }
+    .metric-value { font-size: 1.35rem; font-weight: bold; color: #2ecc71; }
+    .metric-locked { font-size: 1.35rem; font-weight: bold; color: #e74c3c; }
+
+    /* ── SIM ── */
+    #simContainer { width: 100%; height: 48vh; position: relative; }
+
+    /* ── CONTROLS ── */
+    #controls {
+      padding: 14px 20px 6px 20px;
+      background-color: #f0f0f0;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 -4px 10px rgba(0,0,0,.1);
+      z-index: 10;
+    }
+    .slider-group { margin-bottom: 12px; border-bottom: 1px solid #ccc; padding-bottom: 10px; }
+    .slider-container { display: flex; align-items: center; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 4px; }
+    .slider-container input[type="range"] { flex: 1; max-width: 350px; }
+    .labels { display: flex; justify-content: space-between; font-size: .72rem; color: #777; max-width: 500px; margin: 0 auto; padding: 0 60px; }
+
+    /* ── DATA PANEL ── */
+    #dataPanel {
+      width: 90%;
+      max-width: 900px;
+      margin: 14px auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    #buttonGroup { margin-bottom: 10px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+    #dataTableContainer {
+      width: 100%;
+      max-height: 200px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background: #fff;
+      margin-top: 8px;
+    }
+    #voltageTable { width: 100%; border-collapse: collapse; text-align: left; }
+    #voltageTable th, #voltageTable td { padding: 7px 10px; border-bottom: 1px solid #eee; font-size: .82rem; }
+    #voltageTable th { background: #007bff; color: white; position: sticky; top: 0; z-index: 1; }
+
+    /* ── MODE PANELS ── */
+    .mode-panel {
+      width: 90%;
+      max-width: 900px;
+      margin: 8px auto 30px;
+    }
+
+    /* ── GUIDE CARDS (Modo Abierto) ── */
+    .guide-section-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #1b4f72;
+      margin: 18px 0 10px;
+      padding-left: 10px;
+      border-left: 4px solid #5dade2;
+    }
+    .guide-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+    @media(max-width:600px){ .guide-grid { grid-template-columns: 1fr; } }
+    .guide-card {
+      background: #fff;
+      border: 1px solid #d6eaf8;
+      border-radius: 8px;
+      padding: 14px 16px;
+      border-top: 3px solid #5dade2;
+    }
+    .guide-card h4 {
+      font-size: .85rem;
+      color: #1b4f72;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .guide-card p { font-size: .8rem; color: #555; line-height: 1.55; }
+    .guide-card ul { font-size: .8rem; color: #555; padding-left: 16px; line-height: 1.7; }
+    .guide-note {
+      background: #fef9e7;
+      border-left: 3px solid #f39c12;
+      padding: 10px 14px;
+      font-size: .8rem;
+      color: #7d6608;
+      margin-top: 10px;
+      border-radius: 0 4px 4px 0;
+    }
+
+    /* ── ANALYSIS PANEL (Modo A y Reto) ── */
+    .analysis-panel {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 16px rgba(0,0,0,.1);
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    .analysis-header {
+      padding: 12px 18px;
+      color: white;
+      font-weight: 700;
+      font-size: .88rem;
+      letter-spacing: .05em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .analysis-header.modoA   { background: #4a235a; }
+    .analysis-header.modoReto { background: #6e2c00; }
+    .analysis-body { padding: 16px 18px; }
+    .analysis-formula {
+      background: #1a1a2e;
+      color: #fff;
+      padding: 12px 16px;
+      border-radius: 6px;
+      font-family: 'Courier New', monospace;
+      font-size: .82rem;
+      margin: 10px 0;
+      line-height: 1.8;
+    }
+    .analysis-formula .formula-line { color: #85c1e9; margin-bottom: 3px; }
+    .analysis-formula .formula-result { color: #2ecc71; font-weight: bold; font-size: .9rem; }
+
+    /* ── MINI GRAPH ── */
+    .mini-graph-box { border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden; margin: 12px 0; }
+    .mini-graph-header {
+      background: #2c3e50; color: white;
+      padding: 7px 14px; font-size: .72rem;
+      letter-spacing: .08em; text-transform: uppercase;
+      display: flex; justify-content: space-between;
+    }
+    .mini-graph-footer {
+      padding: 7px 14px; background: #f8f9fa;
+      border-top: 1px solid #e0e0e0;
+      display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+    }
+    .mini-btn {
+      font-size: .7rem; padding: 4px 10px;
+      border: 1px solid #ccc; background: #fff;
+      cursor: pointer; border-radius: 3px;
+      transition: all .2s;
+    }
+    .mini-btn:hover { background: #2c3e50; color: white; border-color: #2c3e50; }
+    .mini-btn.on { background: #2c3e50; color: white; border-color: #2c3e50; }
+    .mini-info { font-size: .7rem; color: #888; flex: 1; text-align: right; }
+
+    /* ── RESULT BOXES ── */
+    .res-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin: 10px 0;
+    }
+    @media(max-width:600px){ .res-row { grid-template-columns: 1fr 1fr; } }
+    .res-cell { background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 6px; padding: 10px 12px; }
+    .res-cell label { display: block; font-size: .62rem; color: #888; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 4px; }
+    .res-cell .val {
+      font-family: 'Courier New', monospace;
+      font-size: .95rem;
+      font-weight: bold;
+      color: #1a5276;
+    }
+    .res-cell .val.green { color: #1e8449; }
+    .res-cell .val.red   { color: #c0392b; }
+    .res-cell .val.gold  { color: #b8860b; }
+
+    /* ── RETO INPUT ── */
+    .reto-answer-box {
+      background: linear-gradient(135deg, #fef9e7, #fdebd0);
+      border: 2px solid #f39c12;
+      border-radius: 8px;
+      padding: 16px 18px;
+      margin: 12px 0;
+    }
+    .reto-answer-box h4 { font-size: .9rem; color: #6e2c00; margin-bottom: 10px; }
+    .reto-input-row { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+    .reto-input-row .input-group { flex: 1; min-width: 160px; }
+    .reto-input-row label { display: block; font-size: .68rem; color: #7d6608; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 5px; }
+    .reto-input-row input[type="number"] {
+      width: 100%;
+      padding: 8px 10px;
+      border: 2px solid #f39c12;
+      border-radius: 5px;
+      font-family: 'Courier New', monospace;
+      font-size: 1rem;
+      background: white;
+      color: #333;
+      outline: none;
+    }
+    .reto-input-row input:focus { border-color: #e67e22; }
+    .btn-verificar {
+      padding: 9px 22px;
+      background: #e67e22;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-weight: 700;
+      font-size: .88rem;
+      cursor: pointer;
+      transition: background .2s;
+      white-space: nowrap;
+    }
+    .btn-verificar:hover { background: #d35400; }
+
+    /* ── RESULT BADGE ── */
+    #retoBadge { display: none; }
+    .badge-aprobado {
+      background: linear-gradient(135deg, #1e8449, #27ae60);
+      color: white;
+      border-radius: 8px;
+      padding: 16px 20px;
+      text-align: center;
+      margin: 12px 0;
+      animation: popIn .4s ease;
+    }
+    .badge-fallido {
+      background: linear-gradient(135deg, #c0392b, #e74c3c);
+      color: white;
+      border-radius: 8px;
+      padding: 14px 20px;
+      text-align: center;
+      margin: 12px 0;
+      animation: popIn .4s ease;
+    }
+    @keyframes popIn {
+      from { transform: scale(.85); opacity: 0; }
+      to   { transform: scale(1); opacity: 1; }
+    }
+    .badge-aprobado .stamp { font-size: 2rem; font-weight: 900; letter-spacing: .1em; }
+    .badge-aprobado .stamp-sub { font-size: .78rem; opacity: .85; margin-top: 4px; }
+    .badge-fallido .fb-title { font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
+    .badge-fallido .fb-hint  { font-size: .78rem; opacity: .85; }
+
+    /* ── CAPTURE BTN ── */
+    .btn-captura {
+      display: none;
+      padding: 10px 20px;
+      background: #1a5276;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: .85rem;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: background .2s;
+    }
+    .btn-captura:hover { background: #154360; }
+
+    /* ── SLIDERS BLOQUEADOS ── */
+    .dim { opacity: .45; pointer-events: none; }
+    #dimSliders.locked {
+      opacity: .5;
+      position: relative;
+    }
+    #dimSliders.locked::after {
+      content: '🔒 Longitud y Radio fijos para esta sesión';
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(44,62,80,.55);
+      color: #fff;
+      font-size: .78rem;
+      font-weight: 700;
+      letter-spacing: .05em;
+      pointer-events: none;
+      z-index: 5;
+    }
+    #dimSliders.locked input[type="range"] {
+      pointer-events: none;
+    }
+    #status { font-size: .8rem; color: #555; margin-top: 4px; }
+
+    /* ── RESPONSIVE ── */
+    .slider-group .slider-container { flex-wrap: wrap; }
+
+    /* ── MINI TABLE IN ANALYSIS ── */
+    .mini-table { width: 100%; border-collapse: collapse; font-size: .78rem; margin: 8px 0; }
+    .mini-table th { background: #2c3e50; color: white; padding: 6px 8px; text-align: center; }
+    .mini-table td { padding: 5px 8px; border-bottom: 1px solid #f0f0f0; text-align: center; color: #555; }
+    .mini-table tr:nth-child(even) td { background: #f8f9fa; }
+
+    /* ── INSTRUCTIONS ── */
+    .step-list { list-style: none; padding: 0; }
+    .step-list li {
+      display: flex; gap: 10px; align-items: flex-start;
+      padding: 7px 0; border-bottom: 1px dashed #e0e0e0;
+      font-size: .82rem; color: #444;
+    }
+    .step-list li:last-child { border-bottom: none; }
+    .step-num {
+      background: var(--accent); color: white;
+      min-width: 22px; height: 22px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .7rem; font-weight: 700; flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .step-num.A   { background: var(--modeA); }
+    .step-num.reto { background: var(--modeReto); }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<!-- MODE BAR                                                          -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<div id="modeBar">
+  <button class="mode-btn active-abierto" id="btnAbierto" onclick="setMode('abierto')">📖 Modo Abierto</button>
+  <button class="mode-btn"               id="btnA"       onclick="setMode('A')">📊 Modo A — Análisis</button>
+  <button class="mode-btn"               id="btnReto"    onclick="setMode('reto')">🏆 Modo Reto</button>
+</div>
+<div id="modeLabelBar" class="mode-label-bar abierto">📖 MODO ABIERTO — Exploración libre del simulador</div>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<!-- METRICS PANEL                                                     -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<div id="metricsPanel">
+  <div class="metric">
+    Material: <span id="materialDisplay" class="metric-value" style="color:#f1c40f;">—</span>
+  </div>
+  <div class="metric">
+    Resistividad (ρ): <span id="resistivityDisplay" class="metric-value">—</span>
+  </div>
+  <div class="metric">
+    Corriente (I): <span id="currentDisplay" class="metric-value">0.000 A</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<!-- 3D SIMULATION                                                     -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<div id="simContainer"></div>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<!-- CONTROLS                                                          -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<div id="controls">
+  <div class="slider-group">
+    <div class="slider-container">
+      <span style="font-weight:bold;color:#d9534f;">(+) Extremo A</span>
+      <input type="range" id="voltageSlider" min="-100" max="100" value="0" step="0.1">
+      <span style="font-weight:bold;color:#5cb85c;">(-) Extremo B</span>
+    </div>
+    <div class="labels">
+      <span>Potencial alto en A</span>
+      <span>Equilibrio (0 V)</span>
+      <span>Potencial alto en B</span>
+    </div>
+    <div id="status">Diferencia de Potencial: 0.00 V — Movimiento Térmico</div>
+  </div>
+  <div class="slider-group" id="dimSliders">
+    <div class="slider-container">
+      <span style="font-weight:bold;color:#777;">Longitud (L): <span id="lengthValue">80</span> cm</span>
+      <input type="range" id="lengthSlider" min="30" max="120" value="80">
+    </div>
+    <div class="slider-container">
+      <span style="font-weight:bold;color:#777;">Radio (r): <span id="radiusValue">1.00</span> mm</span>
+      <input type="range" id="areaSlider" min="5" max="20" value="10">
+    </div>
+  </div>
+  <div style="display:flex;justify-content:center;align-items:center;gap:12px;margin-top:6px;flex-wrap:wrap;">
+    <button onclick="resetCamera()" style="padding:6px 16px;background:#34495e;color:white;border:none;border-radius:5px;cursor:pointer;font-size:.78rem;font-weight:600;letter-spacing:.04em;transition:background .2s;"
+      onmouseover="this.style.background='#2c3e50'" onmouseout="this.style.background='#34495e'">
+      🎥 Reiniciar Cámara
+    </button>
+    <span style="font-size:.72rem;color:#888;">Arrastra para rotar · Electrones (azul) | Campo E (rojo)</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<!-- DATA REGISTER TABLE                                               -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<div id="dataPanel">
+  <div id="buttonGroup">
+    <button onclick="resetSimulation()" style="padding:8px 14px;background:#ffc107;color:#333;border:none;border-radius:5px;cursor:pointer;font-weight:bold;">
+      🔄 Cambiar Material (ρ)
+    </button>
+    <button onclick="clearTable()" style="padding:8px 14px;background:#dc3545;color:white;border:none;border-radius:5px;cursor:pointer;">
+      🗑️ Limpiar Registro
+    </button>
+    <button onclick="exportData()" style="padding:8px 14px;background:#28a745;color:white;border:none;border-radius:5px;cursor:pointer;font-weight:bold;">
+      💾 Exportar CSV
+    </button>
+  </div>
+  <div id="dataTableContainer">
+    <table id="voltageTable">
+      <thead>
+        <tr>
+          <th style="width:15%;">#</th>
+          <th style="width:35%;">Voltaje V (V)</th>
+          <th style="width:50%;">Corriente I (A)</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<!-- MODO ABIERTO PANEL                                                -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<div id="panelAbierto" class="mode-panel">
+
+  <div class="guide-section-title">🔬 ¿Cómo funciona este simulador?</div>
+  <div class="guide-grid">
+    <div class="guide-card">
+      <h4>🧲 Conductor 3D</h4>
+      <p>El cilindro representa un conductor metálico. Los puntos <strong>azules</strong> son electrones libres que se mueven aleatoriamente (movimiento térmico) cuando no hay campo eléctrico aplicado.</p>
+    </div>
+    <div class="guide-card">
+      <h4>⚡ Campo Eléctrico (flechas rojas)</h4>
+      <p>Cuando aplicas voltaje, aparecen flechas rojas que indican la dirección del campo eléctrico <strong>E</strong> dentro del conductor. Los electrones fluyen en sentido contrario.</p>
+    </div>
+    <div class="guide-card">
+      <h4>🎚️ Control de Voltaje</h4>
+      <p>El deslizador superior controla la diferencia de potencial entre los extremos A (rojo) y B (verde). Al moverlo, los electrones fluyen y se registra la corriente resultante.</p>
+    </div>
+    <div class="guide-card">
+      <h4>📏 Longitud y Radio</h4>
+      <p>Los deslizadores inferiores cambian la <strong>longitud L</strong> y el <strong>radio r</strong> del conductor. Observa cómo cambia la corriente al modificar las dimensiones.</p>
+    </div>
+    <div class="guide-card">
+      <h4>🔄 Botón "Cambiar Material"</h4>
+      <p>Selecciona al azar un nuevo material con diferente resistividad ρ. El nombre y valor se muestran en el panel superior (visible en Modo Abierto).</p>
+    </div>
+    <div class="guide-card">
+      <h4>📋 Tabla de Registro</h4>
+      <p>Cada vez que mueves el voltaje se registra automáticamente el par (V, I). Usa <strong>Exportar CSV</strong> para llevar los datos a Excel y graficar.</p>
+    </div>
+  </div>
+
+  <div class="guide-section-title">🔢 Física del simulador</div>
+  <div class="analysis-formula" style="border-radius:8px;">
+    <div class="formula-line">Ley de Ohm:    V = R × I    →    R = V / I</div>
+    <div class="formula-line">Conversión de unidades:  L(m) = L(cm) ÷ 100   |   r(m) = r(mm) ÷ 1000</div>
+    <div class="formula-line">Área sección transversal:   A = π × r(m)²</div>
+    <div class="formula-line">Resistencia:   R_sim = ρ × L(m) / A   →   Despejando ρ:</div>
+    <div class="formula-result">ρ = R_sim × A / L(m)  =  R_sim × π × r(m)² / L(m)   [Ω·m]</div>
+  </div>
+
+  <div class="guide-section-title">📊 Relación V vs I (Ley de Ohm)</div>
+  <div class="guide-note">
+    💡 <strong>Actividad sugerida:</strong> Mueve el voltaje a distintos valores (ej: 2, 4, 6, 8, 10 V)
+    en ambos sentidos. Exporta los datos y grafica V vs I en Excel o en papel cuadriculado.
+    La pendiente de la recta es R_sim. Luego calcula ρ = R_sim × π × r(m)² / L(m).
+    ¡Compara con el valor mostrado en el panel de métricas!
+  </div>
+
+  <div class="guide-section-title">📌 Materiales disponibles en este simulador</div>
+  <table class="mini-table" style="max-width:500px;margin:0 auto;">
+    <thead><tr><th>Material</th><th>ρ (Ω·m)</th><th>Tipo</th></tr></thead>
+    <tbody>
+      <tr><td>Acero</td><td>7.20 × 10⁻⁷</td><td>Metal ferroso</td></tr>
+      <tr><td>Platino</td><td>1.10 × 10⁻⁷</td><td>Metal noble</td></tr>
+      <tr><td>Mercurio</td><td>9.80 × 10⁻⁷</td><td>Metal líquido</td></tr>
+      <tr><td>Hierro</td><td>9.71 × 10⁻⁸</td><td>Metal ferroso</td></tr>
+      <tr><td>Estaño</td><td>1.15 × 10⁻⁷</td><td>Metal suave</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<!-- MODO A PANEL                                                      -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<div id="panelModoA" class="mode-panel" style="display:none;">
+
+  <div class="analysis-panel">
+    <div class="analysis-header modoA">📊 Modo A — Determinación de ρ por Análisis V–I</div>
+    <div class="analysis-body">
+
+      <p style="font-size:.84rem;color:#555;margin-bottom:12px;">
+        En este modo la resistividad del material está <strong>oculta</strong>. Debes medir varios pares (V, I),
+        graficar V vs I para obtener la pendiente R y calcular ρ experimentalmente. Al final compara con el valor real.
+      </p>
+
+      <ul class="step-list">
+        <li><span class="step-num A">1</span>Presiona <strong>"Cambiar Material"</strong> para obtener un nuevo experimento: material, L y r se asignan al azar (ρ oculto).</li>
+        <li><span class="step-num A">2</span>Observa los valores de <strong>L</strong> y <strong>r</strong> en los controles del simulador — están fijos y los necesitarás para calcular ρ.</li>
+        <li><span class="step-num A">3</span>Mueve el voltaje a varios valores: 20, 40, 60, 80, 100, −40, −70, −90… (mínimo 8 puntos).</li>
+        <li><span class="step-num A">4</span>Haz clic en <strong>"🔢 Analizar Datos"</strong> para graficar V vs I, obtener R_sim y calcular ρ automáticamente.</li>
+        <li><span class="step-num A">5</span>Observa el error relativo y compara tu ρ_exp con el valor real revelado.</li>
+      </ul>
+
+      <div style="text-align:center;margin:14px 0;">
+        <button onclick="runAnalysisA()" style="padding:10px 24px;background:#4a235a;color:white;border:none;border-radius:6px;font-size:.9rem;font-weight:700;cursor:pointer;">
+          🔢 Analizar Datos
+        </button>
+      </div>
+
+      <div id="analysisAResult" style="display:none;">
+        <div class="analysis-formula">
+          <div class="formula-line">Parámetros usados: L = <span id="aL">80</span> cm  (<span id="aLm">0.80</span> m)   |   r = <span id="aR">1.00</span> mm  (<span id="aRm">0.001</span> m)   |   A = π×r(m)² = <span id="aArea">—</span> m²</div>
+          <div class="formula-line">Regresión lineal V vs I → pendiente m = R_sim = <span id="aSlope">—</span> Ω</div>
+          <div class="formula-result">ρ_exp = R_sim × A / L(m) = <span id="aRhoCalc">—</span> Ω·m</div>
+        </div>
+
+        <!-- VALORES PARA CÁLCULO MANUAL -->
+        <div style="background:#fff8e1;border:2px solid #f39c12;border-radius:8px;padding:16px 18px;margin:12px 0;">
+          <div style="font-weight:700;color:#6e2c00;font-size:.88rem;margin-bottom:10px;">📋 Valores para tu cálculo manual</div>
+          <table style="width:100%;border-collapse:collapse;font-family:'Courier New',monospace;font-size:.82rem;">
+            <tr style="background:#fdebd0;">
+              <td style="padding:6px 10px;border:1px solid #f0c080;font-weight:700;color:#7d6608;">Variable</td>
+              <td style="padding:6px 10px;border:1px solid #f0c080;font-weight:700;color:#7d6608;">Valor leído</td>
+              <td style="padding:6px 10px;border:1px solid #f0c080;font-weight:700;color:#7d6608;">En metros (SI)</td>
+            </tr>
+            <tr>
+              <td style="padding:6px 10px;border:1px solid #f0c080;">L (longitud)</td>
+              <td style="padding:6px 10px;border:1px solid #f0c080;color:#1a5276;font-weight:bold;" id="aManL">—</td>
+              <td style="padding:6px 10px;border:1px solid #f0c080;color:#555;" id="aManLm">—</td>
+            </tr>
+            <tr style="background:#fef9f0;">
+              <td style="padding:6px 10px;border:1px solid #f0c080;">r (radio)</td>
+              <td style="padding:6px 10px;border:1px solid #f0c080;color:#1a5276;font-weight:bold;" id="aManR">—</td>
+              <td style="padding:6px 10px;border:1px solid #f0c080;color:#555;" id="aManRm">—</td>
+            </tr>
+            <tr>
+              <td style="padding:6px 10px;border:1px solid #f0c080;">A = π × r(m)²</td>
+              <td colspan="2" style="padding:6px 10px;border:1px solid #f0c080;color:#1a5276;font-weight:bold;" id="aManA">—</td>
+            </tr>
+            <tr style="background:#fef9f0;">
+              <td style="padding:6px 10px;border:1px solid #f0c080;">R_sim (pendiente)</td>
+              <td colspan="2" style="padding:6px 10px;border:1px solid #f0c080;color:#c0392b;font-weight:bold;" id="aManRsim">—</td>
+            </tr>
+            <tr style="background:#e8f8f5;">
+              <td style="padding:6px 10px;border:1px solid #f0c080;font-weight:700;">ρ = R_sim × A / L(m)</td>
+              <td colspan="2" style="padding:6px 10px;border:1px solid #f0c080;color:#1e8449;font-weight:bold;font-size:.9rem;" id="aManRho">—</td>
+            </tr>
+          </table>
+        </div>
+
+        <div class="res-row">
+          <div class="res-cell"><label>R_sim medido (Ω)</label><span class="val" id="aResistance">—</span></div>
+          <div class="res-cell"><label>R² del ajuste</label><span class="val green" id="aR2">—</span></div>
+          <div class="res-cell"><label>ρ calculado (Ω·m)</label><span class="val" id="aRhoResult">—</span></div>
+          <div class="res-cell"><label>Puntos usados</label><span class="val gold" id="aPoints">—</span></div>
+        </div>
+
+        <div class="mini-graph-box">
+          <div class="mini-graph-header">
+            <span>Gráfica V (V) vs Corriente I (A) — Pendiente = R_sim</span>
+            <span id="aGraphInfo" style="color:rgba(255,255,255,.6);font-size:.85em;">sin datos</span>
+          </div>
+          <canvas id="grafA" height="260" style="width:100%;display:block;background:#fafafa;"></canvas>
+          <div class="mini-graph-footer">
+            <button class="mini-btn on" id="btnRegA" onclick="toggleRegA()">📈 Ajuste lineal</button>
+            <span class="mini-info" id="eqA">Active el ajuste para ver la recta</span>
+          </div>
+        </div>
+
+        <div style="border-top:2px dashed #d4ac0d;padding-top:14px;margin-top:4px;">
+          <div class="res-row">
+            <div class="res-cell"><label>ρ_real del simulador</label><span class="val" id="aRhoReal">—</span></div>
+            <div class="res-cell"><label>ρ_experimental</label><span class="val green" id="aRhoExpShow">—</span></div>
+            <div class="res-cell"><label>Error relativo (%)</label><span class="val" id="aErrorRel">—</span></div>
+            <div class="res-cell"><label>Calificación</label><span class="val" id="aCalif">—</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<!-- MODO RETO PANEL                                                   -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<div id="panelModoReto" class="mode-panel" style="display:none;">
+
+  <div class="analysis-panel">
+    <div class="analysis-header modoReto">🏆 Modo Reto — Identifica el Material y Demuestra tu Resultado</div>
+    <div class="analysis-body">
+
+      <p style="font-size:.84rem;color:#555;margin-bottom:12px;">
+        El material es desconocido. Realiza tus mediciones, calcula ρ con la tabla y las fórmulas
+        de la práctica, ingresa tu respuesta y el simulador verificará si es correcta.
+        Si apruebas, podrás descargar la evidencia con todos los datos.
+      </p>
+
+      <ul class="step-list">
+        <li><span class="step-num reto">1</span>Presiona <strong>"Cambiar Material"</strong> — se asignan al azar material, L y r. Todo está oculto: debes descubrirlo.</li>
+        <li><span class="step-num reto">2</span>Lee los valores de <strong>L</strong> y <strong>r</strong> en los controles del simulador (están visibles pero bloqueados).</li>
+        <li><span class="step-num reto">3</span>Registra mínimo <strong>10 pares (V, I)</strong> variando el voltaje. Anota L y r en tu hoja de trabajo.</li>
+        <li><span class="step-num reto">4</span>Calcula R_sim (pendiente de V vs I) y luego <strong>ρ = R_sim × π × r(m)² / L(m)</strong>.  <span style="color:#f0b27a;font-size:.8em;">← r en metros: r(mm) ÷ 1000  |  L en metros: L(cm) ÷ 100</span></li>
+        <li><span class="step-num reto">5</span>Ingresa tu ρ calculado y presiona <strong>"Verificar"</strong>. Si el error es &lt; 20%, descarga la evidencia.</li>
+      </ul>
+
+      <div class="analysis-formula">
+        <div class="formula-line">Fórmula para calcular: ρ = R_sim × π × r(m)² / L(m)</div>
+        <div class="formula-line">Donde: R_sim = pendiente de la gráfica V vs I  (en Ω)</div>
+        <div class="formula-line">       r(m) = r(mm) ÷ 1000   |   L(m) = L(cm) ÷ 100</div>
+        <div class="formula-result">Expresa ρ en notación científica: A.BC × 10<sup>−N</sup>  →  escríbelo como AeN, ej: 7.2e-7</div>
+      </div>
+
+      <div class="reto-answer-box">
+        <h4>🔍 ¿Cuál es la resistividad del material? Ingresa tu resultado:</h4>
+        <div class="reto-input-row">
+          <div class="input-group">
+            <label>Resistividad calculada ρ (Ω·m)</label>
+            <input type="number" id="retoInput" step="any" placeholder="ej: 3.45e-7" style="font-size:.9rem;">
+          </div>
+          <button class="btn-verificar" onclick="verificarReto()">✅ Verificar</button>
+        </div>
+        <div style="margin-top:8px;font-size:.75rem;color:#7d6608;font-style:italic;">
+          💡 Recuerda usar los valores de L y r visibles en los controles del simulador para tu cálculo.
+        </div>
+      </div>
+
+      <div id="retoBadge"></div>
+
+      <div style="text-align:center;">
+        <button class="btn-captura" id="btnCaptura" onclick="generarEvidencia()">
+          📸 Descargar Evidencia (PNG)
+        </button>
+      </div>
+
+      <!-- Evidence generation canvas (hidden) -->
+      <canvas id="evidenceCanvas" style="display:none;"></canvas>
+
+    </div>
+  </div>
+
+  <!-- Quick analysis view for Reto -->
+  <div class="analysis-panel">
+    <div class="analysis-header modoReto" style="cursor:pointer;" onclick="toggleRetoAnalysis()">
+      📊 Ver análisis rápido de mis datos <span id="retoAnalysisArrow">▼</span>
+    </div>
+    <div class="analysis-body" id="retoAnalysisBody" style="display:none;">
+      <div style="text-align:center;margin-bottom:14px;">
+        <button onclick="runAnalysisReto()" style="padding:9px 20px;background:#6e2c00;color:white;border:none;border-radius:6px;font-size:.88rem;font-weight:700;cursor:pointer;">
+          🔢 Calcular R_sim de mis datos
+        </button>
+      </div>
+      <div id="retoAnalysisResult" style="display:none;">
+        <div class="mini-graph-box">
+          <div class="mini-graph-header">
+            <span>V vs I — Modo Reto (R_sim = pendiente)</span>
+            <span id="retoGraphInfo" style="color:rgba(255,255,255,.6);font-size:.85em;">sin datos</span>
+          </div>
+          <canvas id="grafReto" height="240" style="width:100%;display:block;background:#fafafa;"></canvas>
+          <div class="mini-graph-footer">
+            <button class="mini-btn on" id="btnRegReto" onclick="toggleRegReto()">📈 Ajuste lineal</button>
+            <span class="mini-info" id="eqReto">—</span>
+          </div>
+        </div>
+        <div class="res-row">
+          <div class="res-cell"><label>R_sim calculado (Ω)</label><span class="val" id="retoRsim">—</span></div>
+          <div class="res-cell"><label>R² del ajuste</label><span class="val green" id="retoR2">—</span></div>
+          <div class="res-cell"><label>Puntos de datos</label><span class="val gold" id="retoPoints">—</span></div>
+          <div class="res-cell"><label>Ecuación recta</label><span class="val" id="retoEcuacion" style="font-size:.72rem;">—</span></div>
+        </div>
+
+        <!-- VALORES PARA CÁLCULO MANUAL -->
+        <div style="background:#fff8e1;border:2px solid #f39c12;border-radius:8px;padding:16px 18px;margin:12px 0;">
+          <div style="font-weight:700;color:#6e2c00;font-size:.88rem;margin-bottom:10px;">📋 Valores para tu cálculo manual</div>
+          <table style="width:100%;border-collapse:collapse;font-family:'Courier New',monospace;font-size:.82rem;">
+            <tr style="background:#fdebd0;">
+              <td style="padding:6px 10px;border:1px solid #f0c080;font-weight:700;color:#7d6608;">Variable</td>
+              <td style="padding:6px 10px;border:1px solid #f0c080;font-weight:700;color:#7d6608;">Valor leído</td>
+              <td style="padding:6px 10px;border:1px solid #f0c080;font-weight:700;color:#7d6608;">En metros (SI)</td>
+            </tr>
+            <tr>
+              <td style="padding:6px 10px;border:1px solid #f0c080;">L (longitud)</td>
+              <td style="padding:6px 10px;border:1px solid #f0c080;color:#1a5276;font-weight:bold;" id="retoManL">—</td>
+              <td style="padding:6px 10px;border:1px solid #f0c080;color:#555;" id="retoManLm">—</td>
+            </tr>
+            <tr style="background:#fef9f0;">
+              <td style="padding:6px 10px;border:1px solid #f0c080;">r (radio)</td>
+              <td style="padding:6px 10px;border:1px solid #f0c080;color:#1a5276;font-weight:bold;" id="retoManR">—</td>
+              <td style="padding:6px 10px;border:1px solid #f0c080;color:#555;" id="retoManRm">—</td>
+            </tr>
+            <tr>
+              <td style="padding:6px 10px;border:1px solid #f0c080;">A = π × r(m)²</td>
+              <td style="padding:6px 10px;border:1px solid #f0c080;color:#1a5276;font-weight:bold;" id="retoManA">—</td>
+              <td style="padding:6px 10px;border:1px solid #f0c080;color:#555;">m²</td>
+            </tr>
+            <tr style="background:#fef9f0;">
+              <td style="padding:6px 10px;border:1px solid #f0c080;">R_sim (pendiente)</td>
+              <td style="padding:6px 10px;border:1px solid #f0c080;color:#c0392b;font-weight:bold;" id="retoManRsim">—</td>
+              <td style="padding:6px 10px;border:1px solid #f0c080;color:#555;">Ω</td>
+            </tr>
+            <tr style="background:#fdf2ff;">
+              <td style="padding:6px 10px;border:1px solid #f0c080;font-weight:700;">ρ = R_sim × A / L(m)</td>
+              <td style="padding:6px 10px;border:1px solid #f0c080;color:#6c3483;font-weight:bold;font-size:.9rem;" id="retoManRho">Calcula tú 🖊️</td>
+              <td style="padding:6px 10px;border:1px solid #f0c080;color:#555;">Resistividad — ¡tú la calculas!</td>
+            </tr>
+          </table>
+          <div style="margin-top:10px;font-size:.75rem;color:#7d6608;font-style:italic;">
+            ✏️ Copia estos valores en tu hoja, sustituye en la fórmula y obtén ρ manualmente antes de verificar.
+          </div>
+        </div>
+
+        <div class="guide-note" style="margin-top:8px;">
+          💡 <strong>Fórmula:</strong>  ρ = R_sim × π × r(m)² / L(m)  —  Convierte: r(m) = r(mm) ÷ 1000  |  L(m) = L(cm) ÷ 100
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div style="height:40px;"></div>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<!-- SCRIPTS                                                           -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<script>
+// ── DOM REFS ────────────────────────────────────────────────────────
+let scene, camera, renderer, orbitControls;
+const container      = document.getElementById('simContainer');
+const voltageSlider  = document.getElementById('voltageSlider');
+const lengthSlider   = document.getElementById('lengthSlider');
+const areaSlider     = document.getElementById('areaSlider');
+const statusEl       = document.getElementById('status');
+const lengthValEl    = document.getElementById('lengthValue');
+const radiusValEl    = document.getElementById('radiusValue');
+const tableBody      = document.getElementById('voltageTable').getElementsByTagName('tbody')[0];
+const currentDisplay = document.getElementById('currentDisplay');
+const resistivityDisplay = document.getElementById('resistivityDisplay');
+const materialDisplay    = document.getElementById('materialDisplay');
+
+// ── MATERIALS (non-clamped set) ─────────────────────────────────────
+const RESISTIVITIES = [
+  { name: "Acero",    value: 7.20e-7, color: "#6c7a89" },
+  { name: "Platino",  value: 1.10e-7, color: "#ecf0f1" },
+  { name: "Mercurio", value: 9.80e-7, color: "#3498db" },
+  { name: "Hierro",   value: 9.71e-8, color: "#7f8c8d" },
+  { name: "Estaño",   value: 1.15e-7, color: "#778899" }
+];
+let currentResistivity = RESISTIVITIES[0];
+
+// ── STATE ───────────────────────────────────────────────────────────
+let dataLog = [], recordCount = 0;
+let conductorMesh = null;
+let currentRadius = 10, currentLength = 80;
+let particles = [], voltage = 0.0;
+let fieldArrows = [], lightA, lightB;
+const tempRadialVec = new THREE.Vector3();
+
+const BASE_DENSITY_FACTOR = 0.02;
+const driftFactor    = 0.0006;
+const repulsionFactor = 0.008;
+const damping        = 0.995;
+const thermalInjection = 0.25;
+
+// ── MODE ─────────────────────────────────────────────────────────────
+let currentMode = 'abierto';
+
+function setMode(mode) {
+  currentMode = mode;
+  ['abierto','A','reto'].forEach(m => {
+    const panel = document.getElementById('panel' + (m==='abierto'?'Abierto':(m==='A'?'ModoA':'ModoReto')));
+    if (panel) panel.style.display = (m === mode) ? '' : 'none';
+    const btn = document.getElementById('btn' + (m==='abierto'?'Abierto':(m==='A'?'A':'Reto')));
+    if (btn) {
+      btn.className = 'mode-btn';
+      if (m === mode) btn.classList.add('active-' + mode);
+    }
+  });
+
+  const bar = document.getElementById('modeLabelBar');
+
+  if (mode === 'abierto') {
+    bar.className = 'mode-label-bar abierto';
+    bar.innerHTML = '📖 MODO ABIERTO — Exploración libre del simulador';
+    resistivityDisplay.textContent = currentResistivity.value.toExponential(3);
+    resistivityDisplay.className = 'metric-value';
+    materialDisplay.textContent = currentResistivity.name;
+    materialDisplay.style.color = currentResistivity.color;
+    // Restore default dimensions
+    lengthSlider.value = 80; areaSlider.value = 10;
+    currentLength = 80; currentRadius = 10;
+    lengthValEl.textContent = 80; radiusValEl.textContent = '1.00';
+    lockSliders(false);
+    document.getElementById('btnAbierto').classList.add('active-abierto');
+    createParticles(calculateParticleCount()); drawConductor();
+  } else if (mode === 'A') {
+    bar.className = 'mode-label-bar A';
+    bar.innerHTML = '📊 MODO A — ρ oculta. Lee L y r del simulador, mide V e I, calcula ρ.';
+    resistivityDisplay.textContent = '????';
+    resistivityDisplay.className = 'metric-locked';
+    materialDisplay.textContent = '???';
+    materialDisplay.style.color = '#e74c3c';
+    lockSliders(true);
+    document.getElementById('btnA').classList.add('active-A');
+    // Randomize L, r and material for a fresh challenge
+    selectRandomResistivity();
+    randomizeDimensions();
+    voltageSlider.value = 0; clearTable();
+    const aRes = document.getElementById('analysisAResult');
+    if (aRes) aRes.style.display = 'none';
+    createParticles(calculateParticleCount()); drawConductor(); updateStatus();
+  } else {
+    bar.className = 'mode-label-bar reto';
+    bar.innerHTML = '🏆 MODO RETO — Material, L y r aleatorios. ¡Calcula ρ y demuéstralo!';
+    resistivityDisplay.textContent = '????';
+    resistivityDisplay.className = 'metric-locked';
+    materialDisplay.textContent = '???';
+    materialDisplay.style.color = '#e74c3c';
+    lockSliders(true);
+    document.getElementById('btnReto').classList.add('active-reto');
+    // Randomize everything for a fresh challenge
+    selectRandomResistivity();
+    randomizeDimensions();
+    voltageSlider.value = 0; clearTable();
+    document.getElementById('retoBadge').innerHTML = '';
+    document.getElementById('retoBadge').style.display = 'none';
+    document.getElementById('retoInput').value = '';
+    const capBtn = document.getElementById('btnCaptura');
+    if (capBtn) capBtn.style.display = 'none';
+    const rRes = document.getElementById('retoAnalysisResult');
+    if (rRes) rRes.style.display = 'none';
+    createParticles(calculateParticleCount()); drawConductor(); updateStatus();
+  }
+}
+
+// ── LOCK / UNLOCK dimension sliders ──────────────────────────────────
+function lockSliders(lock) {
+  const group = document.getElementById('dimSliders');
+  if (lock) {
+    group.classList.add('locked');
+    lengthSlider.disabled = true;
+    areaSlider.disabled   = true;
+  } else {
+    group.classList.remove('locked');
+    lengthSlider.disabled = false;
+    areaSlider.disabled   = false;
+  }
+}
+// Random L and r pools
+const L_OPTIONS = [40, 50, 60, 70, 80, 90, 100, 110, 120];
+const R_OPTIONS = [5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20];
+
+let lastResistivityIdx = -1;
+
+function selectRandomResistivity() {
+  let idx;
+  do {
+    idx = Math.floor(Math.random() * RESISTIVITIES.length);
+  } while (idx === lastResistivityIdx && RESISTIVITIES.length > 1);
+  lastResistivityIdx = idx;
+  currentResistivity = RESISTIVITIES[idx];
+  materialDisplay.textContent = currentResistivity.name;
+  materialDisplay.style.color = currentResistivity.color;
+  resistivityDisplay.textContent = currentResistivity.value.toExponential(3);
+  if (currentMode !== 'abierto') {
+    resistivityDisplay.textContent = '????';
+    resistivityDisplay.className = 'metric-locked';
+    materialDisplay.textContent = '???';
+    materialDisplay.style.color = '#e74c3c';
+  }
+}
+
+function randomizeDimensions() {
+  const newL = L_OPTIONS[Math.floor(Math.random() * L_OPTIONS.length)];
+  const newR = R_OPTIONS[Math.floor(Math.random() * R_OPTIONS.length)];
+  lengthSlider.value = newL;
+  areaSlider.value   = newR;
+  currentLength = newL;
+  currentRadius = newR;
+  lengthValEl.textContent = newL;
+  radiusValEl.textContent = (newR * 0.1).toFixed(2);
+}
+
+function resetCamera() {
+  orbitControls.reset();
+  camera.position.set(0, 10, 70);
+  camera.lookAt(0, 0, 0);
+  camera.updateProjectionMatrix();
+}
+
+function resetSimulation() {
+  selectRandomResistivity();
+  // Randomize L and r in Modo A and Modo Reto
+  if (currentMode === 'A' || currentMode === 'reto') {
+    randomizeDimensions();
+  } else {
+    voltageSlider.value = 0;
+    lengthSlider.value = 80;
+    areaSlider.value = 10;
+  }
+  voltageSlider.value = 0;
+  updateDimensions();
+  resetCamera();
+  clearTable();
+  // Reset Reto badge
+  document.getElementById('retoBadge').innerHTML = '';
+  document.getElementById('retoBadge').style.display = 'none';
+  const capBtn = document.getElementById('btnCaptura');
+  if (capBtn) capBtn.style.display = 'none';
+  // Hide analysis results so student starts fresh
+  const aRes = document.getElementById('analysisAResult');
+  if (aRes) aRes.style.display = 'none';
+  const rRes = document.getElementById('retoAnalysisResult');
+  if (rRes) rRes.style.display = 'none';
+  document.getElementById('retoInput').value = '';
+  statusEl.innerHTML = `Diferencia de Potencial: <span style='color:black'>0.00 V</span> — Movimiento Aleatorio`;
+}
+
+// ── PHYSICS ──────────────────────────────────────────────────────────
+function calculateResistance(L, r) {
+  const rho = currentResistivity.value;
+  const r_m  = r * 1e-4;          // slider→mm: r*0.1  →  metros: *1e-3  =  r*1e-4
+  const L_m  = L * 1e-2;          // slider = cm  →  metros: /100
+  const area = Math.PI * r_m ** 2;
+  let R = rho * L_m / area;
+  return Math.max(0.001, Math.min(1000, R));
+}
+
+function calculateCurrent(V, R) {
+  const V_scaled = V * 0.1;
+  if (Math.abs(V_scaled) < 0.005) return 0;
+  let current = V_scaled / R;
+  return Math.min(Math.abs(current), 500) * Math.sign(current);
+}
+
+// ── REGISTRATION ────────────────────────────────────────────────────
+function registerVoltage() {
+  const V = parseFloat(voltageSlider.value);
+  const R = calculateResistance(currentLength, currentRadius);
+  const I = calculateCurrent(V, R);
+  const Vef = parseFloat((V * 0.1).toFixed(3));
+
+  currentDisplay.textContent = I.toFixed(4) + ' A';
+
+  recordCount++;
+  const rec = { id: recordCount, voltage: V, vef: Vef, current: I };
+  dataLog.push(rec);
+  updateTableDisplay(rec);
+}
+
+function updateTableDisplay(rec) {
+  const newRow = tableBody.insertRow(-1);
+  newRow.insertCell(0).textContent = rec.id;
+  newRow.insertCell(1).textContent = rec.vef.toFixed(4);
+  newRow.insertCell(2).textContent = rec.current.toFixed(4);
+  // Auto-scroll
+  const cont = document.getElementById('dataTableContainer');
+  cont.scrollTop = cont.scrollHeight;
+}
+
+function clearTable() {
+  tableBody.innerHTML = '';
+  dataLog = [];
+  recordCount = 0;
+  updateStatus();
+}
+
+function exportData() {
+  if (!dataLog.length) { alert('No hay datos para exportar.'); return; }
+  const headers = ['#','V (V)','Corriente I (A)'];
+  const rows = dataLog.map(d => [d.id, d.vef.toFixed(4).replace('.',','), d.current.toFixed(4).replace('.',',')]);
+  let csv = headers.join(';') + '\n';
+  rows.forEach(r => csv += r.join(';') + '\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url;
+  const now = new Date();
+  a.download = `Resistividad_${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}.csv`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// ── STATUS ───────────────────────────────────────────────────────────
+function updateStatus() {
+  voltage = parseFloat(voltageSlider.value);
+  const Vreal = (voltage * 0.1).toFixed(2);
+  if (Math.abs(voltage) < 0.5) {
+    statusEl.innerHTML = `Diferencia de Potencial: <span style='color:black'>${Vreal} V</span> — Movimiento Aleatorio`;
+  } else {
+    const dir = voltage > 0 ? 'B ➜ A' : 'A ➜ B';
+    const col = voltage > 0 ? '#d9534f' : '#5cb85c';
+    statusEl.innerHTML = `Voltaje: <span style='color:${col}'>${Vreal} V</span> | Electrones: ${dir}`;
+  }
+  updatePolarityLights();
+  drawElectricField();
+}
+
+function updateStatusAndRegister() {
+  updateStatus();
+  registerVoltage();
+}
+
+// ── REGRESSION ───────────────────────────────────────────────────────
+function linearRegression(pts) {
+  const n = pts.length;
+  if (n < 2) return null;
+  let sx=0, sy=0, sxy=0, sx2=0;
+  pts.forEach(p => { sx+=p.x; sy+=p.y; sxy+=p.x*p.y; sx2+=p.x*p.x; });
+  const m = (n*sxy - sx*sy) / (n*sx2 - sx*sx);
+  const b = (sy - m*sx) / n;
+  const ybar = sy/n;
+  let ss_tot=0, ss_res=0;
+  pts.forEach(p => { ss_tot += (p.y-ybar)**2; ss_res += (p.y - (m*p.x+b))**2; });
+  const r2 = ss_tot === 0 ? 1 : Math.max(0, 1 - ss_res/ss_tot);
+  return { m, b, r2 };
+}
+
+function getViDataPoints() {
+  // x = I (current), y = Vef (effective voltage)
+  return dataLog
+    .filter(d => Math.abs(d.current) > 0.001 && Math.abs(d.vef) > 0.001)
+    .map(d => ({ x: d.current, y: d.vef }));
+}
+
+// ── GRAPH ENGINE ─────────────────────────────────────────────────────
+let stRegA = true, stRegReto = true;
+
+function drawGraph(canvasId, pts, opts) {
+  const cv = document.getElementById(canvasId); if (!cv) return null;
+  const ctx = cv.getContext('2d');
+  cv.width = (cv.offsetWidth || 700) * window.devicePixelRatio;
+  const W = cv.width, H = cv.height * window.devicePixelRatio;
+  cv.height = H;
+  const PAD = { top:28, right:28, bottom:52, left:72 };
+  const pw = W-PAD.left-PAD.right, ph = H-PAD.top-PAD.bottom;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = '#fafafa'; ctx.fillRect(0,0,W,H);
+
+  if (!pts || pts.length < 2) {
+    ctx.fillStyle = '#aaa'; ctx.font = `13px Segoe UI`;
+    ctx.textAlign = 'center';
+    ctx.fillText('Registra al menos 2 datos para graficar', W/2, H/2);
+    return null;
+  }
+
+  const xVals = pts.map(p=>p.x), yVals = pts.map(p=>p.y);
+  let xMin = Math.min(...xVals), xMax = Math.max(...xVals);
+  let yMin = Math.min(...yVals), yMax = Math.max(...yVals);
+  const xPad = (xMax-xMin)*0.12||0.1, yPad = (yMax-yMin)*0.15||0.1;
+  xMin -= xPad; xMax += xPad; yMin -= yPad; yMax += yPad;
+
+  const cx = x => PAD.left + (x-xMin)/(xMax-xMin)*pw;
+  const cy = y => PAD.top  + ph - (y-yMin)/(yMax-yMin)*ph;
+
+  // Grid
+  ctx.strokeStyle = '#e8e4dc'; ctx.lineWidth = 1;
+  for (let i=0; i<=5; i++) {
+    const yy = PAD.top+i*ph/5;
+    ctx.beginPath(); ctx.moveTo(PAD.left,yy); ctx.lineTo(PAD.left+pw,yy); ctx.stroke();
+    const xx = PAD.left+i*pw/5;
+    ctx.beginPath(); ctx.moveTo(xx,PAD.top); ctx.lineTo(xx,PAD.top+ph); ctx.stroke();
+  }
+  // Axes
+  ctx.strokeStyle = '#888'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(PAD.left,PAD.top); ctx.lineTo(PAD.left,PAD.top+ph); ctx.lineTo(PAD.left+pw,PAD.top+ph); ctx.stroke();
+
+  // Zero line
+  if (yMin<0 && yMax>0) {
+    ctx.strokeStyle='#ccc'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+    ctx.beginPath(); ctx.moveTo(PAD.left,cy(0)); ctx.lineTo(PAD.left+pw,cy(0)); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  if (xMin<0 && xMax>0) {
+    ctx.strokeStyle='#ccc'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+    ctx.beginPath(); ctx.moveTo(cx(0),PAD.top); ctx.lineTo(cx(0),PAD.top+ph); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // Labels
+  ctx.fillStyle='#3d3d5c'; ctx.font=`bold 10px Segoe UI`; ctx.textAlign='center';
+  ctx.fillText(opts.xLabel||'x', PAD.left+pw/2, H-6);
+  ctx.save(); ctx.translate(12,PAD.top+ph/2); ctx.rotate(-Math.PI/2);
+  ctx.fillText(opts.yLabel||'y',0,0); ctx.restore();
+
+  // Tick labels
+  ctx.font = `9px Segoe UI`; ctx.fillStyle='#777';
+  for (let i=0; i<=5; i++) {
+    const v = yMin + i*(yMax-yMin)/5;
+    ctx.textAlign='right'; ctx.fillText(v.toFixed(2), PAD.left-4, cy(v)+3);
+    const u = xMin + i*(xMax-xMin)/5;
+    ctx.textAlign='center'; ctx.fillText(u.toFixed(2), cx(u), PAD.top+ph+14);
+  }
+
+  let regResult = null;
+  if (opts.regression) {
+    const reg = linearRegression(pts);
+    if (reg) {
+      regResult = reg;
+      ctx.strokeStyle = '#e74c3c'; ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(cx(xMin), cy(reg.m*xMin+reg.b));
+      ctx.lineTo(cx(xMax), cy(reg.m*xMax+reg.b));
+      ctx.stroke();
+    }
+  }
+
+  // Points
+  const COLORS = ['#1a5276','#c0392b','#1e8449','#b8860b','#6c3483','#117a65','#7b241c','#145a32',
+                  '#1a5276','#c0392b','#1e8449','#b8860b','#6c3483','#117a65','#7b241c','#145a32'];
+  pts.forEach((p,i) => {
+    ctx.fillStyle = COLORS[i%COLORS.length];
+    ctx.beginPath(); ctx.arc(cx(p.x), cy(p.y), 4, 0, Math.PI*2); ctx.fill();
+  });
+
+  return regResult;
+}
+
+// ── ANALYSIS MODE A ──────────────────────────────────────────────────
+function runAnalysisA() {
+  const pts = getViDataPoints();
+  document.getElementById('analysisAResult').style.display = '';
+  if (pts.length < 3) {
+    alert('Necesitas al menos 3 pares de datos distintos. Mueve el voltaje a varios valores.');
+    return;
+  }
+  const L = currentLength, r = currentRadius;
+  const r_m  = r * 1e-4;
+  const L_m  = L * 1e-2;
+  const area = Math.PI * r_m ** 2;
+  document.getElementById('aL').textContent  = L + ' cm';
+  document.getElementById('aLm').textContent = L_m.toFixed(2) + ' m';
+  document.getElementById('aR').textContent  = (r * 0.1).toFixed(2) + ' mm';
+  document.getElementById('aRm').textContent = r_m.toExponential(2) + ' m';
+  document.getElementById('aArea').textContent = area.toExponential(4);
+
+  const reg = drawGraph('grafA', pts, { xLabel:'I (A)', yLabel:'V (V)', regression: stRegA });
+  document.getElementById('aGraphInfo').textContent = pts.length + ' puntos';
+
+  if (reg) {
+    const R_sim = reg.m;
+    const rho_exp = R_sim * area / L_m;
+    const rho_real = currentResistivity.value;
+    const er = Math.abs(rho_exp - rho_real) / rho_real * 100;
+
+    document.getElementById('aSlope').textContent = R_sim.toFixed(5) + ' Ω';
+    document.getElementById('aResistance').textContent = R_sim.toFixed(5) + ' Ω';
+    document.getElementById('aR2').textContent = reg.r2.toFixed(4);
+    document.getElementById('aRhoCalc').textContent = rho_exp.toExponential(4) + ' Ω·m';
+    document.getElementById('aRhoResult').textContent = rho_exp.toExponential(4);
+    document.getElementById('aPoints').textContent = pts.length;
+
+    document.getElementById('aRhoReal').textContent = rho_real.toExponential(4) + ' Ω·m  (' + currentResistivity.name + ')';
+    document.getElementById('aRhoExpShow').textContent = rho_exp.toExponential(4) + ' Ω·m';
+    document.getElementById('aErrorRel').textContent = er.toFixed(2) + '%';
+
+    // Manual calculation table
+    document.getElementById('aManL').textContent    = L + ' cm';
+    document.getElementById('aManLm').textContent   = L_m.toFixed(2) + ' m';
+    document.getElementById('aManR').textContent    = (r * 0.1).toFixed(2) + ' mm';
+    document.getElementById('aManRm').textContent   = r_m.toExponential(2) + ' m';
+    document.getElementById('aManA').textContent    = area.toExponential(4) + ' m²';
+    document.getElementById('aManRsim').textContent = R_sim.toFixed(5) + ' Ω';
+    document.getElementById('aManRho').textContent  = rho_exp.toExponential(4) + ' Ω·m';
+
+    let calif, color;
+    if (er < 5) { calif = '✅ Excelente'; color = '#1e8449'; }
+    else if (er < 15) { calif = '⚠️ Aceptable'; color = '#b8860b'; }
+    else { calif = '❌ Revisar datos'; color = '#c0392b'; }
+    const califEl = document.getElementById('aCalif');
+    califEl.textContent = calif; califEl.style.color = color;
+
+    document.getElementById('eqA').textContent = `V = ${R_sim.toFixed(4)} × I + ${reg.b.toFixed(4)}  |  R² = ${reg.r2.toFixed(4)}`;
+  }
+}
+
+function toggleRegA() {
+  stRegA = !stRegA;
+  document.getElementById('btnRegA').classList.toggle('on', stRegA);
+  runAnalysisA();
+}
+
+// ── ANALYSIS MODE RETO ───────────────────────────────────────────────
+let retoAnalysisOpen = false;
+function toggleRetoAnalysis() {
+  retoAnalysisOpen = !retoAnalysisOpen;
+  document.getElementById('retoAnalysisBody').style.display = retoAnalysisOpen ? '' : 'none';
+  document.getElementById('retoAnalysisArrow').textContent = retoAnalysisOpen ? '▲' : '▼';
+}
+
+function runAnalysisReto() {
+  const pts = getViDataPoints();
+  document.getElementById('retoAnalysisResult').style.display = '';
+  if (pts.length < 3) {
+    alert('Necesitas al menos 3 datos. Mueve el voltaje a distintos valores.');
+    return;
+  }
+  const L = currentLength, r = currentRadius;
+  const r_m  = r * 1e-4;
+  const L_m  = L * 1e-2;
+  const area = Math.PI * r_m ** 2;
+
+  const reg = drawGraph('grafReto', pts, { xLabel:'I (A)', yLabel:'V (V)', regression: stRegReto });
+  document.getElementById('retoGraphInfo').textContent = pts.length + ' puntos';
+
+  // Fill manual calculation table
+  document.getElementById('retoManL').textContent  = L + ' cm';
+  document.getElementById('retoManLm').textContent = L_m.toFixed(2) + ' m';
+  document.getElementById('retoManR').textContent  = (r * 0.1).toFixed(2) + ' mm';
+  document.getElementById('retoManRm').textContent = r_m.toExponential(2) + ' m';
+  document.getElementById('retoManA').textContent  = area.toExponential(4);
+
+  if (reg) {
+    const R_sim = reg.m;
+    document.getElementById('retoRsim').textContent = R_sim.toFixed(5) + ' Ω';
+    document.getElementById('retoR2').textContent = reg.r2.toFixed(4);
+    document.getElementById('retoPoints').textContent = pts.length;
+    document.getElementById('retoEcuacion').textContent = `V=${R_sim.toFixed(4)}·I + ${reg.b.toFixed(4)}`;
+    document.getElementById('eqReto').textContent = `V = ${R_sim.toFixed(4)}·I + ${reg.b.toFixed(4)}  |  R²=${reg.r2.toFixed(4)}`;
+    document.getElementById('retoManRsim').textContent = R_sim.toFixed(5) + ' Ω';
+    // NOTE: ρ is NOT shown — student must do the final division
+  }
+}
+
+function toggleRegReto() {
+  stRegReto = !stRegReto;
+  document.getElementById('btnRegReto').classList.toggle('on', stRegReto);
+  runAnalysisReto();
+}
+
+// ── VERIFY RETO ──────────────────────────────────────────────────────
+let retoAprobado = false;
+let retoData = {};
+
+function verificarReto() {
+  const inputVal = parseFloat(document.getElementById('retoInput').value);
+  if (isNaN(inputVal) || inputVal <= 0) {
+    alert('Ingresa un valor numérico válido para ρ en notación científica, ej: 3.45e-7'); return;
+  }
+  const rho_real = currentResistivity.value;
+  const er = Math.abs(inputVal - rho_real) / rho_real * 100;
+  const badge = document.getElementById('retoBadge');
+  badge.style.display = '';
+
+  const L = currentLength;
+  const r = currentRadius;
+  const pts = getViDataPoints();
+  const reg = pts.length >= 2 ? linearRegression(pts) : null;
+
+  if (er <= 20) {
+    retoAprobado = true;
+    retoData = {
+      rho_student: inputVal,
+      rho_real: rho_real,
+      material: currentResistivity.name,
+      er: er,
+      L: L, r: r,
+      pts: pts.length,
+      R_sim: reg ? reg.m : null,
+      r2: reg ? reg.r2 : null,
+      ts: new Date().toLocaleString('es-CO')
+    };
+    badge.innerHTML = `
+      <div class="badge-aprobado">
+        <div class="stamp">✓ PRUEBA SUPERADA</div>
+        <div class="stamp-sub">ρ ingresado: ${inputVal.toExponential(3)} Ω·m &nbsp;|&nbsp; ρ real: ${rho_real.toExponential(3)} Ω·m (${currentResistivity.name})</div>
+        <div class="stamp-sub">Error relativo: ${er.toFixed(2)}% — ¡Aprobado!</div>
+      </div>`;
+    document.getElementById('btnCaptura').style.display = 'inline-block';
+  } else {
+    retoAprobado = false;
+    badge.innerHTML = `
+      <div class="badge-fallido">
+        <div class="fb-title">❌ Respuesta incorrecta (Error = ${er.toFixed(1)}%)</div>
+        <div class="fb-hint">Tu valor: ${inputVal.toExponential(3)} Ω·m &nbsp;|&nbsp; Se requiere error &lt; 20%.<br>
+        Revisa tu cálculo de R_sim y aplica: ρ = R_sim × π × r(m)² / L(m). Recuerda convertir: r(m) = r(mm) ÷ 1000  |  L(m) = L(cm) ÷ 100. ¡Inténtalo de nuevo!</div>
+      </div>`;
+    document.getElementById('btnCaptura').style.display = 'none';
+  }
+}
+
+// ── EVIDENCE GENERATION ──────────────────────────────────────────────
+function generarEvidencia() {
+  if (!retoAprobado || !retoData) return;
+  const d = retoData;
+  const cv = document.getElementById('evidenceCanvas');
+  cv.width = 900; cv.height = 560;
+  const ctx = cv.getContext('2d');
+
+  // Background
+  ctx.fillStyle = '#f8f9fa'; ctx.fillRect(0,0,900,560);
+
+  // Header strip
+  const grad = ctx.createLinearGradient(0,0,900,0);
+  grad.addColorStop(0,'#1a1a2e'); grad.addColorStop(1,'#4a235a');
+  ctx.fillStyle = grad; ctx.fillRect(0,0,900,90);
+
+  // Title
+  ctx.fillStyle = '#fff'; ctx.font = 'bold 22px Segoe UI'; ctx.textAlign = 'left';
+  ctx.fillText('PRÁCTICA DE RESISTIVIDAD — EVIDENCIA DE EVALUACIÓN', 30, 38);
+  ctx.font = '13px Segoe UI'; ctx.fillStyle = 'rgba(255,255,255,.7)';
+  ctx.fillText('Simulador 3D — Ley de Ohm y Resistividad Variable', 30, 62);
+  ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.font = '12px Courier New';
+  ctx.fillText(d.ts, 30, 80);
+
+  // Stamp
+  ctx.save();
+  ctx.translate(820, 50); ctx.rotate(-0.2);
+  ctx.strokeStyle = '#27ae60'; ctx.lineWidth = 4;
+  ctx.strokeRect(-60,-22,120,44);
+  ctx.fillStyle = '#27ae60'; ctx.font = 'bold 18px Segoe UI'; ctx.textAlign = 'center';
+  ctx.fillText('✓ APROBADO', 0, 7);
+  ctx.restore();
+
+  // Data section
+  const col1 = 30, col2 = 470;
+  let y = 115;
+
+  function drawRow(label, val, x, yy, valColor) {
+    ctx.fillStyle = '#888'; ctx.font = '11px Segoe UI'; ctx.textAlign = 'left';
+    ctx.fillText(label, x, yy);
+    ctx.fillStyle = valColor || '#1a1a2e'; ctx.font = 'bold 14px Courier New';
+    ctx.fillText(val, x, yy+18);
+  }
+
+  drawRow('Material identificado', d.material, col1, y, '#1e8449');
+  drawRow('ρ real del simulador (Ω·m)', d.rho_real.toExponential(4), col2, y, '#1a5276');
+  y += 52;
+  drawRow('ρ calculado por estudiante (Ω·m)', d.rho_student.toExponential(4), col1, y, '#6c3483');
+  drawRow('Error relativo (%)', d.er.toFixed(2) + '%', col2, y, d.er<10?'#1e8449':'#b8860b');
+  y += 52;
+  drawRow('R_sim (pendiente V/I) (Ω)', d.R_sim ? d.R_sim.toFixed(5) : '—', col1, y);
+  drawRow('R² del ajuste lineal', d.r2 ? d.r2.toFixed(4) : '—', col2, y, '#1e8449');
+  y += 52;
+  drawRow('Longitud L usada', d.L + ' cm  (' + (d.L*1e-2).toFixed(2) + ' m)', col1, y);
+  drawRow('Radio r usado', (d.r*0.1).toFixed(2) + ' mm  (' + (d.r*1e-4).toExponential(2) + ' m)', col2, y);
+  y += 52;
+  drawRow('Puntos de datos registrados', String(d.pts), col1, y);
+  drawRow('Área A = π×r(m)² (m²)', (Math.PI*(d.r*1e-4)**2).toExponential(4), col2, y);
+
+  y += 60;
+  // Formula note
+  ctx.fillStyle = '#2c3e50'; ctx.font = '11px Courier New'; ctx.textAlign = 'left';
+  ctx.fillText('Fórmula:  ρ = R_sim × π×r(m)² / L(m)  =  (V/I) × A / L(m)   donde  r(m)=r(mm)÷1000  |  L(m)=L(cm)÷100', 30, y);
+
+  // Separator line
+  y += 20;
+  ctx.strokeStyle = '#e0e0e0'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(30,y); ctx.lineTo(870,y); ctx.stroke();
+
+  // Data sample
+  y += 20;
+  ctx.fillStyle = '#2c3e50'; ctx.font = 'bold 12px Segoe UI';
+  ctx.fillText('Muestra de datos registrados (hasta 8 pares):', 30, y);
+  y += 16;
+  const headers = ['#','V (V)','I (A)'];
+  const colW = [40,130,130];
+  let x = 30;
+  headers.forEach((h,i) => {
+    ctx.fillStyle = '#2c3e50'; ctx.font = 'bold 10px Courier New';
+    ctx.fillText(h, x+2, y+12);
+    ctx.strokeStyle = '#ccc'; ctx.lineWidth = 0.5;
+    ctx.strokeRect(x, y, colW[i], 20);
+    x += colW[i];
+  });
+  y += 20;
+  const sample = dataLog.slice(0,8);
+  sample.forEach((rec,ri) => {
+    x = 30;
+    [rec.id, rec.vef.toFixed(4), rec.current.toFixed(4)].forEach((v,i) => {
+      ctx.fillStyle = ri%2===0 ? '#f8f9fa' : '#fff';
+      ctx.fillRect(x, y, colW[i], 18);
+      ctx.strokeStyle = '#e0e0e0'; ctx.strokeRect(x, y, colW[i], 18);
+      ctx.fillStyle = '#444'; ctx.font = '10px Courier New'; ctx.textAlign = 'left';
+      ctx.fillText(String(v), x+2, y+12);
+      x += colW[i];
+    });
+    y += 18;
+  });
+
+  // Footer
+  ctx.fillStyle = '#aaa'; ctx.font = '10px Segoe UI'; ctx.textAlign = 'center';
+  ctx.fillText('Generado por Simulador 3D Resistividad — Práctica de Física © ' + new Date().getFullYear(), 450, 545);
+
+  // Download
+  const link = document.createElement('a');
+  link.download = `Evidencia_Resistividad_${d.material}_${Date.now()}.png`;
+  link.href = cv.toDataURL('image/png', 1.0);
+  link.click();
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// 3D SIMULATION ENGINE
+// ══════════════════════════════════════════════════════════════════════
+
+function init3D() {
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0xffffff);
+
+  camera = new THREE.PerspectiveCamera(75, container.clientWidth/container.clientHeight, 0.1, 1000);
+  camera.position.set(0, 10, 70);
+
+  renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(container.clientWidth, container.clientHeight);
+  container.appendChild(renderer.domElement);
+
+  orbitControls = new THREE.OrbitControls(camera, renderer.domElement);
+  orbitControls.enableDamping = true;
+  orbitControls.dampingFactor = 0.05;
+
+  scene.add(new THREE.AmbientLight(0x404040, 1));
+
+  lightA = new THREE.PointLight(0xffffff, 0, 0);
+  lightA.position.x = -currentLength/2;
+  scene.add(lightA);
+  lightB = new THREE.PointLight(0xffffff, 0, 0);
+  lightB.position.x = currentLength/2;
+  scene.add(lightB);
+
+  selectRandomResistivity();
+  updateDimensions();
+
+  window.addEventListener('resize', () => {
+    camera.aspect = container.clientWidth/container.clientHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(container.clientWidth, container.clientHeight);
+  });
+
+  voltageSlider.addEventListener('input', updateStatusAndRegister);
+  lengthSlider.addEventListener('input', updateDimensions);
+  areaSlider.addEventListener('input', updateDimensions);
+
+  animate();
+}
+
+function calculateParticleCount() {
+  const vol = Math.PI * currentRadius**2 * currentLength;
+  return Math.max(50, Math.min(300, Math.floor(vol * BASE_DENSITY_FACTOR)));
+}
+
+function createParticles(n) {
+  particles.forEach(p => { scene.remove(p); p.geometry.dispose(); p.material.dispose(); });
+  particles = [];
+  const geo = new THREE.SphereGeometry(0.5, 8, 8);
+  const mat = new THREE.MeshBasicMaterial({ color: 0x00d2ff });
+  for (let i=0; i<n; i++) {
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.x = (Math.random()-.5)*currentLength;
+    const r = Math.sqrt(Math.random())*(currentRadius-1);
+    const a = Math.random()*Math.PI*2;
+    mesh.position.y = r*Math.cos(a);
+    mesh.position.z = r*Math.sin(a);
+    mesh.userData = {
+      vx:(Math.random()-.5)*thermalInjection,
+      vy:(Math.random()-.5)*thermalInjection,
+      vz:(Math.random()-.5)*thermalInjection
+    };
+    particles.push(mesh);
+    scene.add(mesh);
+  }
+}
+
+function drawConductor() {
+  if (conductorMesh) { scene.remove(conductorMesh); conductorMesh.geometry.dispose(); conductorMesh.material.dispose(); }
+  const geo = new THREE.CylinderGeometry(currentRadius, currentRadius, currentLength, 32);
+  const mat = new THREE.MeshStandardMaterial({ color:0xcccccc, opacity:.1, transparent:true, metalness:.1, roughness:.9 });
+  conductorMesh = new THREE.Mesh(geo, mat);
+  conductorMesh.rotation.z = Math.PI/2;
+  scene.add(conductorMesh);
+  lightA.position.x = -currentLength/2;
+  lightB.position.x = currentLength/2;
+  drawElectricField();
+}
+
+function updatePolarityLights() {
+  const intensity=0.5, decay=20;
+  if (voltage>10) { lightA.color.setHex(0xd9534f); lightA.intensity=intensity; lightA.decay=decay; lightB.color.setHex(0x5cb85c); lightB.intensity=intensity; lightB.decay=decay; }
+  else if (voltage<-10) { lightA.color.setHex(0x5cb85c); lightA.intensity=intensity; lightA.decay=decay; lightB.color.setHex(0xd9534f); lightB.intensity=intensity; lightB.decay=decay; }
+  else { lightA.intensity=0; lightB.intensity=0; }
+}
+
+function drawElectricField() {
+  fieldArrows.forEach(a => scene.remove(a));
+  fieldArrows = [];
+  if (Math.abs(voltage)<5) return;
+  const dir = voltage>0?1:-1;
+  const dv = new THREE.Vector3(dir,0,0);
+  const ap = currentLength/4, al = currentLength/10, hl = al*.3, hw = al*.1;
+  for (const xo of [-ap, 0, ap])
+    for (const yo of [-2,2]) {
+      const arr = new THREE.ArrowHelper(dv, new THREE.Vector3(xo,yo,0), al, 0xff0000, hl, hw);
+      fieldArrows.push(arr); scene.add(arr);
+    }
+}
+
+function updatePhysics() {
+  const R = calculateResistance(currentLength, currentRadius);
+  const I = calculateCurrent(voltage, R);
+  const dm = I * driftFactor * 200;
+  const dd = voltage>0?-1:1;
+  const hl = currentLength/2;
+  particles.forEach(p => {
+    const d = p.userData;
+    d.vx = d.vx*damping + (Math.random()-.5)*thermalInjection*(1-damping);
+    d.vy = d.vy*damping + (Math.random()-.5)*thermalInjection*(1-damping);
+    d.vz = d.vz*damping + (Math.random()-.5)*thermalInjection*(1-damping);
+    const rp = Math.sqrt(p.position.y**2+p.position.z**2);
+    if (Math.abs(voltage)>10 && rp>0.1) {
+      tempRadialVec.set(0,p.position.y,p.position.z).normalize();
+      const rf = tempRadialVec.multiplyScalar(repulsionFactor*Math.abs(voltage)/currentRadius);
+      d.vy += rf.y; d.vz += rf.z;
+    }
+    const drift = Math.abs(voltage)>=0.5 ? dd*dm : 0;
+    p.position.x += d.vx + drift;
+    p.position.y += d.vy;
+    p.position.z += d.vz;
+    if (rp > currentRadius-.5) {
+      p.position.y = p.position.y*(currentRadius-.5)/rp;
+      p.position.z = p.position.z*(currentRadius-.5)/rp;
+      tempRadialVec.set(0,p.position.y,p.position.z).normalize();
+      const vv = tempRadialVec.set(0,d.vy,d.vz);
+      const dp = vv.dot(tempRadialVec);
+      if (dp>0) { const ref=tempRadialVec.multiplyScalar(2*dp); vv.sub(ref); d.vy=vv.y; d.vz=vv.z; }
+    }
+    if (p.position.x>hl) p.position.x=-hl;
+    if (p.position.x<-hl) p.position.x=hl;
+  });
+}
+
+function updateDimensions() {
+  currentLength = parseInt(lengthSlider.value);
+  currentRadius = parseInt(areaSlider.value);
+  lengthValEl.textContent = currentLength;                       // ya en cm
+  radiusValEl.textContent = (currentRadius * 0.1).toFixed(2);   // mm
+  createParticles(calculateParticleCount());
+  drawConductor();
+  updateStatusAndRegister();
+}
+
+function animate() {
+  requestAnimationFrame(animate);
+  orbitControls.update();
+  updatePhysics();
+  renderer.render(scene, camera);
+}
+
+// ── INIT ─────────────────────────────────────────────────────────────
+init3D();
+setMode('abierto');
+</script>
+</body>
+</html>

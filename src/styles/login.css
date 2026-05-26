@@ -1,100 +1,510 @@
-/* ==========================
-   LOGIN – ESTILOS
-========================== */
+/* =====================================================
+   Login page — PhysLab split-screen design
+   ===================================================== */
 
-/* Contenedor general del login */
-.login-container {
+/* ── Tokens ─────────────────────────────────────────── */
+:root {
+  --lp-primary:   #093f7c;
+  --lp-accent:    #FFD100;
+  --lp-radius:    20px;
+  --lp-input-r:   14px;
+}
+
+/* ── Full-page root ──────────────────────────────────── */
+.lp-root {
+  position: relative;
+  min-height: calc(100vh - var(--wl-navbar-height, 84px));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 20px 16px;
+  box-sizing: border-box;
+}
+
+/* ── Background layer (gradient, no image) ───────────── */
+.lp-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 14% 58%, rgba(17, 82, 212, 0.48) 0%, transparent 55%),
+    radial-gradient(ellipse 65% 70% at 88% 22%, rgba(9, 63, 124, 0.55) 0%, transparent 50%),
+    radial-gradient(ellipse 50% 40% at 52% 85%, rgba(255, 209, 0, 0.07) 0%, transparent 42%),
+    linear-gradient(135deg, #07101f 0%, #0c1c38 48%, #071629 100%);
+}
+
+/* ── Main card shell ─────────────────────────────────── */
+.lp-shell {
+  position: relative;
+  z-index: 1;
   width: 100%;
-  max-width: 450px;
-  margin: 0 auto;
-  background: var(--card);
-  padding: 40px 32px;
-  border-radius: var(--radius);
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+  max-width: 1100px;
+  min-height: 560px;
+  display: flex;
+  border-radius: var(--lp-radius);
+  overflow: hidden;
+  box-shadow:
+    0 25px 60px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255,255,255,0.12);
+  animation: lpFadeIn 280ms ease-out both;
+}
+
+@keyframes lpFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0);     }
+}
+
+/* =====================================================
+   LEFT PANEL — hero / visual
+   ===================================================== */
+.lp-left {
+  display: none; /* hidden on mobile */
+  flex: 3;
+  position: relative;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 48px;
+  color: #ffffff;
+  overflow: hidden;
+}
+
+/* Dark gradient overlay for readability */
+.lp-left-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.65) 0%,
+    rgba(0, 0, 0, 0.20) 45%,
+    transparent        100%
+  );
+  pointer-events: none;
+}
+
+/* Logo top-left */
+.lp-left-logo {
+  position: relative;
+  z-index: 1;
+}
+
+.lp-left-logo-img {
+  height: 72px;
+  width: auto;
+  object-fit: contain;
+  filter: brightness(0) invert(1) drop-shadow(0 4px 12px rgba(0,0,0,0.4));
+}
+
+/* Hero text bottom-left */
+.lp-left-hero {
+  position: relative;
+  z-index: 1;
+  max-width: 440px;
+}
+
+.lp-left-headline {
+  margin: 0 0 18px;
+  font-size: clamp(2.4rem, 4vw, 3.2rem);
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+
+.lp-left-subline {
+  margin: 0;
+  font-size: 1.08rem;
+  line-height: 1.65;
+  opacity: 0.88;
+}
+
+/* =====================================================
+   RIGHT PANEL — glass card
+   ===================================================== */
+.lp-right {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  text-align: center;
-  gap: 48px;
+  justify-content: flex-start;
+  padding: 44px 36px 44px;
+  overflow-y: auto;
+  /* Glass effect */
+  background: #ffffff;
+  border-left: 1px solid rgba(255, 255, 255, 0.20);
 }
 
-/* Logo centrado */
-.login-logo {
-  width: 150px;
-  height: 150px;
-  object-fit: contain;
-  display: block;
-  margin: 0 auto 12px auto;
-}
-
-/* Contenedor del formulario */
-.login-form-wrapper {
-  width: 100%;
+/* Mobile logo (hidden on desktop) */
+.lp-mobile-logo {
   display: flex;
-  flex-direction: column;
-  gap: 16px;
-  padding: 24px;
-  border-radius: 12px;
-}
-
-/* Logo como footer */
-.login-logo-footer {
-  width: 140px;
-  height: 140px;
-  object-fit: contain;
-  display: block;
-  margin: 0 auto;
-}
-
-/* Contenedor del logo y footer */
-.login-footer-section {
-  display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 16px;
-  width: 100%;
+  gap: 12px;
+  margin-bottom: 28px;
 }
 
-/* Footer text */
-.login-footer {
-  margin: 16px 0 0 0;
-  font-size: 0.9rem;
-  color: var(--muted-foreground);
+.lp-mobile-logo-img {
+  height: 48px;
+  width: auto;
+  object-fit: contain;
+}
+
+.lp-mobile-logo-label {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--lp-primary);
+}
+
+/* Form wrapper */
+.lp-form-wrap {
+  width: 100%;
+  max-width: 380px;
+}
+
+/* ── Form header ─────────────────────────────────────── */
+.lp-form-header {
+  margin-bottom: 28px;
+}
+
+.lp-form-title {
+  margin: 0 0 6px;
+  font-size: 1.95rem;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  color: #0f172a;
+}
+
+.lp-form-subtitle {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.97rem;
   font-weight: 500;
 }
 
-/* Responsive más compacto en móviles muy pequeños */
-@media (max-width: 360px) {
-  .login-container {
-    padding: 32px 20px;
-    max-width: 100%;
+/* ── Fields ──────────────────────────────────────────── */
+.lp-field {
+  margin-bottom: 18px;
+}
+
+.lp-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.lp-label {
+  display: block;
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: #374151;
+  margin-bottom: 8px;
+  letter-spacing: 0.01em;
+}
+
+/* Override margin when .lp-label is inside .lp-label-row */
+.lp-label-row .lp-label {
+  margin-bottom: 0;
+}
+
+.lp-forgot {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--lp-primary);
+  cursor: pointer;
+  text-decoration: none;
+  transition: opacity 140ms ease;
+}
+
+.lp-forgot:hover {
+  opacity: 0.75;
+  text-decoration: underline;
+}
+
+/* ── Inputs ──────────────────────────────────────────── */
+.lp-input-wrap {
+  position: relative;
+  display: block;
+}
+
+.lp-input-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  pointer-events: none;
+  display: inline-flex;
+  transition: color 140ms ease;
+}
+
+.lp-input-wrap:focus-within .lp-input-icon {
+  color: var(--lp-primary);
+}
+
+.lp-input {
+  width: 100%;
+  padding: 14px 14px 14px 46px;
+  box-sizing: border-box;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: var(--lp-input-r);
+  font-size: 0.97rem;
+  color: #0f172a;
+  outline: none;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.lp-input::placeholder {
+  color: #94a3b8;
+}
+
+.lp-input:focus {
+  border-color: var(--lp-primary);
+  box-shadow: 0 0 0 4px rgba(9, 63, 124, 0.12);
+}
+
+.lp-input.is-invalid {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.12);
+}
+
+/* ── Hints / messages ────────────────────────────────── */
+.lp-hint {
+  margin-top: 14px;
+  color: #94a3b8;
+  font-size: 0.80rem;
+  line-height: 1.5;
+}
+
+.lp-error {
+  margin-top: 10px;
+  font-size: 0.88rem;
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.lp-notice {
+  margin-top: 10px;
+  font-size: 0.88rem;
+  color: #374151;
+  line-height: 1.4;
+}
+
+/* ── Submit button ───────────────────────────────────── */
+.lp-submit {
+  width: 100%;
+  margin-top: 28px;
+  padding: 15px 20px;
+  border: none;
+  border-radius: var(--lp-input-r);
+  background: var(--lp-primary);
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow:
+    0 10px 24px rgba(9, 63, 124, 0.28),
+    0 4px 10px rgba(9, 63, 124, 0.18);
+  transition: filter 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+  letter-spacing: 0.01em;
+}
+
+.lp-submit:hover:not(:disabled) {
+  filter: brightness(1.08);
+  box-shadow:
+    0 14px 30px rgba(9, 63, 124, 0.34),
+    0 6px 14px rgba(9, 63, 124, 0.22);
+}
+
+.lp-submit:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.lp-submit:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  box-shadow: none;
+  filter: none;
+}
+
+/* Spinner inside submit */
+.lp-spinner {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #ffffff;
+  animation: lpSpin 800ms linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes lpSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Divider ─────────────────────────────────────────── */
+.lp-divider {
+  position: relative;
+  text-align: center;
+  margin: 20px 0;
+  color: #94a3b8;
+}
+
+.lp-divider::before {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; top: 50%;
+  height: 1px;
+  background: #e2e8f0;
+}
+
+.lp-divider span {
+  position: relative;
+  z-index: 1;
+  display: inline-block;
+  padding: 0 12px;
+  background: #ffffff;
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* ── Microsoft button ────────────────────────────────── */
+.lp-ms {
+  width: 100%;
+  padding: 13px 20px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: var(--lp-input-r);
+  background: #ffffff;
+  color: #374151;
+  font-size: 0.97rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  transition: background 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.lp-ms:hover:not(:disabled) {
+  background: #f8fafc;
+  border-color: rgba(9, 63, 124, 0.25);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.07);
+}
+
+.lp-ms:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.lp-ms:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.lp-ms-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+/* ── Footer ──────────────────────────────────────────── */
+.lp-footer {
+  margin-top: 32px;
+  text-align: center;
+}
+
+.lp-footer-text {
+  margin: 0 0 8px;
+  color: #64748b;
+  font-size: 0.88rem;
+}
+
+.lp-support {
+  background: none;
+  border: none;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--lp-primary);
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 140ms ease;
+}
+
+.lp-support:hover {
+  opacity: 0.75;
+  text-decoration: underline;
+}
+
+/* =====================================================
+   RESPONSIVE
+   ===================================================== */
+
+/* Desktop: show left panel, constrain right panel width */
+@media (min-width: 1024px) {
+  .lp-left {
+    display: flex;
   }
 
-  .login-logo {
-    width: 110px;
-    height: 110px;
+  .lp-right {
+    flex: 0 0 40%;
+    max-width: 520px;
   }
 
-  .login-logo-footer {
-    width: 110px;
-    height: 110px;
+  .lp-mobile-logo {
+    display: none;
   }
 }
 
-/* Responsive para tablets */
-@media (max-width: 640px) {
-  .login-container {
-    padding: 40px 24px;
-    max-width: 90%;
+/* Tablet: wider right, slightly smaller shell */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .lp-shell {
+    height: auto;
+    min-height: 0;
   }
 
-  .login-logo {
-    width: 130px;
-    height: 130px;
+  .lp-right {
+    background: rgba(255,255,255,0.92);
+  }
+}
+
+/* Mobile: full width card */
+@media (max-width: 639px) {
+  .lp-root {
+    padding: 16px;
+    align-items: flex-start;
   }
 
-  .login-logo-footer {
-    width: 130px;
-    height: 130px;
+  .lp-shell {
+    height: auto;
+    min-height: 0;
+    border-radius: 16px;
   }
+
+  .lp-right {
+    padding: 28px 20px 36px;
+    background: rgba(255,255,255,0.95);
+  }
+
+  .lp-form-title {
+    font-size: 1.65rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-shell { animation: none; }
+  .lp-input,
+  .lp-submit,
+  .lp-ms { transition: none; }
+  .lp-spinner { animation: none; }
 }

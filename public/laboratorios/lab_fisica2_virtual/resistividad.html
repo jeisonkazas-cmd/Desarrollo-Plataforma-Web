@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Resistividad — Laboratorio de Física II Virtual</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <style>
+        :root{--am:#FFD100;--p:#7a3a00;--pc:#e67e22;--po:#3d1a00;--na:#c0540a;--no:#6b2800;--gf:#f4f6fb;}
+        *{box-sizing:border-box;margin:0;padding:0;}
+        body{font-family:'Source Sans 3',sans-serif;background:var(--gf);color:#1a1a2e;}
+        /* NAV ANIMATION */
+        .line li{width:auto;height:50px;transition:background-position-x .9s linear;}
+        .line li a{text-decoration:none;transition:all .5s;}
+        .line li:hover{background:url("data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIGlkPSJMYXllcl8xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4PSIwcHgiIHk9IjBweCIgd2lkdGg9IjM5MHB4IiBoZWlnaHQ9IjUwcHgiIHZpZXdCb3g9IjAgMCAzOTAgNTAiIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgMCAwIDM5MCA1MCIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+PHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSIjRkZGRjAwIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLW1pdGVybGltaXQ9IjEwIiBkPSJNMCw0Ny41ODVjMCwwLDk3LjUsMCwxMzAsMCAxMy43NSwwLDI4Ljc0LTM4Ljc3OCw0Ni4xNjgtMTkuNDE2QzE5Mi42NjksNDYuNSwyNDMuNjAzLDQ3LjU4NSwyNjAsNDcuNTg1YzMxLjgyMSwwLDEzMCwwLDEzMCwwIi8+PC9zdmc+");animation:line .90s forwards;}
+        .line li:hover a{color:rgb(1,1,20);}
+        .line li:not(:last-child){margin-right:30px;}
+        @keyframes line{0%{background-position-x:600px}100%{background-position-x:130px}}
+        /* MOBILE DROPDOWN FIX */
+        @media(max-width:991.98px){
+            .navbar-collapse{max-height:80vh;overflow-y:auto;}
+            .dropdown-menu{border:none!important;background:rgba(255,255,255,.1)!important;margin-top:0!important;}
+            .dropdown-item{color:rgba(255,255,255,.9)!important;padding:10px 24px!important;font-size:.95rem;}
+            .dropdown-item:hover,.dropdown-item:focus{background:rgba(255,255,255,.2)!important;color:#fff!important;}
+            .dropdown-item:first-child{padding-top:14px!important;}
+        }
+        /* BREADCRUMB */
+        .breadcrumb-bar{background:white;padding:12px 16px;border-bottom:1px solid #e8edf5;}
+        .breadcrumb-bar a{color:#093f7c;text-decoration:none;font-size:.85rem;}
+        .breadcrumb-bar .sep{color:#aaa;margin:0 6px;}
+        .bc-current{color:#555;font-size:.85rem;font-weight:600;}
+        /* HERO */
+        .hero{background:linear-gradient(135deg,var(--po),var(--p) 55%,var(--pc));padding:28px 20px 36px;color:#fff;position:relative;overflow:hidden;}
+        .hero::before{content:'';position:absolute;top:-50px;right:-50px;width:260px;height:260px;background:radial-gradient(circle,rgba(255,209,0,.14),transparent 70%);border-radius:50%;}
+        .hero-badge{display:inline-block;background:var(--am);color:var(--po);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.72rem;letter-spacing:2.5px;text-transform:uppercase;padding:3px 14px;border-radius:30px;margin-bottom:10px;}
+        .hero h1{font-family:'Rajdhani',sans-serif;font-size:clamp(1.7rem,5vw,2.6rem);font-weight:700;line-height:1.1;}
+        .hero h1 span{color:var(--am);}
+        .hero p{font-size:.9rem;color:#fcd5a8;margin-top:8px;line-height:1.6;}
+        /* PASOS */
+        .pasos-bar{background:#fff;padding:14px 20px;border-bottom:2px solid #eef1f8;display:flex;align-items:center;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.06);}
+        .paso{display:flex;align-items:center;gap:8px;flex:1;position:relative;}
+        .paso:not(:last-child)::after{content:'';position:absolute;left:40px;right:0;top:50%;height:3px;background:#dee3ef;transform:translateY(-50%);z-index:0;transition:background .5s;}
+        .paso.completo:not(:last-child)::after{background:var(--p);}
+        .paso-circulo{width:34px;height:34px;border-radius:50%;background:#dee3ef;color:#aaa;display:flex;align-items:center;justify-content:center;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.95rem;flex-shrink:0;z-index:1;transition:all .4s;}
+        .paso.activo .paso-circulo{background:var(--p);color:#fff;box-shadow:0 0 0 4px rgba(230,126,34,.2);}
+        .paso.completo .paso-circulo{background:var(--p);color:#fff;}
+        .paso-etq{font-size:.58rem;text-transform:uppercase;letter-spacing:1px;color:#aaa;font-weight:600;display:block;}
+        .paso-nom{font-size:.76rem;font-weight:700;color:#bbb;display:block;}
+        .paso.activo .paso-etq,.paso.completo .paso-etq{color:var(--pc);}
+        .paso.activo .paso-nom,.paso.completo .paso-nom{color:#1a1a2e;}
+        /* PANTALLAS */
+        .pantalla{display:none;}.pantalla.activa{display:block;}
+        /* REGISTRO */
+        .reg-wrap{padding:24px 16px 40px;max-width:600px;margin:0 auto;}
+        .reg-intro{text-align:center;margin-bottom:24px;}
+        .reg-intro .ico{font-size:2.6rem;display:block;margin-bottom:10px;}
+        .reg-intro h2{font-family:'Rajdhani',sans-serif;font-size:1.5rem;font-weight:700;color:var(--p);}
+        .reg-intro p{font-size:.9rem;color:#666;margin-top:6px;line-height:1.5;}
+        .campo{margin-bottom:18px;}
+        .campo label{display:block;font-weight:600;font-size:.88rem;color:var(--po);margin-bottom:6px;}
+        .campo input{width:100%;padding:13px 16px;border:2px solid #e0e8f0;border-radius:10px;font-size:.95rem;font-family:'Source Sans 3',sans-serif;background:#fff;transition:border-color .2s;outline:none;}
+        .campo input:focus{border-color:var(--pc);}
+        .campo input.err{border-color:#e74c3c;}
+        .campo .hint{font-size:.78rem;color:#999;margin-top:4px;}
+        /* TARJETA */
+        .quiz-wrap{padding:20px 16px 40px;max-width:700px;margin:0 auto;}
+        .tarjeta{background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(9,63,124,.08);overflow:hidden;margin-bottom:20px;}
+        .t-head{padding:18px 20px;display:flex;align-items:center;gap:14px;color:#fff;background:linear-gradient(90deg,var(--po),var(--pc));}
+        .t-ico{font-size:1.6rem;}
+        .t-head h2{font-family:'Rajdhani',sans-serif;font-size:1.25rem;font-weight:700;margin:0;}
+        .t-head p{font-size:.8rem;color:rgba(255,255,255,.72);margin:2px 0 0;}
+        .t-body{padding:22px 18px;}
+        /* PREGUNTAS */
+        .pregunta{margin-bottom:26px;padding-bottom:22px;border-bottom:1px dashed #e0e8f0;}
+        .pregunta:last-of-type{border-bottom:none;margin-bottom:0;padding-bottom:0;}
+        .preg-txt{font-weight:600;font-size:.95rem;color:var(--po);margin-bottom:14px;line-height:1.6;}
+        .preg-num{display:inline-flex;align-items:center;justify-content:center;background:var(--p);color:#fff;font-family:'Rajdhani',sans-serif;font-weight:700;width:24px;height:24px;border-radius:50%;font-size:.8rem;margin-right:8px;flex-shrink:0;}
+        .opcion{display:flex;align-items:center;gap:12px;padding:13px 16px;border-radius:10px;border:2px solid #e8edf5;margin-bottom:8px;cursor:pointer;transition:all .2s;font-size:.93rem;background:var(--gf);user-select:none;min-height:50px;}
+        .opcion:hover{border-color:var(--pc);background:rgba(230,126,34,.05);}
+        .opcion input[type=radio]{accent-color:var(--p);width:20px;height:20px;flex-shrink:0;cursor:pointer;}
+        .opcion.ok{border-color:var(--pc);background:rgba(230,126,34,.09);color:var(--po);font-weight:600;}
+        .opcion.mal{border-color:#e74c3c;background:rgba(231,76,60,.07);}
+        .opcion.oka{border-color:var(--pc);background:rgba(230,126,34,.15);font-weight:700;}
+        .opcion.lock{pointer-events:none;}
+        .fb{display:none;margin-top:10px;padding:9px 14px;border-radius:8px;font-size:.85rem;font-weight:600;}
+        .fb.ok{background:rgba(230,126,34,.1);color:var(--po);display:block;}
+        .fb.mal{background:rgba(231,76,60,.1);color:#a93226;display:block;}
+        /* RESULTADO */
+        .res-quiz{display:none;text-align:center;padding:26px 16px;border-radius:14px;margin-top:22px;}
+        @keyframes ap{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+        .res-quiz{animation:ap .5s ease;}
+        .res-quiz.ap{background:rgba(230,126,34,.08);border:2px solid rgba(230,126,34,.3);}
+        .res-quiz.rep{background:rgba(231,76,60,.07);border:2px solid rgba(231,76,60,.25);}
+        .puntaje{font-family:'Rajdhani',sans-serif;font-size:3.5rem;font-weight:700;line-height:1;}
+        .res-quiz.ap .puntaje{color:var(--p);}
+        .res-quiz.rep .puntaje{color:#e74c3c;}
+        .res-quiz .msg{font-size:1rem;margin-top:10px;color:#444;}
+        .res-quiz .sub{font-size:.85rem;color:#888;margin-top:6px;}
+        .nota-d{font-size:.92rem;margin-top:10px;font-weight:600;color:#555;}
+        /* BOTONES */
+        .btn-q{background:var(--p);color:#fff;border:none;padding:15px 36px;border-radius:12px;font-weight:700;font-size:1rem;cursor:pointer;transition:background .3s;display:block;width:100%;margin-top:28px;font-family:'Rajdhani',sans-serif;letter-spacing:1px;min-height:52px;}
+        .btn-q:hover{background:var(--pc);}
+        .btn-c{background:var(--pc);color:#fff;border:none;padding:15px 36px;border-radius:12px;font-weight:700;font-size:1rem;cursor:pointer;transition:all .3s;display:block;width:100%;margin-top:14px;font-family:'Rajdhani',sans-serif;letter-spacing:1px;min-height:52px;}
+        .btn-c:hover{background:var(--po);transform:translateY(-1px);}
+        .btn-r{background:#e74c3c;color:#fff;border:none;padding:13px 28px;border-radius:10px;font-weight:700;font-size:.95rem;cursor:pointer;margin-top:12px;font-family:'Rajdhani',sans-serif;min-height:48px;width:100%;}
+        .btn-r:hover{background:#c0392b;}
+        .badge-int{display:inline-flex;align-items:center;gap:6px;background:var(--am);color:var(--po);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.78rem;letter-spacing:1.5px;text-transform:uppercase;padding:4px 14px;border-radius:20px;margin-bottom:14px;}
+        .badge-int.s2{background:#fde8d8;color:var(--no);}
+        /* SELECTOR */
+        .sel-wrap{padding:28px 16px 40px;max-width:700px;margin:0 auto;}
+        .sel-tit{text-align:center;margin-bottom:28px;}
+        .sel-tit .ico-ok{font-size:3rem;display:block;margin-bottom:8px;}
+        .sel-tit h2{font-family:'Rajdhani',sans-serif;font-size:1.6rem;font-weight:700;color:var(--p);}
+        .sel-tit p{font-size:.92rem;color:#666;margin-top:6px;}
+        .sel-nota{background:rgba(230,126,34,.08);border:2px solid rgba(230,126,34,.2);border-radius:12px;padding:14px 18px;margin-bottom:24px;text-align:center;}
+        .sel-nota .nl{font-size:.8rem;color:var(--p);font-weight:600;text-transform:uppercase;letter-spacing:1px;}
+        .sel-nota .nv{font-family:'Rajdhani',sans-serif;font-size:2.2rem;font-weight:700;color:var(--p);line-height:1.2;}
+        .btn-sec{display:flex;align-items:center;gap:18px;width:100%;padding:22px;border-radius:16px;border:none;cursor:pointer;text-align:left;margin-bottom:16px;transition:transform .15s,box-shadow .15s;color:#fff;font-family:'Source Sans 3',sans-serif;box-shadow:0 4px 20px rgba(0,0,0,.15);min-height:90px;}
+        .btn-sec:active{transform:scale(.98);}
+        .btn-sec:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,0,0,.22);}
+        .btn-sec.a{background:linear-gradient(135deg,var(--po),var(--pc));}
+        .btn-sec.b{background:linear-gradient(135deg,var(--no),var(--na));}
+        .btn-sec .bi{font-size:2.4rem;flex-shrink:0;}
+        .btn-sec .binfo{flex:1;}
+        .btn-sec .bt{font-family:'Rajdhani',sans-serif;font-size:1.3rem;font-weight:700;display:block;line-height:1.2;}
+        .btn-sec .bd{font-size:.82rem;color:rgba(255,255,255,.75);display:block;margin-top:3px;}
+        .btn-sec .bf{font-size:1.6rem;opacity:.7;flex-shrink:0;}
+        /* OVERLAY CONTENIDO */
+        .ov-cont{display:none;position:fixed;inset:0;z-index:9999;flex-direction:column;background:#fff;}
+        .ov-cont.activa{display:flex;}
+        .ov-head{display:flex;align-items:center;gap:14px;padding:12px 16px;color:#fff;flex-shrink:0;}
+        .ov-head.a{background:linear-gradient(90deg,var(--po),var(--pc));}
+        .ov-head.b{background:linear-gradient(90deg,var(--no),var(--na));}
+        .btn-volver{background:rgba(255,255,255,.2);border:2px solid rgba(255,255,255,.3);color:#fff;width:42px;height:42px;border-radius:10px;font-size:1.3rem;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:background .2s;font-weight:700;}
+        .btn-volver:hover{background:rgba(255,255,255,.35);}
+        .ov-info{flex:1;min-width:0;}
+        .ov-info h3{font-family:'Rajdhani',sans-serif;font-size:1.1rem;font-weight:700;margin:0;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .ov-info p{font-size:.72rem;color:rgba(255,255,255,.72);margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .ov-iframe{flex:1;width:100%;border:none;display:block;}
+        /* ENVIANDO */
+        .env-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;align-items:center;justify-content:center;flex-direction:column;gap:14px;}
+        .env-ov.activo{display:flex;}
+        .env-ov p{color:#fff;font-weight:600;font-size:1rem;}
+        .spin{width:44px;height:44px;border:5px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:sp .8s linear infinite;}
+        @keyframes sp{to{transform:rotate(360deg)}}
+        footer{background:#1a0a00;color:#8899bb;text-align:center;padding:24px 16px;font-size:.82rem;}
+        footer strong{color:#fff;}
+        /* RESPONSIVE */
+        @media(max-width:768px){
+            .navbar-brand img{width:90px!important;height:38px!important;}
+            .pasos-bar{padding:10px 12px;gap:4px;}
+            .paso-etq{display:none!important;}
+            .paso-nom{font-size:.7rem!important;}
+            .paso-circulo{width:28px;height:28px;font-size:.82rem;}
+            .paso:not(:last-child)::after{left:32px;}
+            .quiz-wrap,.sel-wrap,.reg-wrap{padding:14px 10px 30px;}
+            .t-head{padding:14px;gap:10px;}
+            .t-head h2{font-size:1.05rem!important;}
+            .t-ico{font-size:1.3rem!important;}
+            .t-body{padding:16px 12px;}
+            .preg-txt{font-size:.9rem!important;}
+            .opcion{padding:10px 12px;font-size:.88rem;min-height:44px;gap:10px;}
+            .btn-q,.btn-c{padding:13px 20px;font-size:.92rem;}
+            .btn-sec{padding:16px 14px;min-height:80px;gap:12px;}
+            .btn-sec .bt{font-size:1.1rem!important;}
+            .ov-head{padding:10px 12px;gap:10px;}
+            .ov-info h3{font-size:.95rem!important;}
+        }
+        @media(max-width:480px){
+            .paso-nom{font-size:.65rem!important;}
+            .paso-circulo{width:26px;height:26px;font-size:.78rem;}
+            .t-head h2{font-size:.95rem!important;}
+            .opcion{padding:9px 10px;font-size:.84rem;}
+            .puntaje{font-size:2.4rem!important;}
+            .btn-sec .bi{font-size:1.8rem!important;}
+        }
+    </style>
+
+</head>
+<body>
+<div class="env-ov" id="env-ov"><div class="spin"></div><p>Enviando resultados...</p></div>
+
+<nav class="navbar navbar-expand-lg" style="background-color:rgb(9,63,124);">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="../laboratorio_fisica_virtual_2.html">
+      <img src="../resources/logo_camacho.png" alt="Logo" width="120" height="50">
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+            data-bs-target="#navM" aria-controls="navM" aria-expanded="false"
+            aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse line" id="navM">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="javascript:void(0)" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false" style="color:white;">
+                       Laboratorios de Física Presencial</a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="../laboratorio_fisica_presencial_1.html">Laboratorio de Física I Presencial</a></li>
+                        <li><a class="dropdown-item" href="../laboratorio_fisica_presencial_2.html">Laboratorio de Física II Presencial</a></li>
+                        <li><a class="dropdown-item" href="../laboratorio_fisica_presencial_3.html">Laboratorio de Física III Presencial</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="javascript:void(0)" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false" style="color:white;">
+                       Laboratorios de Física Virtual</a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="../laboratorio_fisica_virtual_1.html">Laboratorio de Física I Virtual</a></li>
+                        <li><a class="dropdown-item fw-bold" href="../laboratorio_fisica_virtual_2.html">Laboratorio de Física II Virtual</a></li>
+                        <li><a class="dropdown-item" href="../laboratorio_fisica_virtual_3.html">Laboratorio de Física III Virtual</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="javascript:void(0)" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false" style="color:white;">
+                       Laboratorios de Física Remotos</a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="../laboratorio_fisica_remoto_1.html">Laboratorio de Física I Remoto</a></li>
+                        <li><a class="dropdown-item" href="../laboratorio_fisica_remoto_2.html">Laboratorio de Física II Remoto</a></li>
+                        <li><a class="dropdown-item" href="../laboratorio_fisica_remoto_3.html">Laboratorio de Física III Remoto</a></li>
+                    </ul>
+                </li>
+
+      </ul>
+      <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+        <li class="nav-item"><a class="nav-link" href="javascript:void(0)" style="color:white;">
+          Iniciar Sesión <img src="../resources/is3.png" alt="" width="30" height="24">
+        </a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div id="zona">
+  <div class="breadcrumb-bar">
+    <a href="../index.html">🏠 Inicio</a><span class="sep">›</span>
+    <a href="../laboratorio_fisica_virtual_2.html">Lab. Física II Virtual</a><span class="sep">›</span>
+    <span class="bc-current">🔋 Resistividad</span>
+  </div>
+
+  <div class="hero">
+    <div class="hero-badge">Práctica 05 — Física II Virtual</div>
+    <h1>Resistencia y<br><span>Resistividad</span></h1>
+    <p>Completa el quiz para desbloquear la guía y el simulador interactivo.</p>
+  </div>
+
+  <div class="pasos-bar">
+    <div class="paso activo" id="paso1">
+      <div class="paso-circulo" id="cir1">1</div>
+      <div><span class="paso-etq">Paso 1</span><span class="paso-nom">📝 Quiz</span></div>
+    </div>
+    <div class="paso" id="paso2">
+      <div class="paso-circulo" id="cir2">2</div>
+      <div><span class="paso-etq">Paso 2</span><span class="paso-nom">📄 Guía</span></div>
+    </div>
+    <div class="paso" id="paso3">
+      <div class="paso-circulo" id="cir3">3</div>
+      <div><span class="paso-etq">Paso 3</span><span class="paso-nom">🖥️ Simulador</span></div>
+    </div>
+  </div>
+
+  <!-- REGISTRO -->
+  <div class="pantalla activa" id="pantalla-reg">
+    <div class="reg-wrap">
+      <div class="tarjeta">
+        <div class="t-head"><span class="t-ico">👤</span>
+          <div><h2>Identificación del Estudiante</h2>
+          <p>Ingresa tus datos para comenzar el quiz de conocimientos previos.</p></div>
+        </div>
+        <div class="t-body">
+          <div class="reg-intro">
+            <span class="ico">🔋</span>
+            <h2>Quiz — Resistividad</h2>
+            <p>Completa <strong>10 preguntas aleatorias</strong> del banco de 50 preguntas.<br>
+            Necesitas mínimo <strong>60 %</strong> para continuar.</p>
+          </div>
+          <div class="campo"><label for="rn">Nombre completo</label>
+            <input type="text" id="rn" placeholder="Ej: María García López" autocomplete="name">
+            <span class="hint">Escribe tu nombre y apellidos completos</span></div>
+          <div class="campo"><label for="rc">Código estudiantil</label>
+            <input type="text" id="rc" placeholder="Ej: 2021023456" autocomplete="off">
+            <span class="hint">Tu código tal como aparece en el carné</span></div>
+          <div class="campo"><label for="re">Correo institucional</label>
+            <input type="email" id="re" placeholder="Ej: estudiante@uniajc.edu.co" autocomplete="email">
+            <span class="hint">Usa tu correo institucional (@uniajc.edu.co)</span></div>
+          <button class="btn-q" onclick="registrar()">Comenzar Quiz →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUIZ -->
+  <div class="pantalla" id="pantalla-quiz">
+    <div class="quiz-wrap">
+      <div class="tarjeta">
+        <div class="t-head"><span class="t-ico">📝</span>
+          <div><h2>Quiz de Conocimientos Previos</h2>
+          <p>Responde todas las preguntas. Necesitas al menos 60 % para continuar.</p></div>
+        </div>
+        <div class="t-body">
+          <div id="badge-int"></div>
+          <div id="cnt-pregs"></div>
+          <button class="btn-q" id="btn-cal" onclick="calificar()">Calificar Quiz ✓</button>
+          <div class="res-quiz" id="res-div">
+            <div class="puntaje" id="pct-txt"></div>
+            <div class="nota-d" id="nota-txt"></div>
+            <p class="msg" id="res-msg"></p>
+            <p class="sub" id="res-sub"></p><br>
+            <button class="btn-c" id="btn-cont" onclick="desbloquear()" style="display:none">Continuar a la práctica →</button>
+            <button class="btn-r" id="btn-rein" onclick="segundoIntento()" style="display:none">🔄 Segundo intento (nota máx. 4.0)</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SELECTOR -->
+  <div class="pantalla" id="pantalla-sel">
+    <div class="sel-wrap">
+      <div class="sel-tit">
+        <span class="ico-ok">🎉</span>
+        <h2>¡Quiz superado!</h2>
+        <p>Selecciona qué quieres abrir. Puedes ir y volver cuando quieras.</p>
+      </div>
+      <div class="sel-nota">
+        <div class="nl">Tu nota del quiz</div>
+        <div class="nv" id="nota-fin">—</div>
+      </div>
+      <button class="btn-sec a" onclick="abrir('guia')">
+        <span class="bi">📄</span>
+        <div class="binfo">
+          <span class="bt">Guía de Práctica</span>
+          <span class="bd">Conductores de distintos materiales, longitudes y secciones</span>
+        </div>
+        <span class="bf">›</span>
+      </button>
+      <button class="btn-sec b" onclick="abrir('simulador')">
+        <span class="bi">🖥️</span>
+        <div class="binfo">
+          <span class="bt">Simulador Interactivo</span>
+          <span class="bd">Simulación interactiva de resistividad y Ley de Ohm</span>
+        </div>
+        <span class="bf">›</span>
+      </button>
+    </div>
+    <footer>
+      <strong>Institución Universitaria Antonio José Camacho</strong> — Departamento de Ciencias Básicas<br>
+      Laboratorio de Física II Virtual · Práctica 05 — Resistividad &copy; 2025
+    </footer>
+  </div>
+</div><!-- fin zona -->
+
+<!-- OVERLAY GUIA -->
+<div class="ov-cont" id="ov-guia">
+  <div class="ov-head a">
+    <button class="btn-volver" onclick="cerrar()">←</button>
+    <div class="ov-info">
+      <h3>📄 Guía de Práctica</h3>
+      <p>Resistividad — Guía completa</p>
+    </div>
+  </div>
+  <iframe class="ov-iframe" src="Practica_Resistividad.html" title="Guía de Práctica"></iframe>
+</div>
+
+<!-- OVERLAY SIMULADOR -->
+<div class="ov-cont" id="ov-simulador">
+  <div class="ov-head b">
+    <button class="btn-volver" onclick="cerrar()">←</button>
+    <div class="ov-info">
+      <h3>🖥️ Simulador Interactivo</h3>
+      <p>Resistividad — Simulación</p>
+    </div>
+  </div>
+  <iframe class="ov-iframe" src="Simulador_Resistividad.html" title="Simulador"></iframe>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const PRACTICA_NOMBRE='Práctica 05 — Resistividad';
+const BANCO=[
+  {texto:"¿Qué establece la Ley de Ohm?",ops:["V=IR: a resistencia constante la corriente es proporcional al voltaje","El voltaje es proporcional a la resistencia al cuadrado","La resistencia crece linealmente con el tiempo","La corriente es inversamente proporcional al voltaje"],c:0,fok:"✓ V=IR. Ley de Ohm: a R constante, I=V/R.",fmal:"✗ La Ley de Ohm dice V=IR. La corriente I=V/R es proporcional al voltaje."},
+  {texto:"¿Cuál es la unidad de resistencia eléctrica?",ops:["Siemens (S)","Ohm (Ω=V/A)","Faradio (F)","Amperio (A)"],c:1,fok:"✓ La resistencia se mide en Ohms (Ω). 1Ω=1V/A.",fmal:"✗ La resistencia se mide en Ohms (Ω=V/A). El Siemens es conductancia."},
+  {texto:"La resistencia de un conductor según su geometría es:",ops:["R=ρA/L","R=ρL/A","R=ρ/(LA)","R=L/(ρA)"],c:1,fok:"✓ R=ρL/A. Mayor longitud→más R; mayor sección→menos R.",fmal:"✗ R=ρL/A. La longitud va en el numerador y el área en el denominador."},
+  {texto:"¿Qué es la resistividad ρ de un material?",ops:["Propiedad que depende de la longitud del conductor","Propiedad intrínseca del material que mide su oposición al flujo de carga, independiente de geometría","Resistencia por unidad de longitud exclusivamente","Conductividad del material"],c:1,fok:"✓ ρ es propiedad intrínseca del material, independiente de L y A.",fmal:"✗ La resistividad ρ es una propiedad del MATERIAL, independiente de la geometría."},
+  {texto:"¿Cuál es la unidad de resistividad ρ en el SI?",ops:["Ω·m","Ω/m","Ω·m²","S/m"],c:0,fok:"✓ [ρ]=Ω·m. Se obtiene de ρ=RA/L.",fmal:"✗ La resistividad tiene unidades de Ω·m (ohmio por metro)."},
+  {texto:"La conductividad σ se relaciona con ρ mediante:",ops:["σ=ρ","σ=ρ²","σ=1/ρ","σ=ρ/2"],c:2,fok:"✓ σ=1/ρ. Mayor conductividad → menor resistividad.",fmal:"✗ σ=1/ρ (inversas)."},
+  {texto:"Si la longitud L de un conductor se duplica (ρ,A constantes), R:",ops:["Se reduce a la mitad","No cambia","Se duplica","Se cuadruplica"],c:2,fok:"✓ R=ρL/A. R∝L. Si L→2L entonces R→2R.",fmal:"✗ R∝L. Si L se duplica, R también se duplica."},
+  {texto:"Si el área A se cuadruplica (ρ,L constantes), R:",ops:["Se cuadruplica","Se duplica","Se reduce a la mitad","Se reduce a la cuarta parte"],c:3,fok:"✓ R=ρL/A. R∝1/A. Si A→4A entonces R→R/4.",fmal:"✗ R∝1/A. Si A se cuadruplica, R se reduce a la cuarta parte."},
+  {texto:"¿Cuál material tiene menor resistividad (es mejor conductor)?",ops:["Silicio (semiconductor)","Plata (Ag)","Vidrio (aislante)","Caucho (aislante)"],c:1,fok:"✓ La plata (Ag, ρ≈1,6×10⁻⁸ Ω·m) es el mejor conductor metálico.",fmal:"✗ La plata tiene la menor resistividad de todos los metales: es el mejor conductor."},
+  {texto:"¿Cómo varía la resistividad de un conductor metálico con la temperatura?",ops:["Disminuye al aumentar T (como en semiconductores)","Aumenta al aumentar T: ρ=ρ₀(1+αΔT)","No depende de la temperatura","Varía con el cuadrado de T"],c:1,fok:"✓ Para metales ρ aumenta con T: ρ=ρ₀(1+αΔT), con α>0.",fmal:"✗ En metales ρ AUMENTA con temperatura (α>0). En semiconductores disminuye."},
+  {texto:"El coeficiente de temperatura de la resistividad α es positivo para:",ops:["Semiconductores como el silicio","Metales conductores como Cu y Al","Superconductores","Todos los materiales por igual"],c:1,fok:"✓ α>0 para metales: su resistividad aumenta con la temperatura.",fmal:"✗ α>0 para METALES. Para semiconductores α<0 (ρ disminuye con T)."},
+  {texto:"Un conductor de L=2 m, A=1 mm²=10⁻⁶ m², ρ=1,7×10⁻⁸ Ω·m (cobre). R=?",ops:["0,034 Ω","0,34 Ω","3,4 Ω","0,0034 Ω"],c:0,fok:"✓ R=ρL/A=1,7×10⁻⁸×2/10⁻⁶=3,4×10⁻²=0,034 Ω.",fmal:"✗ R=ρL/A=1,7×10⁻⁸×2/10⁻⁶=0,034 Ω."},
+  {texto:"Para medir la resistividad experimental se puede despejar ρ de R=ρL/A:",ops:["ρ=RA/L","ρ=RL/A","ρ=L/(RA)","ρ=A/(RL)"],c:0,fok:"✓ De R=ρL/A se despeja ρ=RA/L.",fmal:"✗ De R=ρL/A → ρ=RA/L."},
+  {texto:"¿Qué instrumento se usa para medir la resistencia eléctrica directamente?",ops:["Capacímetro","Amperímetro","Óhmetro o multímetro en función Ω","Galvanómetro"],c:2,fok:"✓ El óhmetro (o multímetro en modo Ω) mide la resistencia directamente.",fmal:"✗ Se usa un ÓHMETRO o multímetro en función de resistencia (Ω)."},
+  {texto:"¿Cuál es la unidad de conductividad σ?",ops:["Ω·m","S/m (Siemens/metro)","A/V","F/m"],c:1,fok:"✓ [σ]=S/m (Siemens por metro). σ=1/ρ.",fmal:"✗ La conductividad σ=1/ρ tiene unidades de S/m."},
+  {texto:"Si R₁ y R₂ están en SERIE, la resistencia equivalente es:",ops:["R_eq=R₁R₂/(R₁+R₂)","R_eq=R₁+R₂","R_eq=1/(1/R₁+1/R₂)","R_eq=(R₁+R₂)/2"],c:1,fok:"✓ En serie R_eq=R₁+R₂.",fmal:"✗ En SERIE las resistencias se SUMAN: R_eq=R₁+R₂."},
+  {texto:"Si R₁ y R₂ están en PARALELO, la resistencia equivalente es:",ops:["R_eq=R₁+R₂","R_eq=R₁R₂/(R₁+R₂)","R_eq=2(R₁+R₂)","R_eq=(R₁+R₂)/R₁R₂"],c:1,fok:"✓ En paralelo: 1/R_eq=1/R₁+1/R₂ → R_eq=R₁R₂/(R₁+R₂).",fmal:"✗ En PARALELO: R_eq=R₁R₂/(R₁+R₂)."},
+  {texto:"La potencia disipada en una resistencia R con corriente I es:",ops:["P=I/R","P=I²R","P=IR","P=R/I²"],c:1,fok:"✓ P=I²R (también P=V²/R=VI).",fmal:"✗ La potencia es P=I²R (también V²/R ó VI)."},
+  {texto:"Si V=12 V e I=3 A, ¿cuánto vale R?",ops:["R=36 Ω","R=4 Ω","R=0,25 Ω","R=9 Ω"],c:1,fok:"✓ R=V/I=12/3=4 Ω.",fmal:"✗ R=V/I=12/3=4 Ω."},
+  {texto:"Un conductor tiene L=1 m, diámetro d=2 mm (r=10⁻³ m), A=πr²≈3,14×10⁻⁶ m². Si R=0,006 Ω, ¿cuánto vale ρ?",ops:["ρ≈1,88×10⁻⁸ Ω·m","ρ≈1,88×10⁻⁶ Ω·m","ρ≈5,1×10⁻⁷ Ω·m","ρ≈3,14×10⁻⁸ Ω·m"],c:0,fok:"✓ ρ=RA/L=0,006×3,14×10⁻⁶/1≈1,88×10⁻⁸ Ω·m (aluminio).",fmal:"✗ ρ=RA/L=0,006×3,14×10⁻⁶/1=1,88×10⁻⁸ Ω·m."},
+  {texto:"La curva R vs. L (área constante) debería ser:",ops:["Parabólica","Lineal pasando por el origen con pendiente ρ/A","Constante (horizontal)","Exponencial"],c:1,fok:"✓ R=ρL/A → R=( ρ/A)·L. Es una recta de pendiente ρ/A.",fmal:"✗ R=(ρ/A)·L es lineal en L con pendiente ρ/A y pasa por el origen."},
+  {texto:"La gráfica R vs. 1/A (longitud constante) debería ser:",ops:["Curva cúbica","Lineal con pendiente ρL","Parabólica","Constante"],c:1,fok:"✓ R=ρL·(1/A). Graficando vs. 1/A la pendiente es ρL.",fmal:"✗ R=ρL·(1/A): lineal en 1/A con pendiente ρL."},
+  {texto:"El cobre tiene ρ≈1,72×10⁻⁸ Ω·m. Para un cable de L=100 m y A=1 mm²=10⁻⁶ m², R=?",ops:["R=1,72 Ω","R=0,172 Ω","R=17,2 Ω","R=172 Ω"],c:0,fok:"✓ R=ρL/A=1,72×10⁻⁸×100/10⁻⁶=1,72 Ω.",fmal:"✗ R=ρL/A=1,72×10⁻⁸×100/10⁻⁶=1,72 Ω."},
+  {texto:"¿Cuál material es AISLANTE (ρ muy alta)?",ops:["Cobre (ρ≈1,7×10⁻⁸ Ω·m)","Aluminio (ρ≈2,8×10⁻⁸ Ω·m)","Vidrio (ρ≈10¹² Ω·m)","Grafito (ρ≈10⁻⁵ Ω·m)"],c:2,fok:"✓ El vidrio tiene ρ≈10¹² Ω·m (aislante). El cobre y aluminio son conductores.",fmal:"✗ El vidrio (ρ≈10¹² Ω·m) es aislante. El cobre y aluminio son buenos conductores."},
+  {texto:"¿Para qué sirve el método de cuatro puntas (van der Pauw) en la práctica?",ops:["Medir capacitancia","Medir resistividad con alta precisión eliminando la resistencia de contacto","Medir campo magnético","Medir temperatura"],c:1,fok:"✓ El método de 4 puntas elimina la resistencia de los cables de medida, dando ρ más preciso.",fmal:"✗ El método de 4 puntas mide ρ con precisión porque elimina la resistencia de los contactos."},
+  {texto:"Si la temperatura sube 50 °C y α=4×10⁻³ /°C, ¿en qué factor cambia ρ? (ρ_nueva=ρ₀(1+αΔT))",ops:["Factor 1,02","Factor 1,2","Factor 2","No cambia"],c:1,fok:"✓ ρ_nueva=ρ₀(1+4×10⁻³×50)=ρ₀(1,2). Aumenta 20 %.",fmal:"✗ ρ_nueva=ρ₀(1+αΔT)=ρ₀(1+0,004×50)=1,2ρ₀. Aumenta 20 %."},
+  {texto:"¿Qué diferencia a un semiconductor de un conductor metálico respecto a ρ y T?",ops:["Igual comportamiento: ρ aumenta con T","En semiconductores ρ disminuye al aumentar T (más portadores libres)","En semiconductores ρ es constante","No hay diferencia práctica"],c:1,fok:"✓ En semiconductores al aumentar T se generan más portadores → ρ disminuye.",fmal:"✗ En semiconductores ρ DISMINUYE con T (se generan pares electrón-hueco)."},
+  {texto:"La resistividad del aluminio (ρ≈2,8×10⁻⁸ Ω·m) comparada con la del cobre (ρ≈1,7×10⁻⁸ Ω·m) es:",ops:["Menor: el Al conduce mejor","Mayor: el Al conduce peor","Igual","No se puede comparar"],c:1,fok:"✓ ρ_Al>ρ_Cu → el aluminio conduce peor que el cobre.",fmal:"✗ ρ_Al(2,8)>ρ_Cu(1,7). El aluminio tiene MAYOR resistividad, es peor conductor."},
+  {texto:"Tres resistencias R₁=2Ω, R₂=3Ω, R₃=6Ω en paralelo. R_eq=?",ops:["11 Ω","1 Ω","2 Ω","3 Ω"],c:1,fok:"✓ 1/R_eq=1/2+1/3+1/6=3/6+2/6+1/6=6/6=1 → R_eq=1 Ω.",fmal:"✗ 1/R_eq=1/2+1/3+1/6=1 → R_eq=1 Ω."},
+  {texto:"La potencia disipada en R=10 Ω con V=20 V es:",ops:["P=2 W","P=40 W","P=200 W","P=4 W"],c:1,fok:"✓ P=V²/R=400/10=40 W.",fmal:"✗ P=V²/R=20²/10=400/10=40 W."},
+  {texto:"Si se duplica la longitud Y se duplica el área de un conductor, ¿qué le ocurre a R?",ops:["Se cuadruplica","Se duplica","No cambia: R=(ρ·2L)/(2A)=ρL/A=R₀","Se reduce a la mitad"],c:2,fok:"✓ R_nueva=ρ(2L)/(2A)=ρL/A=R₀. La resistencia no cambia.",fmal:"✗ R=(ρ·2L)/(2A)=ρL/A=R₀. Si L y A se duplican simultáneamente, R no cambia."},
+  {texto:"La resistividad del nichrome (ρ≈10⁻⁶ Ω·m) se usa en:",ops:["Cables de transmisión eléctrica","Resistencias de calefacción (hornillas, calentadores)","Aislamiento de cables","Semiconductores"],c:1,fok:"✓ El nichrome tiene alta ρ → disipa mucha energía → ideal para calefacción.",fmal:"✗ El nichrome, por su alta resistividad, se usa en elementos CALEFACTORES."},
+  {texto:"Un filamento de tungsteno L=0,5 m, A=0,01 mm²=10⁻⁸ m², ρ=5,6×10⁻⁸ Ω·m. R=?",ops:["R=0,0028 Ω","R=2,8 Ω","R=28 Ω","R=280 Ω"],c:1,fok:"✓ R=ρL/A=5,6×10⁻⁸×0,5/10⁻⁸=5,6×0,5/1=2,8 Ω.",fmal:"✗ R=5,6×10⁻⁸×0,5/10⁻⁸=2,8 Ω."},
+  {texto:"¿Qué ventaja tiene usar un conductor de mayor sección A?",ops:["Mayor resistencia → más protección","Menor resistencia → menos pérdidas de calor en la transmisión","Mayor resistividad","No hay ventaja práctica"],c:1,fok:"✓ Mayor A→menor R→menos pérdidas por efecto Joule en la transmisión.",fmal:"✗ Mayor A→menor R (R=ρL/A)→menos calor disipado y mejor transmisión."},
+  {texto:"Si V=5 V, R=50 Ω, la corriente I=?",ops:["I=250 A","I=10 A","I=0,1 A","I=0,01 A"],c:2,fok:"✓ I=V/R=5/50=0,1 A.",fmal:"✗ I=V/R=5/50=0,1 A."},
+  {texto:"La energía disipada por efecto Joule en tiempo t es:",ops:["E=Pt=I²Rt","E=I/Rt","E=IRt","E=I²/Rt"],c:0,fok:"✓ E=Pt=I²Rt (energía en joules).",fmal:"✗ E=Pt=I²Rt. También E=V²t/R ó E=VIt."},
+  {texto:"¿Cuál es la forma correcta de conectar el amperímetro y el voltímetro al medir R en laboratorio?",ops:["Amperímetro en paralelo, voltímetro en serie","Amperímetro en serie con R; voltímetro en paralelo con R","Ambos en paralelo","Ambos en serie"],c:1,fok:"✓ Amperímetro en serie (mide I que pasa por R); voltímetro en paralelo (mide V en R).",fmal:"✗ Amperímetro en SERIE con R; voltímetro en PARALELO con R."},
+  {texto:"Si R₁=6Ω (serie) y R₂=4Ω (serie), V_total=10V. ¿Cuánta corriente circula?",ops:["I=10 A","I=5 A","I=1 A","I=0,5 A"],c:2,fok:"✓ R_eq=6+4=10 Ω → I=V/R=10/10=1 A.",fmal:"✗ R_eq=10 Ω. I=V/R_eq=10/10=1 A."},
+  {texto:"¿Qué es la superconductividad?",ops:["Fenómeno donde ρ→∞ a bajas temperaturas","Fenómeno donde ρ→0 por debajo de temperatura crítica Tc","Fenómeno donde ρ oscila con T","Fenómeno propio de semiconductores a alta T"],c:1,fok:"✓ En superconductividad T<Tc → ρ=0. No hay resistencia ni pérdidas.",fmal:"✗ Superconductividad: debajo de Tc la resistividad se vuelve EXACTAMENTE cero."},
+  {texto:"Si I=2 A pasa por R=5 Ω durante t=10 s, la energía disipada es:",ops:["E=10 J","E=100 J","E=200 J","E=20 J"],c:2,fok:"✓ E=I²Rt=4×5×10=200 J.",fmal:"✗ E=I²Rt=2²×5×10=200 J."},
+  {texto:"¿Qué ocurre con la resistencia total al agregar una resistencia en paralelo a un circuito?",ops:["La resistencia total aumenta","La resistencia total disminuye","La resistencia total no cambia","La corriente total disminuye"],c:1,fok:"✓ En paralelo 1/R_eq=1/R₁+1/R_nuevo. Siempre R_eq<R₁.",fmal:"✗ Al agregar una resistencia en paralelo, R_eq DISMINUYE (siempre menor que la menor individual)."},
+  {texto:"R₁=10 Ω y R₂=10 Ω en paralelo. R_eq=?",ops:["20 Ω","10 Ω","5 Ω","2 Ω"],c:2,fok:"✓ R_eq=R₁R₂/(R₁+R₂)=100/20=5 Ω.",fmal:"✗ R_eq=10×10/(10+10)=100/20=5 Ω."},
+  {texto:"¿Cuál es la diferencia entre resistencia R y resistividad ρ?",ops:["Son lo mismo","R depende de la geometría (L,A) y del material (ρ); ρ es solo del material","ρ depende de la geometría y R no","R es siempre mayor que ρ"],c:1,fok:"✓ R=ρL/A. R depende de geometría y material; ρ depende SOLO del material.",fmal:"✗ R depende de geometría (L, A) y de ρ. La resistividad ρ depende SOLO del material."},
+  {texto:"Un conductor de L=3 m, A=2×10⁻⁶ m², R medida=0,09 Ω. ¿Cuánto vale ρ?",ops:["ρ=6×10⁻⁸ Ω·m","ρ=1,5×10⁻⁸ Ω·m","ρ=2×10⁻⁷ Ω·m","ρ=4,5×10⁻⁸ Ω·m"],c:0,fok:"✓ ρ=RA/L=0,09×2×10⁻⁶/3=6×10⁻⁸ Ω·m.",fmal:"✗ ρ=RA/L=0,09×2×10⁻⁶/3=6×10⁻⁸ Ω·m."}
+];
+
+const POWER_AUTOMATE_URL='PEGA_AQUI_TU_URL_DE_POWER_AUTOMATE';
+const NUM_PREGUNTAS=10;
+let est={},intento=1,pregs=[],notaFinal=0;
+
+function mezclar(a){const r=[...a];for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]];}return r;}
+function seleccionar(){return mezclar(BANCO).slice(0,NUM_PREGUNTAS).map(p=>({...p,ops:mezclar(p.ops.map((o,i)=>({t:o,ok:i===p.c})))}));}
+
+function registrar(){
+    const n=document.getElementById('rn').value.trim(),
+          c=document.getElementById('rc').value.trim(),
+          e=document.getElementById('re').value.trim();
+    let v=true;
+    ['rn','rc','re'].forEach(id=>document.getElementById(id).classList.remove('err'));
+    if(!n){document.getElementById('rn').classList.add('err');v=false;}
+    if(!c){document.getElementById('rc').classList.add('err');v=false;}
+    if(!e||!e.includes('@')){document.getElementById('re').classList.add('err');v=false;}
+    if(!v){alert('⚠️ Completa todos los campos correctamente.');return;}
+    est={n,c,e};intento=1;iniciarQuiz();
+}
+
+function iniciarQuiz(){
+    pregs=seleccionar();
+    document.getElementById('badge-int').innerHTML=intento===1
+        ?'<div class="badge-int">📝 Primer intento — Nota máxima: 5.0</div>'
+        :'<div class="badge-int s2">⚠️ Segundo intento — Nota máxima: 4.0</div>';
+    const cnt=document.getElementById('cnt-pregs');
+    cnt.innerHTML='';
+    pregs.forEach((p,i)=>{
+        const ops=p.ops.map((o,j)=>`<label class="opcion"><input type="radio" name="q${i}" value="${j}"> ${o.t}</label>`).join('');
+        cnt.innerHTML+=`<div class="pregunta"><p class="preg-txt"><span class="preg-num">${i+1}</span>${p.texto}</p>${ops}<div class="fb" id="fb${i}"></div></div>`;
+    });
+    document.getElementById('btn-cal').style.display='block';
+    document.getElementById('res-div').style.display='none';
+    document.getElementById('btn-cont').style.display='none';
+    document.getElementById('btn-rein').style.display='none';
+    pantalla('pantalla-quiz');
+}
+
+function calificar(){
+    const sin=[];
+    pregs.forEach((_,i)=>{if(!document.querySelector(`input[name="q${i}"]:checked`))sin.push(i+1);});
+    if(sin.length){alert(`⚠️ Faltan preguntas: ${sin.join(', ')}`);return;}
+    let cor=0;
+    pregs.forEach((p,i)=>{
+        const si=parseInt(document.querySelector(`input[name="q${i}"]:checked`).value);
+        const todas=document.querySelectorAll(`input[name="q${i}"]`);
+        const fb=document.getElementById('fb'+i);
+        todas.forEach(o=>{o.disabled=true;o.closest('.opcion').classList.add('lock');});
+        if(p.ops[si].ok){cor++;todas[si].closest('.opcion').classList.add('ok');fb.className='fb ok';fb.textContent=p.fok;}
+        else{todas[si].closest('.opcion').classList.add('mal');fb.className='fb mal';fb.textContent=p.fmal;
+            p.ops.forEach((o,j)=>{if(o.ok)todas[j].closest('.opcion').classList.add('oka');});}
+    });
+    const pct=Math.round(cor/NUM_PREGUNTAS*100),ap=pct>=60,nb=intento===1?5:4;
+    notaFinal=(cor/NUM_PREGUNTAS*nb).toFixed(1);
+    document.getElementById('btn-cal').style.display='none';
+    const rd=document.getElementById('res-div');
+    rd.style.display='block';rd.className='res-quiz '+(ap?'ap':'rep');
+    document.getElementById('pct-txt').textContent=`${cor} / ${NUM_PREGUNTAS} — ${pct}%`;
+    document.getElementById('nota-txt').textContent=`Nota: ${notaFinal} / ${nb}`;
+    document.getElementById('res-msg').textContent=ap?'🎉 ¡Felicitaciones! Has superado el quiz.':'❌ No alcanzaste el puntaje mínimo (60%).';
+    document.getElementById('res-sub').textContent=ap?'Toca el botón para continuar a la práctica.':intento===1?`Obtuviste ${cor}/${NUM_PREGUNTAS}. Tienes un segundo intento (máx. 4.0).`:`Obtuviste ${cor}/${NUM_PREGUNTAS}. No hay más intentos.`;
+    if(ap){document.getElementById('btn-cont').style.display='block';
+        document.getElementById('paso1').classList.replace('activo','completo');
+        document.getElementById('cir1').textContent='✓';enviar(cor,pct,true);}
+    else{if(intento===1)document.getElementById('btn-rein').style.display='block';enviar(cor,pct,false);}
+}
+
+function segundoIntento(){intento=2;iniciarQuiz();}
+
+function pantalla(id){
+    document.querySelectorAll('.pantalla').forEach(p=>p.classList.remove('activa'));
+    document.getElementById(id).classList.add('activa');
+    window.scrollTo(0,0);
+}
+
+function desbloquear(){
+    document.getElementById('nota-fin').textContent=`${notaFinal} / ${intento===1?'5.0':'4.0'}`;
+    document.getElementById('paso2').classList.add('activo');
+    document.getElementById('paso3').classList.add('activo');
+    pantalla('pantalla-sel');
+}
+
+function abrir(cual){
+    document.getElementById('ov-'+cual).classList.add('activa');
+    document.body.style.overflow='hidden';
+}
+
+function cerrar(){
+    document.querySelectorAll('.ov-cont').forEach(p=>p.classList.remove('activa'));
+    document.body.style.overflow='';
+}
+
+async function enviar(cor,pct,ap){
+    if(!POWER_AUTOMATE_URL||POWER_AUTOMATE_URL==='PEGA_AQUI_TU_URL_DE_POWER_AUTOMATE')return;
+    document.getElementById('env-ov').classList.add('activo');
+    const d={nombre:est.n,codigo:est.c,correo:est.e,practica:PRACTICA_NOMBRE,intento,correctas:cor,total:NUM_PREGUNTAS,porcentaje:pct,nota:parseFloat(notaFinal),notaBase:intento===1?5:4,aprobado:ap,fecha:new Date().toLocaleDateString('es-CO'),hora:new Date().toLocaleTimeString('es-CO')};
+    try{await fetch(POWER_AUTOMATE_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});}catch(e){console.warn(e);}
+    finally{document.getElementById('env-ov').classList.remove('activo');}
+}
+
+</script>
+</body>
+</html>

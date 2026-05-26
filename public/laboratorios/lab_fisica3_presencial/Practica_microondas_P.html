@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRÁCTICA FIS-MW-06 — Microondas</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$']]},options:{skipHtmlTags:['script','noscript','style','textarea','pre']}};</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+  :root{--ink:#1a1a2e;--ink-soft:#3d3d5c;--ink-muted:#7a7a9a;--paper:#faf8f3;--paper-alt:#f2ede3;--rule:#d4c9b0;--accent:#1a5276;--accent2:#c0392b;--gold:#b8860b;--green:#1e8449;--mono:'JetBrains Mono',monospace;--serif:'Source Serif 4',Georgia,serif;--display:'Playfair Display',Georgia,serif;}
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}html{scroll-behavior:smooth;}
+  body{background:#dde3e8;font-family:var(--serif);color:var(--ink);font-size:17px;line-height:1.8;padding:0 0 80px;}
+  .documento{max-width:900px;margin:0 auto;background:var(--paper);box-shadow:0 2px 4px rgba(0,0,0,.08),0 8px 32px rgba(0,0,0,.14);position:relative;overflow-x:hidden;}
+  .documento::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:linear-gradient(180deg,var(--accent) 0%,var(--accent2) 50%,var(--gold) 100%);}
+  .header{background:var(--ink);color:#fff;padding:36px 50px 30px 55px;position:relative;overflow:hidden;}
+  .header::after{content:'n';font-family:var(--display);font-size:260px;font-weight:700;color:rgba(255,255,255,.04);position:absolute;right:-10px;top:-40px;line-height:1;pointer-events:none;user-select:none;}
+  .header-meta{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;gap:20px;}
+  .badge-codigo{font-family:var(--mono);font-size:.7em;background:var(--accent);color:#fff;padding:3px 10px;letter-spacing:.12em;text-transform:uppercase;}
+  .badge-tipo{font-family:var(--mono);font-size:.7em;color:rgba(255,255,255,.5);letter-spacing:.1em;text-transform:uppercase;border:1px solid rgba(255,255,255,.15);padding:3px 10px;}
+  .header h1{font-family:var(--display);font-size:2.1em;font-weight:700;line-height:1.2;color:#fff;margin-bottom:6px;}
+  .header h1 em{font-style:italic;color:rgba(255,255,255,.65);font-size:.82em;}
+  .header-sub{font-size:.82em;color:rgba(255,255,255,.45);font-weight:300;letter-spacing:.04em;margin-top:4px;}
+  .header-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px 24px;margin-top:24px;padding-top:20px;border-top:1px solid rgba(255,255,255,.12);}
+  .field-item label{display:block;font-family:var(--mono);font-size:.65em;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.12em;margin-bottom:4px;}
+  .field-item input{width:100%;background:rgba(255,255,255,.07);border:none;border-bottom:1px solid rgba(255,255,255,.25);color:#fff;font-family:var(--serif);font-size:.9em;padding:4px 0;outline:none;}
+  .field-item input::placeholder{color:rgba(255,255,255,.2);}
+  .body{padding:44px 50px 50px 55px;}
+  .seccion{margin-bottom:42px;}
+  .seccion-titulo{font-family:var(--display);font-size:1.15em;font-weight:600;color:var(--ink);display:flex;align-items:center;gap:12px;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--rule);}
+  .seccion-titulo .num{font-family:var(--mono);font-size:.75em;color:var(--accent);background:#e8f0f7;padding:2px 7px;letter-spacing:.05em;min-width:36px;text-align:center;}
+  .subseccion-titulo{font-family:var(--display);font-size:1em;font-weight:600;color:var(--accent);margin:22px 0 10px;display:flex;align-items:center;gap:8px;}
+  .subseccion-titulo::before{content:'';width:14px;height:2px;background:var(--accent);display:inline-block;flex-shrink:0;}
+  p{margin-bottom:10px;color:var(--ink-soft);font-size:.95em;}
+  .objetivos-lista{list-style:none;padding:0;}
+  .objetivos-lista li{display:flex;gap:12px;align-items:flex-start;padding:8px 0;border-bottom:1px dashed var(--rule);font-size:.93em;color:var(--ink-soft);}
+  .objetivos-lista li:last-child{border-bottom:none;}
+  .objetivos-lista li .obj-num{font-family:var(--mono);font-size:.75em;color:#fff;background:var(--accent);min-width:22px;height:22px;display:flex;align-items:center;justify-content:center;margin-top:2px;flex-shrink:0;}
+  .formula-box{background:var(--ink);color:#fff;padding:18px 24px;margin:18px 0;position:relative;overflow:hidden;}
+  .formula-box::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent2);}
+  .formula-box .formula-label{font-family:var(--mono);font-size:.65em;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.12em;margin-bottom:10px;}
+  .formula-main{font-size:1.15em;text-align:center;padding:6px 0;}
+  .formula-num{font-family:var(--mono);font-size:.65em;color:rgba(255,255,255,.35);text-align:right;margin-top:6px;}
+  .formula-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0;}
+  .tabla-wrap{overflow-x:auto;margin:16px 0;}
+  table{width:100%;border-collapse:collapse;font-size:.88em;}
+  thead tr{background:var(--ink);color:#fff;}
+  thead th{font-family:var(--mono);font-size:.72em;font-weight:500;letter-spacing:.06em;text-transform:uppercase;padding:10px 12px;text-align:center;}
+  tbody tr:nth-child(even){background:var(--paper-alt);}
+  tbody tr:hover{background:#e8f0f7;}
+  tbody td{padding:6px 10px;border-bottom:1px solid var(--rule);text-align:center;color:var(--ink-soft);font-size:.9em;}
+  tbody td.fila-label{font-family:var(--mono);font-size:.8em;color:var(--ink-muted);text-align:left;padding-left:12px;}
+  input.celda{width:90px;border:none;border-bottom:1px solid var(--rule);background:transparent;font-family:var(--mono);font-size:.85em;color:var(--ink);text-align:center;padding:2px 4px;outline:none;transition:border-color .2s;}
+  input.celda:focus{border-bottom-color:var(--accent);}
+  input.celda.calc{color:var(--accent);background:rgba(26,82,118,.06);border-bottom-color:rgba(26,82,118,.3);}
+  input.celda.prom{color:var(--green);background:rgba(30,132,73,.06);border-bottom-color:rgba(30,132,73,.3);font-weight:500;}
+  input.celda.er{color:var(--accent2);background:rgba(192,57,43,.06);border-bottom-color:rgba(192,57,43,.3);}
+  .grafica-wrap{background:#fff;border:1px solid var(--rule);padding:20px;margin:20px 0;}
+  .grafica-titulo{font-family:var(--mono);font-size:.72em;color:var(--ink-muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;}
+  canvas{display:block;width:100%;cursor:crosshair;}
+  .grafica-controles{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;}
+  .btn{font-family:var(--mono);font-size:.72em;letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--rule);background:var(--paper-alt);color:var(--ink-soft);padding:6px 14px;cursor:pointer;transition:all .15s;}
+  .btn:hover{background:var(--ink);color:#fff;border-color:var(--ink);}
+  .btn.activo{background:var(--accent);color:#fff;border-color:var(--accent);}
+  .pregunta{display:flex;gap:14px;padding:14px 0;border-bottom:1px dashed var(--rule);align-items:flex-start;}
+  .pregunta:last-child{border-bottom:none;}
+  .preg-num{font-family:var(--mono);font-size:.72em;color:#fff;background:var(--gold);min-width:28px;height:28px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;}
+  .preg-texto{font-size:.93em;color:var(--ink-soft);flex:1;}
+  textarea.respuesta,textarea.conclusion-resp{width:100%;min-height:75px;margin-top:8px;border:1px solid var(--rule);background:var(--paper-alt);font-family:var(--serif);font-size:.88em;color:var(--ink);padding:10px 12px;outline:none;resize:vertical;line-height:1.6;transition:border-color .2s;}
+  textarea.respuesta:focus,textarea.conclusion-resp:focus{border-color:var(--accent);}
+  .info-box{background:#e8f0f7;border-left:3px solid var(--accent);padding:12px 16px;font-size:.88em;color:var(--accent);margin:14px 0;font-style:italic;}
+  .precaucion-box{background:#fff3cd;border-left:3px solid var(--gold);padding:10px 14px;font-size:.85em;color:#7c5c00;margin:14px 0;}
+  .precaucion-box strong{font-family:var(--mono);font-size:.85em;letter-spacing:.05em;}
+  /* MONTAJE */
+  .montaje-box{background:var(--paper-alt);border:1px solid var(--rule);padding:20px 24px;margin:16px 0;}
+  .montaje-materiales{list-style:none;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;margin-bottom:18px;}
+  .montaje-materiales li{display:flex;align-items:center;gap:8px;font-size:.88em;color:var(--ink-soft);}
+  .montaje-materiales li::before{content:'';width:6px;height:6px;background:var(--accent2);flex-shrink:0;}
+  .pasos-lista{list-style:none;padding:0;counter-reset:pasos;}
+  .pasos-lista li{counter-increment:pasos;display:flex;gap:14px;padding:10px 0;border-bottom:1px dashed var(--rule);font-size:.9em;color:var(--ink-soft);align-items:flex-start;}
+  .pasos-lista li:last-child{border-bottom:none;}
+  .pasos-lista li::before{content:counter(pasos);font-family:var(--mono);font-size:.75em;color:#fff;background:var(--ink);min-width:24px;height:24px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  /* INCERTIDUMBRES */
+  .incert-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:16px 0;}
+  .incert-card{background:var(--paper-alt);border:1px solid var(--rule);padding:14px 18px;}
+  .incert-card label{font-family:var(--mono);font-size:.65em;color:var(--ink-muted);text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:6px;}
+  .incert-card input{width:100%;border:none;border-bottom:2px solid var(--rule);background:transparent;font-family:var(--mono);font-size:1.05em;color:var(--ink);font-weight:500;padding:4px 0;outline:none;}
+  .incert-card.ir-card{border-left:3px solid var(--gold);} .incert-card.ir-card input{color:var(--gold);}
+  .incert-card.er-card{border-left:3px solid var(--accent2);} .incert-card.er-card input{color:var(--accent2);}
+  .incert-card.ok-card{border-left:3px solid var(--green);} .incert-card.ok-card input{color:var(--green);}
+  .formula-incert{background:var(--ink);color:#fff;padding:14px 20px;margin:12px 0;position:relative;}
+  .formula-incert::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--gold);}
+  .formula-incert .fi-label{font-family:var(--mono);font-size:.63em;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;}
+  .formula-incert .fi-body{font-size:1em;text-align:center;padding:4px 0;}
+  .incert-tabla{width:100%;border-collapse:collapse;font-size:.86em;margin:14px 0;}
+  .incert-tabla thead tr{background:var(--ink);color:#fff;}
+  .incert-tabla thead th{font-family:var(--mono);font-size:.68em;font-weight:500;letter-spacing:.06em;text-transform:uppercase;padding:8px 10px;text-align:center;}
+  .incert-tabla tbody tr:nth-child(even){background:var(--paper-alt);}
+  .incert-tabla tbody td{padding:5px 8px;border-bottom:1px solid var(--rule);text-align:center;font-size:.88em;}
+  .incert-tabla input.ld{width:75px;border:none;border-bottom:1px solid var(--rule);background:transparent;font-family:var(--mono);font-size:.83em;color:var(--ink);text-align:center;padding:2px 3px;outline:none;}
+  .incert-tabla input.lc{width:75px;border:none;border-bottom:1px solid rgba(26,82,118,.3);background:rgba(26,82,118,.05);font-family:var(--mono);font-size:.83em;color:var(--accent);text-align:center;padding:2px 3px;outline:none;}
+  .incert-resumen{background:#f0f7ee;border:1px solid #b8ddb2;border-left:4px solid var(--green);padding:14px 18px;margin:14px 0;font-family:var(--mono);font-size:.82em;color:var(--ink-soft);}
+  .incert-resumen span{color:var(--green);font-weight:600;}
+  /* RESUMEN */
+  .resumen-tabla{width:100%;border-collapse:collapse;font-size:.88em;margin:14px 0;}
+  .resumen-tabla thead tr{background:var(--ink);color:#fff;}
+  .resumen-tabla thead th{font-family:var(--mono);font-size:.7em;font-weight:500;letter-spacing:.06em;text-transform:uppercase;padding:9px 12px;text-align:left;}
+  .resumen-tabla tbody tr:nth-child(even){background:var(--paper-alt);}
+  .resumen-tabla tbody td{padding:7px 12px;border-bottom:1px solid var(--rule);font-size:.9em;color:var(--ink-soft);}
+  .resumen-tabla tbody td.td-label{font-family:var(--mono);font-size:.78em;color:var(--ink-muted);}
+  .resumen-tabla tbody td.td-val{font-family:var(--mono);color:var(--accent);font-weight:500;}
+  .resumen-tabla input.rv{width:100%;border:none;border-bottom:1px solid rgba(26,82,118,.3);background:rgba(26,82,118,.05);font-family:var(--mono);font-size:.88em;color:var(--accent);padding:2px 4px;outline:none;}
+  .resumen-semaforo{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0;}
+  .semaforo-item{flex:1;min-width:140px;background:var(--paper-alt);border:1px solid var(--rule);padding:12px 16px;text-align:center;}
+  .semaforo-item .si-label{font-family:var(--mono);font-size:.63em;color:var(--ink-muted);text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:6px;}
+  .semaforo-item .si-valor{font-family:var(--mono);font-size:1.1em;font-weight:600;display:block;}
+  .semaforo-item.verde{border-left:4px solid var(--green);} .semaforo-item.verde .si-valor{color:var(--green);}
+  .semaforo-item.gold{border-left:4px solid var(--gold);} .semaforo-item.gold .si-valor{color:var(--gold);}
+  .semaforo-item.rojo{border-left:4px solid var(--accent2);} .semaforo-item.rojo .si-valor{color:var(--accent2);}
+  .semaforo-item.azul{border-left:4px solid var(--accent);} .semaforo-item.azul .si-valor{color:var(--accent);}
+  /* CONCLUSIONES */
+  .conclusiones-wrap{margin:14px 0;}
+  .conclusion-item{display:flex;gap:14px;padding:14px 0;border-bottom:1px dashed var(--rule);align-items:flex-start;}
+  .conclusion-item:last-child{border-bottom:none;}
+  .conclusion-num{font-family:var(--mono);font-size:.72em;color:#fff;background:var(--ink-soft);min-width:28px;height:28px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;font-weight:500;}
+  .conclusion-guia{font-size:.9em;color:var(--ink-soft);flex:1;}
+  .conclusion-guia strong{color:var(--ink);}
+  .conclusion-placeholder{font-family:var(--mono);font-size:.68em;color:var(--ink-muted);font-style:italic;margin-top:4px;}
+  /* PRINT-DIV */
+  .print-div{display:none;}
+  @media(max-width:640px){.header{padding:24px 20px 20px 26px;}.body{padding:28px 20px 30px 26px;}.header-fields,.incert-grid,.resumen-semaforo,.formula-grid,.montaje-materiales{grid-template-columns:1fr;}}
+  @media print{
+    .btn-imprimir-wrap { display: none !important; }
+    body{background:#fff !important;padding-bottom:0 !important;}
+    .documento{max-width:100% !important;box-shadow:none !important;margin:0 !important;}
+    .seccion{page-break-inside:avoid;}
+    table{page-break-inside:avoid;}
+    .formula-box,.formula-incert,.montaje-box{page-break-inside:avoid;}
+    .grafica-controles{display:none !important;}
+    canvas{max-width:100% !important;}
+    .header{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .formula-box,.formula-incert{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .seccion-titulo .num{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    thead tr{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .precaucion-box,.incert-resumen{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .semaforo-item{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    #sec-montaje{page-break-before:always;}
+    #sec-resumen{page-break-before:always;}
+        /* Área de respuesta: se imprime completa siempre */
+    .respuesta-div {
+      border: 1px solid #bbb !important;
+      background: #f2ede3 !important;
+      min-height: 0 !important;
+      overflow: visible !important;
+      page-break-inside: avoid;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .respuesta-div:empty::before { content: '' !important; }
+    /* Ocultar textareas viejos si quedara alguno */
+    textarea.respuesta, textarea.conclusion-resp { display: none !important; }
+    /* Ocultar print-div viejo (ya no se usa) */
+    .print-div { display: none !important; }
+  }
+
+  /* ════════════════════════════════════════
+     MEJORAS: FUENTE + RESPONSIVE + PRINT
+     ════════════════════════════════════════ */
+
+  /* — Fuente base más grande — */
+  html { font-size: 17px; }
+  body { font-size: 1rem !important; line-height: 1.8 !important; }
+  p { font-size: 1rem !important; margin-bottom: 12px; }
+  .header h1 { font-size: 2.3em !important; }
+  .header-sub { font-size: .9em !important; }
+  .seccion-titulo { font-size: 1.25em !important; }
+  .subseccion-titulo { font-size: 1.08em !important; }
+  .objetivos-lista li,
+  .pasos-lista li { font-size: 1rem !important; }
+  .preg-texto,
+  .conclusion-texto { font-size: 1rem !important; }
+  .formula-main,
+  .fi-body { font-size: 1.15em !important; }
+  .res-card input { font-size: 1.15em !important; }
+  input.celda { font-size: .95em !important; width: 90px !important; }
+  table { font-size: .95em !important; }
+  thead th { font-size: .78em !important; padding: 12px 10px !important; }
+  tbody td { font-size: .95em !important; padding: 8px 10px !important; }
+  .precaucion-box, .info-box { font-size: .95em !important; }
+  textarea.respuesta,
+  textarea.conclusion-resp { font-size: .95em !important; min-height: 90px !important; }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 900px) {
+    html { font-size: 16px; }
+    .documento { max-width: 100% !important; margin: 0 !important; }
+    .header { padding: 28px 24px 24px 30px !important; }
+    .body   { padding: 28px 24px 32px 30px !important; }
+    .header-fields,
+    .formula-grid,
+    .incert-grid { grid-template-columns: 1fr 1fr !important; }
+    .resultados-grid,
+    .resumen-semaforo { grid-template-columns: 1fr 1fr !important; }
+  }
+  @media (max-width: 640px) {
+    html { font-size: 15px; }
+    .header { padding: 20px 16px 18px 20px !important; }
+    .body   { padding: 20px 16px 24px 20px !important; }
+    .header h1 { font-size: 1.7em !important; }
+    .header-fields,
+    .resultados-grid,
+    .formula-grid,
+    .incert-grid,
+    .resumen-semaforo,
+    .montaje-materiales { grid-template-columns: 1fr !important; }
+    .tabla-wrap { -webkit-overflow-scrolling: touch; overflow-x: auto; }
+    table { min-width: 480px; }
+    input.celda { width: 70px !important; }
+    canvas { max-width: 100% !important; height: auto !important; }
+  }
+  @media (max-width: 400px) {
+    html { font-size: 14px; }
+    .header h1 { font-size: 1.5em !important; }
+  }
+    /* Asegurar que textarea quede oculto (por si acaso) */
+    textarea.respuesta,
+    textarea.conclusion-resp { display: none !important; }
+
+    /* Campos numéricos */
+    input.celda, input.celda.calc, input.celda.prom {
+      border-bottom: 1px solid #999 !important;
+      -webkit-appearance: none !important;
+    }
+    .res-card input { border-bottom: 2px solid #999 !important; }
+
+    /* Tablas completas */
+    .tabla-wrap { overflow: visible !important; }
+    table { min-width: 0 !important; width: 100% !important; }
+    tr { page-break-inside: avoid; page-break-after: auto; }
+    thead { display: table-header-group; }
+  }
+
+  /* — Botón imprimir — */
+  .btn-imprimir-wrap {
+    text-align: center;
+    padding: 28px 0 10px;
+    border-top: 2px solid var(--rule);
+    margin-top: 40px;
+  }
+  .btn-imprimir {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: var(--ink); color: #fff; border: none;
+    padding: 13px 32px; font-family: var(--mono); font-size: .9em;
+    letter-spacing: .1em; text-transform: uppercase; cursor: pointer;
+    transition: background .2s, transform .15s;
+    box-shadow: 0 4px 16px rgba(0,0,0,.18); border-radius: 4px;
+  }
+  .btn-imprimir:hover { background: var(--accent); transform: translateY(-2px); }
+  .btn-imprimir svg { width: 20px; height: 20px; flex-shrink: 0; }
+
+  /* — Área de respuesta: div contenteditable (crece con el contenido, imprime completo) — */
+  .respuesta-div {
+    width: 100%;
+    min-height: 90px;
+    margin-top: 8px;
+    border: 1px solid var(--rule);
+    background: var(--paper-alt);
+    font-family: var(--serif);
+    font-size: .95em;
+    color: var(--ink);
+    padding: 10px 12px;
+    outline: none;
+    line-height: 1.6;
+    cursor: text;
+    white-space: pre-wrap;
+    word-break: break-word;
+    box-sizing: border-box;
+  }
+  .respuesta-div:focus {
+    border-color: var(--accent);
+  }
+  .respuesta-div:empty::before {
+    content: attr(data-placeholder);
+    color: var(--ink-muted);
+    font-style: italic;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+<div class="documento">
+  <div class="header">
+    <div class="header-meta">
+      <span class="badge-codigo" id="codigoPractica">PRÁCTICA FIS-MW-06</span>
+      <span class="badge-tipo">Ondas · Electromagnetismo</span>
+    </div>
+    <h1>Microondas<br><em>Reflexión, refracción y polarización</em></h1>
+    <div class="header-sub">Departamento de Ciencias Básicas · Institución Universitaria Antonio José Camacho · Cali 2025</div>
+    <div class="header-fields">
+      <div class="field-item"><label>Nombre del estudiante</label><input type="text" placeholder="Apellidos, Nombres"></div>
+      <div class="field-item"><label>Grupo / Sección</label><input type="text" placeholder="Ej. Física II – G1"></div>
+      <div class="field-item"><label>Docente</label><input type="text" placeholder="Nombre del profesor"></div>
+      <div class="field-item"><label>Fecha de realización</label><input type="date"></div>
+    </div>
+  </div>
+
+  <div class="body">
+
+    <div class="seccion">
+      <div class="seccion-titulo"><span class="num">01</span> Objetivos</div>
+      <ul class="objetivos-lista"><li><span class="obj-num">1</span>Estudiar los fenómenos de reflexión, refracción y polarización con microondas.</li>
+<li><span class="obj-num">2</span>Determinar experimentalmente el índice de refracción del estireno.</li></ul>
+    </div>
+
+    <div class="seccion">
+      <div class="seccion-titulo"><span class="num">02</span> Modelo Teórico</div>
+      
+<p>El equipo genera microondas a ~10,5 GHz linealmente polarizadas. Las tres partes de la práctica estudian:</p>
+<div class="formula-grid">
+  <div class="formula-box"><div class="formula-label">Ley de reflexión</div><div class="formula-main">$$\theta_i = \theta_r$$</div><div class="formula-num">(1)</div></div>
+  <div class="formula-box"><div class="formula-label">Ley de Snell (refracción)</div><div class="formula-main">$$n_1\sin\theta_1 = n_2\sin\theta_2$$</div><div class="formula-num">(2)</div></div>
+</div>
+<p>Para la <strong>refracción</strong>: $n_2 = 1$ (aire), se despeja $n_1$ (estireno). Valor real: $n_{estireno} \approx 1{,}4$.</p>
+<p>Para la <strong>polarización</strong>: la intensidad captada sigue la Ley de Malus $I \propto \cos^2\theta$, donde $\theta$ es el ángulo entre el plano de polarización del emisor y el eje del receptor.</p>
+    </div>
+
+    <div class="seccion" id="sec-montaje">
+      <div class="seccion-titulo"><span class="num">M</span> Montaje Experimental</div>
+      <div class="montaje-box">
+        <div class="subseccion-titulo">Materiales y Equipo</div>
+        <ul class="montaje-materiales"><li>Emisor de microondas PASCO</li>
+<li>Receptor de microondas (con escala graduada)</li>
+<li>Placa metálica reflectora</li>
+<li>Prisma con bolitas de estireno</li>
+<li>Rejilla metálica polarizadora</li>
+<li>Mesa giratoria con escala de ángulos</li></ul>
+        <div class="subseccion-titulo">Procedimiento de Montaje</div>
+        <ol class="pasos-lista"><li><strong>Reflexión:</strong> coloque la placa metálica en la mesa giratoria. Alinee el emisor y el receptor simétricamente respecto a la normal de la placa. Use la escala más sensible del receptor.</li>
+<li>Para cada ángulo de incidencia (20° a 90°), ajuste el receptor hasta máxima señal y registre $\theta_r$.</li>
+<li><strong>Refracción:</strong> coloque el prisma de estireno. Oriente el emisor perpendicular a una cara del prisma y encuentre el ángulo refractado $\theta$ con el receptor.</li>
+<li>Determine $\theta_1$ y $\theta_2$ con la geometría del prisma (ver Fig. 4 de la guía) y aplique la Ley de Snell.</li>
+<li><strong>Polarización:</strong> gire el receptor de 0° a 180° en pasos de 10°. Registre la intensidad con y sin rejilla.</li>
+</ol>
+        <div class="precaucion-box"><strong>⚠ Precauciones:</strong> No toque con las manos las superficies del prisma de estireno. El receptor es sensible: comience con la escala de menor sensibilidad. No dirija el emisor hacia personas.</div>
+      </div>
+    </div>
+
+    <div class="seccion">
+      <div class="seccion-titulo"><span class="num">03</span> Adquisición de Datos</div>
+      
+<div class="subseccion-titulo">Parte 1 — Reflexión</div>
+<div class="tabla-wrap"><table><thead><tr>
+  <th>θ_i (°)</th><th>θ_r medido (°)</th><th>Diferencia θ_i - θ_r (°)</th><th>¿Se cumple la ley?</th>
+</tr></thead><tbody id="tbody-ref"></tbody></table></div>
+<div class="incert-grid">
+  <div class="incert-card ok-card"><label>Error promedio |θ_i - θ_r| (°)</label><input id="mw-err-ref" readonly placeholder="—"></div>
+  <div class="incert-card"><label>% mediciones con |Δθ| ≤ 2°</label><input id="mw-pct-ref" readonly placeholder="—"></div>
+</div>
+
+<div class="subseccion-titulo" style="margin-top:20px;">Parte 2 — Refracción (índice del estireno)</div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin:12px 0;">
+  <div><label style="font-family:var(--mono);font-size:.67em;color:var(--ink-muted);text-transform:uppercase;display:block;">θ medido (°)</label><input class="celda" id="mw-th" type="text" placeholder="0.0" style="width:90px;border:1px solid var(--rule);padding:4px 6px;" oninput="calcMWRef()"></div>
+  <div><label style="font-family:var(--mono);font-size:.67em;color:var(--ink-muted);text-transform:uppercase;display:block;">θ₁ (°)</label><input class="celda" id="mw-th1" type="text" placeholder="0.0" style="width:90px;border:1px solid var(--rule);padding:4px 6px;" oninput="calcMWRef()"></div>
+  <div><label style="font-family:var(--mono);font-size:.67em;color:var(--ink-muted);text-transform:uppercase;display:block;">θ₂ (°)</label><input class="celda" id="mw-th2" type="text" placeholder="0.0" style="width:90px;border:1px solid var(--rule);padding:4px 6px;" oninput="calcMWRef()"></div>
+  <div style="align-self:flex-end;padding-bottom:4px;"><span style="font-family:var(--mono);font-size:.8em;color:var(--ink-soft);">n₁ = </span><span id="mw-n1" style="font-family:var(--mono);font-size:1em;color:var(--accent);">—</span></div>
+</div>
+<div class="incert-grid">
+  <div class="incert-card ok-card"><label>n₁ experimental (estireno)</label><input id="mw-n1r" readonly placeholder="—"></div>
+  <div class="incert-card"><label>n₁ referencia</label><input value="1,40" readonly style="border:none;font-family:var(--mono);background:transparent;color:var(--ink-muted);"></div>
+  <div class="incert-card er-card"><label>ER vs 1,40 (%)</label><input id="mw-er-n" readonly placeholder="—"></div>
+  <div class="incert-card"><label>Calidad</label><input id="mw-cal-n" readonly placeholder="—"></div>
+</div>
+
+<div class="subseccion-titulo" style="margin-top:20px;">Parte 3 — Polarización</div>
+<div class="tabla-wrap"><table><thead><tr>
+  <th>θ (°)</th><th>Sin rejilla</th><th>Con rejilla</th>
+  <th>θ (°)</th><th>Sin rejilla</th><th>Con rejilla</th>
+  <th>θ (°)</th><th>Sin rejilla</th><th>Con rejilla</th>
+</tr></thead><tbody id="tbody-pol"></tbody></table></div>
+<div class="grafica-wrap"><div class="grafica-titulo">Intensidad vs Ángulo — Polarización (sin rejilla)</div>
+  <canvas id="cv-pol" height="260"></canvas>
+  <div class="grafica-controles">
+    <span id="info-pol" style="font-family:var(--mono);font-size:.72em;color:var(--ink-muted);align-self:center;Ley de Malus: I ∝ cos²θ"></span>
+  </div>
+</div>
+    </div>
+
+    <div class="seccion" id="sec-incert">
+      <div class="seccion-titulo"><span class="num">IN</span> Incertidumbre, IR y ER</div>
+      
+<div class="formula-incert"><div class="fi-label">Incertidumbre en n₁ (Ley de Snell)</div>
+  <div class="fi-body">$$S_{n_1} = n_1\sqrt{\left(\frac{\cos\theta_2\,\delta\theta_2}{\sin\theta_2}\right)^2+\left(\frac{\cos\theta_1\,\delta\theta_1}{\sin\theta_1}\right)^2}, \quad \delta\theta = 0.5°$$</div>
+</div>
+<div class="incert-grid">
+  <div class="incert-card ok-card"><label>n₁ ± S_n₁</label><input id="mw-npm" readonly placeholder="—"></div>
+  <div class="incert-card ir-card"><label>IR de n₁ (%)</label><input id="mw-ir-n" readonly placeholder="—"></div>
+  <div class="incert-card er-card"><label>ER vs 1,40 (%)</label><input id="mw-er-n2" readonly placeholder="—"></div>
+  <div class="incert-card"><label>Error ref. θ_i - θ_r promedio (°)</label><input id="mw-err2" readonly placeholder="—"></div>
+</div>
+<div class="incert-resumen" id="mw-resumen">Complete los datos para ver el resumen.</div>
+    </div>
+
+    <div class="seccion">
+      <div class="seccion-titulo"><span class="num">04</span> Preguntas e Informe</div>
+      
+      <div class="pregunta">
+        <span class="preg-num">1</span>
+        <div class="preg-texto">¿Se cumple la ley de reflexión $\theta_i = \theta_r$? ¿En qué ángulos hay mayor discrepancia?
+          <div class="respuesta-div" contenteditable="true" data-placeholder="Cite el error promedio |θ_i − θ_r| y analice las causas…"></div>
+        </div>
+      </div>
+      <div class="pregunta">
+        <span class="preg-num">2</span>
+        <div class="preg-texto">Usando la Ley de Snell, calcule $n_1$ del estireno. Compare con 1,4 y calcule el ER.
+          <div class="respuesta-div" contenteditable="true" data-placeholder="n₁ = sin(θ₂)/sin(θ₁)…"></div>
+        </div>
+      </div>
+      <div class="pregunta">
+        <span class="preg-num">3</span>
+        <div class="preg-texto">En la polarización sin rejilla: ¿la intensidad sigue la Ley de Malus $I \propto \cos^2\theta$?
+          <div class="respuesta-div" contenteditable="true" data-placeholder="Analice la gráfica I vs θ y compárela con la curva teórica…"></div>
+        </div>
+      </div>
+      <div class="pregunta">
+        <span class="preg-num">4</span>
+        <div class="preg-texto">¿Qué efecto tiene la rejilla metálica sobre la polarización? ¿Actúa como polarizador?
+          <div class="respuesta-div" contenteditable="true" data-placeholder="Compare los datos con y sin rejilla en la Tabla 2…"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="seccion" id="sec-resumen">
+      <div class="seccion-titulo"><span class="num">RS</span> Resumen de Resultados</div>
+      
+<table class="resumen-tabla"><thead><tr><th>Fenómeno</th><th>Resultado experimental</th><th>Referencia</th><th>ER (%)</th><th>Calidad</th></tr></thead>
+<tbody>
+  <tr><td class="td-label">Reflexión — error ⟨|θ_i − θ_r|⟩</td><td class="td-val"><input class="rv" id="rs-mw-ref" readonly placeholder="—"></td><td style="font-family:var(--mono);color:var(--ink-muted);">0°</td><td>—</td><td>—</td></tr>
+  <tr><td class="td-label">Índice de refracción n₁</td><td class="td-val"><input class="rv" id="rs-mw-n" readonly placeholder="—"></td><td style="font-family:var(--mono);color:var(--ink-muted);">1,40</td><td><input class="rv" id="rs-mw-er" readonly placeholder="—"></td><td><span id="rs-mw-cal" style="font-family:var(--mono);font-size:.8em;">—</span></td></tr>
+</tbody></table>
+      <div class="resumen-semaforo">
+  <div class="semaforo-item azul"><span class="si-label">n₁ experimental</span><span class="si-valor" id="rssv-mw-n">—</span></div>
+  <div class="semaforo-item rojo"><span class="si-label">ER n₁ (%)</span><span class="si-valor" id="rssv-mw-er">—</span></div>
+  <div class="semaforo-item verde"><span class="si-label">Error reflexión (°)</span><span class="si-valor" id="rssv-mw-ref">—</span></div>
+</div>
+    </div>
+
+    <div class="seccion" id="sec-conclusiones">
+      <div class="seccion-titulo"><span class="num">CO</span> Conclusiones</div>
+      <div class="conclusiones-wrap">
+      <div class="conclusion-item">
+        <span class="conclusion-num">1</span>
+        <div class="conclusion-guia">
+          <strong>Reflexión:</strong>
+          <div class="respuesta-div" contenteditable="true" data-placeholder="¿Se verificó la ley de reflexión? Cite el error promedio y posibles fuentes de desviación."></div>
+          <div class="conclusion-placeholder">↑ Desarrolle su conclusión con base en los datos experimentales</div>
+        </div>
+      </div>
+      <div class="conclusion-item">
+        <span class="conclusion-num">2</span>
+        <div class="conclusion-guia">
+          <strong>Refracción — índice del estireno:</strong>
+          <div class="respuesta-div" contenteditable="true" data-placeholder="Reporte n₁ con incertidumbre y ER. ¿Es compatible con el valor real 1,4?"></div>
+          <div class="conclusion-placeholder">↑ Desarrolle su conclusión con base en los datos experimentales</div>
+        </div>
+      </div>
+      <div class="conclusion-item">
+        <span class="conclusion-num">3</span>
+        <div class="conclusion-guia">
+          <strong>Polarización:</strong>
+          <div class="respuesta-div" contenteditable="true" data-placeholder="¿Sus datos confirman la Ley de Malus? ¿Cómo actúa la rejilla metálica?"></div>
+          <div class="conclusion-placeholder">↑ Desarrolle su conclusión con base en los datos experimentales</div>
+        </div>
+      </div>
+      <div class="conclusion-item">
+        <span class="conclusion-num">4</span>
+        <div class="conclusion-guia">
+          <strong>Conclusión general:</strong>
+          <div class="respuesta-div" contenteditable="true" data-placeholder="Evalúe el logro de los tres objetivos de la práctica y mencione las fuentes de error más importantes."></div>
+          <div class="conclusion-placeholder">↑ Desarrolle su conclusión con base en los datos experimentales</div>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="seccion">
+      <div class="seccion-titulo"><span class="num">05</span> Referencias</div>
+      <p style="font-size:1rem;color:var(--ink-muted);">[1] Sears, F. W. et al. (2004). Física Universitaria, Vol. II. Pearson.</p>
+<p style="font-size:1rem;color:var(--ink-muted);">[2] Serway, R. A. & Jewett, J. W. (2009). Física para Ciencias e Ingeniería, Vol. 2. Cengage.</p>
+      <p style="font-size:1rem;color:var(--ink-muted);">[3] Sears, F. W., Zemansky, M. W., Young, H. D. &amp; Freedman, R. A. (2013). <em>Física Universitaria Vol. 1</em> (13ª ed.). Pearson.</p>
+      <p style="font-size:1rem;color:var(--ink-muted);">[4] Giancoli, D. C. (2008). <em>Física para Ciencias e Ingeniería Vol. 1</em> (4ª ed.). Pearson.</p>
+<p style="font-size:1rem;color:var(--ink-muted);">[5] Tipler, P. A. & Mosca, G. (2008). Física para la Ciencia y la Tecnología, Vol. 2. Reverté.</p>
+    </div>
+
+  </div>
+</div>
+
+<!-- BOTÓN IMPRIMIR -->
+<style>
+  #print-hint{font-family:'JetBrains Mono',monospace;font-size:.68em;color:rgba(255,255,255,.45);letter-spacing:.04em;}
+  #print-hint kbd{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);padding:1px 6px;font-family:inherit;font-size:.9em;}
+</style>
+
+<script>
+function pn(s){return parseFloat((s||'').replace(',','.'));}
+function ft(n,d){return (isNaN(n)||n===null)?'—':n.toFixed(d);}
+function erCalidad(er){return isNaN(er)?'—':er<5?'✓ Excelente':er<10?'~ Bueno':er<20?'△ Aceptable':'✗ Revisar';}
+function erColor(er){return isNaN(er)?'#aaa':er<5?'var(--green)':er<10?'var(--gold)':er<20?'#e67e22':'var(--accent2)';}
+
+
+function regLin(xs,ys){var n=xs.length,sx=xs.reduce(function(a,b){return a+b;},0),sy=ys.reduce(function(a,b){return a+b;},0);var sxy=xs.reduce(function(s,x,i){return s+x*ys[i];},0),sx2=xs.reduce(function(s,x){return s+x*x;},0);var m=(n*sxy-sx*sy)/(n*sx2-sx*sx),b=(sy-m*sx)/n;var ym=sy/n,ss=ys.reduce(function(s,y){return s+(y-ym)*(y-ym);},0),sr=ys.reduce(function(s,y,i){return s+(y-(m*xs[i]+b))*(y-(m*xs[i]+b));},0);return{m:m,b:b,r2:ss>0?1-sr/ss:0};}
+function drawG(cvId,xL,yL,pts,reg,infoId){var cv=document.getElementById(cvId);if(!cv)return;var ctx=cv.getContext('2d'),W=cv.offsetWidth||700;cv.width=W*devicePixelRatio;cv.height=260*devicePixelRatio;cv.style.width=W+'px';cv.style.height='260px';ctx.scale(devicePixelRatio,devicePixelRatio);var w=W,h=260,P={top:18,right:18,bottom:42,left:58};var pw=w-P.left-P.right,ph=h-P.top-P.bottom;ctx.fillStyle='#fafafa';ctx.fillRect(0,0,w,h);ctx.fillStyle='#f5f5f5';ctx.fillRect(P.left,P.top,pw,ph);var xM=pts.length?Math.max.apply(null,pts.map(function(p){return p.x;}))*1.2:1;var yM=pts.length?Math.max.apply(null,pts.map(function(p){return p.y;}))*1.2:1;xM=Math.max(xM,.001);yM=Math.max(yM,.001);var cx=function(v){return P.left+(v/xM)*pw;},cy=function(v){return P.top+ph-(v/yM)*ph;};ctx.strokeStyle='#e0e0e0';ctx.lineWidth=1;for(var i=0;i<=5;i++){ctx.beginPath();ctx.moveTo(cx(i*xM/5),P.top);ctx.lineTo(cx(i*xM/5),P.top+ph);ctx.stroke();}for(var i=0;i<=4;i++){ctx.beginPath();ctx.moveTo(P.left,cy(i*yM/4));ctx.lineTo(P.left+pw,cy(i*yM/4));ctx.stroke();}ctx.strokeStyle='#333';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(P.left,P.top);ctx.lineTo(P.left,P.top+ph);ctx.stroke();ctx.beginPath();ctx.moveTo(P.left,P.top+ph);ctx.lineTo(P.left+pw,P.top+ph);ctx.stroke();ctx.fillStyle='#555';ctx.font='10px JetBrains Mono,monospace';ctx.textAlign='center';for(var i=0;i<=5;i++)ctx.fillText((i*xM/5).toFixed(3),cx(i*xM/5),P.top+ph+12);ctx.textAlign='right';for(var i=0;i<=4;i++)ctx.fillText((i*yM/4).toFixed(3),P.left-4,cy(i*yM/4)+4);ctx.fillStyle='#333';ctx.font='bold 11px Source Serif 4,serif';ctx.textAlign='center';ctx.fillText(xL,P.left+pw/2,h-4);ctx.save();ctx.translate(11,P.top+ph/2);ctx.rotate(-Math.PI/2);ctx.fillText(yL,0,0);ctx.restore();if(reg&&pts.length>=2){var r=regLin(pts.map(function(p){return p.x;}),pts.map(function(p){return p.y;}));ctx.strokeStyle='#1a5276';ctx.lineWidth=2;ctx.setLineDash([5,4]);ctx.beginPath();ctx.moveTo(cx(0),cy(r.b));ctx.lineTo(cx(xM),cy(r.m*xM+r.b));ctx.stroke();ctx.setLineDash([]);if(infoId&&document.getElementById(infoId))document.getElementById(infoId).textContent='m='+ft(r.m,4)+'  R²='+ft(r.r2*100,2)+'%';}var C=['#1a5276','#c0392b','#1e8449','#b8860b','#7d3c98','#1a7276','#7c3517','#2e4057'];pts.forEach(function(p,i){ctx.fillStyle=C[i%C.length];ctx.beginPath();ctx.arc(cx(p.x),cy(p.y),4,0,Math.PI*2);ctx.fill();});if(!pts.length){ctx.fillStyle='#bbb';ctx.font='12px Source Serif 4,serif';ctx.textAlign='center';ctx.fillText('Ingrese datos en la tabla',P.left+pw/2,P.top+ph/2);}}
+
+var MW_TH_I=[20,30,40,50,60,70,80,90];
+function buildMWRef(){
+  var tb=document.getElementById('tbody-ref');if(!tb)return;tb.innerHTML='';
+  MW_TH_I.forEach(function(th,i){
+    var tr=document.createElement('tr');
+    tr.innerHTML='<td style="font-family:var(--mono)">'+th+'°</td>'
+      +'<td><input class="celda" type="text" placeholder="0.0" oninput="calcMWRefl('+i+',this.value)"></td>'
+      +'<td><input class="celda calc" id="mwr-d-'+i+'" readonly placeholder="—"></td>'
+      +'<td><span id="mwr-ok-'+i+'" style="font-family:var(--mono);font-size:.8em;">—</span></td>';
+    tb.appendChild(tr);
+  });
+}
+var mwrVals=Array(8).fill(null);
+function calcMWRefl(i,v){
+  var th_r=pn(v);mwrVals[i]=th_r;
+  var diff=Math.abs(MW_TH_I[i]-th_r);
+  var el=document.getElementById('mwr-d-'+i),ok=document.getElementById('mwr-ok-'+i);
+  if(el)el.value=ft(diff,1)+'°';
+  if(ok){ok.textContent=diff<=2?'✓ Sí':'✗ No';ok.style.color=diff<=2?'var(--green)':'var(--accent2)';}
+  var valids=mwrVals.filter(function(v){return v!==null;});
+  var errs=valids.map(function(v,j){return Math.abs(MW_TH_I[mwrVals.indexOf(v)]-v);}).filter(function(e){return !isNaN(e);});
+  // simplificado: recalcular todos
+  var allErrs=[];
+  mwrVals.forEach(function(v,j){if(v!==null){allErrs.push(Math.abs(MW_TH_I[j]-v));}});
+  if(allErrs.length){
+    var ea=allErrs.reduce(function(a,b){return a+b;},0)/allErrs.length;
+    document.getElementById('mw-err-ref').value=ft(ea,2)+'°';
+    document.getElementById('mw-err2').value=ft(ea,2)+'°';
+    var pct=allErrs.filter(function(e){return e<=2;}).length/allErrs.length*100;
+    document.getElementById('mw-pct-ref').value=ft(pct,0)+' %';
+  }
+}
+function calcMWRef(){
+  var th1=pn(document.getElementById('mw-th1').value);
+  var th2=pn(document.getElementById('mw-th2').value);
+  if(isNaN(th1)||isNaN(th2)||th1<=0||th2<=0)return;
+  var t1r=th1*Math.PI/180,t2r=th2*Math.PI/180;
+  var n1=Math.sin(t2r)/Math.sin(t1r);
+  document.getElementById('mw-n1').textContent=ft(n1,4);
+  document.getElementById('mw-n1r').value=ft(n1,4);
+  var er=Math.abs(n1-1.4)/1.4*100;
+  document.getElementById('mw-er-n').value=ft(er,2)+' %';
+  document.getElementById('mw-er-n2').value=ft(er,2)+' %';
+  document.getElementById('mw-cal-n').value=erCalidad(er);
+  // incertidumbre
+  var dt=0.5*Math.PI/180;
+  var sn=n1*Math.sqrt(Math.pow(Math.cos(t2r)*dt/Math.sin(t2r),2)+Math.pow(Math.cos(t1r)*dt/Math.sin(t1r),2));
+  document.getElementById('mw-npm').value=ft(n1,4)+' ± '+ft(sn,4);
+  document.getElementById('mw-ir-n').value=ft(sn/n1*100,2)+' %';
+  document.getElementById('mw-resumen').innerHTML='<b>Resumen:</b> n₁ = <span>'+ft(n1,4)+' ± '+ft(sn,4)+'</span> &ensp;|&ensp; ER = <span>'+ft(er,2)+' %</span> — '+erCalidad(er);
+}
+var polData=[];
+function buildPol(){
+  var tb=document.getElementById('tbody-pol');if(!tb)return;tb.innerHTML='';
+  // 18 filas de 3 ángulos cada una (10° a 180°)
+  for(var row=0;row<6;row++){
+    var tr=document.createElement('tr');var h='';
+    for(var col=0;col<3;col++){
+      var idx=row+col*6;var ang=(idx+1)*10;
+      h+='<td style="font-family:var(--mono)">' +ang+'°</td>'
+        +'<td><input class="celda" type="text" placeholder="0.0" oninput="onPol('+idx+',0,this.value)" style="width:55px;"></td>'
+        +'<td><input class="celda" type="text" placeholder="0.0" oninput="onPol('+idx+',1,this.value)" style="width:55px;"></td>';
+    }
+    tr.innerHTML=h;tb.appendChild(tr);
+    polData=Array.from({length:18},function(_,i){return{ang:(i+1)*10,sr:null,cr:null};});
+  }
+}
+function onPol(i,c,v){if(polData[i])polData[i][c===0?'sr':'cr']=pn(v);dibujarPol();}
+function dibujarPol(){
+  var pts=polData.filter(function(r){return r.sr!==null;}).map(function(r){return{x:r.ang,y:r.sr};});
+  var cv=document.getElementById('cv-pol');if(!cv)return;
+  var ctx=cv.getContext('2d'),W=cv.offsetWidth||700;
+  cv.width=W*devicePixelRatio;cv.height=260*devicePixelRatio;cv.style.width=W+'px';cv.style.height='260px';
+  ctx.scale(devicePixelRatio,devicePixelRatio);
+  var w=W,h=260,P={top:18,right:18,bottom:42,left:58};var pw=w-P.left-P.right,ph=h-P.top-P.bottom;
+  ctx.fillStyle='#fafafa';ctx.fillRect(0,0,w,h);ctx.fillStyle='#f5f5f5';ctx.fillRect(P.left,P.top,pw,ph);
+  var yM=pts.length?Math.max.apply(null,pts.map(function(p){return p.y;}))*1.2:1;yM=Math.max(yM,.01);
+  var cx=function(v){return P.left+(v/180)*pw;},cy=function(v){return P.top+ph-(v/yM)*ph;};
+  ctx.strokeStyle='#e0e0e0';ctx.lineWidth=1;
+  [0,30,60,90,120,150,180].forEach(function(x){ctx.beginPath();ctx.moveTo(cx(x),P.top);ctx.lineTo(cx(x),P.top+ph);ctx.stroke();});
+  ctx.strokeStyle='#333';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(P.left,P.top);ctx.lineTo(P.left,P.top+ph);ctx.stroke();ctx.beginPath();ctx.moveTo(P.left,P.top+ph);ctx.lineTo(P.left+pw,P.top+ph);ctx.stroke();
+  ctx.fillStyle='#555';ctx.font='10px JetBrains Mono,monospace';ctx.textAlign='center';
+  [0,30,60,90,120,150,180].forEach(function(x){ctx.fillText(x+'°',cx(x),P.top+ph+12);});
+  ctx.fillStyle='#333';ctx.font='bold 11px Source Serif 4,serif';ctx.textAlign='center';
+  ctx.fillText('Ángulo θ (°)',P.left+pw/2,h-4);ctx.save();ctx.translate(11,P.top+ph/2);ctx.rotate(-Math.PI/2);ctx.fillText('Intensidad',0,0);ctx.restore();
+  // Ley de Malus teórica
+  if(pts.length>0){
+    var Imax=Math.max.apply(null,pts.map(function(p){return p.y;}));
+    ctx.strokeStyle='rgba(26,82,118,0.4)';ctx.lineWidth=1.5;ctx.setLineDash([4,3]);
+    ctx.beginPath();
+    for(var a=0;a<=180;a+=2){var Im=Imax*Math.pow(Math.cos(a*Math.PI/180),2);ctx.lineTo(cx(a),cy(Im));}
+    ctx.stroke();ctx.setLineDash([]);
+  }
+  pts.forEach(function(p){ctx.fillStyle='#c0392b';ctx.beginPath();ctx.arc(cx(p.x),cy(p.y),4,0,Math.PI*2);ctx.fill();});
+  var pcr=polData.filter(function(r){return r.cr!==null;}).map(function(r){return{x:r.ang,y:r.cr};});
+  pcr.forEach(function(p){ctx.fillStyle='#1e8449';ctx.beginPath();ctx.arc(cx(p.x),cy(p.y),3,0,Math.PI*2);ctx.fill();});
+  if(!pts.length){ctx.fillStyle='#bbb';ctx.font='12px Source Serif 4,serif';ctx.textAlign='center';ctx.fillText('Ingrese datos de polarización',P.left+pw/2,P.top+ph/2);}
+}
+setTimeout(function(){buildMWRef();buildPol();dibujarPol();},200);
+
+
+function updateResMW(){
+  var map=[['mw-n1r','rs-mw-n'],['mw-er-n','rs-mw-er'],['mw-err-ref','rs-mw-ref']];
+  map.forEach(function(p){var s=document.getElementById(p[0]),d=document.getElementById(p[1]);if(s&&d)d.value=s.value||'—';});
+  var sn=document.getElementById('rssv-mw-n'),n=document.getElementById('mw-n1r');if(sn&&n)sn.textContent=n.value||'—';
+  var se=document.getElementById('rssv-mw-er'),er=document.getElementById('mw-er-n');if(se&&er)se.textContent=er.value||'—';
+  var sr=document.getElementById('rssv-mw-ref'),rr=document.getElementById('mw-err-ref');if(sr&&rr)sr.textContent=rr.value||'—';
+  var cal=document.getElementById('rs-mw-cal'),erEl=document.getElementById('mw-er-n');
+  if(cal&&erEl){var erv=parseFloat((erEl.value||'').replace('%',''));cal.textContent=erCalidad(erv);cal.style.color=erColor(erv);}
+}
+document.addEventListener('input',updateResMW);setTimeout(updateResMW,600);
+
+// Print-div fix
+(function(){
+  })();
+
+window.addEventListener('load',function(){
+  var now=new Date(),sem=now.getMonth()<6?'1':'2';
+  document.getElementById('codigoPractica').textContent='PRÁCTICA FIS-MW-06 · '+now.getFullYear()+'-'+sem;
+  document.querySelectorAll('input[type="date"]').forEach(function(i){i.value=new Date().toISOString().split('T')[0];});
+});
+</script>
+<div class="btn-imprimir-wrap">
+  <button class="btn-imprimir" onclick="window.print()">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="6 9 6 2 18 2 18 9"/>
+      <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+      <rect x="6" y="14" width="12" height="8"/>
+    </svg>
+    Imprimir / Guardar como PDF
+  </button>
+</div>
+</body>
+</html>

@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Laboratorio de Ondas Estacionarias</title>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #000000;
+            --panel-bg: rgba(245, 245, 245, 0.95);
+        }
+        body.dark-mode {
+            --bg-color: #121212;
+            --text-color: #e0e0e0;
+            --panel-bg: rgba(30, 30, 30, 0.95);
+        }
+        body { margin: 0; overflow: hidden; font-family: 'Segoe UI', sans-serif; background-color: var(--bg-color); color: var(--text-color); transition: 0.3s; }
+        
+        #ui-layer {
+            position: absolute; top: 10px; left: 10px;
+            background: var(--panel-bg); padding: 20px;
+            border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+            width: 320px; z-index: 100; max-height: 95vh; overflow-y: auto;
+        }
+
+        #planet-tag {
+            background: #2c3e50; color: #ecf0f1; padding: 10px; border-radius: 8px; margin-bottom: 15px; text-align: center; border-bottom: 3px solid #3498db;
+        }
+
+        .control-group { margin-bottom: 15px; border-bottom: 1px solid #ccc; padding-bottom: 10px; }
+        input[type=range] { width: 100%; margin: 8px 0; cursor: pointer; }
+        
+        button { 
+            width: 100%; padding: 10px; margin-top: 5px; cursor: pointer; border-radius: 5px; border: none; color: white; font-weight: bold; transition: 0.2s;
+        }
+        #measure-btn { background: #27ae60; }
+        #reset-btn { background: #3498db; }
+        #csv-btn { background: #f39c12; }
+        
+        table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 15px; }
+        th, td { border: 1px solid #888; padding: 6px; text-align: center; }
+        th { background: rgba(0,0,0,0.1); }
+
+        /* Tabs */
+        .tabs { display: grid; grid-template-columns: 1fr 1fr; border-radius: 6px; overflow: hidden; border: 1px solid rgba(128,128,128,0.25); margin-bottom: 14px; }
+        .tab { padding: 8px; font-size: 0.78em; font-weight: bold; border: none; cursor: pointer; background: transparent; color: var(--text-color); opacity: 0.45; transition: 0.2s; }
+        .tab.on { background: #2c3e50; color: #fff; opacity: 1; }
+
+        /* Reto panel */
+        #reto-panel { background: linear-gradient(135deg,#1a0808,#2a0c0c); border: 1px solid rgba(192,57,43,0.4); border-radius: 8px; padding: 12px; color: #eee; }
+        .reto-title { font-size: 0.72em; text-transform: uppercase; letter-spacing: 0.12em; color: #e74c3c; font-weight: bold; margin-bottom: 8px; }
+        .reto-desc { background: rgba(255,255,255,0.05); border-radius: 6px; padding: 8px 10px; margin-bottom: 10px; font-size: 0.8em; line-height: 1.55; }
+        .reto-desc strong { color: #f39c12; }
+        .reto-table { width: 100%; border-collapse: collapse; font-size: 0.68em; color: #eee; margin: 6px 0 10px; }
+        .reto-table th { padding: 4px; border-bottom: 1px solid rgba(255,255,255,0.15); opacity: 0.55; font-weight: normal; }
+        .reto-table td { padding: 4px; border-bottom: 1px solid rgba(255,255,255,0.07); text-align: center; }
+        .reto-input-row { display: flex; gap: 6px; align-items: center; margin: 8px 0; }
+        .reto-input-row input[type=number] { flex: 1; padding: 7px; border-radius: 6px; border: 2px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.07); color: #fff; font-size: 1.05em; text-align: center; font-weight: bold; outline: none; }
+        .reto-input-row input:focus { border-color: #3498db; }
+        .reto-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+        #reto-feedback { text-align: center; font-size: 0.82em; font-weight: bold; padding: 6px; border-radius: 5px; margin-top: 6px; display: none; }
+        #reto-feedback.ok  { background: rgba(39,174,96,0.2);  color: #2ecc71; display: block; }
+        #reto-feedback.bad { background: rgba(192,57,43,0.2); color: #e74c3c; display: block; }
+        .reto-score { display: flex; justify-content: space-between; font-size: 0.7em; opacity: 0.5; margin-top: 8px; padding-top: 7px; border-top: 1px solid rgba(255,255,255,0.1); }
+        .reto-score span strong { color: #f39c12; font-size: 1.15em; }
+        button.rbtn { width: 100%; padding: 8px; border: none; border-radius: 6px; font-size: 0.78em; font-weight: bold; cursor: pointer; color: #fff; transition: 0.2s; }
+        button.rbtn:hover { filter: brightness(1.12); }
+        button.rbtn.teal   { background: #0e6655; }
+        button.rbtn.blue   { background: #2980b9; }
+        button.rbtn.green  { background: #27ae60; }
+        button.rbtn.red    { background: #c0392b; }
+        button.rbtn.purple { background: #8e44ad; }
+        button.rbtn.gray   { background: #7f8c8d; }
+    </style>
+</head>
+<body>
+
+<button id="mode-toggle" style="position: absolute; top: 20px; right: 20px; background: none; border: 2px solid var(--text-color); border-radius: 50%; width: 45px; height: 45px; cursor: pointer; color: var(--text-color); font-size: 20px; display: flex; align-items: center; justify-content: center; z-index: 1000;">🌙</button>
+
+<div id="ui-layer">
+    <div id="planet-tag">
+        <div style="font-size: 0.7em; opacity: 0.8;">ONDAS EN CUERDA TENSADA</div>
+        <h2 id="planet-name" style="margin: 5px 0;">Cargando...</h2>
+        <div style="font-size: 0.85em; color: #3498db;">
+            g = <span id="g-text">0.00</span> m/s² &nbsp;|&nbsp; µ = 0.002 kg/m &nbsp;|&nbsp; L = 2.5 m
+        </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs">
+        <button class="tab on" id="tab-ab" onclick="setTab('abierto')">🔬 Abierto</button>
+        <button class="tab"    id="tab-re" onclick="setTab('reto')">🎯 Reto</button>
+    </div>
+
+    <!-- ══ PANEL ABIERTO ══ -->
+    <div id="pane-ab">
+        <div class="control-group">
+            <label>Frecuencia (f): <span id="fVal">10</span> Hz</label>
+            <input type="range" id="fSlider" min="1" max="50" step="0.5" value="10">
+            
+            <label>Masa Tensor (m): <span id="mVal">0.500</span> kg</label>
+            <input type="range" id="mSlider" min="0.1" max="2.0" step="0.05" value="0.50">
+        </div>
+
+        <div class="control-group">
+            <button id="measure-btn" onclick="takeMeasure()">📏 Registrar Armónico</button>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 5px;">
+                <button id="reset-btn" onclick="location.reload()">🌍 Nuevo</button>
+                <button id="csv-btn" onclick="exportCSV()">📊 Exportar CSV</button>
+            </div>
+            <button id="capture-btn" style="background:#8e44ad;" onclick="captureImg()">📸 Capturar imagen</button>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>f_med (Hz)</th>
+                    <th>m_med (kg)</th>
+                    <th>V_fase (m/s)</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+    </div>
+
+    <!-- ══ PANEL RETO ══ -->
+    <div id="pane-re" style="display:none;">
+        <div id="reto-panel">
+            <div class="reto-title">🎯 Modo Reto — Determina la masa oculta</div>
+            <div class="reto-desc">
+                La <strong>masa tensor está oculta</strong>. Ajusta la frecuencia para encontrar
+                estados de resonancia. En cada resonancia presiona 📌 para registrar.
+                El simulador calcula <strong>m = µ·v²/g</strong> por cada armónico.
+                Promedia los resultados e ingresa tu estimación final.
+            </div>
+
+            <!-- Reto slider (frequency only) -->
+            <div class="control-group" style="border:none;padding:0;margin-bottom:10px;">
+                <label>Frecuencia (f): <span id="fVal-r">10</span> Hz</label>
+                <input type="range" id="fSlider-r" min="1" max="50" step="0.5" value="10">
+                <div style="font-size:0.75em;opacity:0.4;margin-top:2px;">Masa tensor: <strong style="color:rgba(192,57,43,0.8);">??? kg</strong></div>
+            </div>
+
+            <!-- Resonances log -->
+            <table class="reto-table">
+                <thead>
+                    <tr><th>n</th><th>f (Hz)</th><th>v (m/s)</th><th>m_calc (kg)</th></tr>
+                </thead>
+                <tbody id="reto-body"></tbody>
+            </table>
+
+            <button class="rbtn teal" onclick="retoRecord()" style="margin-bottom:8px;">📌 Registrar resonancia</button>
+
+            <div style="font-size:0.75em;opacity:0.6;margin-bottom:5px;">Tu estimación final de m:</div>
+            <div class="reto-input-row">
+                <span style="color:rgba(255,255,255,0.4);font-size:0.9em;">m =</span>
+                <input type="number" id="reto-guess" min="0.01" max="3" step="0.001" placeholder="0.000">
+                <span style="color:rgba(255,255,255,0.4);font-size:0.9em;">kg</span>
+            </div>
+
+            <div class="reto-btns">
+                <button class="rbtn green" id="reto-check-btn" onclick="retoCheck()">✔ Verificar</button>
+                <button class="rbtn blue"  onclick="retoNew()">🔀 Nueva masa</button>
+            </div>
+            <div style="font-size:0.72em;opacity:0.55;text-align:center;margin-top:6px;">
+                Intentos restantes: <strong id="reto-intentos" style="color:#f39c12;">3</strong>
+            </div>
+
+            <div id="reto-feedback"></div>
+
+            <div style="margin-top:8px;">
+                <button class="rbtn purple" id="capture-reto-btn" style="display:none;" onclick="captureImg()">📸 Capturar imagen</button>
+            </div>
+
+            <div class="reto-score">
+                <span>Intentos <strong id="re-tot">0</strong></span>
+                <span>Mejor ER <strong id="re-best">—</strong></span>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "orbit": "https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js"
+        }
+    }
+</script>
+
+<script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'orbit';
+
+    const planetas = [
+        { n: "Mercurio", g: 3.7 }, { n: "Venus", g: 8.87 }, { n: "Tierra", g: 9.81 },
+        { n: "Marte", g: 3.71 }, { n: "Júpiter", g: 24.79 }, { n: "Saturno", g: 10.44 },
+        { n: "Urano", g: 8.69 }, { n: "Neptuno", g: 11.15 }, { n: "Plutón", g: 0.62 }
+    ];
+
+    const miPlaneta = planetas[Math.floor(Math.random() * planetas.length)];
+    let scene, camera, renderer, controls, rope, block, oscillator;
+    let masa = 0.5, frecuencia = 10, g = miPlaneta.g, dataLog = [];
+    const mu = 0.002;
+    const L = 2.5;
+
+    // Reto state
+    let retoMasaOculta = 0, reTot = 0, reBest = Infinity;
+    let retoG = g, retoPlanetName = miPlaneta.n;
+    let retoIntentos = 0; // intentos en el reto actual
+
+    init();
+    animate();
+
+    function init() {
+        document.getElementById('planet-name').innerText = miPlaneta.n;
+        document.getElementById('g-text').innerText = miPlaneta.g;
+
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xffffff);
+
+        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 1, 6);
+
+        renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        controls = new OrbitControls(camera, renderer.domElement);
+        controls.target.set(0.4, 0.5, 0);
+
+        const chromeMat = new THREE.MeshPhongMaterial({ color: 0xcccccc, specular: 0xffffff, shininess: 150 });
+        scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+        const light = new THREE.DirectionalLight(0xffffff, 1.2);
+        light.position.set(5, 10, 5);
+        scene.add(light);
+
+        // BASE Y ESTRUCTURA ORIGINAL
+        const baseWidth = 3, baseDepth = 2, radius = 0.1;
+        const shape = new THREE.Shape();
+        shape.moveTo(-baseWidth/2 + radius, -baseDepth/2);
+        shape.lineTo(baseWidth/2 - radius, -baseDepth/2);
+        shape.quadraticCurveTo(baseWidth/2, -baseDepth/2, baseWidth/2, -baseDepth/2 + radius);
+        shape.lineTo(baseWidth/2, baseDepth/2 - radius);
+        shape.quadraticCurveTo(baseWidth/2, baseDepth/2, baseWidth/2 - radius, baseDepth/2);
+        shape.lineTo(-baseWidth/2 + radius, baseDepth/2);
+        shape.quadraticCurveTo(-baseWidth/2, baseDepth/2, -baseWidth/2, baseDepth/2 - radius);
+        shape.lineTo(-baseWidth/2, -baseDepth/2 + radius);
+        shape.quadraticCurveTo(-baseWidth/2, -baseDepth/2, -baseWidth/2 + radius, -baseDepth/2);
+
+        const base = new THREE.Mesh(new THREE.ExtrudeGeometry(shape, { depth: 0.2, bevelEnabled: true, bevelThickness: 0.05 }), chromeMat);
+        base.rotation.x = -Math.PI / 2;
+        base.position.y = -1;
+        scene.add(base);
+
+        const vRod = new THREE.Mesh(new THREE.CapsuleGeometry(0.06, 3.4, 8, 12), chromeMat);
+        vRod.position.set(-1, 0.7, 0); scene.add(vRod);
+
+        const hRod = new THREE.Mesh(new THREE.CapsuleGeometry(0.05, 1.4, 8, 12), chromeMat);
+        hRod.rotation.z = Math.PI / 2; hRod.position.set(-0.3, 2.45, 0); scene.add(hRod);
+
+        // OSCILADOR (Motor)
+        oscillator = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.2, 0.3), new THREE.MeshPhongMaterial({ color: 0x34495e }));
+        oscillator.position.set(0.4, 2.45, 0);
+        scene.add(oscillator);
+
+        // CUERDA
+        const points = [];
+        for(let i=0; i<=100; i++) points.push(new THREE.Vector3(0.4, 2.45 - (i * L/100), 0));
+        rope = new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), new THREE.LineBasicMaterial({ color: 0x222222 }));
+        scene.add(rope);
+
+        // MASA COLGANTE
+        block = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.4, 0.4), new THREE.MeshPhongMaterial({ color: 0xc0392b }));
+        scene.add(block);
+
+        setupUI();
+        // Inicializar masa oculta del reto
+        retoMasaOculta = parseFloat((Math.random() * 1.5 + 0.2).toFixed(3));
+    }
+
+    function setupUI() {
+        // Abierto sliders (original)
+        document.getElementById('fSlider').addEventListener('input', (e) => {
+            frecuencia = parseFloat(e.target.value);
+            document.getElementById('fVal').innerText = frecuencia;
+        });
+        document.getElementById('mSlider').addEventListener('input', (e) => {
+            masa = parseFloat(e.target.value);
+            document.getElementById('mVal').innerText = masa.toFixed(3);
+            const s = 0.6 + (masa * 0.3);
+            block.scale.set(s, s, s);
+        });
+        // Reto frequency slider
+        document.getElementById('fSlider-r').addEventListener('input', (e) => {
+            frecuencia = parseFloat(e.target.value);
+            document.getElementById('fVal-r').innerText = frecuencia;
+        });
+        // Dark mode toggle (original)
+        document.getElementById('mode-toggle').addEventListener('click', () => {
+            const isDark = document.body.classList.toggle('dark-mode');
+            scene.background = new THREE.Color(isDark ? 0x121212 : 0xffffff);
+            rope.material.color.set(isDark ? 0xffffff : 0x222222);
+        });
+    }
+
+    // ── TAB SWITCH ──
+    window.setTab = function(tab) {
+        const isAb = tab === 'abierto';
+        document.getElementById('tab-ab').classList.toggle('on', isAb);
+        document.getElementById('tab-re').classList.toggle('on', !isAb);
+        document.getElementById('pane-ab').style.display = isAb ? 'block' : 'none';
+        document.getElementById('pane-re').style.display = isAb ? 'none'  : 'block';
+
+        if (isAb) {
+            // Restore original planet and abierto values
+            g = miPlaneta.g;
+            document.getElementById('g-text').innerText = g;
+            masa       = parseFloat(document.getElementById('mSlider').value);
+            frecuencia = parseFloat(document.getElementById('fSlider').value);
+            block.scale.setScalar(0.6 + masa * 0.3);
+        } else {
+            // Pick a NEW random planet for the reto
+            const retoPlaneta = planetas[Math.floor(Math.random() * planetas.length)];
+            retoG = retoPlaneta.g;
+            retoPlanetName = retoPlaneta.n;
+            g = retoG;
+            document.getElementById('g-text').innerText = g;
+            // New hidden mass using the new planet
+            retoMasaOculta = parseFloat((Math.random() * 1.5 + 0.2).toFixed(3));
+            document.getElementById('reto-body').innerHTML = '';
+            document.getElementById('reto-feedback').className = '';
+            document.getElementById('reto-feedback').innerText = '';
+            document.getElementById('reto-guess').value = '';
+            document.getElementById('capture-reto-btn').style.display = 'none';
+            retoIntentos = 0;
+            actualizarIntentos();
+            masa = retoMasaOculta;
+            frecuencia = parseFloat(document.getElementById('fSlider-r').value);
+            block.scale.setScalar(0.6 + masa * 0.3);
+        }
+    };
+
+    // ── ORIGINAL FUNCTIONS (unchanged) ──
+    window.takeMeasure = function() {
+        const errM = (Math.random() * 0.0008 + 0.0001) * (Math.random() < 0.5 ? -1 : 1);
+        const errF = (Math.random() * 0.09 + 0.01) * (Math.random() < 0.5 ? -1 : 1);
+        const mMed  = (masa + errM).toFixed(4);
+        const fMed  = (frecuencia + errF).toFixed(2);
+        const vFase = Math.sqrt((masa * g) / mu).toFixed(2);
+        const record = { n: dataLog.length + 1, f: fMed, m: mMed, v: vFase };
+        dataLog.push(record);
+        const row = document.getElementById('tableBody').insertRow(-1);
+        row.innerHTML = `<td>${record.n}</td><td>${record.f}Hz</td><td>${record.m}kg</td><td>${record.v}m/s</td>`;
+    };
+
+    window.exportCSV = function() {
+        let csv = "Ensayo,Frecuencia_Medida(Hz),Masa_Medida(kg),Velocidad_Fase(m/s),Gravedad\n";
+        dataLog.forEach(r => csv += `${r.n},${r.f},${r.m},${r.v},${g}\n`);
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([csv], {type: 'text/csv'}));
+        a.download = `ondas_estacionarias_${miPlaneta.n}.csv`;
+        a.click();
+    };
+
+    // ── CAPTURE SCREENSHOT ──
+    window.captureImg = function() {
+        renderer.render(scene, camera);
+        const src = renderer.domElement;
+        const oc  = document.createElement('canvas');
+        oc.width  = src.width; oc.height = src.height;
+        const ctx = oc.getContext('2d');
+        ctx.drawImage(src, 0, 0);
+
+        const sc  = src.width / window.innerWidth;
+        const T   = masa * g;
+        const v   = Math.sqrt(T / mu);
+        const lm  = v / frecuencia;
+        const n   = (2 * L) / lm;
+        const nombrePlaneta = document.getElementById('pane-re').style.display !== 'none' ? retoPlanetName : miPlaneta.n;
+
+        const bw = Math.round(400 * sc), bh = Math.round(160 * sc);
+        ctx.fillStyle = 'rgba(8,8,24,0.86)';
+        ctx.beginPath(); ctx.roundRect(18, 18, bw, bh, Math.round(9 * sc)); ctx.fill();
+        ctx.strokeStyle = 'rgba(52,152,219,0.5)'; ctx.lineWidth = Math.round(1.5 * sc);
+        ctx.beginPath(); ctx.roundRect(18, 18, bw, bh, Math.round(9 * sc)); ctx.stroke();
+
+        const fs = Math.round(13 * sc);
+        ctx.fillStyle = '#3498db';
+        ctx.font = `bold ${fs}px Segoe UI, sans-serif`;
+        ctx.fillText('ONDAS ESTACIONARIAS · ' + nombrePlaneta.toUpperCase(), 34, Math.round(44 * sc));
+
+        ctx.fillStyle = '#ecf0f1';
+        ctx.font = `${Math.round(11 * sc)}px Segoe UI, sans-serif`;
+        const ly = Math.round(68 * sc), ls = Math.round(24 * sc);
+        ctx.fillText(`Planeta: ${nombrePlaneta}  |  g = ${g} m/s²  |  µ = ${mu} kg/m  |  L = ${L} m`, 34, ly);
+        ctx.fillText(`f = ${frecuencia.toFixed(1)} Hz   m = ${masa.toFixed(3)} kg   T = ${T.toFixed(3)} N`, 34, ly + ls);
+        ctx.fillText(`v = ${v.toFixed(3)} m/s   λ = ${lm.toFixed(4)} m   n ≈ ${n.toFixed(2)}`, 34, ly + ls * 2);
+
+        ctx.fillStyle = 'rgba(255,255,255,0.28)';
+        ctx.font = `${Math.round(9 * sc)}px monospace`;
+        ctx.fillText(new Date().toLocaleString('es-CO'), 34, Math.round((18 + bh - 10) * sc));
+
+        const a = document.createElement('a');
+        a.download = `onda_${nombrePlaneta}_${Date.now()}.png`;
+        a.href = oc.toDataURL('image/png'); a.click();
+    };
+
+    // ── RETO FUNCTIONS ──
+    window.retoNew = function() {
+        // New planet
+        const retoPlaneta = planetas[Math.floor(Math.random() * planetas.length)];
+        retoG = retoPlaneta.g;
+        retoPlanetName = retoPlaneta.n;
+        g = retoG;
+        document.getElementById('g-text').innerText = g;
+        // New hidden mass
+        retoMasaOculta = parseFloat((Math.random() * 1.5 + 0.2).toFixed(3));
+        masa = retoMasaOculta;
+        block.scale.setScalar(0.6 + masa * 0.3);
+        // Reset UI
+        document.getElementById('reto-body').innerHTML = '';
+        document.getElementById('reto-feedback').className = '';
+        document.getElementById('reto-feedback').innerText = '';
+        document.getElementById('reto-guess').value = '';
+        document.getElementById('capture-reto-btn').style.display = 'none';
+        retoIntentos = 0;
+        actualizarIntentos();
+    };
+
+    window.retoRecord = function() {
+        const vTrue  = Math.sqrt(retoMasaOculta * g / mu);
+        const lamTrue = vTrue / frecuencia;
+        const nVal   = (2 * L) / lamTrue;
+        const nr     = Math.round(nVal);
+        if (Math.abs(nVal - nr) > 0.22) {
+            alert('No es una resonancia clara. Ajusta más la frecuencia hasta que la onda forme nodos bien definidos.');
+            return;
+        }
+        const vMeas = frecuencia * (2 * L / nr);
+        const mCalc = mu * vMeas * vMeas / g;
+        const row = document.getElementById('reto-body').insertRow(-1);
+        row.innerHTML = `<td>${nr}</td><td>${frecuencia.toFixed(2)}</td><td>${vMeas.toFixed(3)}</td><td>${mCalc.toFixed(4)}</td>`;
+    };
+
+    function actualizarIntentos() {
+        const restantes = 3 - retoIntentos;
+        document.getElementById('reto-intentos').innerText = restantes;
+        const btn = document.getElementById('reto-check-btn');
+        btn.disabled = restantes <= 0;
+        btn.style.opacity = restantes <= 0 ? '0.4' : '1';
+        btn.style.cursor  = restantes <= 0 ? 'not-allowed' : 'pointer';
+    }
+
+    window.retoCheck = function() {
+        if (retoIntentos >= 3) return;
+        const guess = parseFloat(document.getElementById('reto-guess').value);
+        const fb    = document.getElementById('reto-feedback');
+        if (isNaN(guess) || guess <= 0) { fb.className = 'bad'; fb.innerText = '⚠ Ingresa una masa válida'; return; }
+        reTot++;
+        retoIntentos++;
+        document.getElementById('re-tot').innerText = reTot;
+        const er = Math.abs((guess - retoMasaOculta) / retoMasaOculta) * 100;
+        if (er < reBest) reBest = er;
+        document.getElementById('re-best').innerText = reBest.toFixed(2) + '%';
+        if (er < 5) {
+            fb.className = 'ok';
+            fb.innerText = `✅ ¡Aprobado! m_real = ${retoMasaOculta} kg · ER = ${er.toFixed(2)}%`;
+            document.getElementById('capture-reto-btn').style.display = 'block';
+        } else if (er < 15) {
+            fb.className = 'ok';
+            fb.innerText = `✓ Aceptable. m_real = ${retoMasaOculta} kg · ER = ${er.toFixed(2)}%`;
+            document.getElementById('capture-reto-btn').style.display = 'block';
+        } else {
+            if (retoIntentos >= 3) {
+                fb.className = 'bad';
+                fb.innerText = `✗ Sin intentos. m_real = ${retoMasaOculta} kg · ER = ${er.toFixed(2)}%`;
+            } else {
+                fb.className = 'bad';
+                fb.innerText = `✗ ER = ${er.toFixed(2)}% — Intenta de nuevo. Registra más armónicos.`;
+            }
+            document.getElementById('capture-reto-btn').style.display = 'none';
+        }
+        actualizarIntentos();
+    };
+
+    // ── ANIMATE (original, unchanged) ──
+    function animate() {
+        requestAnimationFrame(animate);
+        const time = performance.now() * 0.001;
+        
+        const Tensión = masa * g;
+        const v = Math.sqrt(Tensión / mu);
+        const lambda = v / frecuencia;
+        const k_onda = (2 * Math.PI) / lambda;
+
+        const points = [];
+        for (let i = 0; i <= 100; i++) {
+            const y = i * (L / 100);
+            const x = 0.1 * Math.sin(k_onda * y) * Math.cos(2 * Math.PI * frecuencia * time);
+            points.push(new THREE.Vector3(0.4 + x, 2.45 - y, 0));
+        }
+        rope.geometry.setFromPoints(points);
+
+        block.position.set(0.4, 2.45 - L - (block.scale.y * 0.2), 0);
+        oscillator.position.x = 0.4 + 0.02 * Math.cos(2 * Math.PI * frecuencia * time);
+
+        controls.update();
+        renderer.render(scene, camera);
+    }
+</script>
+</body>
+</html>

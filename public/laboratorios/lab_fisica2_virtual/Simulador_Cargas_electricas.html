@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laboratorio de Física Eléctrica</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* =====================================================
+   VARIABLES & RESET — MODO DIURNO (por defecto)
+===================================================== */
+:root {
+  --bg-deep:    #f0f3f8;
+  --bg-panel:   #e4e9f2;
+  --bg-card:    #ffffff;
+  --border:     #c5cfe0;
+  --border-glow:#5b8fc7;
+  --accent-c:   #1565c0;
+  --accent-g:   #2e7d32;
+  --accent-r:   #c62828;
+  --accent-y:   #e65100;
+  --text-main:  #1a2535;
+  --text-dim:   #526070;
+  --text-data:  #1565c0;
+  --glow-c: 0 1px 4px rgba(21,101,192,.25);
+  --glow-g: 0 1px 4px rgba(46,125,50,.25);
+  --glow-r: 0 1px 4px rgba(198,40,40,.25);
+  --grid-line: rgba(91,143,199,.07);
+  --transition: background-color .35s, color .35s, border-color .35s, box-shadow .35s;
+}
+
+/* MODO NOCTURNO */
+body.night {
+  --bg-deep:    #0a0e18;
+  --bg-panel:   #111827;
+  --bg-card:    #182035;
+  --border:     #263550;
+  --border-glow:#3a6fa0;
+  --accent-c:   #4db8d8;
+  --accent-g:   #3dba72;
+  --accent-r:   #e05c73;
+  --accent-y:   #d4a82a;
+  --text-main:  #b8cce0;
+  --text-dim:   #5c7a9b;
+  --text-data:  #4db8d8;
+  --glow-c: 0 0 8px rgba(77,184,216,.4);
+  --glow-g: 0 0 8px rgba(61,186,114,.4);
+  --glow-r: 0 0 8px rgba(224,92,115,.4);
+  --grid-line: rgba(77,184,216,.04);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg-deep);
+  color: var(--text-main);
+  min-height: 100vh;
+  overflow-x: hidden;
+  transition: var(--transition);
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* =====================================================
+   HEADER
+===================================================== */
+header {
+  text-align: center;
+  padding: 28px 20px 16px;
+  position: relative;
+}
+header::after {
+  content: '';
+  display: block;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border-glow), transparent);
+  margin-top: 18px;
+  opacity: .5;
+}
+.lab-title {
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(1.1rem, 3.5vw, 1.9rem);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--text-main);
+}
+.lab-subtitle {
+  font-family: 'Inter', sans-serif;
+  font-size: .75rem;
+  color: var(--text-dim);
+  letter-spacing: .1em;
+  margin-top: 5px;
+  text-transform: uppercase;
+}
+.status-dot {
+  display: inline-block;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--accent-g);
+  animation: pulse 2.5s ease-in-out infinite;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+@keyframes pulse {
+  0%,100%{ opacity:1; transform:scale(1); }
+  50%{ opacity:.5; transform:scale(1.3); }
+}
+
+/* Botón modo */
+.mode-toggle {
+  position: absolute;
+  top: 24px; right: 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-family: 'Inter', sans-serif;
+  font-size: .73rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: var(--transition);
+  letter-spacing: .03em;
+}
+.mode-toggle:hover {
+  border-color: var(--border-glow);
+  color: var(--accent-c);
+}
+.mode-toggle .mode-icon { font-size: .9rem; }
+
+/* =====================================================
+   TABS
+===================================================== */
+.tabs {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 18px 16px 0;
+}
+.tab-btn {
+  font-family: 'Inter', sans-serif;
+  font-size: .75rem;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  padding: 9px 18px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-dim);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all .2s;
+}
+.tab-btn:hover { color: var(--accent-c); border-color: var(--border-glow); background: var(--bg-card); }
+.tab-btn.active {
+  color: var(--accent-c);
+  border-color: var(--accent-c);
+  background: var(--bg-card);
+  box-shadow: var(--glow-c);
+}
+
+/* =====================================================
+   MAIN CONTENT
+===================================================== */
+.main {
+  max-width: 920px;
+  margin: 20px auto 40px;
+  padding: 0 16px;
+}
+.tab-panel { display: none; }
+.tab-panel.active { display: block; animation: fadeIn .35s ease; }
+@keyframes fadeIn { from{ opacity:0; transform:translateY(8px); } to{ opacity:1; transform:translateY(0); } }
+
+/* =====================================================
+   CARD COMPONENT
+===================================================== */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 16px;
+  position: relative;
+  transition: var(--transition);
+}
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent-c), transparent);
+  opacity: .6;
+  border-radius: 10px 10px 0 0;
+}
+.card-title {
+  font-family: 'Inter', sans-serif;
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  color: var(--accent-c);
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.card-title .icon { font-size: .95rem; }
+
+/* =====================================================
+   DATA ROW
+===================================================== */
+.data-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: .86rem;
+}
+.data-row:last-child { border-bottom: none; }
+.data-label { color: var(--text-dim); }
+.data-value {
+  font-family: 'Inter', monospace;
+  font-weight: 600;
+  color: var(--text-data);
+  font-size: .9rem;
+}
+
+/* =====================================================
+   BUTTONS
+===================================================== */
+.btn {
+  font-family: 'Inter', sans-serif;
+  font-size: .78rem;
+  font-weight: 600;
+  letter-spacing: .02em;
+  padding: 8px 14px;
+  border-radius: 6px;
+  border: 1px solid;
+  cursor: pointer;
+  transition: all .18s;
+  white-space: nowrap;
+}
+.btn-pos  { background: rgba(198,40,40,.08);  border-color: var(--accent-r); color: var(--accent-r); }
+.btn-neg  { background: rgba(21,101,192,.08); border-color: var(--accent-c); color: var(--accent-c); }
+.btn-neu  { background: rgba(82,96,112,.08);  border-color: var(--text-dim); color: var(--text-dim); }
+.btn-reset{ background: rgba(230,81,0,.08);   border-color: var(--accent-y); color: var(--accent-y); }
+.btn:hover { filter: brightness(.9); transform: translateY(-1px); box-shadow: 0 3px 8px rgba(0,0,0,.12); }
+body.night .btn:hover { filter: brightness(1.2); box-shadow: 0 3px 10px rgba(0,0,0,.4); }
+.btn:active { transform: translateY(0); }
+
+/* =====================================================
+   SLIDER
+===================================================== */
+.slider-row {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-bottom: 12px;
+}
+.slider-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: .82rem;
+}
+.slider-label { color: var(--text-dim); }
+.slider-val {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  color: var(--accent-c);
+}
+input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%; height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 15px; height: 15px;
+  border-radius: 50%;
+  background: var(--accent-c);
+  box-shadow: var(--glow-c);
+  border: 2px solid var(--bg-card);
+}
+
+/* =====================================================
+   MODULE 1 — IONES (ATOM VIEW)
+===================================================== */
+#atom-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+@media(min-width:680px){ #atom-wrap{ flex-direction: row; align-items: flex-start; } }
+
+#atom-canvas-container {
+  position: relative;
+  width: 260px; height: 260px;
+  flex-shrink: 0;
+  margin: 0 auto;
+}
+#atom-svg {
+  width: 100%; height: 100%;
+}
+#atom-info { flex: 1; min-width: 0; width: 100%; }
+
+.charge-badge {
+  display: inline-block;
+  font-family: 'Inter', sans-serif;
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  padding: 5px 13px;
+  border-radius: 20px;
+  border: 1px solid;
+  margin-top: 12px;
+}
+.badge-pos  { background: rgba(198,40,40,.1);  border-color: var(--accent-r); color: var(--accent-r); }
+.badge-neg  { background: rgba(21,101,192,.1); border-color: var(--accent-c); color: var(--accent-c); }
+.badge-neu  { background: rgba(46,125,50,.1);  border-color: var(--accent-g); color: var(--accent-g); }
+
+/* =====================================================
+   MODULE 2 — ELECTROSCOPE
+===================================================== */
+#escope-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+@media(min-width:680px){ #escope-wrap{ flex-direction: row; align-items: flex-start; } }
+
+#escope-stage {
+  position: relative;
+  width: 220px; height: 340px;
+  flex-shrink: 0;
+  margin: 0 auto;
+}
+#escope-svg {
+  width: 100%; height: 100%;
+  overflow: visible;
+}
+#escope-info { flex: 1; min-width: 0; width: 100%; }
+
+.escope-btn-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 10px;
+}
+.escope-btn-grid .btn { font-size: .76rem; padding: 8px 10px; text-align: center; }
+
+/* =====================================================
+   MODULE 3 — CONDUCTION (SPHERES)
+===================================================== */
+#cond-controls {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.sphere-ctrl {
+  flex: 1; min-width: 140px;
+  display: flex; flex-direction: column; gap: 6px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+  transition: var(--transition);
+}
+.sphere-ctrl-title {
+  font-family: 'Inter', sans-serif;
+  font-size: .76rem;
+  font-weight: 600;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+}
+#cond-area {
+  position: relative;
+  width: 100%; height: 320px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  transition: var(--transition);
+}
+#cond-canvas {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.csphere {
+  position: absolute;
+  width: 90px; height: 90px;
+  border-radius: 50%;
+  border: 2px solid;
+  display: flex; flex-direction: column;
+  justify-content: center; align-items: center;
+  cursor: grab;
+  user-select: none;
+  transition: background-color .3s, border-color .3s, box-shadow .3s;
+  z-index: 5;
+  font-family: 'Inter', sans-serif;
+  font-size: .73rem;
+  text-align: center;
+  font-weight: 700;
+  gap: 2px;
+}
+.csphere .s-symbol { font-size: 1.3rem; line-height: 1; }
+.csphere.neutral   { background: rgba(82,96,112,.15); border-color: var(--text-dim); color: var(--text-dim); }
+.csphere.pos       { background: rgba(198,40,40,.15); border-color: var(--accent-r); color: var(--accent-r); box-shadow: var(--glow-r); }
+.csphere.neg       { background: rgba(21,101,192,.15); border-color: var(--accent-c); color: var(--accent-c); box-shadow: var(--glow-c); }
+.csphere:active    { cursor: grabbing; }
+
+#collision-flash {
+  position: absolute;
+  inset: 0;
+  background: rgba(255,210,0,.12);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .15s;
+  z-index: 4;
+  border-radius: 10px;
+}
+
+.event-log {
+  font-family: 'Inter', sans-serif;
+  font-size: .75rem;
+  color: var(--text-dim);
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 14px;
+  min-height: 42px;
+  margin-top: 12px;
+  line-height: 1.6;
+  transition: var(--transition);
+}
+.event-log .ev-time { color: var(--accent-g); margin-right: 6px; font-weight: 600; }
+.event-log .ev-msg  { color: var(--text-main); }
+
+/* =====================================================
+   SECTION INTRO
+===================================================== */
+.section-intro {
+  font-size: .82rem;
+  color: var(--text-dim);
+  line-height: 1.7;
+  margin-bottom: 14px;
+  padding-left: 10px;
+  border-left: 2px solid var(--border-glow);
+  opacity: .85;
+}
+
+/* =====================================================
+   FOOTER
+===================================================== */
+footer {
+  text-align: center;
+  padding: 18px;
+  font-family: 'Inter', sans-serif;
+  font-size: .68rem;
+  color: var(--text-dim);
+  border-top: 1px solid var(--border);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  transition: var(--transition);
+}
+
+/* =====================================================
+   DAY MODE — SVG / canvas overrides
+===================================================== */
+body:not(.night) #atom-svg circle[fill="#002233"] { fill: #f0f3f8; }
+body:not(.night) .csphere.neutral { background: rgba(82,96,112,.1); }
+</style>
+</head>
+<body>
+
+<header>
+  <button class="mode-toggle" onclick="toggleMode()" id="mode-btn">
+    <span class="mode-icon">🌙</span><span id="mode-label">Modo Noche</span>
+  </button>
+  <div class="lab-title">⚡ Laboratorio de Física Eléctrica</div>
+  <div class="lab-subtitle"><span class="status-dot"></span>Sistema Activo — Simulador Interactivo v3.0</div>
+</header>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="showTab('ions')">⚛ Iones Atómicos</button>
+  <button class="tab-btn" onclick="showTab('escope')">🔬 Electroscopio</button>
+  <button class="tab-btn" onclick="showTab('cond')">⚡ Conducción Eléctrica</button>
+</div>
+
+<div class="main">
+
+  <!-- ===================================================
+       TAB 1: IONES
+  =================================================== -->
+  <div id="tab-ions" class="tab-panel active">
+    <div class="card">
+      <div class="card-title"><span class="icon">⚛</span>Control del Átomo</div>
+      <p class="section-intro">Ajusta el número de protones y electrones para observar cómo un átomo neutro se convierte en un catión (ion positivo) o un anión (ion negativo).</p>
+      <div class="slider-row">
+        <div class="slider-header">
+          <span class="slider-label">Protones (Z)</span>
+          <span class="slider-val"><span id="pval">3</span> P+</span>
+        </div>
+        <input type="range" id="p-slider" min="1" max="15" value="3">
+      </div>
+      <div class="slider-row">
+        <div class="slider-header">
+          <span class="slider-label">Electrones</span>
+          <span class="slider-val"><span id="eval">3</span> e–</span>
+        </div>
+        <input type="range" id="e-slider" min="0" max="18" value="3">
+      </div>
+    </div>
+
+    <div id="atom-wrap">
+      <div id="atom-canvas-container">
+        <svg id="atom-svg" viewBox="-130 -130 260 260">
+          <defs>
+            <radialGradient id="nucgrad" cx="50%" cy="40%" r="60%">
+              <stop offset="0%" stop-color="#ff7c7c"/>
+              <stop offset="100%" stop-color="#c0392b"/>
+            </radialGradient>
+            <filter id="glow-f">
+              <feGaussianBlur stdDeviation="3" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+          <!-- Orbit ring -->
+          <circle id="orbit-ring" cx="0" cy="0" r="95" fill="none" stroke="rgba(0,212,255,.15)" stroke-width="1" stroke-dasharray="4 3"/>
+          <!-- Nucleus -->
+          <circle cx="0" cy="0" r="32" fill="url(#nucgrad)" filter="url(#glow-f)"/>
+          <text id="nuc-text" x="0" y="6" text-anchor="middle" font-family="Share Tech Mono,monospace" fill="#fff" font-size="13" font-weight="bold">3 P+</text>
+          <!-- Electrons drawn by JS -->
+          <g id="electrons-g"></g>
+        </svg>
+      </div>
+
+      <div id="atom-info" class="card" style="margin-bottom:0">
+        <div class="card-title"><span class="icon">📊</span>Datos del Sistema</div>
+        <div class="data-row">
+          <span class="data-label">Elemento</span>
+          <span class="data-value" id="elem-name">Litio</span>
+        </div>
+        <div class="data-row">
+          <span class="data-label">Número atómico (Z)</span>
+          <span class="data-value" id="elem-z">3</span>
+        </div>
+        <div class="data-row">
+          <span class="data-label">Electrones</span>
+          <span class="data-value" id="elem-e">3 e–</span>
+        </div>
+        <div class="data-row">
+          <span class="data-label">Carga neta</span>
+          <span class="data-value" id="elem-q">0</span>
+        </div>
+        <div class="data-row">
+          <span class="data-label">Estado</span>
+          <span class="data-value" id="elem-state">Neutro</span>
+        </div>
+        <div style="margin-top:12px;">
+          <span class="charge-badge badge-neu" id="ion-badge">⚫ ÁTOMO NEUTRO</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================
+       TAB 2: ELECTROSCOPE
+  =================================================== -->
+  <div id="tab-escope" class="tab-panel">
+    <div id="escope-wrap">
+      <div id="escope-stage">
+        <svg id="escope-svg" viewBox="0 0 220 340" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="glass-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="rgba(0,212,255,.12)"/>
+              <stop offset="100%" stop-color="rgba(0,30,60,.3)"/>
+            </linearGradient>
+            <filter id="glow2">
+              <feGaussianBlur stdDeviation="4" result="b"/>
+              <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+          <!-- Bottle body -->
+          <path d="M65,100 Q55,110 55,130 L55,290 Q55,310 110,310 Q165,310 165,290 L165,130 Q165,110 155,100 Z"
+                fill="url(#glass-grad)" stroke="rgba(0,212,255,.3)" stroke-width="1.5"/>
+          <!-- Neck -->
+          <rect x="85" y="55" width="50" height="55" rx="4"
+                fill="rgba(0,20,50,.6)" stroke="rgba(0,212,255,.25)" stroke-width="1.5"/>
+          <!-- Base -->
+          <rect x="50" y="295" width="120" height="14" rx="4" fill="rgba(0,212,255,.15)" stroke="rgba(0,212,255,.3)" stroke-width="1"/>
+          <!-- Rod -->
+          <line x1="110" y1="50" x2="110" y2="215" stroke="#8090a8" stroke-width="4" stroke-linecap="round"/>
+          <!-- Leaves pivot dot -->
+          <circle cx="110" cy="215" r="4" fill="#8090a8"/>
+          <!-- Leaf Left -->
+          <line id="leaf-l" x1="110" y1="215" x2="110" y2="275"
+                stroke="#ffd200" stroke-width="5" stroke-linecap="round"
+                style="transform-origin:110px 215px; transform:rotate(0deg); transition:transform .5s ease;"/>
+          <!-- Leaf Right -->
+          <line id="leaf-r" x1="110" y1="215" x2="110" y2="275"
+                stroke="#ffd200" stroke-width="5" stroke-linecap="round"
+                style="transform-origin:110px 215px; transform:rotate(0deg); transition:transform .5s ease;"/>
+          <!-- Terminal ball -->
+          <circle id="terminal-ball" cx="110" cy="32" r="22" fill="#c8d8ea" stroke="rgba(21,101,192,.5)" stroke-width="2" filter="url(#glow2)"/>
+          <text id="terminal-sym" x="110" y="38" text-anchor="middle" font-family="Inter,sans-serif" fill="#526070" font-size="18" font-weight="bold"></text>
+          <!-- Charge object (hovering above) -->
+          <circle id="obj-circle" cx="110" cy="-30" r="24"
+                  fill="#dde5f0" stroke="#8090a8" stroke-width="2"
+                  style="transition: fill .3s, stroke .3s, transform .3s; transform-origin:110px -30px;"
+                  onclick="touchEscope()"/>
+          <text id="obj-sym" x="110" y="-23" text-anchor="middle" font-family="Inter,sans-serif" fill="#526070" font-size="20" font-weight="bold" pointer-events="none"></text>
+          <text x="110" y="-62" text-anchor="middle" font-family="Inter,sans-serif" fill="#8090a8" font-size="9" letter-spacing="1">OBJETO</text>
+        </svg>
+      </div>
+
+      <div id="escope-info" class="card" style="margin-bottom:0">
+        <div class="card-title"><span class="icon">🔬</span>Panel de Control</div>
+        <p class="section-intro">Selecciona la carga del objeto y tócalo (haz clic sobre él) para transferir la carga al electroscopio.</p>
+
+        <div class="escope-btn-grid">
+          <button class="btn btn-pos" onclick="setObjCharge(1)">+ Objeto Positivo</button>
+          <button class="btn btn-neg" onclick="setObjCharge(-1)">– Objeto Negativo</button>
+          <button class="btn btn-neu" onclick="setObjCharge(0)">○ Objeto Neutro</button>
+          <button class="btn btn-reset" onclick="resetEscope()">↺ Descargar</button>
+        </div>
+
+        <div style="margin-top:18px">
+          <div class="data-row">
+            <span class="data-label">Carga del objeto</span>
+            <span class="data-value" id="obj-status">Neutro</span>
+          </div>
+          <div class="data-row">
+            <span class="data-label">Carga del electroscopio</span>
+            <span class="data-value" id="esc-status">Neutro</span>
+          </div>
+          <div class="data-row">
+            <span class="data-label">Ángulo de las hojas</span>
+            <span class="data-value" id="leaf-angle">0°</span>
+          </div>
+        </div>
+
+        <div id="escope-log" class="event-log" style="margin-top:14px">
+          <span class="ev-time">[SISTEMA]</span>
+          <span class="ev-msg">Electroscopio listo. Selecciona un objeto y tócalo.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================
+       TAB 3: CONDUCTION
+  =================================================== -->
+  <div id="tab-cond" class="tab-panel">
+    <div id="cond-controls">
+      <div class="sphere-ctrl">
+        <div class="sphere-ctrl-title">ESFERA 1 — <span id="s1-label">NEUTRO</span></div>
+        <button class="btn btn-pos" onclick="setS('s1','pos')">+ Cargar</button>
+        <button class="btn btn-neg" onclick="setS('s1','neg')">– Cargar</button>
+        <button class="btn btn-neu" onclick="setS('s1','neutral')">○ Neutra</button>
+      </div>
+      <div class="sphere-ctrl">
+        <div class="sphere-ctrl-title">ESFERA 2 — <span id="s2-label">NEUTRO</span></div>
+        <button class="btn btn-pos" onclick="setS('s2','pos')">+ Cargar</button>
+        <button class="btn btn-neg" onclick="setS('s2','neg')">– Cargar</button>
+        <button class="btn btn-neu" onclick="setS('s2','neutral')">○ Neutra</button>
+      </div>
+    </div>
+
+    <p class="section-intro">Arrastra las esferas para acercarlas. Cuando se tocan, ocurre la <strong style="color:var(--accent-c)">conducción eléctrica</strong> y la carga se transfiere o neutraliza según la Ley de Coulomb simplificada.</p>
+
+    <div id="cond-area">
+      <canvas id="cond-canvas"></canvas>
+      <div id="collision-flash"></div>
+      <div id="s1" class="csphere neutral"><span class="s-symbol">○</span>E1</div>
+      <div id="s2" class="csphere neutral"><span class="s-symbol">○</span>E2</div>
+    </div>
+
+    <div id="cond-log" class="event-log">
+      <span class="ev-time">[SISTEMA]</span>
+      <span class="ev-msg">Arrastra las esferas para iniciar la simulación.</span>
+    </div>
+  </div>
+
+</div><!-- .main -->
+
+<footer>⚡ LABORATORIO VIRTUAL DE FÍSICA ELÉCTRICA &nbsp;|&nbsp; SIMULACIÓN INTERACTIVA &nbsp;|&nbsp; FÍSICA APLICADA</footer>
+
+<!-- =====================================================
+     JAVASCRIPT
+===================================================== -->
+<script>
+/* ---- MODO DÍA / NOCHE ---- */
+function toggleMode() {
+  const isNight = document.body.classList.toggle('night');
+  const btn = document.getElementById('mode-btn');
+  const lbl = document.getElementById('mode-label');
+  if (isNight) {
+    btn.querySelector('.mode-icon').textContent = '☀️';
+    lbl.textContent = 'Modo Día';
+    updateSVGColors(false);
+  } else {
+    btn.querySelector('.mode-icon').textContent = '🌙';
+    lbl.textContent = 'Modo Noche';
+    updateSVGColors(true);
+  }
+}
+
+function updateSVGColors(isDayMode) {
+  // Electron label color (inside atom circles)
+  document.querySelectorAll('#electrons-g text').forEach(t => {
+    t.setAttribute('fill', isDayMode ? '#e8f0f8' : '#002233');
+  });
+  // Glass gradient in electroscope
+  const glassStop0 = document.querySelector('#glass-grad stop:first-child');
+  const glassStop1 = document.querySelector('#glass-grad stop:last-child');
+  if (glassStop0 && glassStop1) {
+    if (isDayMode) {
+      glassStop0.setAttribute('stop-color','rgba(21,101,192,.1)');
+      glassStop1.setAttribute('stop-color','rgba(180,200,230,.3)');
+    } else {
+      glassStop0.setAttribute('stop-color','rgba(0,212,255,.12)');
+      glassStop1.setAttribute('stop-color','rgba(0,30,60,.3)');
+    }
+  }
+}
+
+/* ---- TABS ---- */
+function showTab(id) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if (id === 'cond') initCond();
+}
+
+/* =================================================================
+   MODULE 1 — IONS
+================================================================= */
+const ELEMENTS = {
+  1:"Hidrógeno",2:"Helio",3:"Litio",4:"Berilio",5:"Boro",
+  6:"Carbono",7:"Nitrógeno",8:"Oxígeno",9:"Flúor",10:"Neón",
+  11:"Sodio",12:"Magnesio",13:"Aluminio",14:"Silicio",15:"Fósforo"
+};
+
+let ap = 3, ae = 3;
+
+const pSlider = document.getElementById('p-slider');
+const eSlider = document.getElementById('e-slider');
+
+pSlider.addEventListener('input', () => {
+  ap = parseInt(pSlider.value);
+  document.getElementById('pval').textContent = ap;
+  eSlider.max = ap + 5;
+  if (ae > parseInt(eSlider.max)) {
+    ae = parseInt(eSlider.max);
+    eSlider.value = ae;
+    document.getElementById('eval').textContent = ae;
+  }
+  updateAtom();
+});
+
+eSlider.addEventListener('input', () => {
+  ae = parseInt(eSlider.value);
+  document.getElementById('eval').textContent = ae;
+  updateAtom();
+});
+
+function updateAtom() {
+  const q = ap - ae;
+  // Text
+  document.getElementById('nuc-text').textContent = ap + ' P+';
+  document.getElementById('elem-name').textContent = ELEMENTS[ap] || '?';
+  document.getElementById('elem-z').textContent = ap;
+  document.getElementById('elem-e').textContent = ae + ' e–';
+  document.getElementById('elem-q').textContent = q >= 0 ? '+' + q : q;
+
+  const badge = document.getElementById('ion-badge');
+  const state = document.getElementById('elem-state');
+  const ring  = document.getElementById('orbit-ring');
+
+  if (q > 0) {
+    badge.className = 'charge-badge badge-pos';
+    badge.textContent = `⊕ CATIÓN +${q} (${ELEMENTS[ap]}${q > 1 ? q : ''}+)`;
+    state.textContent = 'Catión (Ion positivo)';
+    ring.setAttribute('stroke','rgba(255,69,96,.3)');
+  } else if (q < 0) {
+    badge.className = 'charge-badge badge-neg';
+    badge.textContent = `⊖ ANIÓN ${q} (${ELEMENTS[ap]}${q < -1 ? q : ''}–)`;
+    state.textContent = 'Anión (Ion negativo)';
+    ring.setAttribute('stroke','rgba(0,212,255,.3)');
+  } else {
+    badge.className = 'charge-badge badge-neu';
+    badge.textContent = '⚫ ÁTOMO NEUTRO';
+    state.textContent = 'Átomo neutro';
+    ring.setAttribute('stroke','rgba(0,212,255,.15)');
+  }
+  drawElectrons();
+}
+
+let eAngle = 0;
+function drawElectrons() {
+  const g = document.getElementById('electrons-g');
+  g.innerHTML = '';
+  if (ae === 0) return;
+  const R = 95;
+  for (let i = 0; i < ae; i++) {
+    const a = (2 * Math.PI / ae) * i + eAngle;
+    const x = R * Math.cos(a);
+    const y = R * Math.sin(a);
+    const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    c.setAttribute('cx', x.toFixed(1));
+    c.setAttribute('cy', y.toFixed(1));
+    c.setAttribute('r', '7');
+    c.setAttribute('fill','#00d4ff');
+    c.setAttribute('filter','url(#glow-f)');
+    g.appendChild(c);
+    const t = document.createElementNS('http://www.w3.org/2000/svg','text');
+    t.setAttribute('x', x.toFixed(1));
+    t.setAttribute('y', (y+3).toFixed(1));
+    t.setAttribute('text-anchor','middle');
+    t.setAttribute('font-family','Share Tech Mono,monospace');
+    // Color del texto según modo
+    t.setAttribute('fill', document.body.classList.contains('night') ? '#002233' : '#e8f0f8');
+    t.setAttribute('font-size','8');
+    t.setAttribute('font-weight','bold');
+    t.textContent = 'e–';
+    g.appendChild(t);
+  }
+}
+
+// Animate electrons orbit
+(function animAtom(){
+  eAngle += 0.012;
+  if (document.getElementById('tab-ions').classList.contains('active')) drawElectrons();
+  requestAnimationFrame(animAtom);
+})();
+
+updateAtom();
+
+
+/* =================================================================
+   MODULE 2 — ELECTROSCOPE
+================================================================= */
+let escopeCharge = 0, objCharge = 0;
+const MAX_ANGLE = 50;
+
+function setObjCharge(c) {
+  objCharge = c;
+  const sym  = document.getElementById('obj-sym');
+  const circ = document.getElementById('obj-circle');
+  if (c === 1)       { sym.textContent = '+'; sym.setAttribute('fill','#ff4560'); circ.setAttribute('stroke','#ff4560'); circ.setAttribute('fill','rgba(255,69,96,.2)'); document.getElementById('obj-status').textContent = 'Positivo (+)'; }
+  else if (c === -1) { sym.textContent = '–'; sym.setAttribute('fill','#00d4ff'); circ.setAttribute('stroke','#00d4ff'); circ.setAttribute('fill','rgba(0,212,255,.2)'); document.getElementById('obj-status').textContent = 'Negativo (–)'; }
+  else               { sym.textContent = '';  sym.setAttribute('fill','#8090a8'); circ.setAttribute('stroke','#8090a8'); circ.setAttribute('fill', document.body.classList.contains('night') ? '#1e3a5f' : '#dde5f0'); document.getElementById('obj-status').textContent = 'Neutro'; }
+}
+
+function touchEscope() {
+  const obj = document.getElementById('obj-circle');
+  obj.setAttribute('transform','translate(0,18)');
+  setTimeout(() => obj.removeAttribute('transform'), 350);
+
+  const prev = escopeCharge;
+  if (objCharge !== 0) escopeCharge = objCharge;
+  else if (escopeCharge !== 0) escopeCharge = 0;
+  updateEscopeDisplay(prev);
+}
+
+function resetEscope() {
+  const prev = escopeCharge;
+  escopeCharge = 0;
+  updateEscopeDisplay(prev);
+  logEscope('Electroscopio descargado — hojas cerradas.');
+}
+
+function updateEscopeDisplay(prev) {
+  const ang = Math.abs(escopeCharge) * MAX_ANGLE;
+  document.getElementById('leaf-l').style.transform = `rotate(-${ang}deg)`;
+  document.getElementById('leaf-r').style.transform = `rotate(${ang}deg)`;
+  document.getElementById('leaf-angle').textContent = ang + '°';
+
+  const ball = document.getElementById('terminal-ball');
+  const tsym = document.getElementById('terminal-sym');
+  if (escopeCharge === 1) {
+    ball.setAttribute('fill','rgba(255,69,96,.25)'); ball.setAttribute('stroke','#ff4560');
+    tsym.textContent = '+'; tsym.setAttribute('fill','#ff4560');
+    document.getElementById('esc-status').textContent = 'Positivo (+)';
+  } else if (escopeCharge === -1) {
+    ball.setAttribute('fill','rgba(0,212,255,.2)'); ball.setAttribute('stroke','#00d4ff');
+    tsym.textContent = '–'; tsym.setAttribute('fill','#00d4ff');
+    document.getElementById('esc-status').textContent = 'Negativo (–)';
+  } else {
+    ball.setAttribute('fill', document.body.classList.contains('night') ? '#1e3a5f' : '#c8d8ea');
+    ball.setAttribute('stroke','rgba(21,101,192,.4)');
+    tsym.textContent = ''; 
+    document.getElementById('esc-status').textContent = 'Neutro';
+  }
+
+  if (prev !== escopeCharge) {
+    const msgs = { '1':'Carga transferida → Electroscopio POSITIVO. Hojas se repelen.', '-1':'Carga transferida → Electroscopio NEGATIVO. Hojas se repelen.', '0':'Cargas neutralizadas → Electroscopio neutro.' };
+    logEscope(msgs[String(escopeCharge)] || 'Sin cambio.');
+  }
+}
+
+function logEscope(msg) {
+  const t = new Date();
+  const ts = String(t.getMinutes()).padStart(2,'0') + ':' + String(t.getSeconds()).padStart(2,'0');
+  document.getElementById('escope-log').innerHTML =
+    `<span class="ev-time">[${ts}]</span><span class="ev-msg"> ${msg}</span>`;
+}
+
+
+/* =================================================================
+   MODULE 3 — CONDUCTION
+================================================================= */
+const SZ = 90;
+const CR = SZ / 2;
+
+let sphereState = {
+  s1:{ x:0, y:0, type:'neutral', charge:0, dragging:false, wasCol:false },
+  s2:{ x:0, y:0, type:'neutral', charge:0, dragging:false, wasCol:false }
+};
+let activeSph = null, dragOff = { x:0, y:0 };
+
+function setS(id, type) {
+  const s = sphereState[id];
+  s.type = type;
+  s.charge = type === 'pos' ? 1 : type === 'neg' ? -1 : 0;
+  const el = document.getElementById(id);
+  el.className = 'csphere ' + type;
+  const sym = type === 'pos' ? '⊕' : type === 'neg' ? '⊖' : '○';
+  el.innerHTML = `<span class="s-symbol">${sym}</span>${id === 's1' ? 'E1' : 'E2'}`;
+  document.getElementById(id === 's1' ? 's1-label' : 's2-label').textContent = type.toUpperCase();
+}
+
+function condCollision() {
+  const s1 = sphereState.s1, s2 = sphereState.s2;
+  const q1 = s1.charge, q2 = s2.charge;
+  let t1 = s1.type, t2 = s2.type;
+
+  if ((q1 > 0 && q2 < 0) || (q1 < 0 && q2 > 0)) { t1 = t2 = 'neutral'; logCond('⚡ Neutralización — cargas opuestas se anulan.'); }
+  else if (q1 !== 0 && q2 === 0) { t1 = t2 = s1.type; logCond(`⚡ Conducción — E1 carga a E2 con signo ${s1.type === 'pos' ? '+' : '–'}.`); }
+  else if (q2 !== 0 && q1 === 0) { t1 = t2 = s2.type; logCond(`⚡ Conducción — E2 carga a E1 con signo ${s2.type === 'pos' ? '+' : '–'}.`); }
+  else if (q1 !== 0 && q1 === q2) { t1 = t2 = s1.type; logCond(`⚡ Cargas iguales — se mantiene la carga ${s1.type === 'pos' ? 'positiva' : 'negativa'}.`); }
+  else { return; }
+
+  setS('s1', t1); setS('s2', t2);
+  flashCollision();
+}
+
+function flashCollision() {
+  const f = document.getElementById('collision-flash');
+  f.style.opacity = '1';
+  setTimeout(() => f.style.opacity = '0', 250);
+}
+
+function logCond(msg) {
+  const t = new Date();
+  const ts = String(t.getMinutes()).padStart(2,'0') + ':' + String(t.getSeconds()).padStart(2,'0');
+  document.getElementById('cond-log').innerHTML =
+    `<span class="ev-time">[${ts}]</span><span class="ev-msg"> ${msg}</span>`;
+}
+
+function applyCondPhysics() {
+  const area = document.getElementById('cond-area');
+  const aw = area.clientWidth, ah = area.clientHeight;
+  const s1 = sphereState.s1, s2 = sphereState.s2;
+
+  [s1, s2].forEach(s => {
+    s.x = Math.max(0, Math.min(s.x, aw - SZ));
+    s.y = Math.max(0, Math.min(s.y, ah - SZ));
+    document.getElementById(s === s1 ? 's1' : 's2').style.left = s.x + 'px';
+    document.getElementById(s === s1 ? 's1' : 's2').style.top  = s.y + 'px';
+  });
+
+  const dx = (s2.x + CR) - (s1.x + CR);
+  const dy = (s2.y + CR) - (s1.y + CR);
+  const dist2 = dx*dx + dy*dy;
+  const contact = SZ * 1.05;
+  const isCol = dist2 < contact * contact;
+
+  if (isCol && !s1.wasCol) condCollision();
+  s1.wasCol = s2.wasCol = isCol;
+
+  // Draw field lines on canvas
+  drawCondCanvas(s1, s2);
+}
+
+function drawCondCanvas(s1, s2) {
+  const canvas = document.getElementById('cond-canvas');
+  const area = document.getElementById('cond-area');
+  canvas.width = area.clientWidth;
+  canvas.height = area.clientHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const c1x = s1.x + CR, c1y = s1.y + CR;
+  const c2x = s2.x + CR, c2y = s2.y + CR;
+  const dist = Math.hypot(c2x - c1x, c2y - c1y);
+  if (dist < SZ * 3 && (s1.charge !== 0 || s2.charge !== 0)) {
+    const alpha = Math.max(0, 1 - dist / (SZ * 3));
+    ctx.beginPath();
+    ctx.moveTo(c1x, c1y);
+    ctx.lineTo(c2x, c2y);
+    ctx.strokeStyle = `rgba(255,210,0,${alpha * 0.4})`;
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6,4]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+}
+
+// Drag handlers
+function condStartDrag(e, id) {
+  activeSph = sphereState[id];
+  activeSph.dragging = true;
+  const cx = e.clientX ?? e.touches[0].clientX;
+  const cy = e.clientY ?? e.touches[0].clientY;
+  const rect = document.getElementById(id).getBoundingClientRect();
+  dragOff.x = cx - rect.left;
+  dragOff.y = cy - rect.top;
+  e.preventDefault();
+}
+function condDrag(e) {
+  if (!activeSph || !activeSph.dragging) return;
+  e.preventDefault();
+  const area = document.getElementById('cond-area');
+  const rect = area.getBoundingClientRect();
+  const cx = e.clientX ?? e.touches[0].clientX;
+  const cy = e.clientY ?? e.touches[0].clientY;
+  activeSph.x = cx - rect.left - dragOff.x;
+  activeSph.y = cy - rect.top - dragOff.y;
+  applyCondPhysics();
+}
+function condEndDrag() { if (activeSph) { activeSph.dragging = false; activeSph = null; } }
+
+function initCond() {
+  const area = document.getElementById('cond-area');
+  const aw = area.clientWidth, ah = area.clientHeight;
+  sphereState.s1.x = aw * 0.2 - CR;
+  sphereState.s1.y = ah / 2 - CR;
+  sphereState.s2.x = aw * 0.8 - CR;
+  sphereState.s2.y = ah / 2 - CR;
+  applyCondPhysics();
+}
+
+// Bind events once
+(function bindCond(){
+  const s1el = document.getElementById('s1');
+  const s2el = document.getElementById('s2');
+  const area = document.getElementById('cond-area');
+
+  s1el.addEventListener('mousedown', e => condStartDrag(e, 's1'));
+  s2el.addEventListener('mousedown', e => condStartDrag(e, 's2'));
+  area.addEventListener('mousemove', condDrag);
+  document.addEventListener('mouseup', condEndDrag);
+
+  s1el.addEventListener('touchstart', e => condStartDrag(e, 's1'), {passive:false});
+  s2el.addEventListener('touchstart', e => condStartDrag(e, 's2'), {passive:false});
+  area.addEventListener('touchmove', condDrag, {passive:false});
+  document.addEventListener('touchend', condEndDrag);
+})();
+
+window.addEventListener('resize', () => {
+  if (document.getElementById('tab-cond').classList.contains('active')) initCond();
+});
+</script>
+</body>
+</html>

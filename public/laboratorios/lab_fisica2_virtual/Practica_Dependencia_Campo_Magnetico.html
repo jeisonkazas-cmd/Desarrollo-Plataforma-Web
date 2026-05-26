@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guía de Práctica — Dependencia del Campo Magnético con la Distancia</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>
+  MathJax = {
+    tex: { inlineMath:[['$','$'],['\\(','\\)']], displayMath:[['$$','$$']] },
+    options:{ skipHtmlTags:['script','noscript','style','textarea','pre'] }
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+:root {
+  --ink:        #1a1a2e;
+  --ink-soft:   #3d3d5c;
+  --ink-muted:  #7a7a9a;
+  --paper:      #faf8f3;
+  --paper-alt:  #f2ede3;
+  --rule:       #d4c9b0;
+  --accent:     #0d4f8b;
+  --accent2:    #b5290c;
+  --gold:       #8a6400;
+  --green:      #1a6e36;
+  --purple:     #5b3080;
+  --mono:       'JetBrains Mono', monospace;
+  --serif:      'Source Serif 4', Georgia, serif;
+  --display:    'Playfair Display', Georgia, serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  background:#cfd5dd;
+  font-family:var(--serif);
+  color:var(--ink);
+  font-size:15px;
+  line-height:1.80;
+  min-height:100vh;
+  padding:30px 15px 80px;
+}
+.documento{
+  max-width:860px;margin:0 auto;
+  background:var(--paper);
+  box-shadow:0 2px 4px rgba(0,0,0,.08),0 8px 32px rgba(0,0,0,.16),0 20px 60px rgba(0,0,0,.08);
+  position:relative;overflow-x:hidden;
+}
+.documento::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:5px;
+  background:linear-gradient(180deg,#0d4f8b 0%,#b5290c 35%,#8a6400 65%,#1a6e36 100%);
+}
+
+/* ── HEADER ── */
+.header{background:var(--ink);color:#fff;padding:36px 50px 30px 55px;position:relative;overflow:hidden;}
+.header::after{
+  content:'B';font-family:var(--display);font-size:280px;font-weight:700;
+  color:rgba(255,255,255,.035);position:absolute;right:-15px;top:-50px;
+  line-height:1;pointer-events:none;user-select:none;
+}
+.header-meta{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;gap:20px;flex-wrap:wrap;}
+.badge-codigo{
+  font-family:var(--mono);font-size:.68em;background:var(--accent);
+  color:#fff;padding:3px 10px;letter-spacing:.12em;text-transform:uppercase;
+}
+.badge-tipo{
+  font-family:var(--mono);font-size:.68em;color:rgba(255,255,255,.5);
+  letter-spacing:.1em;text-transform:uppercase;
+  border:1px solid rgba(255,255,255,.15);padding:3px 10px;
+}
+.header h1{font-family:var(--display);font-size:2em;font-weight:700;line-height:1.22;color:#fff;margin-bottom:6px;}
+.header h1 em{font-style:italic;color:rgba(255,255,255,.65);font-size:.82em;}
+.header-sub{font-size:.82em;color:rgba(255,255,255,.45);font-weight:300;letter-spacing:.04em;margin-top:4px;}
+.header-fields{
+  display:grid;grid-template-columns:1fr 1fr;gap:12px 24px;
+  margin-top:24px;padding-top:20px;border-top:1px solid rgba(255,255,255,.12);
+}
+.field-item label{
+  display:block;font-family:var(--mono);font-size:.64em;
+  color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.12em;margin-bottom:4px;
+}
+.field-item input[type="text"],.field-item input[type="date"]{
+  width:100%;background:rgba(255,255,255,.07);border:none;
+  border-bottom:1px solid rgba(255,255,255,.25);color:#fff;
+  font-family:var(--serif);font-size:.9em;padding:4px 0;outline:none;
+  transition:border-color .2s;
+}
+.field-item input:focus{border-bottom-color:var(--accent2);}
+.field-item input::placeholder{color:rgba(255,255,255,.2);}
+
+/* ── BODY ── */
+.body{padding:44px 50px 50px 55px;}
+.seccion{margin-bottom:44px;}
+.seccion-titulo{
+  font-family:var(--display);font-size:1.15em;font-weight:600;
+  color:var(--ink);display:flex;align-items:center;gap:12px;
+  margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--rule);
+}
+.seccion-titulo .num{
+  font-family:var(--mono);font-size:.72em;color:var(--accent);
+  background:#e4edf7;padding:2px 7px;letter-spacing:.05em;
+  min-width:36px;text-align:center;
+}
+.subseccion-titulo{
+  font-family:var(--display);font-size:1em;font-weight:600;
+  color:var(--accent);margin:22px 0 10px;
+  display:flex;align-items:center;gap:8px;
+}
+.subseccion-titulo::before{content:'';width:14px;height:2px;background:var(--accent);display:inline-block;flex-shrink:0;}
+p{margin-bottom:10px;color:var(--ink-soft);font-size:.95em;}
+p:last-child{margin-bottom:0;}
+
+/* ── RESUMEN ── */
+.resumen-box{
+  background:var(--paper-alt);
+  border-left:3px solid var(--accent);
+  padding:16px 20px;
+  font-size:.92em;
+  font-style:italic;
+  color:var(--ink-soft);
+  line-height:1.75;
+}
+.resumen-box strong{font-style:normal;}
+
+/* ── Ecuaciones ── */
+.eq-box{
+  background:var(--paper-alt);border-left:3px solid var(--accent);
+  padding:14px 18px;margin:16px 0;border-radius:0 4px 4px 0;
+  font-size:.95em;
+}
+.eq-label{font-family:var(--mono);font-size:.7em;color:var(--ink-muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;}
+
+/* ── Tabla de datos ── */
+.tabla-datos{width:100%;border-collapse:collapse;margin:12px 0;font-size:.88em;}
+.tabla-datos th{
+  background:var(--ink);color:#fff;padding:8px 10px;
+  font-family:var(--mono);font-size:.78em;letter-spacing:.06em;
+  text-align:center;
+}
+.tabla-datos td{
+  border:1px solid var(--rule);padding:9px 10px;text-align:center;
+  font-family:var(--mono);font-size:.85em;color:var(--ink-soft);
+  min-width:90px;
+}
+.tabla-datos tr:nth-child(even) td{background:var(--paper-alt);}
+.tabla-datos .header-row td{background:#e4edf7;font-weight:600;font-size:.78em;letter-spacing:.05em;color:var(--accent);}
+.tabla-datos .calc-row td{background:#fffbee;}
+.linea-escrita{border-bottom:1px solid var(--rule);min-height:28px;display:block;}
+
+/* ── Alertas / cajas especiales ── */
+.alert{border-radius:0 4px 4px 0;padding:12px 16px;margin:14px 0;font-size:.9em;}
+.alert-info{background:#e4edf7;border-left:3px solid var(--accent);}
+.alert-warn{background:#fff8e1;border-left:3px solid var(--gold);}
+.alert-success{background:#e8f5e9;border-left:3px solid var(--green);}
+.alert-reto{background:#fce4ec;border-left:3px solid var(--accent2);}
+.alert strong{display:block;font-family:var(--mono);font-size:.75em;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px;}
+.alert-info strong{color:var(--accent);}
+.alert-warn strong{color:var(--gold);}
+.alert-success strong{color:var(--green);}
+.alert-reto strong{color:var(--accent2);}
+
+/* ── Instrucciones numeradas ── */
+ol.pasos{padding-left:0;counter-reset:paso;list-style:none;margin:10px 0;}
+ol.pasos li{
+  counter-increment:paso;display:flex;gap:14px;
+  margin-bottom:10px;align-items:flex-start;
+  font-size:.93em;color:var(--ink-soft);
+}
+ol.pasos li::before{
+  content:counter(paso);
+  font-family:var(--mono);font-size:.8em;font-weight:700;
+  min-width:26px;height:26px;border-radius:50%;
+  background:var(--accent);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;margin-top:2px;letter-spacing:0;
+}
+
+/* ── Espacio de respuesta ── */
+.espacio-respuesta{
+  min-height:50px;border:1px dashed var(--rule);
+  border-radius:3px;margin:8px 0;padding:8px 10px;
+  background:rgba(255,255,255,.5);
+}
+.espacio-respuesta.alto{min-height:90px;}
+.espacio-respuesta.grafica{min-height:200px;position:relative;}
+.espacio-respuesta.grafica::after{
+  content:'[Área para graficar B(z)]';
+  font-family:var(--mono);font-size:.7em;color:var(--ink-muted);
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  white-space:nowrap;
+}
+
+/* ── Tabla captura Parte C ── */
+.intentos-tabla{width:100%;border-collapse:collapse;margin:10px 0;font-size:.88em;}
+.intentos-tabla th{background:#fce4ec;color:var(--accent2);padding:7px 10px;font-family:var(--mono);font-size:.76em;border:1px solid #f8bbcc;text-align:center;}
+.intentos-tabla td{border:1px solid var(--rule);padding:8px 10px;font-family:var(--mono);min-height:32px;text-align:center;font-size:.85em;}
+
+/* ── FOOTER ── */
+.footer{
+  background:var(--paper-alt);border-top:2px solid var(--rule);
+  padding:18px 50px 20px 55px;
+  display:flex;justify-content:space-between;align-items:center;
+  font-family:var(--mono);font-size:.72em;color:var(--ink-muted);
+}
+.footer-firma{display:flex;flex-direction:column;gap:4px;}
+.firma-linea{border-top:1px solid var(--rule);padding-top:4px;min-width:160px;text-align:center;}
+
+/* ── Print ── */
+@media print{
+  body{background:#fff;padding:0;}
+  .documento{box-shadow:none;}
+  .no-print{display:none;}
+  .espacio-respuesta{border:1px solid #bbb;}
+}
+@media(max-width:600px){
+  .body,.header{padding-left:22px;padding-right:18px;}
+  .header-fields{grid-template-columns:1fr;}
+}
+
+  /* ── IMPRESIÓN: mostrar todo el contenido de respuestas ── */
+  @media print {
+    .print-value {
+      display: block !important;
+      white-space: pre-wrap !important;
+      word-break: break-word !important;
+      font-family: inherit !important;
+      font-size: inherit !important;
+      line-height: 1.75 !important;
+      color: #1a1a2e !important;
+      width: 100% !important;
+      padding: 2px 0 !important;
+      background: transparent !important;
+    }
+    textarea,
+    input[type="text"],
+    input[type="date"] {
+      display: none !important;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="documento">
+
+<!-- ═══════ ENCABEZADO ════════════════════════════ -->
+<div class="header">
+  <div class="header-meta">
+    <div>
+      <span class="badge-codigo">PRÁC-MAG-02</span>
+    </div>
+    <span class="badge-tipo">Laboratorio Virtual · Electromagnetismo</span>
+  </div>
+  <h1>Dependencia del Campo Magnético<br><em>con la Distancia — Bobinas de Helmholtz</em></h1>
+  <div class="header-sub">Simulador de Campo Magnético Axial · Medición de Permeabilidad Magnética</div>
+  <div class="header-fields">
+    <div class="field-item"><label>Nombre del Estudiante</label><input type="text" placeholder="Apellidos, Nombre"></div>
+    <div class="field-item"><label>Código / ID</label><input type="text" placeholder="Código estudiantil"></div>
+    <div class="field-item"><label>Grupo / Sección</label><input type="text" placeholder="Ej: Física II — Grupo 03"></div>
+    <div class="field-item"><label>Fecha de Realización</label><input type="date"></div>
+    <div class="field-item"><label>Docente</label><input type="text" placeholder="Nombre del docente"></div>
+    <div class="field-item"><label>Calificación</label><input type="text" placeholder="Uso docente"></div>
+  </div>
+</div><!-- /header -->
+
+<div class="body">
+
+<!-- ═══════ 0. RESUMEN ══════════════════════════ -->
+<div class="seccion">
+  <div class="seccion-titulo"><span class="num">00</span> Resumen</div>
+  <div class="resumen-box">
+    En esta práctica se estudia la <strong>dependencia del campo magnético axial con la posición</strong>
+    generado por un par de <strong>bobinas de Helmholtz</strong> mediante un simulador tridimensional
+    interactivo. La práctica se estructura en cuatro secciones: un <em>Modo Libre</em> de exploración
+    abierta donde el estudiante se familiariza con los controles y parámetros del sistema;
+    una <em>Parte A</em> de determinación cuantitativa de la
+    <strong>permeabilidad magnética</strong> $\mu$ del material del núcleo a partir de mediciones
+    de B en el centro (z&nbsp;=&nbsp;0) para distintas corrientes; una <em>Parte B</em> en la que
+    se construye la <strong>curva experimental B(z)</strong> desplazando el sensor a lo largo del eje,
+    se grafican los datos y se analiza el comportamiento de campo uniforme en la región de Helmholtz
+    y la caída dipolar en las zonas alejadas; y un <em>Reto C</em> de evaluación donde, dados el campo
+    objetivo y los parámetros del sistema, el estudiante debe <strong>localizar con precisión la
+    posición axial del sensor</strong> en un máximo de tres intentos.
+    Cada sección concluye con una captura de pantalla como evidencia de resultados.
+  </div>
+  <p style="margin-top:10px;">
+    <strong>Palabras clave:</strong>
+    Campo magnético · bobinas de Helmholtz · permeabilidad magnética · superposición de campos ·
+    dependencia axial · Ley de Biot-Savart · campo uniforme · dipolo magnético
+  </p>
+</div>
+
+<!-- ═══════ 1. OBJETIVOS ═════════════════════════ -->
+<div class="seccion">
+  <div class="seccion-titulo"><span class="num">01</span> Objetivos de Aprendizaje</div>
+  <div class="subseccion-titulo">General</div>
+  <p>Determinar experimentalmente cómo varía el campo magnético B producido por un par de bobinas de Helmholtz en función de la posición axial z del sensor, e identificar la permeabilidad magnética del material presente en el núcleo.</p>
+  <div class="subseccion-titulo">Específicos</div>
+  <ol class="pasos">
+    <li>Comprender la configuración geométrica de las bobinas de Helmholtz y la superposición de campos axiales.</li>
+    <li>Medir el campo B en el centro del sistema (z = 0) para distintas corrientes I y calcular la permeabilidad μ del material.</li>
+    <li>Registrar B a lo largo del eje z y construir la gráfica experimental B(z).</li>
+    <li>Aplicar las ecuaciones de campo para encontrar la posición del sensor que produce un campo objetivo dado.</li>
+  </ol>
+</div>
+
+<!-- ═══════ 2. MARCO TEÓRICO ════════════════════ -->
+<div class="seccion">
+  <div class="seccion-titulo"><span class="num">02</span> Marco Teórico</div>
+
+  <div class="subseccion-titulo">Campo Magnético de una Bobina Circular</div>
+  <p>El campo magnético en el eje de una bobina circular de radio $a$, con $N$ espiras y corriente $I$, a una distancia axial $z$ desde su centro, se obtiene de la Ley de Biot-Savart:</p>
+  <div class="eq-box">
+    <div class="eq-label">Campo axial — bobina simple</div>
+    $$B_{\text{bobina}}(z) = \frac{\mu \, N \, I \, a^2}{2\,(a^2 + z^2)^{3/2}}$$
+    <p style="font-size:.82em;margin-top:8px;color:var(--ink-muted);">donde $\mu = \mu_0 \, \mu_r$ es la permeabilidad absoluta del medio, $\mu_0 = 4\pi \times 10^{-7}$ H/m.</p>
+  </div>
+
+  <div class="subseccion-titulo">Configuración de Helmholtz</div>
+  <p>Las bobinas de Helmholtz consisten en dos bobinas idénticas y coaxiales, separadas una distancia $d$ entre sus centros, dispuestas simétricamente respecto al origen (bobina 1 en $z = +d/2$, bobina 2 en $z = -d/2$). El campo total en la posición $z_p$ del sensor es la superposición:</p>
+  <div class="eq-box">
+    <div class="eq-label">Campo total — par Helmholtz</div>
+    $$B_{\text{total}}(z_p) = \frac{\mu N I a^2}{2} \left[ \frac{1}{(a^2 + (z_p + d/2)^2)^{3/2}} + \frac{1}{(a^2 + (d/2 - z_p)^2)^{3/2}} \right]$$
+  </div>
+  <p>Cuando $d = a$ (condición de Helmholtz), el campo en la región central es extraordinariamente uniforme, característica que hace este sistema ampliamente utilizado en instrumentación científica.</p>
+
+  <div class="subseccion-titulo">Campo en el Centro (z = 0)</div>
+  <p>En el punto medio entre las bobinas, $z_p = 0$, ambas distancias son iguales ($d/2$), y el campo se simplifica a:</p>
+  <div class="eq-box">
+    <div class="eq-label">Campo central simplificado</div>
+    $$B_0 = \frac{\mu N I a^2}{(a^2 + (d/2)^2)^{3/2}}$$
+  </div>
+  <p>Despejando la permeabilidad, obtenemos la ecuación de trabajo para la <strong>Parte A</strong>:</p>
+  <div class="eq-box">
+    <div class="eq-label">Permeabilidad a partir de medición central</div>
+    $$\mu = \frac{B_0 \cdot \left(a^2 + (d/2)^2\right)^{3/2}}{N \cdot I \cdot a^2}$$
+  </div>
+
+  <div class="subseccion-titulo">Dependencia con la Distancia</div>
+  <p>Fuera de la región de Helmholtz, $B$ cae rápidamente con $|z_p|$. Para el eje lejano de una bobina sola, a grandes distancias ($z \gg a$), el campo se comporta como el de un dipolo magnético: $B \propto z^{-3}$. Esta dependencia es objeto de estudio en la <strong>Parte B</strong>.</p>
+</div>
+
+<!-- ═══════ 3. MATERIALES Y SIMULADOR ════════════ -->
+<div class="seccion">
+  <div class="seccion-titulo"><span class="num">03</span> Herramientas y Simulador</div>
+  <p>Esta práctica se realiza en el <strong>Simulador de Campo Magnético: Dependencia con la Distancia</strong>. Para cada modo, el simulador expone las siguientes herramientas:</p>
+  <div class="alert alert-info">
+    <strong>Interfaz del simulador</strong>
+    El panel lateral contiene cuatro pestañas: <em>Libre, Parte A, Parte B</em> y <em>Reto C</em>. La visualización 3D muestra las bobinas (rojo) y el sensor (verde), rotando continuamente. Los deslizadores permiten controlar geometría, corriente y posición del sensor.
+  </div>
+  <table class="tabla-datos">
+    <thead><tr><th>Control</th><th>Variable</th><th>Rango típico</th><th>Unidad</th></tr></thead>
+    <tbody>
+      <tr><td>Deslizador a</td><td>Radio de bobina</td><td>0.10 – 0.50</td><td>m</td></tr>
+      <tr><td>Deslizador d</td><td>Separación entre bobinas</td><td>0.00 – 0.50</td><td>m</td></tr>
+      <tr><td>Deslizador N</td><td>Número de espiras</td><td>50 – 500</td><td>—</td></tr>
+      <tr><td>Deslizador z</td><td>Posición axial del sensor</td><td>−0.90 – +0.90</td><td>m</td></tr>
+      <tr><td>Deslizador I</td><td>Corriente eléctrica</td><td>0.10 – 2.00</td><td>A</td></tr>
+    </tbody>
+  </table>
+  <div class="alert alert-warn">
+    <strong>Nota sobre el error experimental</strong>
+    El simulador aplica un ruido aleatorio de ±0.8% a cada medición (corriente y posición) para reproducir las condiciones reales de laboratorio. Los valores registrados incluirán pequeñas variaciones; esto es esperado y debe tenerse en cuenta al calcular promedios.
+  </div>
+</div>
+
+<!-- ═══════ 4. PARTE A — PERMEABILIDAD ══════════ -->
+<div class="seccion">
+  <div class="seccion-titulo"><span class="num">04</span> Parte A — Determinación de la Permeabilidad Magnética</div>
+  <div class="alert alert-info">
+    <strong>Objetivo de la parte A</strong>
+    Al ingresar al modo Parte A, el simulador cargará un material desconocido. El sensor queda fijo en z = 0. Debes variar la corriente I, registrar B en la tabla y calcular μ usando la ecuación del marco teórico.
+  </div>
+
+  <div class="subseccion-titulo">Procedimiento</div>
+  <ol class="pasos">
+    <li>Selecciona la pestaña <strong>Parte A</strong> en el simulador. Toma nota de los parámetros fijos que aparecen: a, d, N.</li>
+    <li>Anota los parámetros del sistema en la sección "Registro de Parámetros" a continuación.</li>
+    <li>Mueve el deslizador de corriente I hasta el valor mínimo (0.1 A). Haz clic en <em>📍 Registrar Medición</em>. El valor de B aparecerá en la tabla del simulador y deberás copiarlo en tu registro.</li>
+    <li>Aumenta I en pasos de 0.2 A y repite el registro hasta completar al menos <strong>8 mediciones</strong>.</li>
+    <li>Para cada par (I, B), calcula μ usando la fórmula de la Parte A.</li>
+    <li>Calcula el valor promedio $\overline{\mu}$ e ingrésalo en el campo de verificación del simulador.</li>
+    <li>Captura la pantalla con el botón 📸 y adjúntala a tu informe.</li>
+  </ol>
+
+  <div class="subseccion-titulo">Registro de Parámetros Fijos</div>
+  <table class="tabla-datos">
+    <tbody>
+      <tr><td style="text-align:left;">Radio de bobina $a$ (m)</td><td></td><td style="text-align:left;">Número de espiras $N$</td><td></td></tr>
+      <tr><td style="text-align:left;">Separación $d$ (m)</td><td></td><td style="text-align:left;">$(d/2)^2$ (m²)</td><td></td></tr>
+      <tr><td style="text-align:left;">$a^2$ (m²)</td><td></td><td style="text-align:left;">$(a^2 + (d/2)^2)^{3/2}$</td><td></td></tr>
+    </tbody>
+  </table>
+
+  <div class="subseccion-titulo">Tabla A.1 — Mediciones B vs I (z = 0)</div>
+  <table class="tabla-datos">
+    <thead><tr><th>N°</th><th>I nominal (A)</th><th>I medido (A)</th><th>B medido (T)</th><th>μ calculado (H/m)</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>2</td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>3</td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>4</td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>5</td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>6</td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>7</td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>8</td><td></td><td></td><td></td><td></td></tr>
+      <tr class="calc-row"><td colspan="4" style="text-align:right;font-weight:600;">Promedio $\overline{\mu}$ (H/m)</td><td></td></tr>
+    </tbody>
+  </table>
+
+  <div class="subseccion-titulo">Cálculo de Muestra — Fila N° ___</div>
+  <div class="espacio-respuesta alto">
+    <!-- Espacio para desarrollo manual del cálculo -->
+  </div>
+
+  <div class="subseccion-titulo">Preguntas de Análisis A</div>
+  <p><strong>A.1</strong> — Según el valor $\overline{\mu}$ obtenido, ¿a qué material corresponde? Consulta la tabla de materiales del simulador y justifica tu respuesta.</p>
+  <div class="espacio-respuesta"></div>
+  <p><strong>A.2</strong> — ¿Cómo varía el error porcentual en μ a medida que aumentas la corriente? Explica por qué ocurre esto.</p>
+  <div class="espacio-respuesta"></div>
+  <p><strong>A.3</strong> — La relación $B = f(I)$ a z = 0 fijo es lineal. Demuéstralo analíticamente y determina la pendiente teórica de la curva $B$ vs $I$.</p>
+  <div class="espacio-respuesta alto"></div>
+</div>
+
+<!-- ═══════ 5. PARTE B — B(z) ═══════════════════ -->
+<div class="seccion">
+  <div class="seccion-titulo"><span class="num">05</span> Parte B — Dependencia del Campo con la Distancia</div>
+  <div class="alert alert-info">
+    <strong>Objetivo de la parte B</strong>
+    En este modo los parámetros del sistema (I, N, a, d, μ) son fijos y conocidos. Deberás mover el sensor a distintas posiciones z, registrar B y construir la gráfica experimental B(z).
+  </div>
+
+  <div class="subseccion-titulo">Procedimiento</div>
+  <ol class="pasos">
+    <li>Selecciona la pestaña <strong>Parte B</strong> del simulador. Copia los parámetros fijos en la tabla de registro.</li>
+    <li>Comienza con el sensor en $z = -0.80$ m. Haz clic en <em>📍 Registrar Punto</em>.</li>
+    <li>Desplaza el sensor en pasos de $\Delta z = 0.05$ m hacia el lado positivo, registrando cada punto hasta llegar a $z = +0.80$ m.</li>
+    <li>Observa la gráfica en tiempo real dentro del simulador.</li>
+    <li>Identifica la posición(es) de campo máximo y la región uniforme (si existe).</li>
+    <li>Exporta los datos con el botón <em>📥 Exportar CSV</em> y captura la pantalla con 📸.</li>
+    <li>Transcribe al menos <strong>16 puntos representativos</strong> en la Tabla B.1.</li>
+  </ol>
+
+  <div class="subseccion-titulo">Parámetros Fijos del Modo B</div>
+  <table class="tabla-datos">
+    <tbody>
+      <tr><td style="text-align:left;">Material</td><td></td><td style="text-align:left;">μ (H/m)</td><td></td></tr>
+      <tr><td style="text-align:left;">Radio $a$ (m)</td><td></td><td style="text-align:left;">Separación $d$ (m)</td><td></td></tr>
+      <tr><td style="text-align:left;">Espiras $N$</td><td></td><td style="text-align:left;">Corriente $I$ (A)</td><td></td></tr>
+    </tbody>
+  </table>
+
+  <div class="subseccion-titulo">Tabla B.1 — Datos B(z)</div>
+  <table class="tabla-datos">
+    <thead><tr><th>N°</th><th>z (m)</th><th>B (T)</th><th>N°</th><th>z (m)</th><th>B (T)</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td></td><td></td><td>9</td><td></td><td></td></tr>
+      <tr><td>2</td><td></td><td></td><td>10</td><td></td><td></td></tr>
+      <tr><td>3</td><td></td><td></td><td>11</td><td></td><td></td></tr>
+      <tr><td>4</td><td></td><td></td><td>12</td><td></td><td></td></tr>
+      <tr><td>5</td><td></td><td></td><td>13</td><td></td><td></td></tr>
+      <tr><td>6</td><td></td><td></td><td>14</td><td></td><td></td></tr>
+      <tr><td>7</td><td></td><td></td><td>15</td><td></td><td></td></tr>
+      <tr><td>8</td><td></td><td></td><td>16</td><td></td><td></td></tr>
+    </tbody>
+  </table>
+
+  <div class="subseccion-titulo">Gráfica B.1 — Curva Experimental B(z)</div>
+  <p style="font-size:.85em;color:var(--ink-muted);margin-bottom:6px;">Dibuja la gráfica a mano o pega aquí la captura del simulador / gráfico exportado.</p>
+  <div class="espacio-respuesta grafica"></div>
+
+  <div class="subseccion-titulo">Preguntas de Análisis B</div>
+  <p><strong>B.1</strong> — ¿En qué posición(es) es máximo el campo? ¿Coincide con el valor teórico predicho por la ecuación?</p>
+  <div class="espacio-respuesta"></div>
+  <p><strong>B.2</strong> — Identifica la región de campo uniforme. ¿Cuál es el rango de z donde B varía menos del 5% respecto al valor máximo?</p>
+  <div class="espacio-respuesta"></div>
+  <p><strong>B.3</strong> — Para $|z| \gg d$, el campo debe caer como $z^{-3}$. Usando los datos más alejados del centro, verifica esta relación tomando logaritmos: $\ln B = -3 \ln z + \text{cte}$. Muestra el cálculo.</p>
+  <div class="espacio-respuesta alto"></div>
+  <p><strong>B.4</strong> — La curva B(z) es par (simétrica respecto a z = 0). ¿A qué propiedad física obedece esta simetría?</p>
+  <div class="espacio-respuesta"></div>
+</div>
+
+<!-- ═══════ 6. PARTE C — RETO ════════════════════ -->
+<div class="seccion">
+  <div class="seccion-titulo"><span class="num">06</span> Reto C — Localización del Sensor</div>
+  <div class="alert alert-reto">
+    <strong>⚠️ Reto de Evaluación — Máximo 3 Intentos</strong>
+    El simulador presentará un campo objetivo B<sub>obj</sub> y los parámetros del sistema (I, N, a, d). El material es desconocido. Deberás encontrar la posición z del sensor que produzca ese campo. Tienes 3 intentos: si fallas los 3, el reto se marca como no aprobado. Al finalizar, captura la pantalla como evidencia.
+  </div>
+
+  <div class="subseccion-titulo">Parámetros del Reto (transcribe del simulador)</div>
+  <table class="tabla-datos">
+    <tbody>
+      <tr><td style="text-align:left;width:40%;">Campo objetivo $B_{\text{obj}}$ (T)</td><td style="width:60%;font-size:1.1em;font-family:var(--mono);"></td></tr>
+      <tr><td style="text-align:left;">Corriente $I$ (A)</td><td></td></tr>
+      <tr><td style="text-align:left;">Radio $a$ (m)</td><td></td></tr>
+      <tr><td style="text-align:left;">Separación $d$ (m)</td><td></td></tr>
+      <tr><td style="text-align:left;">Espiras $N$</td><td></td></tr>
+    </tbody>
+  </table>
+
+  <div class="subseccion-titulo">Estrategia de Solución</div>
+  <p>Antes de ingresar tu respuesta, analiza el problema. Recuerda que:</p>
+  <ol class="pasos">
+    <li>Puedes explorar libremente con el deslizador z del simulador: el campo en tiempo real te dará pistas sobre la dirección correcta.</li>
+    <li>Si el campo actual es <em>mayor</em> que $B_{\text{obj}}$: el sensor está demasiado cerca del centro — muévelo hacia afuera.</li>
+    <li>Si el campo actual es <em>menor</em> que $B_{\text{obj}}$: el sensor está demasiado lejos del centro — acércalo.</li>
+    <li>La tolerancia de aceptación es ±3%. Afina la posición usando el deslizador antes de confirmar.</li>
+  </ol>
+
+  <div class="subseccion-titulo">Registro de Intentos</div>
+  <table class="intentos-tabla">
+    <thead><tr><th>Intento</th><th>z propuesta (m)</th><th>B calculado (T)</th><th>Error (%)</th><th>Resultado</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td></td><td></td><td></td><td>☐ Aprobado &nbsp; ☐ Fallido</td></tr>
+      <tr><td>2</td><td></td><td></td><td></td><td>☐ Aprobado &nbsp; ☐ Fallido</td></tr>
+      <tr><td>3</td><td></td><td></td><td></td><td>☐ Aprobado &nbsp; ☐ Fallido</td></tr>
+    </tbody>
+  </table>
+
+  <div class="subseccion-titulo">Resultado Final</div>
+  <table class="tabla-datos">
+    <tbody>
+      <tr><td style="text-align:left;">z encontrada (m)</td><td></td><td style="text-align:left;">Material revelado</td><td></td></tr>
+      <tr><td style="text-align:left;">Intentos usados</td><td></td><td style="text-align:left;">Estado</td><td>☐ APROBADO &nbsp; ☐ NO APROBADO</td></tr>
+    </tbody>
+  </table>
+
+  <div class="subseccion-titulo">Espacio para la Captura de Evidencia</div>
+  <div class="espacio-respuesta" style="min-height:160px;display:flex;align-items:center;justify-content:center;border:2px dashed #f8bbcc;">
+    <span style="font-family:var(--mono);font-size:.72em;color:var(--ink-muted);">[Pega aquí la imagen capturada con el botón 📸 del simulador]</span>
+  </div>
+
+  <div class="subseccion-titulo">Preguntas de Análisis C</div>
+  <p><strong>C.1</strong> — Describe la estrategia que utilizaste para encontrar la posición. ¿Aplicaste la ecuación de campo analíticamente o usaste exploración visual? ¿Cuál fue más eficiente?</p>
+  <div class="espacio-respuesta alto"></div>
+  <p><strong>C.2</strong> — ¿Existe más de una posición z que produzca el mismo B? Justifica tu respuesta con base en la simetría de la curva B(z).</p>
+  <div class="espacio-respuesta"></div>
+  <p><strong>C.3</strong> — Si la tolerancia fuera ±1% en lugar de ±3%, ¿cómo cambiaría la dificultad del reto? Explica en términos de la pendiente de B(z) en la región de búsqueda.</p>
+  <div class="espacio-respuesta"></div>
+</div>
+
+<!-- ═══════ 7. CONCLUSIONES ══════════════════════ -->
+<div class="seccion">
+  <div class="seccion-titulo"><span class="num">07</span> Conclusiones</div>
+  <p style="margin-bottom:8px;">Responde de forma integral (mínimo 200 palabras) haciendo referencia a resultados específicos de cada parte:</p>
+  <div class="espacio-respuesta" style="min-height:200px;"></div>
+  <div class="subseccion-titulo">Autoevaluación</div>
+  <table class="tabla-datos" style="font-size:.85em;">
+    <thead><tr><th>Criterio</th><th>Excelente (5)</th><th>Bueno (4)</th><th>Regular (3)</th><th>Calificación</th></tr></thead>
+    <tbody>
+      <tr><td>Comprensión del marco teórico</td><td>☐</td><td>☐</td><td>☐</td><td></td></tr>
+      <tr><td>Exactitud en cálculo de μ (Parte A)</td><td>☐</td><td>☐</td><td>☐</td><td></td></tr>
+      <tr><td>Completitud de datos B(z) (Parte B)</td><td>☐</td><td>☐</td><td>☐</td><td></td></tr>
+      <tr><td>Estrategia en Reto C</td><td>☐</td><td>☐</td><td>☐</td><td></td></tr>
+      <tr><td>Calidad de análisis y conclusiones</td><td>☐</td><td>☐</td><td>☐</td><td></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════ 8. REFERENCIAS ═══════════════════════ -->
+<div class="seccion" style="margin-bottom:20px;">
+  <div class="seccion-titulo"><span class="num">08</span> Referencias</div>
+  <ol style="padding-left:20px;font-size:.88em;color:var(--ink-soft);">
+    <li style="margin-bottom:6px;">Griffiths, D. J. (2017). <em>Introduction to Electrodynamics</em> (4th ed.). Cambridge University Press. Cap. 5.</li>
+    <li style="margin-bottom:6px;">Serway, R. A., & Jewett, J. W. (2019). <em>Physics for Scientists and Engineers</em> (10th ed.). Cengage. Cap. 30.</li>
+    <li style="margin-bottom:6px;">Helmholtz, H. (1849). Über einige Gesetze der Vertheilung elektrischer Ströme. <em>Annalen der Physik und Chemie</em>, 89, 211–233.</li>
+    <li>Simulador de Campo Magnético — Dependencia con la Distancia. Herramienta virtual de laboratorio, versión 2.0.</li>
+  </ol>
+</div>
+
+</div><!-- /body -->
+
+<!-- ═══════ FOOTER ════════════════════════════════ -->
+<div class="footer">
+  <div>
+    <div style="margin-bottom:4px;">PRÁC-MAG-02 · Campo Magnético — Dependencia con la Distancia</div>
+    <div>Física del Electromagnetismo · Laboratorio Virtual</div>
+  </div>
+  <div class="footer-firma">
+    <div class="firma-linea">Firma del Estudiante</div>
+    <div class="firma-linea" style="margin-top:10px;">Vo.Bo. Docente</div>
+  </div>
+</div>
+
+</div><!-- /documento -->
+
+<script>
+// Impresión limpia
+document.querySelectorAll('input').forEach(input => {
+  input.addEventListener('input', () => { input.style.borderBottomColor = '#fff'; });
+});
+</script>
+<script>
+/* ── Preparar impresión: volcar valores en divs visibles ── */
+(function () {
+  var snapshots = [];
+
+  function prepararImpresion() {
+    snapshots = [];
+    document.querySelectorAll(
+      'textarea, input[type="text"], input[type="date"]'
+    ).forEach(function (el) {
+      var div = document.createElement('div');
+      div.className = 'print-value';
+      div.textContent = el.value !== '' ? el.value : ' ';
+      /* Copiar estilos de tamaño/posición del campo original */
+      div.style.minHeight = (el.offsetHeight || 24) + 'px';
+      el.parentNode.insertBefore(div, el.nextSibling);
+      snapshots.push({ el: el, div: div });
+    });
+  }
+
+  function restaurar() {
+    snapshots.forEach(function (s) {
+      if (s.div.parentNode) s.div.parentNode.removeChild(s.div);
+    });
+    snapshots = [];
+  }
+
+  window.addEventListener('beforeprint', prepararImpresion);
+  window.addEventListener('afterprint',  restaurar);
+})();
+</script>
+</body>
+</html>

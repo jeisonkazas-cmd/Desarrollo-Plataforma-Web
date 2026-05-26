@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laboratorios virtuales</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* ===== NAVBAR ===== */
+        .line li {
+            width: auto;
+            height: 50px;
+            transition: background-position-x 0.9s linear;
+        }
+        .line li a {
+            text-decoration: none;
+            transition: all 0.5s;
+        }
+        .line li:hover {
+            background: url("data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIGlkPSJMYXllcl8xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4PSIwcHgiIHk9IjBweCIgd2lkdGg9IjM5MHB4IiBoZWlnaHQ9IjUwcHgiIHZpZXdCb3g9IjAgMCAzOTAgNTAiIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgMCAwIDM5MCA1MCIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+PHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSIjRkZGRjAwIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLW1pdGVybGltaXQ9IjEwIiBkPSJNMCw0Ny41ODVjMCwwLDk3LjUsMCwxMzAsMCAxMy43NSwwLDI4Ljc0LTM4Ljc3OCw0Ni4xNjgtMTkuNDE2QzE5Mi42NjksNDYuNSwyNDMuNjAzLDQ3LjU4NSwyNjAsNDcuNTg1YzMxLjgyMSwwLDEzMCwwLDEzMCwwIi8+PC9zdmc+");
+            animation: line 0.90s forwards;
+        }
+        .line li:hover a { color: rgb(1, 1, 20); }
+        .line li:not(:last-child) { margin-right: 30px; }
+        @keyframes line {
+            0%   { background-position-x: 600px; }
+            100% { background-position-x: 130px; }
+        }
+
+        /* ===== TIRA DE IMÁGENES EN ONDA ===== */
+        .separador-onda {
+            position: relative;
+            width: 100%;
+            height: 160px;
+            background-color: #f0f0f0;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        .tira-imagenes {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            animation: deslizar 35s linear infinite;
+            flex-shrink: 0;
+            padding: 0 15px;
+        }
+        .imagen-onda {
+            display: inline-flex;
+            align-items: center;
+            animation: onda 1.6s ease-in-out infinite;
+            animation-delay: calc(var(--i) * 0.18s);
+            flex-shrink: 0;
+        }
+        .imagen-onda img {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            border-radius: 12px;
+            box-shadow: 0 4px 14px rgba(9, 63, 124, 0.25);
+            background: white;
+            padding: 6px;
+        }
+        @keyframes onda {
+            0%, 100% { transform: translateY(0px); }
+            50%       { transform: translateY(-20px); }
+        }
+        @keyframes deslizar {
+            0%   { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        .titulo-laboratorio-onda {
+            position: absolute;
+            right: 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #093f7c;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            background: rgba(240, 240, 240, 0.9);
+            padding: 6px 14px;
+            border-radius: 6px;
+            white-space: nowrap;
+        }
+
+        /* ===== INFO ADICIONAL ===== */
+        .info-adicional {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #093f7c;
+            padding: 30px;
+        }
+        .info-texto { flex: 1; padding-right: 20px; }
+        .info-imagen img { max-width: 200px; height: auto; }
+
+        /* ===== CARDS ===== */
+        .card-container {
+            display: flex;
+            justify-content: space-between;
+            margin: 30px 15px;
+            gap: 15px;
+        }
+        .card {
+            background-color: #f5f5f5;
+            padding: 25px 20px;
+            text-align: center;
+            border-radius: 10px;
+            flex: 1;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(9, 63, 124, 0.2);
+        }
+        .card-icon img { width: 70px; height: 70px; object-fit: contain; }
+        .card h3 { font-size: 1.2rem; margin: 12px 0 8px 0; color: #093f7c; font-weight: bold; }
+        .card p  { font-size: 0.95rem; color: #444; flex-grow: 1; margin-bottom: 18px; text-align: justify; }
+        .btn-ver-mas {
+            display: inline-block;
+            background-color: #093f7c;
+            color: white !important;
+            padding: 8px 22px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+            margin-top: auto;
+        }
+        .btn-ver-mas:hover {
+            background-color: #FFD100;
+            color: white !important;
+        }
+
+        /* ===== RESPONSIVE MOBILE ===== */
+        @media (max-width: 768px) {
+            .navbar-brand img { width: 90px !important; height: 38px !important; }
+            .line li:not(:last-child) { margin-right: 0 !important; }
+
+            .separador-onda { height: 120px; }
+            .imagen-onda img { width: 70px !important; height: 70px !important; }
+            .titulo-laboratorio-onda { font-size: 0.85rem; padding: 4px 10px; right: 10px; }
+
+            .info-adicional { flex-direction: column; padding: 20px; text-align: center; }
+            .info-texto { padding-right: 0 !important; margin-bottom: 20px; }
+            .info-adicional h2 { font-size: 1.3rem !important; }
+            .info-imagen img { max-width: 140px !important; }
+
+            .card-container { flex-direction: column; margin: 20px 10px; }
+        }
+        @media (max-width: 480px) {
+            .titulo-laboratorio-onda { display: none; }
+            .card-container { margin: 14px 8px; }
+            .card { padding: 18px 14px; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg" style="background-color:rgb(9, 63, 124);">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <img src="resources/logo_camacho.png" alt="Logo" width="120" height="50" class="d-inline-block align-text">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse line" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" style="color:white;">
+                            Laboratorios de Física Presencial
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="laboratorio_fisica_presencial_1.html">Laboratorio de Física I Presencial</a></li>
+                            <li><a class="dropdown-item" href="laboratorio_fisica_presencial_2.html">Laboratorio de Física II Presencial</a></li>
+                            <li><a class="dropdown-item" href="laboratorio_fisica_presencial_3.html">Laboratorio de Física III Presencial</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" style="color:white;">
+                            Laboratorios de Física Virtual
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="laboratorio_fisica_virtual_1.html">Laboratorio de Física I Virtual</a></li>
+                            <li><a class="dropdown-item" href="laboratorio_fisica_virtual_2.html">Laboratorio de Física II Virtual</a></li>
+                            <li><a class="dropdown-item" href="laboratorio_fisica_virtual_3.html">Laboratorio de Física III Virtual</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" style="color:white;">
+                            Laboratorios de Física Remotos
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="laboratorio_fisica_remoto_1.html">Laboratorio de Física I Remoto</a></li>
+                            <li><a class="dropdown-item" href="laboratorio_fisica_remoto_2.html">Laboratorio de Física II Remoto</a></li>
+                            <li><a class="dropdown-item" href="laboratorio_fisica_remoto_3.html">Laboratorio de Física III Remoto</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" style="color:white;">
+                            Iniciar Sesión
+                            <img src="resources/is3.png" alt="Iniciar Sesión" width="30" height="24">
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- TIRA DE IMÁGENES EN ONDA -->
+    <div class="separador-onda">
+        <div class="tira-imagenes">
+            <div class="imagen-onda" style="--i:0"><img src="imagenes/CAIDA_LIBRE.png" alt="Caída Libre"></div>
+            <div class="imagen-onda" style="--i:1"><img src="imagenes/CAMPO_MAGNETICO.png" alt="Campo Magnético"></div>
+            <div class="imagen-onda" style="--i:2"><img src="imagenes/CARGA_MASA.png" alt="Carga Masa"></div>
+            <div class="imagen-onda" style="--i:3"><img src="imagenes/COEFICIENTEFRICCION.png" alt="Coeficiente Fricción"></div>
+            <div class="imagen-onda" style="--i:4"><img src="imagenes/COLISIONES.png" alt="Colisiones"></div>
+            <div class="imagen-onda" style="--i:5"><img src="imagenes/ESPECTROSCOPIA.png" alt="Espectroscopía"></div>
+            <div class="imagen-onda" style="--i:6"><img src="imagenes/MICROONDAS.png" alt="Microondas"></div>
+            <div class="imagen-onda" style="--i:7"><img src="imagenes/MILLIKAN.png" alt="Millikan"></div>
+            <div class="imagen-onda" style="--i:8"><img src="imagenes/MUR.png" alt="MUR"></div>
+            <div class="imagen-onda" style="--i:9"><img src="imagenes/ONDA_ESTACIONARIA.png" alt="Onda Estacionaria"></div>
+            <div class="imagen-onda" style="--i:10"><img src="imagenes/PROYECTILES.png" alt="Proyectiles"></div>
+            <div class="imagen-onda" style="--i:11"><img src="imagenes/REPRESENTACION_VECTORIAL.png" alt="Representación Vectorial"></div>
+            <!-- Duplicado para loop continuo -->
+            <div class="imagen-onda" style="--i:0"><img src="imagenes/CAIDA_LIBRE.png" alt="Caída Libre"></div>
+            <div class="imagen-onda" style="--i:1"><img src="imagenes/CAMPO_MAGNETICO.png" alt="Campo Magnético"></div>
+            <div class="imagen-onda" style="--i:2"><img src="imagenes/CARGA_MASA.png" alt="Carga Masa"></div>
+            <div class="imagen-onda" style="--i:3"><img src="imagenes/COEFICIENTEFRICCION.png" alt="Coeficiente Fricción"></div>
+            <div class="imagen-onda" style="--i:4"><img src="imagenes/COLISIONES.png" alt="Colisiones"></div>
+            <div class="imagen-onda" style="--i:5"><img src="imagenes/ESPECTROSCOPIA.png" alt="Espectroscopía"></div>
+            <div class="imagen-onda" style="--i:6"><img src="imagenes/MICROONDAS.png" alt="Microondas"></div>
+            <div class="imagen-onda" style="--i:7"><img src="imagenes/MILLIKAN.png" alt="Millikan"></div>
+            <div class="imagen-onda" style="--i:8"><img src="imagenes/MUR.png" alt="MUR"></div>
+            <div class="imagen-onda" style="--i:9"><img src="imagenes/ONDA_ESTACIONARIA.png" alt="Onda Estacionaria"></div>
+            <div class="imagen-onda" style="--i:10"><img src="imagenes/PROYECTILES.png" alt="Proyectiles"></div>
+            <div class="imagen-onda" style="--i:11"><img src="imagenes/REPRESENTACION_VECTORIAL.png" alt="Representación Vectorial"></div>
+        </div>
+        <div class="titulo-laboratorio-onda">Laboratorios de Física</div>
+    </div>
+
+    <!-- INFO ADICIONAL -->
+    <div class="info-adicional">
+        <div class="info-texto">
+            <h2 style="font-size:2rem; font-weight:bold; color:white;">🔬 Institución Universitaria Antonio José Camacho</h2>
+            <h4 style="color:#cfe2ff; font-weight:300; margin-bottom:15px;">Laboratorios de Física al alcance de toda la comunidad universitaria</h4>
+            <p style="color:#d0d8e8;">Explora, experimenta y aprende desde cualquier lugar. Nuestra plataforma integra laboratorios <strong style="color:white;">presenciales, virtuales y remotos</strong> para brindarte una experiencia académica innovadora, flexible y de calidad.</p>
+            <a href="simuladores.html" class="btn" style="background-color:#FFD100; color:#1a1a1a; padding:10px 25px; border-radius:5px; font-weight:bold; margin-top:10px;">Explorar Laboratorios</a>
+        </div>
+        <div class="info-imagen">
+            <img src="resources/logo_camacho.png" alt="Logo UNIAJC" class="img-fluid">
+        </div>
+    </div>
+
+    <!-- CARDS -->
+    <div class="card-container">
+        <!-- Tarjeta 1: Quiénes somos -->
+        <div class="card">
+            <div class="card-icon">
+                <img src="resources/lis.png" alt="Quiénes somos">
+            </div>
+            <h3>🔬 Quiénes Somos</h3>
+            <p>El Departamento de Ciencias Básicas de la UNIAJC pone a disposición de la comunidad universitaria y del sector externo sus laboratorios de Física, ofreciendo servicios de apoyo académico, asesoría técnica y uso de equipos especializados para el desarrollo de prácticas experimentales e investigación aplicada.</p>
+            <a href="quienes_somos.html" class="btn-ver-mas">Ver más</a>
+        </div>
+        <!-- Tarjeta 2: Investigación y Semilleros -->
+        <div class="card">
+            <div class="card-icon">
+                <img src="resources/lis2.png" alt="Investigación">
+            </div>
+            <h3>🧪 Investigación y Semilleros</h3>
+            <p>Fomentamos la cultura investigativa a través de semilleros de investigación en los que estudiantes y docentes trabajan de manera colaborativa en proyectos de ciencia aplicada. Nuestros grupos desarrollan propuestas innovadoras en áreas de física experimental, tecnología educativa y ciencias básicas.</p>
+            <a href="investigacion.html" class="btn-ver-mas">Ver más</a>
+        </div>
+        <!-- Tarjeta 3: Noticias y Eventos -->
+        <div class="card">
+            <div class="card-icon">
+                <img src="resources/lR.png" alt="Noticias">
+            </div>
+            <h3>📰 Noticias y Eventos</h3>
+            <p>Mantente al día con las últimas novedades del Departamento de Ciencias Básicas: jornadas de laboratorio abierto, talleres especializados, ferias de ciencia, eventos académicos y todas las actividades que fortalecen la comunidad científica de nuestra institución.</p>
+            <a href="noticias.html" class="btn-ver-mas">Ver más</a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

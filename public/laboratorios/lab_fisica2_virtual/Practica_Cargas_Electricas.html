@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guía de Laboratorio — Física Eléctrica</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink:       #1a1a2e;
+    --ink-soft:  #3d3d5c;
+    --ink-muted: #7a7a9a;
+    --paper:     #faf8f3;
+    --paper-alt: #f2ede3;
+    --rule:      #d4c9b0;
+    --accent:    #1a5276;
+    --accent2:   #c0392b;
+    --gold:      #b8860b;
+    --green:     #1e8449;
+    --mono:      'JetBrains Mono', monospace;
+    --serif:     'Source Serif 4', Georgia, serif;
+    --display:   'Playfair Display', Georgia, serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: #dde3e8;
+    font-family: var(--serif);
+    color: var(--ink);
+    font-size: 15px;
+    line-height: 1.75;
+    min-height: 100vh;
+    padding: 30px 15px 80px;
+  }
+  .documento {
+    max-width: 860px;
+    margin: 0 auto;
+    background: var(--paper);
+    box-shadow: 0 2px 4px rgba(0,0,0,.08), 0 8px 32px rgba(0,0,0,.14), 0 20px 60px rgba(0,0,0,.08);
+    position: relative;
+    overflow-x: hidden;
+  }
+  .documento::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 5px;
+    background: linear-gradient(180deg, var(--accent) 0%, var(--accent2) 50%, var(--gold) 100%);
+  }
+  .header {
+    background: var(--ink);
+    color: #fff;
+    padding: 36px 50px 30px 55px;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::after {
+    content: 'E';
+    font-family: var(--display);
+    font-size: 300px;
+    font-weight: 700;
+    color: rgba(255,255,255,.04);
+    position: absolute;
+    right: -10px; top: -60px;
+    line-height: 1;
+    pointer-events: none;
+    user-select: none;
+  }
+  .header-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .badge-codigo {
+    font-family: var(--mono);
+    font-size: .7em;
+    background: var(--accent);
+    color: #fff;
+    padding: 3px 10px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+  .badge-tipo {
+    font-family: var(--mono);
+    font-size: .7em;
+    color: rgba(255,255,255,.5);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    border: 1px solid rgba(255,255,255,.15);
+    padding: 3px 10px;
+  }
+  .header h1 {
+    font-family: var(--display);
+    font-size: 2.1em;
+    font-weight: 700;
+    line-height: 1.2;
+    color: #fff;
+    margin-bottom: 6px;
+  }
+  .header h1 em {
+    font-style: italic;
+    color: rgba(255,255,255,.65);
+    font-size: .82em;
+  }
+  .header-sub {
+    font-size: .82em;
+    color: rgba(255,255,255,.45);
+    font-weight: 300;
+    letter-spacing: .04em;
+    margin-top: 4px;
+  }
+  .header-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 24px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,.12);
+  }
+  .field-item label {
+    display: block;
+    font-family: var(--mono);
+    font-size: .65em;
+    color: rgba(255,255,255,.4);
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    margin-bottom: 4px;
+  }
+  .field-item input[type="text"],
+  .field-item input[type="date"] {
+    width: 100%;
+    background: rgba(255,255,255,.07);
+    border: none;
+    border-bottom: 1px solid rgba(255,255,255,.25);
+    color: #fff;
+    font-family: var(--serif);
+    font-size: .9em;
+    padding: 4px 0;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .field-item input:focus { border-bottom-color: var(--accent2); }
+  .field-item input::placeholder { color: rgba(255,255,255,.2); }
+  .body { padding: 44px 50px 50px 55px; }
+  .seccion { margin-bottom: 42px; }
+  .seccion-titulo {
+    font-family: var(--display);
+    font-size: 1.15em;
+    font-weight: 600;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--rule);
+  }
+  .seccion-titulo .num {
+    font-family: var(--mono);
+    font-size: .75em;
+    color: var(--accent);
+    background: #e8f0f7;
+    padding: 2px 7px;
+    letter-spacing: .05em;
+    min-width: 36px;
+    text-align: center;
+  }
+  .subseccion-titulo {
+    font-family: var(--display);
+    font-size: 1em;
+    font-weight: 600;
+    color: var(--accent);
+    margin: 22px 0 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .subseccion-titulo::before {
+    content: '';
+    width: 14px; height: 2px;
+    background: var(--accent);
+    display: inline-block;
+    flex-shrink: 0;
+  }
+  p { margin-bottom: 10px; color: var(--ink-soft); font-size: .95em; }
+  p:last-child { margin-bottom: 0; }
+  .resumen-box {
+    background: var(--paper-alt);
+    border-left: 3px solid var(--accent);
+    padding: 16px 20px;
+    font-size: .9em;
+    font-style: italic;
+    color: var(--ink-soft);
+    line-height: 1.7;
+  }
+  .objetivos-lista { list-style: none; padding: 0; }
+  .objetivos-lista li {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 8px 0;
+    border-bottom: 1px dashed var(--rule);
+    font-size: .93em;
+    color: var(--ink-soft);
+  }
+  .objetivos-lista li:last-child { border-bottom: none; }
+  .objetivos-lista li .obj-num {
+    font-family: var(--mono);
+    font-size: .75em;
+    color: #fff;
+    background: var(--accent);
+    min-width: 22px; height: 22px;
+    display: flex; align-items: center; justify-content: center;
+    margin-top: 2px; flex-shrink: 0;
+  }
+  .formula-box {
+    background: var(--ink);
+    color: #fff;
+    padding: 18px 24px;
+    margin: 18px 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .formula-box::before {
+    content: ''; position: absolute;
+    left: 0; top: 0; bottom: 0; width: 3px;
+    background: var(--accent2);
+  }
+  .formula-label {
+    font-family: var(--mono); font-size: .65em;
+    color: rgba(255,255,255,.4); text-transform: uppercase;
+    letter-spacing: .12em; margin-bottom: 10px;
+  }
+  .formula-main {
+    font-family: var(--mono); font-size: .95em;
+    color: #aed6f1; text-align: center; padding: 6px 0;
+  }
+  .concepto-box {
+    background: var(--paper-alt);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--accent);
+    padding: 16px 20px; margin: 16px 0; font-size: .92em;
+  }
+  .concepto-label {
+    font-family: var(--mono); font-size: .65em;
+    text-transform: uppercase; letter-spacing: .12em;
+    color: var(--accent); margin-bottom: 10px;
+  }
+  .concepto-box p { font-size: 1em; margin-bottom: 6px; }
+  .rango-tabla { width: 100%; border-collapse: collapse; font-size: .85em; margin: 12px 0; }
+  .rango-tabla th {
+    background: var(--ink); color: #fff;
+    font-family: var(--mono); font-size: .68em;
+    padding: 7px 12px; letter-spacing: .08em; text-align: center;
+  }
+  .rango-tabla td { padding: 6px 12px; border: 1px solid var(--rule); text-align: center; font-size: .88em; color: var(--ink-soft); }
+  .rango-tabla tr:nth-child(even) td { background: var(--paper-alt); }
+  .paso { display: flex; gap: 16px; margin-bottom: 16px; align-items: flex-start; }
+  .paso-num {
+    font-family: var(--mono); font-size: .8em;
+    background: var(--accent); color: #fff;
+    min-width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 2px;
+  }
+  .paso-content { flex: 1; }
+  .paso-content p { margin-bottom: 4px; font-size: .93em; }
+  .area-label {
+    font-family: var(--mono); font-size: .68em;
+    color: var(--ink-muted); text-transform: uppercase;
+    letter-spacing: .1em; margin-bottom: 5px; margin-top: 14px; display: block;
+  }
+  .trabajo-area {
+    width: 100%; min-height: 90px;
+    border: 1px solid var(--rule); background: #fff;
+    font-family: var(--serif); font-size: .9em; color: var(--ink);
+    padding: 14px 16px; resize: vertical; outline: none;
+    line-height: 1.8; transition: border-color .2s; display: block;
+  }
+  .trabajo-area:focus { border-color: var(--accent); }
+  .trabajo-area::placeholder { color: #bbb; font-style: italic; }
+  .result-box {
+    background: var(--paper-alt);
+    border: 1px solid var(--rule);
+    padding: 16px 20px; margin: 14px 0;
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  .result-box.col2 { grid-template-columns: 1fr 1fr; }
+  .result-box.col4 { grid-template-columns: repeat(4, 1fr); }
+  .res-campo label {
+    font-family: var(--mono); font-size: .63em;
+    color: var(--ink-muted); text-transform: uppercase;
+    letter-spacing: .1em; display: block; margin-bottom: 5px;
+  }
+  .res-campo input[type="text"] {
+    width: 100%; border: none;
+    border-bottom: 2px solid var(--rule);
+    background: transparent; font-family: var(--mono);
+    font-size: 1em; color: var(--ink); padding: 4px 0;
+    outline: none; transition: border-color .2s; text-align: center;
+  }
+  .res-campo input:focus { border-bottom-color: var(--accent); }
+  .nota {
+    background: #fef9e7; border-left: 3px solid var(--gold);
+    padding: 10px 16px; font-size: .85em; color: #7d6608;
+    margin: 14px 0; font-style: italic;
+  }
+  .nota strong { font-style: normal; color: var(--gold); }
+  .pred-alert {
+    background: #f9f0f0; border-left: 3px solid var(--accent2);
+    padding: 10px 16px; font-size: .85em; color: #7b241c; margin: 14px 0;
+  }
+  .pred-alert strong { color: var(--accent2); }
+  .divider {
+    display: flex; align-items: center; gap: 12px;
+    margin: 28px 0 18px;
+    font-family: var(--mono); font-size: .68em;
+    color: var(--ink-muted); text-transform: uppercase; letter-spacing: .1em;
+  }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--rule); }
+  .reto-header {
+    background: var(--ink); color: #fff;
+    padding: 16px 20px; display: flex; gap: 16px; align-items: flex-start;
+  }
+  .reto-header h4 { font-family: var(--display); font-size: 1em; margin-bottom: 4px; }
+  .reto-header p  { font-size: .82em; color: rgba(255,255,255,.55); margin: 0; }
+  .reto-badge {
+    font-family: var(--mono); font-size: .65em;
+    background: var(--accent2); color: #fff;
+    padding: 3px 8px; letter-spacing: .1em; white-space: nowrap; margin-top: 3px;
+  }
+  .reto-body { border: 1px solid var(--rule); padding: 20px; border-top: none; margin-bottom: 28px; }
+  .tabla-ref { width: 100%; border-collapse: collapse; font-size: .86em; margin: 14px 0; }
+  .tabla-ref th {
+    background: var(--ink); color: #fff; font-family: var(--mono); font-size: .7em;
+    letter-spacing: .07em; padding: 9px 12px; text-align: center; font-weight: 500; border: 1px solid #444;
+  }
+  .tabla-ref td { padding: 7px 12px; border: 1px solid var(--rule); text-align: center; color: var(--ink-soft); vertical-align: middle; }
+  .tabla-ref tr:nth-child(even) td { background: var(--paper-alt); }
+  .tabla-ref .td-mono { font-family: var(--mono); font-size: .82em; font-weight: 600; color: var(--accent); }
+  .tabla-ref input[type="text"] {
+    width: 100%; border: none; border-bottom: 1px solid var(--rule);
+    background: transparent; font-family: var(--mono); font-size: .86em;
+    color: var(--ink); padding: 3px 4px; text-align: center; outline: none;
+  }
+  .ref-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 12px; }
+  .ref-q {
+    background: var(--paper-alt); border: 1px solid var(--rule);
+    border-left: 3px solid var(--ink-muted);
+    padding: 12px 14px; font-size: .9em; color: var(--ink-soft); font-style: italic;
+  }
+  .ref-a {
+    border: 1px solid var(--rule); background: #fff;
+    min-height: 70px; padding: 8px 12px;
+    font-family: var(--serif); font-size: .88em; color: var(--ink);
+    resize: vertical; outline: none; transition: border-color .2s; line-height: 1.7;
+  }
+  .ref-a:focus { border-color: var(--accent); }
+  .autoeval { width: 100%; border-collapse: collapse; font-size: .86em; margin: 14px 0; }
+  .autoeval th {
+    background: var(--ink); color: #fff; font-family: var(--mono); font-size: .68em;
+    padding: 8px 12px; letter-spacing: .07em; text-align: center; border: 1px solid #333;
+  }
+  .autoeval td { padding: 8px 12px; border: 1px solid var(--rule); color: var(--ink-soft); }
+  .autoeval tr:nth-child(even) td { background: var(--paper-alt); }
+  .autoeval .chk-cell { text-align: center; }
+  .ref-lista { list-style: none; padding: 0; counter-reset: ref; }
+  .ref-lista li {
+    counter-increment: ref;
+    display: flex; gap: 14px; padding: 10px 0;
+    border-bottom: 1px dashed var(--rule);
+    font-size: .88em; color: var(--ink-soft); align-items: flex-start;
+  }
+  .ref-lista li:last-child { border-bottom: none; }
+  .ref-lista li::before {
+    content: '[' counter(ref) ']';
+    font-family: var(--mono); font-size: .8em;
+    color: var(--accent); min-width: 28px; flex-shrink: 0; margin-top: 2px;
+  }
+  .ref-lista a { color: var(--accent); }
+  .ref-doi { font-family: var(--mono); font-size: .78em; color: var(--ink-muted); display: block; margin-top: 2px; }
+  .firma-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 30px; }
+  .firma-slot {
+    text-align: center; padding-top: 50px;
+    border-top: 1px solid var(--rule);
+    font-family: var(--mono); font-size: .68em;
+    color: var(--ink-muted); text-transform: uppercase; letter-spacing: .08em;
+  }
+  .btn-imprimir {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--accent); color: #fff; border: none;
+    padding: 12px 22px; font-family: var(--mono);
+    font-size: .75em; letter-spacing: .1em; text-transform: uppercase;
+    cursor: pointer; box-shadow: 0 4px 16px rgba(26,82,118,.35);
+    transition: transform .15s, box-shadow .15s; z-index: 100;
+  }
+  .btn-imprimir:hover { transform: translateY(-2px); box-shadow: 0 6px 22px rgba(26,82,118,.45); }
+  @media (max-width: 680px) {
+    body { padding: 10px 0 40px; }
+    .header { padding: 22px 18px 20px 22px; }
+    .header::after { font-size: 140px; }
+    .header h1 { font-size: 1.4em !important; }
+    .header-meta { flex-direction: column; gap: 8px; }
+    .header-fields { grid-template-columns: 1fr !important; gap: 10px 0; }
+    .body { padding: 22px 16px 28px 20px; }
+    .result-box, .result-box.col2, .result-box.col4 { grid-template-columns: 1fr 1fr !important; }
+    .ref-row { grid-template-columns: 1fr !important; }
+    .firma-grid { grid-template-columns: 1fr !important; gap: 20px; }
+    .reto-header { padding: 12px 14px; gap: 10px; }
+    .reto-body { padding: 14px; }
+  }
+  @media (max-width: 420px) {
+    .header { padding: 18px 14px 16px 18px; }
+    .body { padding: 16px 12px 20px 14px; }
+    .result-box, .result-box.col2, .result-box.col4 { grid-template-columns: 1fr !important; }
+    .header h1 { font-size: 1.2em !important; }
+  }
+  @media print {
+    body { background: #fff; padding: 0; }
+    .documento { box-shadow: none; }
+    .btn-imprimir { display: none; }
+  }
+
+  /* ── IMPRESIÓN: mostrar todo el contenido de respuestas ── */
+  @media print {
+    .print-value {
+      display: block !important;
+      white-space: pre-wrap !important;
+      word-break: break-word !important;
+      font-family: inherit !important;
+      font-size: inherit !important;
+      line-height: 1.75 !important;
+      color: #1a1a2e !important;
+      width: 100% !important;
+      padding: 2px 0 !important;
+      background: transparent !important;
+    }
+    textarea,
+    input[type="text"],
+    input[type="date"] {
+      display: none !important;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="documento">
+<div class="header">
+  <div class="header-meta">
+    <span class="badge-codigo" id="codigoPractica">PRÁCTICA FIS-ELEC-01</span>
+    <span class="badge-tipo">Laboratorio Virtual · Electrostática</span>
+  </div>
+  <h1>Laboratorio de Física Eléctrica<br><em>Iones, Electroscopio &amp; Conducción</em></h1>
+  <div class="header-sub">Carga eléctrica · Ionización · Detección · Transferencia de carga · Conservación de la carga</div>
+  <div class="header-fields">
+    <div class="field-item"><label>Nombre del estudiante</label><input type="text" placeholder="Escriba su nombre completo"></div>
+    <div class="field-item"><label>Código / Identificación</label><input type="text" placeholder="Código estudiantil"></div>
+    <div class="field-item"><label>Grupo / Sección</label><input type="text" placeholder="Ej. Grupo B — Martes 8 am"></div>
+    <div class="field-item"><label>Docente</label><input type="text" placeholder="Nombre del profesor/a"></div>
+    <div class="field-item"><label>Fecha de realización</label><input type="date"></div>
+    <div class="field-item"><label>Calificación</label><input type="text" placeholder="— / 5.0"></div>
+  </div>
+</div>
+
+<div class="body">
+
+  <div class="seccion">
+    <h2 class="seccion-titulo"><span class="num">00</span> Resumen</h2>
+    <div class="resumen-box">Esta práctica de laboratorio virtual integra tres simuladores interactivos de electrostática. En el <strong>Módulo 1</strong> se manipulan protones y electrones de un átomo para observar la formación de cationes (ion positivo) y aniones (ion negativo), relacionando la carga neta con la diferencia <em>q = Z &minus; e⁻</em>. En el <strong>Módulo 2</strong> se estudia el electroscopio de láminas, analizando la carga por contacto y la repulsión coulombiana que separa las hojas. En el <strong>Módulo 3</strong> se explora la transferencia de carga entre esferas conductoras: conducción, neutralización y redistribución. Cada módulo concluye con un reto de predicción para verificar la comprensión conceptual antes de comprobar en el simulador.</div>
+    <p style="margin-top:10px;"><strong>Palabras clave:</strong> Catión · Anión · Carga neta · Electroscopio · Contacto · Conducción eléctrica · Neutralización · Conservación de la carga</p>
+  </div>
+
+  <div class="seccion">
+    <h2 class="seccion-titulo"><span class="num">01</span> Objetivos</h2>
+    <ul class="objetivos-lista">
+      <li><span class="obj-num">1</span>Calcular la carga neta de un ion a partir del número de protones y electrones usando la relación q = Z &minus; e⁻.</li>
+      <li><span class="obj-num">2</span>Distinguir entre catión, anión y átomo neutro identificando el exceso o déficit de electrones.</li>
+      <li><span class="obj-num">3</span>Explicar el funcionamiento del electroscopio de láminas en términos de la repulsión coulombiana entre cargas del mismo signo.</li>
+      <li><span class="obj-num">4</span>Diferenciar la carga por contacto de la carga por inducción y predecir sus efectos sobre el electroscopio.</li>
+      <li><span class="obj-num">5</span>Aplicar el principio de conservación de la carga para predecir el resultado de la conducción entre esferas metálicas.</li>
+      <li><span class="obj-num">6</span>Identificar los tres casos posibles de contacto entre conductores: conducción, neutralización y redistribución de igual signo.</li>
+    </ul>
+  </div>
+
+  <div class="seccion">
+    <h2 class="seccion-titulo"><span class="num">02</span> Marco Teórico</h2>
+    <div class="subseccion-titulo">2.1 · Estructura atómica y carga neta</div>
+    <p>Un átomo está compuesto por un núcleo (protones de carga +<em>e</em> y neutrones sin carga) rodeado por electrones de carga −<em>e</em>. Cuando el número de electrones difiere del número atómico Z, el átomo se convierte en un <strong>ion</strong>.</p>
+    <div class="formula-box">
+      <div class="formula-label">Carga neta del ion — Ecuación fundamental</div>
+      <div class="formula-main">q = Z − e⁻ &nbsp;&nbsp;&nbsp;&nbsp; [en unidades de carga elemental, e = 1.602 × 10⁻¹⁹ C]</div>
+    </div>
+    <table class="rango-tabla">
+      <thead><tr><th>Condición</th><th>Carga neta q</th><th>Nombre</th><th>Ejemplos comunes</th></tr></thead>
+      <tbody>
+        <tr><td>Z &gt; e⁻</td><td>Positiva (+)</td><td><strong>Catión</strong></td><td>Na⁺, Ca²⁺, H⁺, Al³⁺</td></tr>
+        <tr><td>Z = e⁻</td><td>Cero (0)</td><td><strong>Átomo neutro</strong></td><td>Fe, Cu, C, O, Cl</td></tr>
+        <tr><td>Z &lt; e⁻</td><td>Negativa (−)</td><td><strong>Anión</strong></td><td>Cl⁻, O²⁻, F⁻, S²⁻</td></tr>
+      </tbody>
+    </table>
+
+    <div class="subseccion-titulo">2.2 · El electroscopio de láminas</div>
+    <p>El electroscopio detecta la presencia y el signo de la carga eléctrica. Consta de una terminal metálica conectada a dos láminas delgadas de oro. Cuando la terminal recibe carga, ésta se distribuye por toda la parte conductora: las láminas adquieren el mismo signo y se repelen, separándose un ángulo proporcional a la magnitud de la carga [1].</p>
+    <div class="concepto-box">
+      <div class="concepto-label">Modos de carga del electroscopio</div>
+      <p><strong>Contacto:</strong> el objeto cargado toca la terminal y transfiere carga. El electroscopio adquiere el mismo signo que el objeto.</p>
+      <p><strong>Inducción:</strong> el objeto se acerca sin tocar; los electrones se redistribuyen en el conductor sin transferencia neta de carga.</p>
+      <p><strong>Descarga:</strong> al tocar la terminal con un conductor neutro (o con la mano), la carga se disipa y las hojas se cierran.</p>
+    </div>
+
+    <div class="subseccion-titulo">2.3 · Conducción eléctrica entre conductores</div>
+    <p>Cuando dos conductores esféricos idénticos se ponen en contacto, la carga total se redistribuye hasta equilibrar el potencial eléctrico. Para las magnitudes usadas en el simulador, los resultados siguen estas reglas [2]:</p>
+    <table class="rango-tabla">
+      <thead><tr><th>Situación inicial</th><th>Resultado tras el contacto</th><th>Principio aplicado</th></tr></thead>
+      <tbody>
+        <tr><td>E1(+) + E2(0)</td><td>E1(+) · E2(+)</td><td>Conducción</td></tr>
+        <tr><td>E1(+) + E2(−)</td><td>E1(0) · E2(0)</td><td>Neutralización</td></tr>
+        <tr><td>E1(+) + E2(+)</td><td>E1(+) · E2(+)</td><td>Redistribución</td></tr>
+        <tr><td>E1(−) + E2(−)</td><td>E1(−) · E2(−)</td><td>Redistribución</td></tr>
+      </tbody>
+    </table>
+    <div class="formula-box">
+      <div class="formula-label">Ley de conservación de la carga eléctrica</div>
+      <div class="formula-main">q_total,inicial = q_total,final &nbsp;&nbsp; → &nbsp;&nbsp; La carga no se crea ni se destruye, solo se transfiere</div>
+    </div>
+  </div>
+
+  <div class="divider">Módulo 1 — Iones Atómicos</div>
+  <div class="seccion">
+    <h2 class="seccion-titulo"><span class="num">03</span> Módulo 1 · Iones Atómicos</h2>
+    <p>Abre la pestaña <strong>"⚛ Iones Atómicos"</strong> del simulador. Usa los sliders para ajustar el número de protones (Z) y electrones. Observa en tiempo real el cambio de la insignia de estado, el color del anillo orbital y los datos del panel de resultados.</p>
+    <div class="nota"><strong>Nota:</strong> Los electrones orbitan animados continuamente. El anillo cambia de color según la carga: azul = neutro, rojo-anaranjado = catión, cyan = anión.</div>
+
+    <div class="reto-header">
+      <div style="flex:1"><h4>Reto 1 — El átomo neutro</h4><p>Identifica las condiciones de neutralidad para tres elementos distintos del simulador.</p></div>
+      <span class="reto-badge">RETO 01 · MÓD 1</span>
+    </div>
+    <div class="reto-body">
+      <div class="paso"><div class="paso-num">1</div><div class="paso-content"><p>Ajusta el slider de Protones a <strong>Z = 6</strong> (Carbono). Mueve el slider de Electrones hasta que el indicador diga <em>"ÁTOMO NEUTRO"</em>. Registra los valores.</p></div></div>
+      <div class="paso"><div class="paso-num">2</div><div class="paso-content"><p>Repite el procedimiento para <strong>Z = 11</strong> (Sodio) y <strong>Z = 8</strong> (Oxígeno).</p></div></div>
+      <div class="paso"><div class="paso-num">3</div><div class="paso-content"><p>Anota la carga neta calculada y el color del anillo orbital en cada caso.</p></div></div>
+      <div class="result-box col4">
+        <div class="res-campo"><label>Elemento</label><input type="text" placeholder="Carbono"></div>
+        <div class="res-campo"><label>Z (protones)</label><input type="text" placeholder="6"></div>
+        <div class="res-campo"><label>e⁻ para ser neutro</label><input type="text" placeholder=""></div>
+        <div class="res-campo"><label>Color del anillo</label><input type="text" placeholder=""></div>
+        <div class="res-campo"><label>Elemento</label><input type="text" placeholder="Sodio"></div>
+        <div class="res-campo"><label>Z (protones)</label><input type="text" placeholder="11"></div>
+        <div class="res-campo"><label>e⁻ para ser neutro</label><input type="text" placeholder=""></div>
+        <div class="res-campo"><label>Color del anillo</label><input type="text" placeholder=""></div>
+        <div class="res-campo"><label>Elemento</label><input type="text" placeholder="Oxígeno"></div>
+        <div class="res-campo"><label>Z (protones)</label><input type="text" placeholder="8"></div>
+        <div class="res-campo"><label>e⁻ para ser neutro</label><input type="text" placeholder=""></div>
+        <div class="res-campo"><label>Color del anillo</label><input type="text" placeholder=""></div>
+      </div>
+      <span class="area-label">Conclusión — ¿Qué relación existe entre Z y e⁻ cuando el átomo es neutro?</span>
+      <textarea class="trabajo-area" placeholder="Escribe tu conclusión aquí…"></textarea>
+    </div>
+
+    <div class="reto-header">
+      <div style="flex:1"><h4>Reto 2 — Formación de cationes</h4><p>Observa qué ocurre cuando un átomo pierde electrones y se convierte en ion positivo.</p></div>
+      <span class="reto-badge">RETO 02 · MÓD 1</span>
+    </div>
+    <div class="reto-body">
+      <div class="paso"><div class="paso-num">1</div><div class="paso-content"><p>Selecciona el <strong>Sodio (Z = 11)</strong>. Parte de e⁻ = 11 (neutro) y reduce a e⁻ = 10. Registra el cambio en la insignia.</p></div></div>
+      <div class="paso"><div class="paso-num">2</div><div class="paso-content"><p>Selecciona el <strong>Magnesio (Z = 12)</strong> y retira 2 electrones (e⁻ = 10). Registra el símbolo iónico resultante.</p></div></div>
+      <div class="paso"><div class="paso-num">3</div><div class="paso-content"><p>Observa el color de la insignia CATIÓN y compáralo con el del átomo neutro. ¿Qué indica el cambio visual?</p></div></div>
+      <div class="result-box col4">
+        <div class="res-campo"><label>Elemento</label><input type="text" placeholder="Sodio"></div>
+        <div class="res-campo"><label>Z</label><input type="text" placeholder="11"></div>
+        <div class="res-campo"><label>e⁻</label><input type="text" placeholder="10"></div>
+        <div class="res-campo"><label>Carga neta</label><input type="text" placeholder="+1"></div>
+        <div class="res-campo"><label>Símbolo iónico</label><input type="text" placeholder="Na⁺"></div>
+        <div class="res-campo"><label>Tipo de ion</label><input type="text" placeholder="Catión"></div>
+        <div class="res-campo"><label>Color de insignia</label><input type="text" placeholder=""></div>
+        <div class="res-campo"><label>Color del anillo</label><input type="text" placeholder=""></div>
+        <div class="res-campo"><label>Elemento</label><input type="text" placeholder="Magnesio"></div>
+        <div class="res-campo"><label>Z</label><input type="text" placeholder="12"></div>
+        <div class="res-campo"><label>e⁻</label><input type="text" placeholder="10"></div>
+        <div class="res-campo"><label>Carga neta</label><input type="text" placeholder="+2"></div>
+        <div class="res-campo"><label>Símbolo iónico</label><input type="text" placeholder="Mg²⁺"></div>
+        <div class="res-campo"><label>Tipo de ion</label><input type="text" placeholder="Catión"></div>
+        <div class="res-campo"><label>Color de insignia</label><input type="text" placeholder=""></div>
+        <div class="res-campo"><label>Color del anillo</label><input type="text" placeholder=""></div>
+      </div>
+      <span class="area-label">Análisis — ¿Por qué los metales tienden a formar cationes? Relaciónalos con su posición en la tabla periódica.</span>
+      <textarea class="trabajo-area" placeholder="Escribe tu análisis aquí…"></textarea>
+    </div>
+
+    <div class="reto-header">
+      <div style="flex:1"><h4>Reto 3 — Formación de aniones</h4><p>Observa qué ocurre cuando un átomo gana electrones y se convierte en ion negativo.</p></div>
+      <span class="reto-badge">RETO 03 · MÓD 1</span>
+    </div>
+    <div class="reto-body">
+      <div class="paso"><div class="paso-num">1</div><div class="paso-content"><p>Selecciona el <strong>Cloro (Z = 17)</strong>. Parte de e⁻ = 17 y agrega 1 electrón hasta e⁻ = 18. Observa el cambio de la insignia a ANIÓN.</p></div></div>
+      <div class="paso"><div class="paso-num">2</div><div class="paso-content"><p>Selecciona el <strong>Oxígeno (Z = 8)</strong> con e⁻ = 10 (gana 2 electrones). Registra la carga neta y el símbolo iónico.</p></div></div>
+      <div class="paso"><div class="paso-num">3</div><div class="paso-content"><p>Compara el color del anillo del anión con el del catión del Reto 2. ¿En qué se diferencian visualmente?</p></div></div>
+      <div class="result-box col4">
+        <div class="res-campo"><label>Elemento</label><input type="text" placeholder="Cloro"></div>
+        <div class="res-campo"><label>Z</label><input type="text" placeholder="17"></div>
+        <div class="res-campo"><label>e⁻</label><input type="text" placeholder="18"></div>
+        <div class="res-campo"><label>Carga neta</label><input type="text" placeholder="−1"></div>
+        <div class="res-campo"><label>Símbolo iónico</label><input type="text" placeholder="Cl⁻"></div>
+        <div class="res-campo"><label>Tipo de ion</label><input type="text" placeholder="Anión"></div>
+        <div class="res-campo"><label>Color de insignia</label><input type="text" placeholder=""></div>
+        <div class="res-campo"><label>Color del anillo</label><input type="text" placeholder=""></div>
+        <div class="res-campo"><label>Elemento</label><input type="text" placeholder="Oxígeno"></div>
+        <div class="res-campo"><label>Z</label><input type="text" placeholder="8"></div>
+        <div class="res-campo"><label>e⁻</label><input type="text" placeholder="10"></div>
+        <div class="res-campo"><label>Carga neta</label><input type="text" placeholder="−2"></div>
+        <div class="res-campo"><label>Símbolo iónico</label><input type="text" placeholder="O²⁻"></div>
+        <div class="res-campo"><label>Tipo de ion</label><input type="text" placeholder="Anión"></div>
+        <div class="res-campo"><label>Color de insignia</label><input type="text" placeholder=""></div>
+        <div class="res-campo"><label>Color del anillo</label><input type="text" placeholder=""></div>
+      </div>
+      <span class="area-label">Análisis — ¿Por qué los no metales tienden a ganar electrones en lugar de perderlos?</span>
+      <textarea class="trabajo-area" placeholder="Escribe tu análisis aquí…"></textarea>
+    </div>
+
+    <div class="reto-header">
+      <div style="flex:1"><h4>Reto 4 — Predicción: antes de abrir el simulador</h4><p>Completa la columna "Mi predicción" ANTES de verificar con los sliders.</p></div>
+      <span class="reto-badge">RETO 04 · MÓD 1</span>
+    </div>
+    <div class="reto-body">
+      <div class="pred-alert"><strong>Instrucción especial:</strong> completa la columna <em>"Mi predicción"</em> ANTES de mover cualquier slider. Solo después comprueba en el simulador y registra el resultado real.</div>
+      <table class="tabla-ref" style="margin-top:14px;">
+        <thead><tr><th>Z</th><th>e⁻</th><th>Mi predicción (q · tipo)</th><th>Resultado real</th><th>¿Correcto?</th></tr></thead>
+        <tbody>
+          <tr><td class="td-mono">11</td><td class="td-mono">8</td><td><input type="text" placeholder="q = ?  tipo = ?"></td><td><input type="text" placeholder=""></td><td style="text-align:center;"><input type="checkbox"></td></tr>
+          <tr><td class="td-mono">8</td><td class="td-mono">8</td><td><input type="text" placeholder="q = ?  tipo = ?"></td><td><input type="text" placeholder=""></td><td style="text-align:center;"><input type="checkbox"></td></tr>
+          <tr><td class="td-mono">7</td><td class="td-mono">10</td><td><input type="text" placeholder="q = ?  tipo = ?"></td><td><input type="text" placeholder=""></td><td style="text-align:center;"><input type="checkbox"></td></tr>
+          <tr><td class="td-mono">9</td><td class="td-mono">9</td><td><input type="text" placeholder="q = ?  tipo = ?"></td><td><input type="text" placeholder=""></td><td style="text-align:center;"><input type="checkbox"></td></tr>
+          <tr><td class="td-mono">15</td><td class="td-mono">12</td><td><input type="text" placeholder="q = ?  tipo = ?"></td><td><input type="text" placeholder=""></td><td style="text-align:center;"><input type="checkbox"></td></tr>
+        </tbody>
+      </table>
+      <div class="result-box col2">
+        <div class="res-campo"><label>Predicciones correctas (de 5)</label><input type="text" placeholder=""></div>
+        <div class="res-campo"><label>Porcentaje de acierto</label><input type="text" placeholder="__ %"></div>
+      </div>
+      <span class="area-label">Reflexión — ¿En cuál caso fallaste? ¿Qué error conceptual identificas?</span>
+      <textarea class="trabajo-area" style="min-height:70px;" placeholder="Escribe tu reflexión…"></textarea>
+    </div>
+  </div>
+
+  <div class="divider">Módulo 2 — Electroscopio</div>
+  <div class="seccion">
+    <h2 class="seccion-titulo"><span class="num">04</span> Módulo 2 · Electroscopio</h2>
+    <p>Abre la pestaña <strong>"🔬 Electroscopio"</strong>. Usa los botones del panel para seleccionar la carga del objeto y haz <strong>clic sobre la bola superior del diagrama</strong> para simular el contacto con la terminal. Observa el ángulo de las hojas y el registro de eventos.</p>
+    <div class="nota"><strong>Nota:</strong> El botón <em>"↺ Descargar"</em> restablece el electroscopio a estado neutro (hojas cerradas). Úsalo entre cada experimento para partir desde cero.</div>
+
+    <div class="reto-header">
+      <div style="flex:1"><h4>Reto 5 — Carga positiva por contacto</h4><p>Transfiere carga positiva al electroscopio y analiza la separación de las láminas.</p></div>
+      <span class="reto-badge">RETO 05 · MÓD 2</span>
+    </div>
+    <div class="reto-body">
+      <div class="paso"><div class="paso-num">1</div><div class="paso-content"><p>Haz clic en <strong>"+ Objeto Positivo"</strong>. Verifica que la bola del objeto cambia de color.</p></div></div>
+      <div class="paso"><div class="paso-num">2</div><div class="paso-content"><p>Haz clic sobre el objeto para que toque la terminal del electroscopio. Espera la animación de contacto.</p></div></div>
+      <div class="paso"><div class="paso-num">3</div><div class="paso-content"><p>Registra el ángulo de separación indicado, el color de la terminal y el mensaje del registro de eventos.</p></div></div>
+      <div class="result-box col4">
+        <div class="res-campo"><label>Carga del objeto</label><input type="text" placeholder="Positivo (+)"></div>
+        <div class="res-campo"><label>Ángulo de las hojas</label><input type="text" placeholder="__°"></div>
+        <div class="res-campo"><label>Color de la terminal</label><input type="text" placeholder=""></div>
+        <div class="res-campo"><label>Carga del electroscopio</label><input type="text" placeholder=""></div>
+      </div>
+      <span class="area-label">Explicación — ¿Por qué las láminas se separan? ¿Qué tipo de carga tienen tras el contacto?</span>
+      <textarea class="trabajo-area" placeholder="Explica el mecanismo de carga por contacto…"></textarea>
+    </div>
+
+    <div class="reto-header">
+      <div style="flex:1"><h4>Reto 6 — Carga negativa por contacto</h4><p>Compara el comportamiento de la carga negativa con el observado en el Reto 5.</p></div>
+      <span class="reto-badge">RETO 06 · MÓD 2</span>
+    </div>
+    <div class="reto-body">
+      <div class="paso"><div class="paso-num">1</div><div class="paso-content"><p>Haz clic en <strong>"↺ Descargar"</strong> para reiniciar el electroscopio. Selecciona <strong>"– Objeto Negativo"</strong>.</p></div></div>
+      <div class="paso"><div class="paso-num">2</div><div class="paso-content"><p>Toca la terminal haciendo clic en el objeto. Registra ángulo, color y mensaje.</p></div></div>
+      <div class="paso"><div class="paso-num">3</div><div class="paso-content"><p>Compara los resultados con el Reto 5. ¿El ángulo es el mismo? ¿El color de la terminal es igual o diferente?</p></div></div>
+      <div class="result-box col4">
+        <div class="res-campo"><label>Carga del objeto</label><input type="text" placeholder="Negativo (−)"></div>
+        <div class="res-campo"><label>Ángulo de las hojas</label><input type="text" placeholder="__°"></div>
+        <div class="res-campo"><label>Color de la terminal</label><input type="text" placeholder=""></div>
+        <div class="res-campo"><label>Carga del electroscopio</label><input type="text" placeholder=""></div>
+      </div>
+      <span class="area-label">Comparación — ¿El ángulo de separación es igual al del Reto 5? ¿Qué dice eso sobre la magnitud de la carga?</span>
+      <textarea class="trabajo-area" placeholder="Compara cuantitativamente los dos experimentos…"></textarea>
+    </div>
+
+    <div class="reto-header">
+      <div style="flex:1"><h4>Reto 7 — Descarga con objeto neutro</h4><p>Observa la puesta a tierra simplificada al tocar con un conductor neutro.</p></div>
+      <span class="reto-badge">RETO 07 · MÓD 2</span>
+    </div>
+    <div class="reto-body">
+      <div class="paso"><div class="paso-num">1</div><div class="paso-content"><p>Carga el electroscopio (usa cualquier signo). Verifica que las hojas están separadas.</p></div></div>
+      <div class="paso"><div class="paso-num">2</div><div class="paso-content"><p>Selecciona <strong>"○ Objeto Neutro"</strong> y haz clic sobre él para tocar la terminal.</p></div></div>
+      <div class="paso"><div class="paso-num">3</div><div class="paso-content"><p>Lee el mensaje del registro de eventos. ¿Qué ocurrió con las hojas y con la carga del electroscopio?</p></div></div>
+      <div class="result-box">
+        <div class="res-campo"><label>Carga inicial del electroscopio</label><input type="text" placeholder=""></div>
+        <div class="res-campo"><label>Ángulo antes del contacto</label><input type="text" placeholder="__°"></div>
+        <div class="res-campo"><label>Ángulo después del contacto</label><input type="text" placeholder="__°"></div>
+        <div class="res-campo"><label>Carga final del electroscopio</label><input type="text" placeholder=""></div>
+        <div class="res-campo"><label>Mensaje del registro</label><input type="text" placeholder=""></div>
+        <div class="res-campo"><label>Nombre del fenómeno</label><input type="text" placeholder=""></div>
+      </div>
+      <span class="area-label">Explicación — ¿Qué ocurrió con la carga del electroscopio? ¿A dónde se transfirió?</span>
+      <textarea class="trabajo-area" placeholder="Explica el proceso de descarga por contacto…"></textarea>
+    </div>
+
+    <div class="reto-header">
+      <div style="flex:1"><h4>Reto 8 — Análisis teórico: inducción frente a contacto</h4><p>Responde preguntas conceptuales con base en la teoría y en los experimentos anteriores.</p></div>
+      <span class="reto-badge">RETO 08 · MÓD 2</span>
+    </div>
+    <div class="reto-body">
+      <div class="pred-alert"><strong>Reto teórico:</strong> este reto es principalmente conceptual. Responde con base en el marco teórico (sección 02) y en lo observado en los retos anteriores. No es necesario manipular el simulador.</div>
+      <span class="area-label">Pregunta A — ¿En qué se diferencia fundamentalmente la carga por inducción de la carga por contacto?</span>
+      <textarea class="trabajo-area" placeholder="Responde con tus propias palabras…"></textarea>
+      <span class="area-label">Pregunta B — Si acercamos un objeto positivo a la terminal del electroscopio SIN tocarlo, ¿hacia dónde migran los electrones libres del conductor? ¿Se separarán las hojas?</span>
+      <textarea class="trabajo-area" placeholder="Describe la redistribución de cargas inducida…"></textarea>
+      <span class="area-label">Pregunta C — ¿Qué carga quedaría en el electroscopio si retiras el objeto positivo ANTES de conectar la terminal a tierra durante una carga por inducción?</span>
+      <textarea class="trabajo-area" placeholder="Aplica el principio de inducción completa…"></textarea>
+    </div>
+  </div>
+
+  <div class="divider">Módulo 3 — Conducción Eléctrica</div>
+  <div class="seccion">
+    <h2 class="seccion-titulo"><span class="num">05</span> Módulo 3 · Conducción Eléctrica</h2>
+    <p>Abre la pestaña <strong>"⚡ Conducción Eléctrica"</strong>. Usa los paneles para asignar carga a cada esfera (E1 y E2). Luego <strong>arrastra</strong> cualquiera hasta que se toquen: observa el destello de contacto y el mensaje en el registro de eventos.</p>
+    <div class="nota"><strong>Nota:</strong> La línea punteada que aparece cuando las esferas se acercan representa la interacción del campo eléctrico. El destello al contacto indica transferencia de carga.</div>
+
+    <div class="reto-header">
+      <div style="flex:1"><h4>Reto 9 — Cargado + Neutro: conducción</h4><p>Observa cómo una esfera cargada transfiere carga a una esfera neutra por contacto.</p></div>
+      <span class="reto-badge">RETO 09 · MÓD 3</span>
+    </div>
+    <div class="reto-body">
+      <div class="paso"><div class="paso-num">1</div><div class="paso-content"><p>Asigna <strong>E1 = Positivo (+)</strong> y deja <strong>E2 = Neutro (○)</strong>. Anota el estado inicial.</p></div></div>
+      <div class="paso"><div class="paso-num">2</div><div class="paso-content"><p>Arrastra E1 hasta tocar E2. Espera el destello y lee el mensaje del registro de eventos.</p></div></div>
+      <div class="paso"><div class="paso-num">3</div><div class="paso-content"><p>Registra el estado final de ambas esferas. Repite el experimento con E1 = Negativo.</p></div></div>
+      <div class="result-box col4">
+        <div class="res-campo"><label>E1 inicial</label><input type="text" placeholder="Positivo (+)"></div>
+        <div class="res-campo"><label>E2 inicial</label><input type="text" placeholder="Neutro (○)"></div>
+        <div class="res-campo"><label>E1 final</label><input type="text" placeholder=""></div>
+        <div class="res-campo"><label>E2 final</label><input type="text" placeholder=""></div>
+        <div class="res-campo"><label>Mensaje del registro</label><input type="text" placeholder=""></div>
+        <div class="res-campo"><label>Nombre del proceso</label><input type="text" placeholder=""></div>
+        <div class="res-campo"><label>q total inicial</label><input type="text" placeholder="+1 + 0 = +1"></div>
+        <div class="res-campo"><label>q total final</label><input type="text" placeholder=""></div>
+      </div>
+      <span class="area-label">¿Se conservó la carga total? Verifica usando el principio de conservación de la carga.</span>
+      <textarea class="trabajo-area" style="min-height:70px;" placeholder="Demuestra que q_inicial = q_final…"></textarea>
+    </div>
+
+    <div class="reto-header">
+      <div style="flex:1"><h4>Reto 10 — Cargas opuestas: neutralización</h4><p>Estudia qué ocurre cuando portadores de carga de signos contrarios se encuentran.</p></div>
+      <span class="reto-badge">RETO 10 · MÓD 3</span>
+    </div>
+    <div class="reto-body">
+      <div class="paso"><div class="paso-num">1</div><div class="paso-content"><p>Asigna <strong>E1 = Positivo (+)</strong> y <strong>E2 = Negativo (−)</strong>.</p></div></div>
+      <div class="paso"><div class="paso-num">2</div><div class="paso-content"><p>Acerca ambas esferas hasta el contacto. Observa el destello y el estado final.</p></div></div>
+      <div class="paso"><div class="paso-num">3</div><div class="paso-content"><p>Registra el color final, el mensaje del registro y razona por qué el resultado es ese.</p></div></div>
+      <div class="result-box col4">
+        <div class="res-campo"><label>E1 inicial</label><input type="text" placeholder="Positivo (+)"></div>
+        <div class="res-campo"><label>E2 inicial</label><input type="text" placeholder="Negativo (−)"></div>
+        <div class="res-campo"><label>E1 final</label><input type="text" placeholder=""></div>
+        <div class="res-campo"><label>E2 final</label><input type="text" placeholder=""></div>
+        <div class="res-campo"><label>q total inicial</label><input type="text" placeholder="+1 + (−1) = 0"></div>
+        <div class="res-campo"><label>q total final</label><input type="text" placeholder=""></div>
+        <div class="res-campo"><label>Color E1 final</label><input type="text" placeholder=""></div>
+        <div class="res-campo"><label>Color E2 final</label><input type="text" placeholder=""></div>
+      </div>
+      <span class="area-label">Explicación — ¿Por qué ambas quedan neutras? Relaciona con la carga neta total del sistema antes del contacto.</span>
+      <textarea class="trabajo-area" placeholder="Explica el proceso de neutralización eléctrica…"></textarea>
+    </div>
+
+    <div class="reto-header">
+      <div style="flex:1"><h4>Reto 11 — Cargas iguales: redistribución</h4><p>Analiza qué sucede cuando dos conductores del mismo signo entran en contacto.</p></div>
+      <span class="reto-badge">RETO 11 · MÓD 3</span>
+    </div>
+    <div class="reto-body">
+      <div class="paso"><div class="paso-num">1</div><div class="paso-content"><p>Asigna <strong>E1 = Positivo</strong> y <strong>E2 = Positivo</strong>. Tócalas y registra el resultado.</p></div></div>
+      <div class="paso"><div class="paso-num">2</div><div class="paso-content"><p>Reinicia. Asigna <strong>E1 = Negativo</strong> y <strong>E2 = Negativo</strong>. Tócalas y registra.</p></div></div>
+      <div class="paso"><div class="paso-num">3</div><div class="paso-content"><p>Compara los resultados de ambos experimentos. ¿Hubo cambio de signo o solo redistribución?</p></div></div>
+      <div class="result-box col4">
+        <div class="res-campo"><label>Exp. A — E1 inicial</label><input type="text" placeholder="Positivo (+)"></div>
+        <div class="res-campo"><label>Exp. A — E2 inicial</label><input type="text" placeholder="Positivo (+)"></div>
+        <div class="res-campo"><label>Exp. A — E1 final</label><input type="text" placeholder=""></div>
+        <div class="res-campo"><label>Exp. A — E2 final</label><input type="text" placeholder=""></div>
+        <div class="res-campo"><label>Exp. B — E1 inicial</label><input type="text" placeholder="Negativo (−)"></div>
+        <div class="res-campo"><label>Exp. B — E2 inicial</label><input type="text" placeholder="Negativo (−)"></div>
+        <div class="res-campo"><label>Exp. B — E1 final</label><input type="text" placeholder=""></div>
+        <div class="res-campo"><label>Exp. B — E2 final</label><input type="text" placeholder=""></div>
+      </div>
+      <span class="area-label">Análisis — ¿La carga de cada esfera cambió de signo? ¿Se conservó la carga total del sistema en ambos experimentos?</span>
+      <textarea class="trabajo-area" placeholder="Relaciona la repulsión previa al contacto con el resultado observado…"></textarea>
+    </div>
+
+    <div class="reto-header">
+      <div style="flex:1"><h4>Reto 12 — Secuencia maestra y conservación de la carga</h4><p>Ejecuta una cadena de experimentos y predice cada paso antes de comprobarlo.</p></div>
+      <span class="reto-badge">RETO 12 · MÓD 3</span>
+    </div>
+    <div class="reto-body">
+      <div class="pred-alert"><strong>Instrucción especial:</strong> completa la columna <em>"Mi predicción"</em> ANTES de ejecutar cada paso en el simulador. Solo luego comprueba y marca si acertaste.</div>
+      <table class="tabla-ref" style="margin-top:14px;">
+        <thead><tr><th>#</th><th>E1 inicial</th><th>E2 inicial</th><th>Mi predicción (E1 · E2 final)</th><th>Resultado real</th><th>¿Correcto?</th></tr></thead>
+        <tbody>
+          <tr><td class="td-mono">01</td><td>Positivo (+)</td><td>Neutro (○)</td><td><input type="text" placeholder="E1 = ?  /  E2 = ?"></td><td><input type="text" placeholder=""></td><td style="text-align:center;"><input type="checkbox"></td></tr>
+          <tr><td class="td-mono">02</td><td>Resultado E1 anterior</td><td>Negativo (−)</td><td><input type="text" placeholder="E1 = ?  /  E2 = ?"></td><td><input type="text" placeholder=""></td><td style="text-align:center;"><input type="checkbox"></td></tr>
+          <tr><td class="td-mono">03</td><td>Negativo (−)</td><td>Negativo (−)</td><td><input type="text" placeholder="E1 = ?  /  E2 = ?"></td><td><input type="text" placeholder=""></td><td style="text-align:center;"><input type="checkbox"></td></tr>
+          <tr><td class="td-mono">04</td><td>Neutro (○)</td><td>Negativo (−)</td><td><input type="text" placeholder="E1 = ?  /  E2 = ?"></td><td><input type="text" placeholder=""></td><td style="text-align:center;"><input type="checkbox"></td></tr>
+        </tbody>
+      </table>
+      <div class="result-box col2">
+        <div class="res-campo"><label>Predicciones correctas (de 4)</label><input type="text" placeholder=""></div>
+        <div class="res-campo"><label>Porcentaje de acierto</label><input type="text" placeholder="__ %"></div>
+      </div>
+      <span class="area-label">Demostración — Argumenta cómo se verifica la conservación de la carga en cada paso de la secuencia.</span>
+      <textarea class="trabajo-area" placeholder="Demuestra que q_total se conserva en cada experimento de la secuencia…"></textarea>
+    </div>
+  </div>
+
+  <div class="seccion">
+    <h2 class="seccion-titulo"><span class="num">06</span> Reflexión Integradora</h2>
+    <p>Los tres módulos representan la misma realidad física vista desde escalas distintas: la carga neta atómica (Módulo 1) explica por qué un material es conductor, lo que a su vez describe cómo funciona el electroscopio (Módulo 2) y cómo ocurre la conducción entre objetos macroscópicos (Módulo 3).</p>
+    <div class="ref-row">
+      <div class="ref-q">¿En qué se parecen el electroscopio y las esferas conductoras del Módulo 3? ¿Cuál es la diferencia fundamental en su propósito?</div>
+      <textarea class="ref-a" placeholder="Tu respuesta…"></textarea>
+    </div>
+    <div class="ref-row">
+      <div class="ref-q">Un catión Na⁺ y un anión Cl⁻ se acercan en el vacío. Usando la Ley de Coulomb, describe cualitativamente la fuerza entre ellos: ¿atractiva o repulsiva? ¿Por qué?</div>
+      <textarea class="ref-a" placeholder="Tu respuesta…"></textarea>
+    </div>
+    <div class="ref-row">
+      <div class="ref-q">Si un electroscopio con carga negativa es tocado por la esfera positiva del Módulo 3, ¿qué ocurriría? ¿Cuál de los tres módulos simula mejor ese proceso?</div>
+      <textarea class="ref-a" placeholder="Tu respuesta…"></textarea>
+    </div>
+    <div class="ref-row">
+      <div class="ref-q">Menciona un ejemplo cotidiano en el que se observe cada uno de los tres fenómenos: ionización, detección de carga estática y conducción electrostática.</div>
+      <textarea class="ref-a" placeholder="Tu respuesta…"></textarea>
+    </div>
+  </div>
+
+  <div class="seccion">
+    <h2 class="seccion-titulo"><span class="num">07</span> Autoevaluación</h2>
+    <p>Marca con ✓ las competencias que consideras haber alcanzado al finalizar la práctica.</p>
+    <table class="autoeval">
+      <thead><tr><th style="text-align:left;width:65%;">Competencia / Habilidad</th><th>Módulo</th><th>Lograda</th></tr></thead>
+      <tbody>
+        <tr><td>Calculo la carga neta correctamente usando q = Z − e⁻</td><td style="text-align:center;font-family:var(--mono);font-size:.8em;">M1</td><td class="chk-cell"><input type="checkbox"></td></tr>
+        <tr><td>Distingo entre catión, anión y átomo neutro con seguridad</td><td style="text-align:center;font-family:var(--mono);font-size:.8em;">M1</td><td class="chk-cell"><input type="checkbox"></td></tr>
+        <tr><td>Predigo correctamente el tipo de ion dado Z y e⁻</td><td style="text-align:center;font-family:var(--mono);font-size:.8em;">M1</td><td class="chk-cell"><input type="checkbox"></td></tr>
+        <tr><td>Explico por qué las hojas del electroscopio se separan</td><td style="text-align:center;font-family:var(--mono);font-size:.8em;">M2</td><td class="chk-cell"><input type="checkbox"></td></tr>
+        <tr><td>Describo el proceso de carga por contacto correctamente</td><td style="text-align:center;font-family:var(--mono);font-size:.8em;">M2</td><td class="chk-cell"><input type="checkbox"></td></tr>
+        <tr><td>Diferencio la carga por contacto de la inducción eléctrica</td><td style="text-align:center;font-family:var(--mono);font-size:.8em;">M2</td><td class="chk-cell"><input type="checkbox"></td></tr>
+        <tr><td>Predigo el resultado del contacto entre dos esferas cargadas</td><td style="text-align:center;font-family:var(--mono);font-size:.8em;">M3</td><td class="chk-cell"><input type="checkbox"></td></tr>
+        <tr><td>Aplico la ley de conservación de la carga correctamente</td><td style="text-align:center;font-family:var(--mono);font-size:.8em;">M3</td><td class="chk-cell"><input type="checkbox"></td></tr>
+        <tr><td>Relaciono los tres módulos en una explicación unificada</td><td style="text-align:center;font-family:var(--mono);font-size:.8em;">M1–3</td><td class="chk-cell"><input type="checkbox"></td></tr>
+      </tbody>
+    </table>
+    <div class="result-box col2">
+      <div class="res-campo"><label>Competencias logradas (de 9)</label><input type="text" placeholder=""></div>
+      <div class="res-campo"><label>Porcentaje de logro</label><input type="text" placeholder="__ %"></div>
+    </div>
+  </div>
+
+  <div class="seccion">
+    <h2 class="seccion-titulo"><span class="num">08</span> Referencias</h2>
+    <ol class="ref-lista">
+      <li>Serway, R. A. &amp; Jewett, J. W. (2018). <em>Physics for Scientists and Engineers</em> (10.ª ed., cap. 23: Electric Fields). Cengage Learning. <span class="ref-doi">ISBN: 978-1-337-55329-4</span></li>
+      <li>Halliday, D., Resnick, R. &amp; Krane, K. S. (2019). <em>Física</em> (Vol. 2, 5.ª ed., cap. 22: Carga eléctrica). CECSA / Wiley. <span class="ref-doi">ISBN: 978-0-471-40194-6</span></li>
+      <li>Tipler, P. A. &amp; Llewellyn, R. A. (2012). <em>Modern Physics</em> (6.ª ed., cap. 4: Atomic Structure). W. H. Freeman and Company. <span class="ref-doi">ISBN: 978-1-4292-6082-3</span></li>
+      <li>Young, H. D. &amp; Freedman, R. A. (2020). <em>University Physics with Modern Physics</em> (15.ª ed., cap. 21: Electric Charge and Electric Field). Pearson. <span class="ref-doi">ISBN: 978-0-135-16260-1</span></li>
+      <li>Chang, R. &amp; Goldsby, K. A. (2016). <em>Química</em> (12.ª ed., cap. 2: Átomos, moléculas e iones). McGraw-Hill Education. <span class="ref-doi">ISBN: 978-607-15-1398-3</span></li>
+      <li>Griffiths, D. J. (2017). <em>Introduction to Electrodynamics</em> (4.ª ed., cap. 2: Electrostatics). Cambridge University Press. <span class="ref-doi">DOI: 10.1017/9781108333511</span></li>
+      <li>PhET Interactive Simulations. (2023). <em>Charges and Fields</em> [Simulador en línea]. University of Colorado Boulder. <span class="ref-doi"><a href="https://phet.colorado.edu/es/simulations/charges-and-fields" target="_blank">https://phet.colorado.edu/es/simulations/charges-and-fields</a></span></li>
+      <li>NIST. (2022). <em>CODATA 2022 values of the Fundamental Physical Constants</em>. National Institute of Standards and Technology. <span class="ref-doi"><a href="https://physics.nist.gov/cuu/Constants/" target="_blank">https://physics.nist.gov/cuu/Constants/</a></span></li>
+    </ol>
+  </div>
+
+  <div class="firma-grid">
+    <div class="firma-slot">Firma del Estudiante</div>
+    <div class="firma-slot">Visto Bueno del Docente</div>
+  </div>
+
+</div>
+</div>
+<button class="btn-imprimir" onclick="window.print()">🖨 Imprimir / PDF</button>
+<script>
+  window.addEventListener('load', () => {
+    const now = new Date();
+    const sem = now.getMonth() < 6 ? '1' : '2';
+    document.getElementById('codigoPractica').textContent = 'PRÁCTICA FIS-ELEC-01 · ' + now.getFullYear() + '-' + sem;
+    document.querySelectorAll('input[type="date"]').forEach(i => i.value = now.toISOString().split('T')[0]);
+  });
+</script>
+<script>
+/* ── Preparar impresión: volcar valores en divs visibles ── */
+(function () {
+  var snapshots = [];
+
+  function prepararImpresion() {
+    snapshots = [];
+    document.querySelectorAll(
+      'textarea, input[type="text"], input[type="date"]'
+    ).forEach(function (el) {
+      var div = document.createElement('div');
+      div.className = 'print-value';
+      div.textContent = el.value !== '' ? el.value : ' ';
+      /* Copiar estilos de tamaño/posición del campo original */
+      div.style.minHeight = (el.offsetHeight || 24) + 'px';
+      el.parentNode.insertBefore(div, el.nextSibling);
+      snapshots.push({ el: el, div: div });
+    });
+  }
+
+  function restaurar() {
+    snapshots.forEach(function (s) {
+      if (s.div.parentNode) s.div.parentNode.removeChild(s.div);
+    });
+    snapshots = [];
+  }
+
+  window.addEventListener('beforeprint', prepararImpresion);
+  window.addEventListener('afterprint',  restaurar);
+})();
+</script>
+</body>
+</html>

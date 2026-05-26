@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Noticias y Eventos – Laboratorio de Física UNIAJC</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* ===== NAVBAR ===== */
+        .line li { width: auto; height: 50px; transition: background-position-x 0.9s linear; }
+        .line li a { text-decoration: none; transition: all 0.5s; }
+        .line li:hover {
+            background: url("data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIGlkPSJMYXllcl8xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4PSIwcHgiIHk9IjBweCIgd2lkdGg9IjM5MHB4IiBoZWlnaHQ9IjUwcHgiIHZpZXdCb3g9IjAgMCAzOTAgNTAiIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgMCAwIDM5MCA1MCIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+PHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSIjRkZGRjAwIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLW1pdGVybGltaXQ9IjEwIiBkPSJNMCw0Ny41ODVjMCwwLDk3LjUsMCwxMzAsMCAxMy43NSwwLDI4Ljc0LTM4Ljc3OCw0Ni4xNjgtMTkuNDE2QzE5Mi42NjksNDYuNSwyNDMuNjAzLDQ3LjU4NSwyNjAsNDcuNTg1YzMxLjgyMSwwLDEzMCwwLDEzMCwwIi8+PC9zdmc+");
+            animation: line 0.90s forwards;
+        }
+        .line li:hover a { color: rgb(1,1,20); }
+        .line li:not(:last-child) { margin-right: 30px; }
+        @keyframes line { 0% { background-position-x: 600px; } 100% { background-position-x: 130px; } }
+
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f6fb; color: #1a1a2e; margin: 0; }
+
+        /* ===== BREADCRUMB ===== */
+        .breadcrumb-bar {
+            background: white;
+            padding: 12px 40px;
+            border-bottom: 1px solid #e8edf5;
+        }
+        .breadcrumb-bar a { color: #093f7c; text-decoration: none; font-size: 0.9rem; }
+        .breadcrumb-bar a:hover { color: #c0392b; }
+        .breadcrumb-bar span { color: #aaa; margin: 0 8px; font-size: 0.9rem; }
+        .breadcrumb-current { color: #555; font-size: 0.9rem; }
+
+        /* ===== HERO BANNER ===== */
+        .hero-banner {
+            background: linear-gradient(135deg, #093f7c 0%, #1565c0 60%, #0d47a1 100%);
+            padding: 55px 40px 45px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-banner::before {
+            content: ''; position: absolute; top: -40px; left: -40px;
+            width: 220px; height: 220px; background: rgba(255,255,255,0.05); border-radius: 50%;
+        }
+        .hero-banner::after {
+            content: ''; position: absolute; bottom: -60px; right: -30px;
+            width: 280px; height: 280px; background: rgba(255,127,0,0.08); border-radius: 50%;
+        }
+        .hero-banner h1 { color: white; font-size: clamp(1.6rem, 4vw, 2.4rem); font-weight: 800; margin-bottom: 10px; position: relative; z-index: 1; }
+        .hero-banner p { color: #cfe2ff; font-size: 1.05rem; max-width: 700px; margin: 0 auto; position: relative; z-index: 1; }
+        .linea-amarilla { width: 70px; height: 4px; background: #FFD100; margin: 14px auto 0; border-radius: 2px; position: relative; z-index: 1; }
+
+        /* ===== CONTENIDO ===== */
+        .contenido-principal { max-width: 1040px; margin: 0 auto; padding: 40px 20px 60px; }
+
+        .seccion { margin-bottom: 48px; }
+        .seccion-titulo { border-left: 5px solid #FFD100; padding-left: 14px; margin-bottom: 22px; }
+        .seccion-titulo h2 { font-size: 1.5rem; font-weight: 700; color: #093f7c; margin: 0; }
+
+        /* ===== NOTICIA DESTACADA ===== */
+        .noticia-destacada {
+            background: linear-gradient(135deg, #093f7c, #1565c0);
+            border-radius: 16px;
+            padding: 32px;
+            color: white;
+            display: flex;
+            gap: 28px;
+            align-items: flex-start;
+            margin-bottom: 32px;
+        }
+        .noticia-destacada .nd-emoji { font-size: 3.5rem; flex-shrink: 0; }
+        .noticia-destacada .nd-badge {
+            display: inline-block; background: #FFD100; color: #093f7c;
+            font-size: 0.72rem; font-weight: 700; padding: 3px 12px;
+            border-radius: 20px; margin-bottom: 10px; letter-spacing: 0.5px; text-transform: uppercase;
+        }
+        .noticia-destacada h3 { font-size: 1.4rem; font-weight: 700; margin-bottom: 10px; }
+        .noticia-destacada p { color: #cfe2ff; font-size: 0.95rem; line-height: 1.6; margin: 0 0 14px; }
+        .noticia-destacada .nd-fecha { font-size: 0.8rem; color: rgba(255,255,255,0.55); }
+
+        /* ===== GRID DE NOTICIAS ===== */
+        .noticias-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+            gap: 20px;
+        }
+        .noticia-card {
+            background: white;
+            border-radius: 14px;
+            padding: 24px 22px;
+            box-shadow: 0 4px 16px rgba(9,63,124,0.08);
+            border-top: 4px solid #093f7c;
+            transition: transform 0.25s, box-shadow 0.25s;
+            display: flex;
+            flex-direction: column;
+        }
+        .noticia-card:hover { transform: translateY(-4px); box-shadow: 0 10px 28px rgba(9,63,124,0.14); }
+        .noticia-card .nc-emoji { font-size: 2.2rem; margin-bottom: 12px; }
+        .noticia-card .nc-tag {
+            display: inline-block; background: #e8f0fb; color: #093f7c;
+            font-size: 0.72rem; font-weight: 700; padding: 3px 10px;
+            border-radius: 20px; margin-bottom: 10px; letter-spacing: 0.4px;
+        }
+        .noticia-card h4 { font-size: 1.05rem; font-weight: 700; color: #1a1a2e; margin-bottom: 8px; line-height: 1.3; }
+        .noticia-card p { font-size: 0.88rem; color: #555; line-height: 1.6; flex: 1; margin-bottom: 14px; }
+        .noticia-card .nc-fecha { font-size: 0.78rem; color: #aaa; border-top: 1px solid #f0f0f0; padding-top: 10px; }
+
+        /* ===== EVENTOS PRÓXIMOS ===== */
+        .eventos-lista { display: flex; flex-direction: column; gap: 14px; }
+        .evento-item {
+            background: white;
+            border-radius: 12px;
+            padding: 18px 22px;
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            box-shadow: 0 2px 10px rgba(9,63,124,0.07);
+            border-left: 5px solid #093f7c;
+            transition: transform 0.2s;
+        }
+        .evento-item:hover { transform: translateX(4px); }
+        .evento-item.amarillo { border-left-color: #FFD100; }
+        .evento-item.verde   { border-left-color: #28a745; }
+        .evento-item.rojo    { border-left-color: #dc3545; }
+        .evento-fecha {
+            flex-shrink: 0; background: #093f7c; color: white;
+            border-radius: 10px; padding: 10px 14px; text-align: center; min-width: 64px;
+        }
+        .evento-fecha .ef-dia  { font-size: 1.6rem; font-weight: 800; line-height: 1; }
+        .evento-fecha .ef-mes  { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.8; }
+        .evento-info h4 { font-size: 1rem; font-weight: 700; color: #093f7c; margin-bottom: 4px; }
+        .evento-info p  { font-size: 0.85rem; color: #666; margin: 0 0 6px; line-height: 1.4; }
+        .evento-info .ei-tag {
+            display: inline-block; font-size: 0.72rem; font-weight: 600; padding: 2px 10px;
+            border-radius: 20px; background: #e8f0fb; color: #093f7c;
+        }
+
+        /* ===== GALERÍA RÁPIDA ===== */
+        .galeria-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 14px;
+        }
+        .galeria-item {
+            background: linear-gradient(135deg, #093f7c, #1565c0);
+            border-radius: 12px;
+            aspect-ratio: 4/3;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+            padding: 16px;
+            font-size: 2.2rem;
+            transition: transform 0.2s;
+        }
+        .galeria-item:hover { transform: scale(1.04); }
+        .galeria-item span { font-size: 0.75rem; margin-top: 8px; color: #cfe2ff; line-height: 1.3; }
+
+        /* ===== NEWSLETTER ===== */
+        .newsletter-box {
+            background: linear-gradient(135deg, #FFD100, #f0b400);
+            border-radius: 14px;
+            padding: 32px;
+            text-align: center;
+        }
+        .newsletter-box h3 { font-size: 1.3rem; font-weight: 800; color: #093f7c; margin-bottom: 8px; }
+        .newsletter-box p  { font-size: 0.92rem; color: #2a3a5c; margin-bottom: 20px; }
+        .newsletter-form { display: flex; gap: 10px; max-width: 480px; margin: 0 auto; flex-wrap: wrap; justify-content: center; }
+        .newsletter-form input {
+            flex: 1; min-width: 220px; padding: 11px 16px; border-radius: 8px;
+            border: none; font-size: 0.9rem; outline: none;
+        }
+        .newsletter-form button {
+            background: #093f7c; color: white; border: none;
+            padding: 11px 24px; border-radius: 8px; font-weight: 700;
+            font-size: 0.9rem; cursor: pointer; transition: background 0.2s; white-space: nowrap;
+        }
+        .newsletter-form button:hover { background: #0d5aad; }
+
+        /* ===== FOOTER ===== */
+        .footer-simple {
+            background: #093f7c; color: #cfe2ff;
+            text-align: center; padding: 20px; font-size: 0.88rem; margin-top: 0;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .navbar-brand img { width: 90px !important; height: 38px !important; }
+            .line li:not(:last-child) { margin-right: 0 !important; }
+            .hero-banner { padding: 32px 16px 28px; }
+            .breadcrumb-bar { padding: 10px 15px; overflow-x: auto; white-space: nowrap; }
+            .contenido-principal { padding: 24px 14px 40px; }
+            .noticia-destacada { flex-direction: column; gap: 16px; padding: 22px 18px; }
+            .noticia-destacada .nd-emoji { font-size: 2.5rem; }
+            .noticias-grid { grid-template-columns: 1fr; }
+            .galeria-grid { grid-template-columns: repeat(2, 1fr); }
+            .evento-item { flex-direction: column; gap: 12px; }
+        }
+        @media (max-width: 480px) {
+            .galeria-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR (idéntico al index) -->
+    <nav class="navbar navbar-expand-lg" style="background-color:rgb(9, 63, 124);">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="index.html">
+                <img src="resources/logo_camacho.png" alt="Logo" width="120" height="50" class="d-inline-block align-text">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+                    aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse line" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" style="color:white;">
+                            Laboratorios de Física Presencial
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="laboratorio_fisica_presencial_1.html">Laboratorio de Física I Presencial</a></li>
+                            <li><a class="dropdown-item" href="laboratorio_fisica_presencial_2.html">Laboratorio de Física II Presencial</a></li>
+                            <li><a class="dropdown-item" href="laboratorio_fisica_presencial_3.html">Laboratorio de Física III Presencial</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" style="color:white;">
+                            Laboratorios de Física Virtual
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="laboratorio_fisica_virtual_1.html">Laboratorio de Física I Virtual</a></li>
+                            <li><a class="dropdown-item" href="laboratorio_fisica_virtual_2.html">Laboratorio de Física II Virtual</a></li>
+                            <li><a class="dropdown-item" href="laboratorio_fisica_virtual_3.html">Laboratorio de Física III Virtual</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" style="color:white;">
+                            Laboratorios de Física Remotos
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="laboratorio_fisica_remoto_1.html">Laboratorio de Física I Remoto</a></li>
+                            <li><a class="dropdown-item" href="laboratorio_fisica_remoto_2.html">Laboratorio de Física II Remoto</a></li>
+                            <li><a class="dropdown-item" href="laboratorio_fisica_remoto_3.html">Laboratorio de Física III Remoto</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" style="color:white;">
+                            Iniciar Sesión
+                            <img src="resources/is3.png" alt="Iniciar Sesión" width="30" height="24">
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- BREADCRUMB -->
+    <div class="breadcrumb-bar">
+        <a href="index.html">🏠 Inicio</a>
+        <span>›</span>
+        <span class="breadcrumb-current">Noticias y Eventos</span>
+    </div>
+
+    <!-- HERO BANNER -->
+    <div class="hero-banner">
+        <h1>📰 Noticias y Eventos</h1>
+        <p>Mantente al día con las últimas novedades del Departamento de Ciencias Básicas de la UNIAJC</p>
+        <div class="linea-amarilla"></div>
+    </div>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <div class="contenido-principal">
+
+        <!-- NOTICIA DESTACADA -->
+        <div class="seccion">
+            <div class="seccion-titulo"><h2>🌟 Noticia Destacada</h2></div>
+            <div class="noticia-destacada">
+                <div class="nd-emoji">🔬</div>
+                <div>
+                    <span class="nd-badge">Nuevo · 2025</span>
+                    <h3>Inauguración del Laboratorio Virtual de Física UNIAJC</h3>
+                    <p>El Departamento de Ciencias Básicas lanza oficialmente la plataforma de laboratorios virtuales y remotos de Física, integrando simuladores interactivos 3D para las asignaturas de Física I, II y III. Esta iniciativa permite a los estudiantes experimentar desde cualquier lugar con equipos de alta fidelidad.</p>
+                    <div class="nd-fecha">📅 Marzo 2025 · Departamento de Ciencias Básicas — UNIAJC</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- NOTICIAS RECIENTES -->
+        <div class="seccion">
+            <div class="seccion-titulo"><h2>📋 Noticias Recientes</h2></div>
+            <div class="noticias-grid">
+
+                <div class="noticia-card">
+                    <div class="nc-emoji">🚀</div>
+                    <span class="nc-tag">Semilleros</span>
+                    <h4>SpaceU presenta resultados en el ECEI 2025</h4>
+                    <p>El semillero de investigación SpaceU del grupo GISCBA participó en el Encuentro de Ciencia e Innovación Institucional con su proyecto sobre simulación de órbitas planetarias.</p>
+                    <div class="nc-fecha">📅 Febrero 2025</div>
+                </div>
+
+                <div class="noticia-card">
+                    <div class="nc-emoji">🏆</div>
+                    <span class="nc-tag">Reconocimiento</span>
+                    <h4>GISCBA avanza en categorización MinCiencias</h4>
+                    <p>El grupo de investigación GISCBA continúa su proceso de categorización ante Minciencias, consolidando su producción científica en física de materiales y didáctica de las ciencias básicas.</p>
+                    <div class="nc-fecha">📅 Enero 2025</div>
+                </div>
+
+                <div class="noticia-card">
+                    <div class="nc-emoji">💡</div>
+                    <span class="nc-tag">AppliScience</span>
+                    <h4>AppliScience abre convocatoria para nuevos integrantes</h4>
+                    <p>El semillero AppliScience invita a estudiantes de todos los programas a unirse a sus proyectos de ciencias aplicadas. La inscripción está abierta hasta el 30 de abril de 2025.</p>
+                    <div class="nc-fecha">📅 Marzo 2025</div>
+                </div>
+
+                <div class="noticia-card">
+                    <div class="nc-emoji">📊</div>
+                    <span class="nc-tag">SEMOSIMA</span>
+                    <h4>SEMOSIMA publica nuevos modelos de simulación matemática</h4>
+                    <p>El semillero de Simulación y Modelación Matemática (SEMOSIMA) ha publicado su repositorio de modelos computacionales aplicados a problemas físicos reales del entorno regional.</p>
+                    <div class="nc-fecha">📅 Febrero 2025</div>
+                </div>
+
+                <div class="noticia-card">
+                    <div class="nc-emoji">🌐</div>
+                    <span class="nc-tag">Alianzas</span>
+                    <h4>Nueva alianza interinstitucional con universidades de la región</h4>
+                    <p>El DCB firma acuerdo de cooperación académica con instituciones universitarias de Cali para el desarrollo conjunto de proyectos de investigación en física experimental.</p>
+                    <div class="nc-fecha">📅 Enero 2025</div>
+                </div>
+
+                <div class="noticia-card">
+                    <div class="nc-emoji">🎓</div>
+                    <span class="nc-tag">Formación</span>
+                    <h4>Jornada de laboratorio abierto para colegios de la ciudad</h4>
+                    <p>El Laboratorio de Física de la UNIAJC abrió sus puertas a estudiantes de bachillerato de Cali, en el marco del programa de articulación con la educación media de la ciudad.</p>
+                    <div class="nc-fecha">📅 Diciembre 2024</div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- PRÓXIMOS EVENTOS -->
+        <div class="seccion">
+            <div class="seccion-titulo"><h2>📅 Próximos Eventos</h2></div>
+            <div class="eventos-lista">
+
+                <div class="evento-item amarillo">
+                    <div class="evento-fecha" style="background:#FFD100;">
+                        <div class="ef-dia" style="color:#093f7c;">28</div>
+                        <div class="ef-mes" style="color:#093f7c;">Abr</div>
+                    </div>
+                    <div class="evento-info">
+                        <h4>Congreso Internacional de Ciencias Básicas Aplicadas — CICBA 2025</h4>
+                        <p>Evento académico organizado por GISCBA con ponencias en física, matemáticas y estadística. Convocatoria abierta para ponentes y asistentes.</p>
+                        <span class="ei-tag">🏛️ Institucional · UNIAJC Cali</span>
+                    </div>
+                </div>
+
+                <div class="evento-item verde">
+                    <div class="evento-fecha" style="background:#28a745;">
+                        <div class="ef-dia">15</div>
+                        <div class="ef-mes">May</div>
+                    </div>
+                    <div class="evento-info">
+                        <h4>Taller: Introducción a los Laboratorios Remotos de Física</h4>
+                        <p>Sesión de formación para docentes sobre el uso de la plataforma de laboratorios remotos. Cupos limitados — inscripción por correo institucional.</p>
+                        <span class="ei-tag">🖥️ Virtual · Google Meet</span>
+                    </div>
+                </div>
+
+                <div class="evento-item">
+                    <div class="evento-fecha">
+                        <div class="ef-dia">06</div>
+                        <div class="ef-mes">Jun</div>
+                    </div>
+                    <div class="evento-info">
+                        <h4>Feria de Ciencias DCB 2025</h4>
+                        <p>Exposición de proyectos de los semilleros AppliScience, SpaceU y SEMOSIMA, abierta a toda la comunidad universitaria y público externo.</p>
+                        <span class="ei-tag">🏫 Presencial · Laboratorio C109</span>
+                    </div>
+                </div>
+
+                <div class="evento-item rojo">
+                    <div class="evento-fecha" style="background:#dc3545;">
+                        <div class="ef-dia">20</div>
+                        <div class="ef-mes">Jun</div>
+                    </div>
+                    <div class="evento-info">
+                        <h4>Cierre del Semestre — Socialización de Resultados</h4>
+                        <p>Jornada de presentación de informes finales de laboratorio. Participan todos los grupos de Física I, II y III de las modalidades virtual, presencial y remota.</p>
+                        <span class="ei-tag">📋 Evaluativo · Todas las modalidades</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- GALERÍA -->
+        <div class="seccion">
+            <div class="seccion-titulo"><h2>📷 Galería de Actividades</h2></div>
+            <div class="galeria-grid">
+                <div class="galeria-item">🔭<span>Práctica de Óptica<br>Lab. C109</span></div>
+                <div class="galeria-item" style="background:linear-gradient(135deg,#2E7D32,#43A047);">🧪<span>Semillero<br>AppliScience</span></div>
+                <div class="galeria-item" style="background:linear-gradient(135deg,#6A1B9A,#9C27B0);">🚀<span>SpaceU<br>ECEI 2025</span></div>
+                <div class="galeria-item" style="background:linear-gradient(135deg,#B71C1C,#E53935);">⚡<span>Laboratorio<br>Electricidad</span></div>
+                <div class="galeria-item" style="background:linear-gradient(135deg,#E65100,#FF7043);">🌊<span>Cubeta de<br>Ondas 3D</span></div>
+                <div class="galeria-item" style="background:linear-gradient(135deg,#004D40,#00897B);">🧮<span>SEMOSIMA<br>Modelación</span></div>
+            </div>
+        </div>
+
+        <!-- NEWSLETTER -->
+        <div class="seccion">
+            <div class="newsletter-box">
+                <h3>📬 Recibe las novedades del DCB</h3>
+                <p>Suscríbete para recibir noticias, convocatorias y eventos del Laboratorio de Física directamente en tu correo institucional.</p>
+                <div class="newsletter-form">
+                    <input type="email" placeholder="tucorreo@uniajc.edu.co">
+                    <button type="button">Suscribirse</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <div class="footer-simple">
+        <strong style="color:white;">Institución Universitaria Antonio José Camacho</strong> — Departamento de Ciencias Básicas<br>
+        Noticias y Eventos · Laboratorios de Física © 2025
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

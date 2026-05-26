@@ -1,0 +1,1418 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Práctica de Laboratorio — Incertidumbres y Número π</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>
+  MathJax = {
+    tex: { inlineMath: [['$','$'],['\\(','\\)']], displayMath: [['$$','$$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+  :root {
+    --ink:       #1a1a2e;
+    --ink-soft:  #3d3d5c;
+    --ink-muted: #7a7a9a;
+    --paper:     #faf8f3;
+    --paper-alt: #f2ede3;
+    --rule:      #d4c9b0;
+    --accent:    #1a5276;
+    --accent2:   #c0392b;
+    --gold:      #b8860b;
+    --green:     #1e8449;
+    --mono:      'JetBrains Mono', monospace;
+    --serif:     'Source Serif 4', Georgia, serif;
+    --display:   'Playfair Display', Georgia, serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: #dde3e8;
+    font-family: var(--serif);
+    color: var(--ink);
+    font-size: 15px;
+    line-height: 1.75;
+    min-height: 100vh;
+    padding: 0 0 80px;
+  }
+
+  .documento {
+    max-width: 100%;
+    margin: 0 auto;
+    background: var(--paper);
+    box-shadow: 0 2px 4px rgba(0,0,0,.08), 0 8px 32px rgba(0,0,0,.14), 0 20px 60px rgba(0,0,0,.08);
+    position: relative;
+   overflow-x: hidden; }
+  .documento::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 5px;
+    background: linear-gradient(180deg, var(--accent) 0%, var(--accent2) 50%, var(--gold) 100%);
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--ink);
+    color: #fff;
+    padding: 36px 50px 30px 55px;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::after {
+    content: 'π';
+    font-family: var(--display);
+    font-size: 300px;
+    font-weight: 700;
+    color: rgba(255,255,255,.04);
+    position: absolute;
+    right: -10px;
+    top: -60px;
+    line-height: 1;
+    pointer-events: none;
+    user-select: none;
+  }
+  .header-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    gap: 20px;
+  }
+  .badge-codigo {
+    font-family: var(--mono);
+    font-size: .7em;
+    background: var(--accent);
+    color: #fff;
+    padding: 3px 10px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+  .badge-tipo {
+    font-family: var(--mono);
+    font-size: .7em;
+    color: rgba(255,255,255,.5);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    border: 1px solid rgba(255,255,255,.15);
+    padding: 3px 10px;
+  }
+  .header h1 {
+    font-family: var(--display);
+    font-size: 2.1em;
+    font-weight: 700;
+    line-height: 1.2;
+    color: #fff;
+    margin-bottom: 6px;
+  }
+  .header h1 em {
+    font-style: italic;
+    color: rgba(255,255,255,.65);
+    font-size: .82em;
+  }
+  .header-sub {
+    font-size: .82em;
+    color: rgba(255,255,255,.45);
+    font-weight: 300;
+    letter-spacing: .04em;
+    margin-top: 4px;
+  }
+  .header-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 24px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,.12);
+  }
+  .field-item label {
+    display: block;
+    font-family: var(--mono);
+    font-size: .65em;
+    color: rgba(255,255,255,.4);
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    margin-bottom: 4px;
+  }
+  .field-item input[type="text"],
+  .field-item input[type="date"] {
+    width: 100%;
+    background: rgba(255,255,255,.07);
+    border: none;
+    border-bottom: 1px solid rgba(255,255,255,.25);
+    color: #fff;
+    font-family: var(--serif);
+    font-size: .9em;
+    padding: 4px 0;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .field-item input:focus { border-bottom-color: var(--accent2); }
+  .field-item input::placeholder { color: rgba(255,255,255,.2); }
+
+  /* ── BODY ── */
+  .body { padding: 44px 50px 50px 55px; }
+
+  .seccion { margin-bottom: 42px; }
+
+  .seccion-titulo {
+    font-family: var(--display);
+    font-size: 1.15em;
+    font-weight: 600;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--rule);
+  }
+  .seccion-titulo .num {
+    font-family: var(--mono);
+    font-size: .75em;
+    color: var(--accent);
+    background: #e8f0f7;
+    padding: 2px 7px;
+    letter-spacing: .05em;
+    min-width: 36px;
+    text-align: center;
+  }
+
+  .subseccion-titulo {
+    font-family: var(--display);
+    font-size: 1em;
+    font-weight: 600;
+    color: var(--accent);
+    margin: 22px 0 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .subseccion-titulo::before {
+    content: '';
+    width: 14px; height: 2px;
+    background: var(--accent);
+    display: inline-block;
+    flex-shrink: 0;
+  }
+
+  p { margin-bottom: 10px; color: var(--ink-soft); font-size: .95em; }
+  p:last-child { margin-bottom: 0; }
+
+  /* ── RESUMEN ── */
+  .resumen-box {
+    background: var(--paper-alt);
+    border-left: 3px solid var(--accent);
+    padding: 16px 20px;
+    font-size: .9em;
+    font-style: italic;
+    color: var(--ink-soft);
+    line-height: 1.7;
+  }
+
+  /* ── OBJETIVOS ── */
+  .objetivos-lista { list-style: none; padding: 0; }
+  .objetivos-lista li {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 8px 0;
+    border-bottom: 1px dashed var(--rule);
+    font-size: .93em;
+    color: var(--ink-soft);
+  }
+  .objetivos-lista li:last-child { border-bottom: none; }
+  .objetivos-lista li .obj-num {
+    font-family: var(--mono);
+    font-size: .75em;
+    color: #fff;
+    background: var(--accent);
+    min-width: 22px; height: 22px;
+    display: flex; align-items: center; justify-content: center;
+    margin-top: 2px; flex-shrink: 0;
+  }
+
+  /* ── FÓRMULAS ── */
+  .formula-box {
+    background: var(--ink);
+    color: #fff;
+    padding: 18px 24px;
+    margin: 18px 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .formula-box::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--accent2);
+  }
+  .formula-box .formula-label {
+    font-family: var(--mono);
+    font-size: .65em;
+    color: rgba(255,255,255,.4);
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    margin-bottom: 10px;
+  }
+  .formula-main {
+    font-size: 1.2em;
+    text-align: center;
+    padding: 6px 0;
+  }
+  .formula-num {
+    font-family: var(--mono);
+    font-size: .65em;
+    color: rgba(255,255,255,.35);
+    text-align: right;
+    margin-top: 6px;
+  }
+
+  /* ── TABLA DE TEORÍA ── */
+  .teoria-tabla {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .88em;
+    margin: 14px 0;
+  }
+  .teoria-tabla th {
+    background: var(--ink);
+    color: #fff;
+    font-family: var(--mono);
+    font-size: .72em;
+    letter-spacing: .08em;
+    padding: 9px 12px;
+    text-align: center;
+    font-weight: 500;
+  }
+  .teoria-tabla td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--rule);
+    border-left: 1px solid var(--rule);
+    color: var(--ink-soft);
+    vertical-align: middle;
+    text-align: center;
+  }
+  .teoria-tabla td:first-child { text-align: left; border-left: none; }
+  .teoria-tabla tr:nth-child(even) td { background: var(--paper-alt); }
+
+  /* ── TABLA DATOS ── */
+  .tabla-resultados {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .86em;
+    margin: 14px 0;
+  }
+  .tabla-resultados th {
+    background: var(--ink);
+    color: #fff;
+    font-family: var(--mono);
+    font-size: .7em;
+    letter-spacing: .07em;
+    padding: 9px 12px;
+    text-align: center;
+    font-weight: 500;
+    border: 1px solid #444;
+  }
+  .tabla-resultados td {
+    padding: 7px 10px;
+    border: 1px solid var(--rule);
+    text-align: center;
+    color: var(--ink-soft);
+    vertical-align: middle;
+  }
+  .tabla-resultados td.input-cell { padding: 3px 4px; }
+  .tabla-resultados input[type="text"] {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid var(--rule);
+    background: transparent;
+    font-family: var(--mono);
+    font-size: .88em;
+    color: var(--ink);
+    padding: 4px 4px;
+    text-align: center;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .tabla-resultados input:focus { border-bottom-color: var(--accent); }
+  .tabla-resultados tr:nth-child(even) td { background: var(--paper-alt); }
+  .tabla-resultados tr:nth-child(even) td.input-cell { background: var(--paper-alt); }
+  .tabla-resultados .circ-label {
+    font-family: var(--mono);
+    font-size: .82em;
+    font-weight: 500;
+    color: var(--accent);
+  }
+
+  /* ── PASOS ── */
+  .paso {
+    display: flex; gap: 16px;
+    margin-bottom: 20px; align-items: flex-start;
+  }
+  .paso-num {
+    font-family: var(--mono); font-size: .8em;
+    background: var(--accent); color: #fff;
+    min-width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 2px;
+  }
+  .paso-content { flex: 1; }
+  .paso-content p { margin-bottom: 6px; }
+
+  /* ── ÁREA DE TRABAJO ── */
+  .trabajo-area {
+    width: 100%; min-height: 120px;
+    border: 1px solid var(--rule);
+    background: #fff;
+    font-family: var(--serif);
+    font-size: .9em; color: var(--ink);
+    padding: 14px 16px; resize: vertical; outline: none;
+    line-height: 1.8; transition: border-color .2s; display: block;
+  }
+  .trabajo-area:focus { border-color: var(--accent); }
+  .trabajo-area::placeholder { color: #bbb; font-style: italic; }
+
+  .area-label {
+    font-family: var(--mono); font-size: .68em;
+    color: var(--ink-muted); text-transform: uppercase;
+    letter-spacing: .1em; margin-bottom: 5px; margin-top: 14px; display: block;
+  }
+
+  /* ── NOTA ── */
+  .nota {
+    background: #fef9e7;
+    border-left: 3px solid var(--gold);
+    padding: 10px 16px;
+    font-size: .85em; color: #7d6608;
+    margin: 14px 0; font-style: italic;
+  }
+  .nota strong { font-style: normal; color: var(--gold); }
+
+  /* ── EJEMPLO ── */
+  .ejemplo-box {
+    background: #f0f7f0;
+    border-left: 3px solid var(--green);
+    padding: 14px 18px; margin: 14px 0;
+    font-size: .9em;
+  }
+  .ejemplo-box .ej-label {
+    font-family: var(--mono); font-size: .65em;
+    color: var(--green); text-transform: uppercase;
+    letter-spacing: .12em; margin-bottom: 8px; display: block;
+    font-weight: 500;
+  }
+
+  /* ── TIPOS DE ERROR CARDS ── */
+  .error-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px; margin: 14px 0;
+  }
+  @media(max-width:600px) { .error-grid { grid-template-columns: 1fr; } }
+  .error-card {
+    border: 1px solid var(--rule);
+    background: var(--paper-alt);
+    padding: 14px 16px;
+  }
+  .error-card .ec-num {
+    font-family: var(--mono); font-size: .65em;
+    color: var(--accent2); text-transform: uppercase;
+    letter-spacing: .1em; margin-bottom: 6px; display: block;
+  }
+  .error-card .ec-title {
+    font-family: var(--display); font-size: .95em;
+    font-weight: 600; color: var(--ink); margin-bottom: 6px;
+  }
+  .error-card p { font-size: .86em; margin: 0; }
+
+  /* ── INTERPRETACIÓN RANGOS ── */
+  .rango-tabla {
+    width: 100%; border-collapse: collapse;
+    font-size: .85em; margin: 12px 0;
+  }
+  .rango-tabla th {
+    background: var(--ink); color: #fff;
+    font-family: var(--mono); font-size: .68em;
+    padding: 7px 12px; letter-spacing: .08em;
+    text-align: center;
+  }
+  .rango-tabla td {
+    padding: 6px 12px; border: 1px solid var(--rule);
+    text-align: center; font-size: .88em;
+  }
+  .rango-tabla .bueno { color: var(--green); font-weight: 600; }
+  .rango-tabla .medio { color: var(--gold); font-weight: 600; }
+  .rango-tabla .malo  { color: var(--accent2); font-weight: 600; }
+
+  /* ── CAMPO PI RESULTADO ── */
+  .pi-result-box {
+    background: var(--paper-alt);
+    border: 1px solid var(--rule);
+    padding: 16px 20px; margin: 14px 0;
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 14px;
+  }
+  .pi-campo label {
+    font-family: var(--mono); font-size: .63em;
+    color: var(--ink-muted); text-transform: uppercase;
+    letter-spacing: .1em; display: block; margin-bottom: 5px;
+  }
+  .pi-campo input[type="text"] {
+    width: 100%; border: none;
+    border-bottom: 2px solid var(--rule);
+    background: transparent; font-family: var(--mono);
+    font-size: 1em; color: var(--ink); padding: 4px 0;
+    outline: none; transition: border-color .2s; text-align: center;
+  }
+  .pi-campo input:focus { border-bottom-color: var(--accent); }
+
+  /* ── GRÁFICA ── */
+  .grafica-box {
+    border: 1px solid var(--rule);
+    background: #fff; margin: 14px 0;
+    padding: 0; overflow: hidden;
+  }
+  .grafica-header {
+    background: var(--ink); color: #fff;
+    padding: 8px 16px;
+    font-family: var(--mono); font-size: .68em;
+    letter-spacing: .1em; text-transform: uppercase;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  canvas#graficaCanvas {
+    display: block; width: 100%;
+    background: #fafafa;
+    cursor: crosshair;
+  }
+  .grafica-controles {
+    padding: 10px 16px;
+    border-top: 1px solid var(--rule);
+    display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+  }
+  .btn-ctrl {
+    font-family: var(--mono); font-size: .7em;
+    padding: 5px 12px; border: 1px solid var(--rule);
+    background: var(--paper-alt); color: var(--ink-soft);
+    cursor: pointer; transition: all .2s; letter-spacing: .05em;
+  }
+  .btn-ctrl:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-ctrl.activo { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .grafica-info {
+    font-family: var(--mono); font-size: .7em;
+    color: var(--ink-muted); margin-left: auto;
+  }
+
+  /* ── SEPARADOR ── */
+  .divider {
+    display: flex; align-items: center; gap: 12px;
+    margin: 32px 0; opacity: .4;
+  }
+  .divider::before, .divider::after {
+    content: ''; flex: 1; height: 1px; background: var(--rule);
+  }
+  .divider span {
+    font-family: var(--mono); font-size: .65em;
+    color: var(--ink-muted); letter-spacing: .1em; text-transform: uppercase;
+  }
+
+  /* ── FIRMA ── */
+  .firma-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 30px; margin-top: 30px;
+  }
+  .firma-slot {
+    text-align: center; padding-top: 50px;
+    border-top: 1px solid var(--rule);
+    font-family: var(--mono); font-size: .68em;
+    color: var(--ink-muted); text-transform: uppercase; letter-spacing: .08em;
+  }
+
+  /* ── BTN IMPRIMIR ── */
+  .btn-imprimir {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--accent); color: #fff; border: none;
+    padding: 12px 22px; font-family: var(--mono);
+    font-size: .75em; letter-spacing: .1em; text-transform: uppercase;
+    cursor: pointer; box-shadow: 0 4px 16px rgba(26,82,118,.35);
+    transition: transform .15s, box-shadow .15s; z-index: 100;
+  }
+  .btn-imprimir:hover { transform: translateY(-2px); box-shadow: 0 6px 22px rgba(26,82,118,.45); }
+
+
+  /* ===== RESPONSIVE MOBILE ===== */
+  @media (max-width: 680px) {
+    body { padding: 10px 0 40px; }
+    .documento { border-radius: 0; }
+
+    /* Header */
+    .header { padding: 22px 18px 20px 22px; }
+    .header::after { font-size: 160px; }
+    .header h1 { font-size: 1.4em !important; }
+    .header-meta { flex-direction: column; gap: 8px; }
+    .header-fields { grid-template-columns: 1fr !important; gap: 10px 0; }
+
+    /* Body */
+    .body { padding: 22px 16px 28px 20px; }
+
+    /* Tablas — scroll horizontal */
+    .tabla-resultados,
+    .rango-tabla { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+    /* Result boxes — máx 2 columnas */
+    .result-box,
+    .result-box.col2,
+    .result-box.col4,
+    .result-box.col5,
+    .result-box.col6 { grid-template-columns: 1fr 1fr !important; }
+
+    /* Grids de firma */
+    .firma-grid { grid-template-columns: 1fr !important; gap: 20px; }
+
+    /* Pasos de procedimiento */
+    .paso { gap: 10px; }
+
+    /* Parte headers */
+    .parte-header,
+    .reto-header { padding: 12px 14px; gap: 10px; }
+    .parte-header h4,
+    .reto-header h4 { font-size: 0.9em; }
+    .parte-body,
+    .reto-body { padding: 14px; }
+
+    /* Controles de gráfica */
+    .grafica-controles { gap: 6px; flex-wrap: wrap; }
+    .btn-ctrl { font-size: 0.65em; padding: 4px 8px; }
+
+    /* Section titles */
+    .seccion-titulo { font-size: 1em; gap: 8px; }
+
+    /* Adjunto slot */
+    .adjunto-slot { padding: 16px 10px; }
+
+    /* Trabajo área */
+    .trabajo-area { min-height: 80px; }
+  }
+
+  @media (max-width: 420px) {
+    .header { padding: 18px 14px 16px 18px; }
+    .body { padding: 16px 12px 20px 14px; }
+    .result-box,
+    .result-box.col2,
+    .result-box.col4,
+    .result-box.col5,
+    .result-box.col6 { grid-template-columns: 1fr !important; }
+    .header h1 { font-size: 1.2em !important; }
+    .formula-main { font-size: 1em !important; }
+  }
+
+  @media print {
+    body { background: #fff; padding: 0; }
+    .documento { box-shadow: none; }
+    .btn-imprimir { display: none; }
+    .grafica-controles { display: none; }
+    canvas#graficaCanvas { border: 1px solid #ccc; }
+  }
+</style>
+</head>
+<body>
+
+<div class="documento">
+
+  <!-- ══════════════════ HEADER ══════════════════ -->
+  <div class="header">
+    <div class="header-meta">
+      <span class="badge-codigo" id="codigoPractica">PRÁCTICA FIS-INC-01</span>
+      <span class="badge-tipo">Laboratorio de Física · Medición</span>
+    </div>
+    <h1>Incertidumbres<br><em>y determinación experimental del número π</em></h1>
+    <div class="header-sub">Cinta métrica · Calibrador Vernier · Análisis gráfico · Propagación de errores</div>
+    <div class="header-fields">
+      <div class="field-item">
+        <label>Nombre del estudiante</label>
+        <input type="text" placeholder="Escriba su nombre completo">
+      </div>
+      <div class="field-item">
+        <label>Código</label>
+        <input type="text" placeholder="Código estudiantil">
+      </div>
+      <div class="field-item">
+        <label>Grupo / Sección</label>
+        <input type="text" placeholder="Ej. Grupo B — Martes 8 am">
+      </div>
+      <div class="field-item">
+        <label>Docente</label>
+        <input type="text" placeholder="Nombre del profesor/a">
+      </div>
+      <div class="field-item">
+        <label>Fecha de realización</label>
+        <input type="date">
+      </div>
+      <div class="field-item">
+        <label>Sede</label>
+        <input type="text" placeholder="Campus / Laboratorio">
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════ BODY ══════════════════ -->
+  <div class="body">
+
+    <!-- 0. RESUMEN -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">00</span> Resumen</h2>
+      <div class="resumen-box">
+        En esta práctica se estudian los tipos de error presentes en toda medición experimental y se aplican las
+        reglas de propagación de incertidumbres. Como experimento central, se mide el perímetro y el diámetro
+        de cinco objetos cilíndricos utilizando cinta métrica y calibrador Vernier, para luego obtener
+        experimentalmente el valor del número π mediante análisis gráfico. La pendiente de la recta
+        $P = \pi \cdot d$ constituye la estimación experimental de π, que se compara con el valor teórico
+        $\pi_{\text{teo}} = 3{,}1416$ calculando el error relativo porcentual.
+      </div>
+      <p style="margin-top:10px;"><strong>Palabras clave:</strong>
+        incertidumbre · error de escala · error aleatorio · propagación de errores ·
+        número π · regresión lineal · calibrador Vernier
+      </p>
+    </div>
+
+    <!-- 1. OBJETIVOS -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">01</span> Objetivos</h2>
+      <ul class="objetivos-lista">
+        <li><span class="obj-num">1</span>Estudiar los tipos de error presentes en una medición experimental: error de escala, errores aleatorios y errores sistemáticos.</li>
+        <li><span class="obj-num">2</span>Aplicar las reglas de operaciones con incertidumbres para calcular la propagación del error en resultados derivados.</li>
+        <li><span class="obj-num">3</span>Medir perímetros con cinta métrica y diámetros con calibrador Vernier, reportando cada resultado con su incertidumbre correcta.</li>
+        <li><span class="obj-num">4</span>Determinar experimentalmente el número π a través del análisis gráfico $P$ vs. $d$, interpretando la pendiente como estimación de π.</li>
+        <li><span class="obj-num">5</span>Evaluar la calidad del resultado mediante la incertidumbre relativa (IR) y el error relativo (ER).</li>
+      </ul>
+    </div>
+
+    <!-- 2. MARCO TEÓRICO -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">02</span> Marco Teórico</h2>
+
+      <!-- 2.1 Errores en las mediciones -->
+      <div class="subseccion-titulo">2.1 · Errores en las mediciones</div>
+      <p>
+        Cuando se realiza una medición, el resultado no posee infinitas cifras decimales por las limitaciones
+        propias del instrumento. La incertidumbre asociada a toda medición se denota $\Delta x$ y el resultado
+        se reporta siempre como:
+      </p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 1 — Reporte de una medición</div>
+        <div class="formula-main">$$x \pm \Delta x \quad \text{(unidades)}$$</div>
+        <div class="formula-num">(1)</div>
+      </div>
+      <div class="nota">
+        <strong>Nota:</strong> debe existir correspondencia entre los decimales de $\Delta x$ y los del valor $x$.
+        Por ejemplo, $3{,}19 \pm 0{,}01$ es correcto; $3{,}1 \pm 0{,}01$ <em>no lo es</em>, pues el instrumento
+        llegó al segundo decimal.
+      </div>
+
+      <!-- 2.2 Incertidumbre relativa y error relativo -->
+      <div class="subseccion-titulo">2.2 · Incertidumbre relativa y error relativo</div>
+      <p>La <strong>incertidumbre relativa (IR)</strong> indica qué tan <em>precisa</em> fue la medición:</p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 2 — Incertidumbre relativa</div>
+        <div class="formula-main">$$\text{IR} = \frac{\Delta x}{x} \times 100\%$$</div>
+        <div class="formula-num">(2)</div>
+      </div>
+      <p>El <strong>error relativo (ER)</strong> indica qué tan <em>exacto</em> fue el resultado comparado con el valor teórico:</p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 3 — Error relativo</div>
+        <div class="formula-main">$$\text{ER} = \frac{|x_{\text{exp}} - x_{\text{teo}}|}{x_{\text{teo}}} \times 100\%$$</div>
+        <div class="formula-num">(3)</div>
+      </div>
+
+      <table class="rango-tabla">
+        <thead>
+          <tr>
+            <th>Indicador</th>
+            <th>Rango</th>
+            <th>Interpretación</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td rowspan="3" style="font-family:var(--mono);font-size:.85em;">IR</td>
+            <td class="bueno">IR &lt; 1%</td>
+            <td>Resultado muy preciso</td>
+          </tr>
+          <tr>
+            <td class="medio">1% &lt; IR &lt; 10%</td>
+            <td>Resultado preciso</td>
+          </tr>
+          <tr>
+            <td class="malo">IR &gt; 10%</td>
+            <td>Resultado poco preciso</td>
+          </tr>
+          <tr>
+            <td rowspan="3" style="font-family:var(--mono);font-size:.85em;">ER</td>
+            <td class="bueno">ER &lt; 1%</td>
+            <td>Resultado muy exacto</td>
+          </tr>
+          <tr>
+            <td class="medio">1% &lt; ER &lt; 10%</td>
+            <td>Resultado exacto</td>
+          </tr>
+          <tr>
+            <td class="malo">ER &gt; 10%</td>
+            <td>Resultado poco exacto</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- 2.3 Error de escala -->
+      <div class="subseccion-titulo">2.3 · Error de escala</div>
+      <p>
+        El <strong>error de escala</strong> (también llamado incertidumbre instrumental o precisión del instrumento)
+        es la mínima unidad que el instrumento permite discriminar. Para la <em>cinta métrica</em>:
+        $\Delta x = \pm 1\,\text{mm} = \pm 0{,}1\,\text{cm}$; para el <em>calibrador Vernier</em> de 20 divisiones:
+        $\Delta x = \pm 0{,}05\,\text{mm}$.
+      </p>
+
+      <!-- 2.4 Operaciones con incertidumbres -->
+      <div class="subseccion-titulo">2.4 · Operaciones con incertidumbres</div>
+      <p>
+        Cuando los valores medidos se combinan matemáticamente, la incertidumbre del resultado se calcula
+        usando el diferencial total de la función:
+      </p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 4 — Propagación general de incertidumbre</div>
+        <div class="formula-main">$$\Delta f = \left|\frac{\partial f}{\partial x}\right|\Delta x + \left|\frac{\partial f}{\partial y}\right|\Delta y$$</div>
+        <div class="formula-num">(4)</div>
+      </div>
+      <p>Las fórmulas para las operaciones más comunes se resumen en la Tabla 1:</p>
+
+      <table class="teoria-tabla">
+        <thead>
+          <tr>
+            <th>Operación</th>
+            <th>Resultado</th>
+            <th>Incertidumbre</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Suma y resta</td>
+            <td>$x \pm y$</td>
+            <td>$\Delta x + \Delta y$</td>
+          </tr>
+          <tr>
+            <td>Multiplicación</td>
+            <td>$x \cdot y$</td>
+            <td>$x\,\Delta y + y\,\Delta x$</td>
+          </tr>
+          <tr>
+            <td>División</td>
+            <td>$\dfrac{x}{y}$</td>
+            <td>$\dfrac{x\,\Delta y + y\,\Delta x}{y^2}$</td>
+          </tr>
+          <tr>
+            <td>Potencia</td>
+            <td>$x^n$</td>
+            <td>$n\,x^{n-1}\,\Delta x$</td>
+          </tr>
+          <tr>
+            <td>Escalar</td>
+            <td>$\lambda x$</td>
+            <td>$\lambda\,\Delta x$</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="ejemplo-box">
+        <span class="ej-label">Ejemplo — incertidumbre de π = P/d</span>
+        <p>
+          Aplicando la fórmula de la división con $f = P/d$:
+          $$\Delta\!\left(\frac{P}{d}\right) = \frac{P\,\Delta d + d\,\Delta P}{d^2} = \frac{P}{d}\left(\frac{\Delta P}{P} + \frac{\Delta d}{d}\right)$$
+          Si $P = 41{,}4\,\text{cm} \pm 0{,}1\,\text{cm}$ y $d = 13{,}2\,\text{cm} \pm 0{,}05\,\text{mm} = 0{,}005\,\text{cm}$:
+          $$\pi_{\text{exp}} = \frac{41{,}4}{13{,}2} \approx 3{,}136 \qquad
+          \Delta\pi = 3{,}136\!\left(\frac{0{,}1}{41{,}4} + \frac{0{,}005}{13{,}2}\right) \approx 0{,}009$$
+          Resultado: $\pi = 3{,}14 \pm 0{,}01$
+        </p>
+      </div>
+
+      <!-- 2.5 Errores aleatorios -->
+      <div class="subseccion-titulo">2.5 · Errores aleatorios</div>
+      <p>
+        Son los producidos por factores externos no controlables: errores humanos, condiciones ambientales,
+        falta de definición del objeto, etc. Cuando se realizan $N$ mediciones repetidas, el valor
+        a reportar es el <strong>promedio</strong>:
+      </p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 5 — Promedio o media aritmética</div>
+        <div class="formula-main">$$\bar{x} = \frac{1}{N}\sum_{i=1}^{N} x_i$$</div>
+        <div class="formula-num">(5)</div>
+      </div>
+      <p>La incertidumbre asociada es la <strong>desviación estándar del valor medio</strong>:</p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 6 — Desviación estándar del valor medio</div>
+        <div class="formula-main">$$\Delta x = \sigma_{\bar{x}} = \sqrt{\frac{\displaystyle\sum_{i=1}^{N}(x_i - \bar{x})^2}{N(N-1)}}$$</div>
+        <div class="formula-num">(6)</div>
+      </div>
+      <div class="nota">
+        <strong>Criterio:</strong> si $\sigma_{\bar{x}}$ supera el error de escala, se usa $\Delta x = \sigma_{\bar{x}}$.
+        De lo contrario, se usa el error de escala del instrumento.
+      </div>
+
+      <!-- 2.6 Errores sistemáticos -->
+      <div class="subseccion-titulo">2.6 · Errores sistemáticos</div>
+      <div class="error-grid">
+        <div class="error-card">
+          <span class="ec-num">Sistemático 01</span>
+          <div class="ec-title">Error de cero</div>
+          <p>El instrumento no tiene el cero bien definido. Frecuente en cintas métricas envejecidas. Se corrige iniciando en la siguiente división definida.</p>
+        </div>
+        <div class="error-card">
+          <span class="ec-num">Sistemático 02</span>
+          <div class="ec-title">Error de paralelaje</div>
+          <p>Lectura realizada en ángulo en lugar de perpendicular a la escala. Se evita alineando el ojo directamente frente a la división.</p>
+        </div>
+        <div class="error-card">
+          <span class="ec-num">Sistemático 03</span>
+          <div class="ec-title">Error del modelo teórico</div>
+          <p>Uso de modelos que se alejan de la situación real. Por ejemplo, ignorar la fricción o la curvatura al colocar la cinta métrica.</p>
+        </div>
+        <div class="error-card">
+          <span class="ec-num">Sistemático 04</span>
+          <div class="ec-title">Error de interacción</div>
+          <p>El instrumento altera el objeto a medir. En mediciones de diámetro, la presión de las mordazas puede deformar objetos blandos.</p>
+        </div>
+      </div>
+
+      <!-- 2.7 Determinación de π -->
+      <div class="subseccion-titulo">2.7 · Determinación experimental de π</div>
+      <p>
+        El número π se define como el cociente entre el perímetro $P$ y el diámetro $d$ de cualquier circunferencia:
+      </p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 7 — Relación fundamental</div>
+        <div class="formula-main">$$\pi = \frac{P}{d} \quad \Longrightarrow \quad P = \pi \cdot d$$</div>
+        <div class="formula-num">(7)</div>
+      </div>
+      <p>
+        Al graficar $P$ (eje $y$) vs. $d$ (eje $x$) para varios cilindros, los puntos deben alinearse sobre
+        una recta que pasa por el origen con pendiente igual a π. La pendiente de la recta de mejor ajuste
+        es la estimación experimental:
+      </p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 8 — Pendiente como estimación de π</div>
+        <div class="formula-main">$$m = \frac{\Delta P}{\Delta d} \approx \pi_{\text{exp}}$$</div>
+        <div class="formula-num">(8)</div>
+      </div>
+    </div>
+
+    <!-- 3. PROCEDIMIENTO -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">03</span> Procedimiento Experimental</h2>
+
+      <div class="paso">
+        <div class="paso-num">1</div>
+        <div class="paso-content">
+          <p><strong>Identificación de materiales.</strong> Obtenga los cinco objetos cilíndricos (C1–C5) de diferente tamaño. Etiquételos y colóquelos sobre una superficie plana. Anote la incertidumbre de cada instrumento:</p>
+          <div class="pi-result-box" style="grid-template-columns:1fr 1fr; margin-top:8px;">
+            <div class="pi-campo">
+              <label>ΔP — Cinta métrica</label>
+              <input type="text" placeholder="± ___ cm">
+            </div>
+            <div class="pi-campo">
+              <label>Δd — Calibrador Vernier</label>
+              <input type="text" placeholder="± ___ mm">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="paso">
+        <div class="paso-num">2</div>
+        <div class="paso-content">
+          <p><strong>Medición del perímetro con cinta métrica.</strong> Rodee cada cilindro con la cinta métrica en su parte central, asegurando que quede en un plano perpendicular al eje. Lea con precisión de 1 mm y registre en la Tabla 2.</p>
+        </div>
+      </div>
+
+      <div class="paso">
+        <div class="paso-num">3</div>
+        <div class="paso-content">
+          <p><strong>Medición del diámetro con calibrador Vernier.</strong> Abra las mordazas y colóquelas en la sección más ancha del cilindro. Cierre suavemente, bloquee el tornillo y realice la lectura:</p>
+          <ul style="margin:6px 0 0 18px; font-size:.9em; color:var(--ink-soft); line-height:1.9;">
+            <li>Lea el último milímetro completo visible en la escala principal (antes del cero del nonio).</li>
+            <li>Identifique qué línea del nonio coincide mejor con una línea de la escala principal.</li>
+            <li>Multiplique ese número de división por 0,05 mm y súmelo a la lectura entera.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="paso">
+        <div class="paso-num">4</div>
+        <div class="paso-content">
+          <p><strong>Cálculo de π y su incertidumbre.</strong> Para cada círculo calcule $\pi_i = P_i / d_i$ y la incertidumbre correspondiente usando la fórmula de la división (Tabla 1, Ec. 4). Registre todo en la Tabla 2.</p>
+        </div>
+      </div>
+
+      <div class="paso">
+        <div class="paso-num">5</div>
+        <div class="paso-content">
+          <p><strong>Gráfica P vs. d.</strong> En papel milimetrado o en la herramienta digital de la sección 4, grafique $P$ vs. $d$. Trace la mejor recta que promedia los puntos y calcule su pendiente con las cifras significativas correctas.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. REGISTRO DE DATOS -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">04</span> Registro de Datos</h2>
+      <p>Complete la Tabla 2. Exprese los valores en centímetros con la precisión del instrumento.
+         <strong>Entregue una copia al docente antes de abandonar el laboratorio.</strong></p>
+
+      <p style="margin:10px 0 6px; font-size:.85em; color:var(--ink-muted); font-style:italic;">
+        Tabla 2. Perímetro, diámetro y cálculo de π para cinco cilindros.
+      </p>
+      <table class="tabla-resultados">
+        <thead>
+          <tr>
+            <th rowspan="2">Círculo</th>
+            <th colspan="2">Cinta métrica</th>
+            <th colspan="2">Calibrador Vernier</th>
+            <th colspan="2">Cociente</th>
+          </tr>
+          <tr>
+            <th>P (cm)</th>
+            <th>ΔP (cm)</th>
+            <th>d (cm)</th>
+            <th>Δd (cm)</th>
+            <th>π = P/d</th>
+            <th>Δ(P/d)</th>
+          </tr>
+        </thead>
+        <tbody id="tablaDatos">
+          <!-- generada por JS -->
+        </tbody>
+      </table>
+
+      <div class="divider"><span>promedio y evaluación</span></div>
+
+      <p style="margin-bottom:10px;">
+        Con los cinco valores de π obtenidos, calcule el promedio $\bar{\pi}$ usando la Ec. (5)
+        y la incertidumbre usando la Ec. (6):
+      </p>
+      <div class="pi-result-box">
+        <div class="pi-campo">
+          <label>π promedio</label>
+          <input type="text" id="piProm" placeholder="0,0000">
+        </div>
+        <div class="pi-campo">
+          <label>Δπ (desv. est. del medio)</label>
+          <input type="text" id="piInc" placeholder="± 0,0000">
+        </div>
+        <div class="pi-campo">
+          <label>Resultado: π ± Δπ</label>
+          <input type="text" id="piRes" placeholder="0,000 ± 0,000">
+        </div>
+      </div>
+
+      <div class="pi-result-box" style="grid-template-columns:1fr 1fr; margin-top:4px;">
+        <div class="pi-campo">
+          <label>IR = (Δπ / π̄) × 100%</label>
+          <input type="text" id="piIR" placeholder="0,00 %">
+        </div>
+        <div class="pi-campo">
+          <label>ER = |π̄ − 3,1416| / 3,1416 × 100%</label>
+          <input type="text" id="piER" placeholder="0,00 %">
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. GRÁFICA INTERACTIVA -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">05</span> Gráfica P vs. d — Herramienta Interactiva</h2>
+      <p>
+        Ingrese los valores de $d$ y $P$ en la Tabla 2; la gráfica se actualiza automáticamente.
+        Active la recta de regresión para ver la pendiente experimental de π.
+        También puede trazar su propia recta manualmente haciendo clic y arrastrando.
+      </p>
+
+      <div class="grafica-box">
+        <div class="grafica-header">
+          <span>Gráfica: Perímetro P (cm) vs. Diámetro d (cm)</span>
+          <span id="pendienteLabel" style="color:rgba(255,255,255,.6);font-size:.9em;">pendiente m = —</span>
+        </div>
+        <canvas id="graficaCanvas" height="380"></canvas>
+        <div class="grafica-controles">
+          <button class="btn-ctrl activo" id="btnRegresion" onclick="toggleRegresion()">Recta de regresión</button>
+          <button class="btn-ctrl" id="btnLimpiar" onclick="limpiarRecta()">Limpiar recta manual</button>
+          <button class="btn-ctrl" onclick="exportarGrafica()">⬇ Exportar imagen</button>
+          <span class="grafica-info" id="graficaInfo">Ingrese datos en la tabla para ver los puntos</span>
+        </div>
+      </div>
+
+      <div class="pi-result-box" style="grid-template-columns:1fr 1fr 1fr; margin-top:4px;">
+        <div class="pi-campo">
+          <label>Pendiente de la recta (π exp)</label>
+          <input type="text" id="pendGraf" placeholder="0,0000">
+        </div>
+        <div class="pi-campo">
+          <label>ER de la pendiente</label>
+          <input type="text" id="erGraf" placeholder="0,00 %">
+        </div>
+        <div class="pi-campo">
+          <label>¿Pasa por el origen? (Sí/No)</label>
+          <input type="text" placeholder="Sí / No / Casi">
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. DISCUSIÓN -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">06</span> Discusión de Resultados</h2>
+
+      <span class="area-label">6.1 · Compare IR y ER. ¿El resultado fue preciso? ¿Fue exacto? Justifique con los valores calculados.</span>
+      <textarea class="trabajo-area" placeholder="Escriba su análisis aquí..."></textarea>
+
+      <span class="area-label">6.2 · ¿La recta P vs. d pasa por el origen? ¿A qué tipo de error atribuye el intercepto si no lo hace?</span>
+      <textarea class="trabajo-area" placeholder="Escriba su análisis aquí..."></textarea>
+
+      <span class="area-label">6.3 · ¿Cuál instrumento aporta mayor incertidumbre al cociente P/d: la cinta métrica o el calibrador? Justifique usando los valores de ΔP/P y Δd/d.</span>
+      <textarea class="trabajo-area" placeholder="Escriba su análisis aquí..."></textarea>
+
+      <span class="area-label">6.4 · Identifique al menos dos errores aleatorios y dos sistemáticos que hayan influido en la práctica. ¿Cómo se podrían reducir?</span>
+      <textarea class="trabajo-area" placeholder="Escriba su análisis aquí..."></textarea>
+
+      <span class="area-label">6.5 · ¿Qué significado físico tiene la pendiente de la gráfica P vs. d? ¿Por qué debe pasar por el origen?</span>
+      <textarea class="trabajo-area" placeholder="Escriba su análisis aquí..."></textarea>
+    </div>
+
+    <!-- 7. CONCLUSIONES -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">07</span> Conclusiones</h2>
+      <p>Redacte tres conclusiones concretas que respondan a los objetivos. Cada una debe vincular un resultado numérico con el marco teórico.</p>
+
+      <span class="area-label">Conclusión 1 — Sobre la calidad de la medición (IR y ER)</span>
+      <textarea class="trabajo-area" style="min-height:90px;" placeholder="Redacte su primera conclusión..."></textarea>
+
+      <span class="area-label">Conclusión 2 — Sobre la relación P = π·d y el análisis gráfico</span>
+      <textarea class="trabajo-area" style="min-height:90px;" placeholder="Redacte su segunda conclusión..."></textarea>
+
+      <span class="area-label">Conclusión 3 — Sobre las fuentes de error y cómo mejorar el experimento</span>
+      <textarea class="trabajo-area" style="min-height:90px;" placeholder="Redacte su tercera conclusión..."></textarea>
+    </div>
+
+    <!-- 8. REFERENCIAS -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">08</span> Referencias</h2>
+      <p style="font-size:.88em; line-height:2;">
+        [1] Taylor, J. R. <em>An Introduction to Error Analysis</em>. 2ª ed. University Science Books, 1997.<br>
+        [2] Joint Committee for Guides in Metrology. <em>Evaluation of Measurement Data — GUM</em>. JCGM 100:2008.<br>
+        [3] Serway, R. A. & Jewett, J. W. <em>Physics for Scientists and Engineers</em>. 10ª ed. Cengage, 2019.<br>
+        [4] Hughes, I. & Hase, T. <em>Measurements and their Uncertainties</em>. Oxford University Press, 2010.
+      </p>
+    </div>
+
+    <div class="firma-grid">
+      <div class="firma-slot">Firma del estudiante</div>
+      <div class="firma-slot">Visto bueno del docente</div>
+    </div>
+
+  </div><!-- fin body -->
+</div><!-- fin documento -->
+
+<button class="btn-imprimir" onclick="window.print()">🖨 Imprimir / PDF</button>
+
+<script>
+// ══════════════════════════════════════════════
+//  TABLA DE DATOS
+// ══════════════════════════════════════════════
+const datos = Array.from({length:5}, () => ({P:'', dP:'', d:'', dd:'', pi:'', dpi:''}));
+
+function buildTabla() {
+  const tb = document.getElementById('tablaDatos');
+  tb.innerHTML = '';
+  for (let i = 0; i < 5; i++) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="circ-label">C${i+1}</td>
+      <td class="input-cell"><input type="text" id="P${i}"  placeholder="0,0" oninput="onDato(${i},'P',this.value)"></td>
+      <td class="input-cell"><input type="text" id="dP${i}" placeholder="±0,1" oninput="onDato(${i},'dP',this.value)"></td>
+      <td class="input-cell"><input type="text" id="d${i}"  placeholder="0,00" oninput="onDato(${i},'d',this.value)"></td>
+      <td class="input-cell"><input type="text" id="dd${i}" placeholder="±0,005" oninput="onDato(${i},'dd',this.value)"></td>
+      <td class="input-cell"><input type="text" id="pi${i}" placeholder="—" readonly style="color:var(--accent);font-weight:600;"></td>
+      <td class="input-cell"><input type="text" id="dpi${i}" placeholder="—" readonly style="color:var(--ink-muted);"></td>`;
+    tb.appendChild(tr);
+  }
+}
+
+function parseNum(s) {
+  return parseFloat((s||'').replace(',','.'));
+}
+
+function fmt(n, dec) {
+  if (isNaN(n)) return '—';
+  return n.toFixed(dec).replace('.',',');
+}
+
+function onDato(i, campo, val) {
+  datos[i][campo] = val;
+  calcFila(i);
+  actualizarResumen();
+  dibujarGrafica();
+}
+
+function calcFila(i) {
+  const P  = parseNum(datos[i].P);
+  const dP = parseNum(datos[i].dP);
+  const d  = parseNum(datos[i].d);
+  const dd = parseNum(datos[i].dd);
+
+  if (P > 0 && d > 0) {
+    const pi  = P / d;
+    const dpi = (P * dd + d * dP) / (d * d);
+    datos[i].pi  = pi;
+    datos[i].dpi = dpi;
+    document.getElementById('pi'  + i).value = fmt(pi, 4);
+    document.getElementById('dpi' + i).value = fmt(dpi, 4);
+  } else {
+    datos[i].pi  = '';
+    datos[i].dpi = '';
+    document.getElementById('pi'  + i).value = '—';
+    document.getElementById('dpi' + i).value = '—';
+  }
+}
+
+function actualizarResumen() {
+  const piVals = datos.map(r => r.pi).filter(v => typeof v === 'number' && !isNaN(v));
+  if (piVals.length === 0) return;
+
+  const n    = piVals.length;
+  const prom = piVals.reduce((a,b) => a+b, 0) / n;
+  const varianza = piVals.reduce((s,v) => s + (v - prom)**2, 0) / (n * (n - 1));
+  const sigma = Math.sqrt(varianza);
+
+  const IR = (sigma / prom) * 100;
+  const ER = Math.abs(prom - 3.1416) / 3.1416 * 100;
+
+  document.getElementById('piProm').value = fmt(prom, 4);
+  document.getElementById('piInc').value  = '± ' + fmt(sigma, 4);
+  document.getElementById('piRes').value  = fmt(prom, 4) + ' ± ' + fmt(sigma, 4);
+  document.getElementById('piIR').value   = fmt(IR, 2) + ' %';
+  document.getElementById('piER').value   = fmt(ER, 2) + ' %';
+}
+
+// ══════════════════════════════════════════════
+//  GRÁFICA INTERACTIVA
+// ══════════════════════════════════════════════
+const COLORS = ['#1a5276','#c0392b','#1e8449','#b8860b','#7d3c98'];
+let mostrarRegresion = true;
+let rectaManual = null;   // {x1,y1,x2,y2} en mm del canvas
+let dragging = false;
+let dragStart = null;
+
+function toggleRegresion() {
+  mostrarRegresion = !mostrarRegresion;
+  document.getElementById('btnRegresion').classList.toggle('activo', mostrarRegresion);
+  dibujarGrafica();
+}
+
+function limpiarRecta() {
+  rectaManual = null;
+  dibujarGrafica();
+}
+
+function exportarGrafica() {
+  const cv = document.getElementById('graficaCanvas');
+  const a  = document.createElement('a');
+  a.download = 'grafica_pi.png';
+  a.href = cv.toDataURL();
+  a.click();
+}
+
+function getPuntos() {
+  return datos
+    .filter(r => r.d && r.P && !isNaN(parseNum(r.d)) && !isNaN(parseNum(r.P)))
+    .map(r => ({ x: parseNum(r.d), y: parseNum(r.P), dP: parseNum(r.dP)||0.1, dd: parseNum(r.dd)||0.005 }));
+}
+
+function regresionOrigen(pts) {
+  // y = m*x forzada al origen
+  const sumXY = pts.reduce((s,p) => s + p.x*p.y, 0);
+  const sumX2 = pts.reduce((s,p) => s + p.x*p.x, 0);
+  return sumX2 > 0 ? sumXY / sumX2 : null;
+}
+
+function dibujarGrafica() {
+  const cv  = document.getElementById('graficaCanvas');
+  const ctx = cv.getContext('2d');
+  const W   = cv.offsetWidth || 760;
+  cv.width  = W * window.devicePixelRatio;
+  cv.height = 380 * window.devicePixelRatio;
+  cv.style.width  = W + 'px';
+  cv.style.height = '380px';
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  const w = W, h = 380;
+
+  const PAD = {top:30, right:30, bottom:55, left:62};
+  const pw = w - PAD.left - PAD.right;
+  const ph = h - PAD.top  - PAD.bottom;
+
+  // fondo
+  ctx.fillStyle = '#fafafa'; ctx.fillRect(0,0,w,h);
+  ctx.fillStyle = '#f5f5f5'; ctx.fillRect(PAD.left, PAD.top, pw, ph);
+
+  const pts = getPuntos();
+
+  // escala
+  let xMax = pts.length > 0 ? Math.max(...pts.map(p => p.x)) * 1.18 : 20;
+  let yMax = pts.length > 0 ? Math.max(...pts.map(p => p.y)) * 1.18 : 60;
+  xMax = Math.max(xMax, 5);
+  yMax = Math.max(yMax, 15);
+
+  const toCanX = v => PAD.left + (v / xMax) * pw;
+  const toCanY = v => PAD.top  + ph - (v / yMax) * ph;
+
+  // grid
+  ctx.strokeStyle = '#e0e0e0'; ctx.lineWidth = 1;
+  const nX = 6, nY = 5;
+  for (let i = 0; i <= nX; i++) {
+    const x = toCanX(i * xMax / nX);
+    ctx.beginPath(); ctx.moveTo(x, PAD.top); ctx.lineTo(x, PAD.top + ph); ctx.stroke();
+  }
+  for (let i = 0; i <= nY; i++) {
+    const y = toCanY(i * yMax / nY);
+    ctx.beginPath(); ctx.moveTo(PAD.left, y); ctx.lineTo(PAD.left + pw, y); ctx.stroke();
+  }
+
+  // ejes
+  ctx.strokeStyle = '#333'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(PAD.left, PAD.top); ctx.lineTo(PAD.left, PAD.top+ph); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(PAD.left, PAD.top+ph); ctx.lineTo(PAD.left+pw, PAD.top+ph); ctx.stroke();
+
+  // etiquetas ejes
+  ctx.fillStyle = '#555'; ctx.font = '12px JetBrains Mono, monospace';
+  ctx.textAlign = 'center';
+  for (let i = 0; i <= nX; i++) {
+    const v = i * xMax / nX;
+    ctx.fillText(v.toFixed(1), toCanX(v), PAD.top + ph + 16);
+  }
+  ctx.textAlign = 'right';
+  for (let i = 0; i <= nY; i++) {
+    const v = i * yMax / nY;
+    ctx.fillText(v.toFixed(0), PAD.left - 6, toCanY(v) + 4);
+  }
+
+  // títulos ejes
+  ctx.fillStyle = '#333'; ctx.font = 'bold 13px Source Serif 4, serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('Diámetro  d  (cm)', PAD.left + pw/2, h - 8);
+  ctx.save(); ctx.translate(14, PAD.top + ph/2); ctx.rotate(-Math.PI/2);
+  ctx.fillText('Perímetro  P  (cm)', 0, 0); ctx.restore();
+
+  // regresión
+  const m = pts.length >= 2 ? regresionOrigen(pts) : null;
+  if (mostrarRegresion && m !== null) {
+    ctx.strokeStyle = '#1a5276'; ctx.lineWidth = 2;
+    ctx.setLineDash([6,4]);
+    ctx.beginPath();
+    ctx.moveTo(toCanX(0), toCanY(0));
+    ctx.lineTo(toCanX(xMax), toCanY(m * xMax));
+    ctx.stroke(); ctx.setLineDash([]);
+
+    const er = Math.abs(m - 3.1416) / 3.1416 * 100;
+    document.getElementById('pendGraf').value = fmt(m, 4);
+    document.getElementById('erGraf').value   = fmt(er, 2) + ' %';
+    document.getElementById('pendienteLabel').textContent = 'pendiente  m = ' + fmt(m, 4);
+    document.getElementById('graficaInfo').textContent    = `n = ${pts.length} puntos · regresión al origen`;
+  } else if (!mostrarRegresion) {
+    document.getElementById('pendienteLabel').textContent = 'pendiente — (regresión desactivada)';
+  }
+
+  // recta manual
+  if (rectaManual) {
+    ctx.strokeStyle = '#c0392b'; ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(rectaManual.x1, rectaManual.y1);
+    ctx.lineTo(rectaManual.x2, rectaManual.y2);
+    ctx.stroke();
+    // pendiente manual
+    const dx = (rectaManual.x2 - rectaManual.x1) / pw * xMax;
+    const dy = -(rectaManual.y2 - rectaManual.y1) / ph * yMax;
+    if (dx !== 0) {
+      const mM = dy / dx;
+      document.getElementById('pendGraf').value = fmt(mM, 4) + ' (manual)';
+      document.getElementById('erGraf').value   = fmt(Math.abs(mM-3.1416)/3.1416*100, 2) + ' % (manual)';
+    }
+  }
+
+  // puntos con barras de error
+  pts.forEach((p, i) => {
+    const cx = toCanX(p.x);
+    const cy = toCanY(p.y);
+    const bx = (p.dd / xMax) * pw;
+    const by = (p.dP / yMax) * ph;
+
+    // barras de error
+    ctx.strokeStyle = COLORS[i]; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(cx-bx, cy); ctx.lineTo(cx+bx, cy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx, cy-by); ctx.lineTo(cx, cy+by); ctx.stroke();
+    // ticks
+    [cx-bx,cx+bx].forEach(ex => { ctx.beginPath(); ctx.moveTo(ex,cy-5); ctx.lineTo(ex,cy+5); ctx.stroke(); });
+    [cy-by,cy+by].forEach(ey => { ctx.beginPath(); ctx.moveTo(cx-5,ey); ctx.lineTo(cx+5,ey); ctx.stroke(); });
+
+    // punto
+    ctx.fillStyle = COLORS[i];
+    ctx.beginPath(); ctx.arc(cx, cy, 6, 0, Math.PI*2); ctx.fill();
+    // etiqueta
+    ctx.fillStyle = COLORS[i]; ctx.font = 'bold 11px JetBrains Mono, monospace'; ctx.textAlign = 'left';
+    ctx.fillText('C' + (i+1), cx+8, cy-6);
+  });
+
+  if (pts.length === 0) {
+    ctx.fillStyle = '#bbb'; ctx.font = '14px Source Serif 4, serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Ingrese los datos en la Tabla 2 para ver los puntos aquí', PAD.left + pw/2, PAD.top + ph/2);
+  }
+}
+
+// Recta manual con mouse
+const cv = document.getElementById('graficaCanvas');
+cv.addEventListener('mousedown', e => {
+  if (mostrarRegresion) return;
+  const r = cv.getBoundingClientRect();
+  dragging = true;
+  dragStart = { x: e.clientX - r.left, y: e.clientY - r.top };
+});
+cv.addEventListener('mousemove', e => {
+  if (!dragging) return;
+  const r = cv.getBoundingClientRect();
+  rectaManual = {
+    x1: dragStart.x, y1: dragStart.y,
+    x2: e.clientX - r.left, y2: e.clientY - r.top
+  };
+  dibujarGrafica();
+});
+cv.addEventListener('mouseup', () => { dragging = false; });
+
+// ── Código de práctica con fecha ──
+function actualizarCodigo() {
+  const now = new Date();
+  const sem = now.getMonth() < 6 ? '1' : '2';
+  document.getElementById('codigoPractica').textContent =
+    `PRÁCTICA FIS-INC-01 · ${now.getFullYear()}-${sem}`;
+}
+
+window.addEventListener('load', () => {
+  buildTabla();
+  dibujarGrafica();
+  actualizarCodigo();
+  const hoy = new Date().toISOString().split('T')[0];
+  document.querySelectorAll('input[type="date"]').forEach(i => i.value = hoy);
+});
+
+window.addEventListener('resize', dibujarGrafica);
+</script>
+</body>
+</html>

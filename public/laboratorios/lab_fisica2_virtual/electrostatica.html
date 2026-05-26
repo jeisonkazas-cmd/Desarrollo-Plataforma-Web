@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Electrostática — Laboratorio de Física II Virtual</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+    :root{--am:#FFD100;--p:#7a3a00;--pc:#e67e22;--po:#3d1a00;--na:#c0540a;--no:#6b2800;--gf:#f4f6fb;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Source Sans 3',sans-serif;background:var(--gf);color:#1a1a2e;}
+    .line li{width:auto;height:50px;transition:background-position-x .9s linear;}
+    .line li a{text-decoration:none;transition:all .5s;}
+    .line li:hover{background:url("data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIGlkPSJMYXllcl8xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4PSIwcHgiIHk9IjBweCIgd2lkdGg9IjM5MHB4IiBoZWlnaHQ9IjUwcHgiIHZpZXdCb3g9IjAgMCAzOTAgNTAiIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgMCAwIDM5MCA1MCIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+PHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSIjRkZGRjAwIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLW1pdGVybGltaXQ9IjEwIiBkPSJNMCw0Ny41ODVjMCwwLDk3LjUsMCwxMzAsMCAxMy43NSwwLDI4Ljc0LTM4Ljc3OCw0Ni4xNjgtMTkuNDE2QzE5Mi42NjksNDYuNSwyNDMuNjAzLDQ3LjU4NSwyNjAsNDcuNTg1YzMxLjgyMSwwLDEzMCwwLDEzMCwwIi8+PC9zdmc+");animation:line .90s forwards;}
+    .line li:hover a{color:rgb(1,1,20);}
+    .line li:not(:last-child){margin-right:30px;}
+    @keyframes line{0%{background-position-x:600px}100%{background-position-x:130px}}
+    @media(max-width:991.98px){.navbar-collapse{max-height:80vh;overflow-y:auto;}.dropdown-menu{border:none!important;background:rgba(255,255,255,.1)!important;margin-top:0!important;}.dropdown-item{color:rgba(255,255,255,.9)!important;padding:10px 24px!important;font-size:.95rem;}.dropdown-item:hover,.dropdown-item:focus{background:rgba(255,255,255,.2)!important;color:#fff!important;}.dropdown-item:first-child{padding-top:14px!important;}}
+    .breadcrumb-bar{background:white;padding:12px 16px;border-bottom:1px solid #e8edf5;}.breadcrumb-bar a{color:#093f7c;text-decoration:none;font-size:.85rem;}.breadcrumb-bar .sep{color:#aaa;margin:0 6px;}.bc-current{color:#555;font-size:.85rem;font-weight:600;}
+    .hero{background:linear-gradient(135deg,var(--po),var(--p) 55%,var(--pc));padding:28px 20px 36px;color:#fff;position:relative;overflow:hidden;}.hero::before{content:'';position:absolute;top:-50px;right:-50px;width:260px;height:260px;background:radial-gradient(circle,rgba(255,209,0,.14),transparent 70%);border-radius:50%;}
+    .hero-badge{display:inline-block;background:var(--am);color:var(--po);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.72rem;letter-spacing:2.5px;text-transform:uppercase;padding:3px 14px;border-radius:30px;margin-bottom:10px;}
+    .hero h1{font-family:'Rajdhani',sans-serif;font-size:clamp(1.7rem,5vw,2.6rem);font-weight:700;line-height:1.1;}.hero h1 span{color:var(--am);}.hero p{font-size:.9rem;color:#fcd5a8;margin-top:8px;line-height:1.6;}
+    .pasos-bar{background:#fff;padding:14px 20px;border-bottom:2px solid #eef1f8;display:flex;align-items:center;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.06);}
+    .paso{display:flex;align-items:center;gap:8px;flex:1;position:relative;}.paso:not(:last-child)::after{content:'';position:absolute;left:40px;right:0;top:50%;height:3px;background:#dee3ef;transform:translateY(-50%);z-index:0;transition:background .5s;}.paso.completo:not(:last-child)::after{background:var(--p);}
+    .paso-circulo{width:34px;height:34px;border-radius:50%;background:#dee3ef;color:#aaa;display:flex;align-items:center;justify-content:center;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.95rem;flex-shrink:0;z-index:1;transition:all .4s;}.paso.activo .paso-circulo{background:var(--p);color:#fff;box-shadow:0 0 0 4px rgba(230,126,34,.2);}.paso.completo .paso-circulo{background:var(--p);color:#fff;}
+    .paso-etq{font-size:.58rem;text-transform:uppercase;letter-spacing:1px;color:#aaa;font-weight:600;display:block;}.paso-nom{font-size:.76rem;font-weight:700;color:#bbb;display:block;}.paso.activo .paso-etq,.paso.completo .paso-etq{color:var(--pc);}.paso.activo .paso-nom,.paso.completo .paso-nom{color:#1a1a2e;}
+    .pantalla{display:none;}.pantalla.activa{display:block;}
+    .reg-wrap{padding:24px 16px 40px;max-width:600px;margin:0 auto;}.reg-intro{text-align:center;margin-bottom:24px;}.reg-intro .ico{font-size:2.6rem;display:block;margin-bottom:10px;}.reg-intro h2{font-family:'Rajdhani',sans-serif;font-size:1.5rem;font-weight:700;color:var(--p);}.reg-intro p{font-size:.9rem;color:#666;margin-top:6px;line-height:1.5;}
+    .campo{margin-bottom:18px;}.campo label{display:block;font-weight:600;font-size:.88rem;color:var(--po);margin-bottom:6px;}.campo input{width:100%;padding:13px 16px;border:2px solid #e0e8f0;border-radius:10px;font-size:.95rem;font-family:'Source Sans 3',sans-serif;background:#fff;transition:border-color .2s;outline:none;}.campo input:focus{border-color:var(--pc);}.campo input.err{border-color:#e74c3c;}.campo .hint{font-size:.78rem;color:#999;margin-top:4px;}
+    .quiz-wrap{padding:20px 16px 40px;max-width:700px;margin:0 auto;}.tarjeta{background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(9,63,124,.08);overflow:hidden;margin-bottom:20px;}
+    .t-head{padding:18px 20px;display:flex;align-items:center;gap:14px;color:#fff;background:linear-gradient(90deg,var(--po),var(--pc));}.t-ico{font-size:1.6rem;}.t-head h2{font-family:'Rajdhani',sans-serif;font-size:1.25rem;font-weight:700;margin:0;}.t-head p{font-size:.8rem;color:rgba(255,255,255,.72);margin:2px 0 0;}.t-body{padding:22px 18px;}
+    .pregunta{margin-bottom:26px;padding-bottom:22px;border-bottom:1px dashed #e0e8f0;}.pregunta:last-of-type{border-bottom:none;margin-bottom:0;padding-bottom:0;}
+    .preg-txt{font-weight:600;font-size:.95rem;color:var(--po);margin-bottom:14px;line-height:1.6;}.preg-num{display:inline-flex;align-items:center;justify-content:center;background:var(--p);color:#fff;font-family:'Rajdhani',sans-serif;font-weight:700;width:24px;height:24px;border-radius:50%;font-size:.8rem;margin-right:8px;flex-shrink:0;}
+    .opcion{display:flex;align-items:center;gap:12px;padding:13px 16px;border-radius:10px;border:2px solid #e8edf5;margin-bottom:8px;cursor:pointer;transition:all .2s;font-size:.93rem;background:var(--gf);user-select:none;min-height:50px;}.opcion:hover{border-color:var(--pc);background:rgba(230,126,34,.05);}.opcion input[type=radio]{accent-color:var(--p);width:20px;height:20px;flex-shrink:0;cursor:pointer;}
+    .opcion.ok{border-color:var(--pc);background:rgba(230,126,34,.09);color:var(--po);font-weight:600;}.opcion.mal{border-color:#e74c3c;background:rgba(231,76,60,.07);}.opcion.oka{border-color:var(--pc);background:rgba(230,126,34,.15);font-weight:700;}.opcion.lock{pointer-events:none;}
+    .fb{display:none;margin-top:10px;padding:9px 14px;border-radius:8px;font-size:.85rem;font-weight:600;}.fb.ok{background:rgba(230,126,34,.1);color:var(--po);display:block;}.fb.mal{background:rgba(231,76,60,.1);color:#a93226;display:block;}
+    .res-quiz{display:none;text-align:center;padding:26px 16px;border-radius:14px;margin-top:22px;}@keyframes ap{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}.res-quiz{animation:ap .5s ease;}.res-quiz.ap{background:rgba(230,126,34,.08);border:2px solid rgba(230,126,34,.3);}.res-quiz.rep{background:rgba(231,76,60,.07);border:2px solid rgba(231,76,60,.25);}
+    .puntaje{font-family:'Rajdhani',sans-serif;font-size:3.5rem;font-weight:700;line-height:1;}.res-quiz.ap .puntaje{color:var(--p);}.res-quiz.rep .puntaje{color:#e74c3c;}.res-quiz .msg{font-size:1rem;margin-top:10px;color:#444;}.res-quiz .sub{font-size:.85rem;color:#888;margin-top:6px;}.nota-d{font-size:.92rem;margin-top:10px;font-weight:600;color:#555;}
+    .btn-q{background:var(--p);color:#fff;border:none;padding:15px 36px;border-radius:12px;font-weight:700;font-size:1rem;cursor:pointer;transition:background .3s;display:block;width:100%;margin-top:28px;font-family:'Rajdhani',sans-serif;letter-spacing:1px;min-height:52px;}.btn-q:hover{background:var(--pc);}
+    .btn-c{background:var(--pc);color:#fff;border:none;padding:15px 36px;border-radius:12px;font-weight:700;font-size:1rem;cursor:pointer;transition:all .3s;display:block;width:100%;margin-top:14px;font-family:'Rajdhani',sans-serif;letter-spacing:1px;min-height:52px;}.btn-c:hover{background:var(--po);transform:translateY(-1px);}
+    .btn-r{background:#e74c3c;color:#fff;border:none;padding:13px 28px;border-radius:10px;font-weight:700;font-size:.95rem;cursor:pointer;margin-top:12px;font-family:'Rajdhani',sans-serif;min-height:48px;width:100%;}.btn-r:hover{background:#c0392b;}
+    .badge-int{display:inline-flex;align-items:center;gap:6px;background:var(--am);color:var(--po);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.78rem;letter-spacing:1.5px;text-transform:uppercase;padding:4px 14px;border-radius:20px;margin-bottom:14px;}.badge-int.s2{background:#fde8d8;color:var(--no);}
+    .sel-wrap{padding:28px 16px 40px;max-width:700px;margin:0 auto;}.sel-tit{text-align:center;margin-bottom:28px;}.sel-tit .ico-ok{font-size:3rem;display:block;margin-bottom:8px;}.sel-tit h2{font-family:'Rajdhani',sans-serif;font-size:1.6rem;font-weight:700;color:var(--p);}.sel-tit p{font-size:.92rem;color:#666;margin-top:6px;}
+    .sel-nota{background:rgba(230,126,34,.08);border:2px solid rgba(230,126,34,.2);border-radius:12px;padding:14px 18px;margin-bottom:24px;text-align:center;}.sel-nota .nl{font-size:.8rem;color:var(--p);font-weight:600;text-transform:uppercase;letter-spacing:1px;}.sel-nota .nv{font-family:'Rajdhani',sans-serif;font-size:2.2rem;font-weight:700;color:var(--p);line-height:1.2;}
+    .btn-sec{display:flex;align-items:center;gap:18px;width:100%;padding:22px;border-radius:16px;border:none;cursor:pointer;text-align:left;margin-bottom:16px;transition:transform .15s,box-shadow .15s;color:#fff;font-family:'Source Sans 3',sans-serif;box-shadow:0 4px 20px rgba(0,0,0,.15);min-height:90px;}.btn-sec:active{transform:scale(.98);}.btn-sec:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,0,0,.22);}.btn-sec.a{background:linear-gradient(135deg,var(--po),var(--pc));}.btn-sec.b{background:linear-gradient(135deg,var(--no),var(--na));}.btn-sec .bi{font-size:2.4rem;flex-shrink:0;}.btn-sec .binfo{flex:1;}.btn-sec .bt{font-family:'Rajdhani',sans-serif;font-size:1.3rem;font-weight:700;display:block;line-height:1.2;}.btn-sec .bd{font-size:.82rem;color:rgba(255,255,255,.75);display:block;margin-top:3px;}.btn-sec .bf{font-size:1.6rem;opacity:.7;flex-shrink:0;}
+    .ov-cont{display:none;position:fixed;inset:0;z-index:9999;flex-direction:column;background:#fff;}.ov-cont.activa{display:flex;}.ov-head{display:flex;align-items:center;gap:14px;padding:12px 16px;color:#fff;flex-shrink:0;}.ov-head.a{background:linear-gradient(90deg,var(--po),var(--pc));}.ov-head.b{background:linear-gradient(90deg,var(--no),var(--na));}
+    .btn-volver{background:rgba(255,255,255,.2);border:2px solid rgba(255,255,255,.3);color:#fff;width:42px;height:42px;border-radius:10px;font-size:1.3rem;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:background .2s;font-weight:700;}.btn-volver:hover{background:rgba(255,255,255,.35);}
+    .ov-info{flex:1;min-width:0;}.ov-info h3{font-family:'Rajdhani',sans-serif;font-size:1.1rem;font-weight:700;margin:0;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}.ov-info p{font-size:.72rem;color:rgba(255,255,255,.72);margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .ov-iframe{flex:1;width:100%;border:none;display:block;}
+    .env-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;align-items:center;justify-content:center;flex-direction:column;gap:14px;}.env-ov.activo{display:flex;}.env-ov p{color:#fff;font-weight:600;font-size:1rem;}.spin{width:44px;height:44px;border:5px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:sp .8s linear infinite;}@keyframes sp{to{transform:rotate(360deg)}}
+    footer{background:#1a0a00;color:#8899bb;text-align:center;padding:24px 16px;font-size:.82rem;}footer strong{color:#fff;}
+    @media(max-width:768px){.navbar-brand img{width:90px!important;height:38px!important;}.pasos-bar{padding:10px 12px;gap:4px;}.paso-etq{display:none!important;}.paso-nom{font-size:.7rem!important;}.paso-circulo{width:28px;height:28px;font-size:.82rem;}.paso:not(:last-child)::after{left:32px;}.quiz-wrap,.sel-wrap,.reg-wrap{padding:14px 10px 30px;}.t-head{padding:14px;gap:10px;}.t-head h2{font-size:1.05rem!important;}.t-ico{font-size:1.3rem!important;}.t-body{padding:16px 12px;}.preg-txt{font-size:.9rem!important;}.opcion{padding:10px 12px;font-size:.88rem;min-height:44px;gap:10px;}.btn-q,.btn-c{padding:13px 20px;font-size:.92rem;}.btn-sec{padding:16px 14px;min-height:80px;gap:12px;}.btn-sec .bt{font-size:1.1rem!important;}.ov-head{padding:10px 12px;gap:10px;}.ov-info h3{font-size:.95rem!important;}}
+    @media(max-width:480px){.paso-nom{font-size:.65rem!important;}.paso-circulo{width:26px;height:26px;font-size:.78rem;}.t-head h2{font-size:.95rem!important;}.opcion{padding:9px 10px;font-size:.84rem;}.puntaje{font-size:2.4rem!important;}.btn-sec .bi{font-size:1.8rem!important;}}
+</style>
+</head>
+<body>
+<div class="env-ov" id="env-ov"><div class="spin"></div><p>Enviando resultados...</p></div>
+<nav class="navbar navbar-expand-lg" style="background-color:rgb(9,63,124);">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="../laboratorio_fisica_virtual_2.html"><img src="../resources/logo_camacho.png" alt="Logo" width="120" height="50"></a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navM" aria-controls="navM" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+    <div class="collapse navbar-collapse line" id="navM">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item dropdown"><a class="nav-link dropdown-toggle" href="javascript:void(0)" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="color:white;">Laboratorios de Física Presencial</a>
+          <ul class="dropdown-menu"><li><a class="dropdown-item" href="../laboratorio_fisica_presencial_1.html">Laboratorio de Física I Presencial</a></li><li><a class="dropdown-item" href="../laboratorio_fisica_presencial_2.html">Laboratorio de Física II Presencial</a></li><li><a class="dropdown-item" href="../laboratorio_fisica_presencial_3.html">Laboratorio de Física III Presencial</a></li></ul></li>
+        <li class="nav-item dropdown"><a class="nav-link dropdown-toggle" href="javascript:void(0)" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="color:white;">Laboratorios de Física Virtual</a>
+          <ul class="dropdown-menu"><li><a class="dropdown-item" href="../laboratorio_fisica_virtual_1.html">Laboratorio de Física I Virtual</a></li><li><a class="dropdown-item fw-bold" href="../laboratorio_fisica_virtual_2.html">Laboratorio de Física II Virtual</a></li><li><a class="dropdown-item" href="../laboratorio_fisica_virtual_3.html">Laboratorio de Física III Virtual</a></li></ul></li>
+        <li class="nav-item dropdown"><a class="nav-link dropdown-toggle" href="javascript:void(0)" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="color:white;">Laboratorios de Física Remotos</a>
+          <ul class="dropdown-menu"><li><a class="dropdown-item" href="../laboratorio_fisica_remoto_1.html">Laboratorio de Física I Remoto</a></li><li><a class="dropdown-item" href="../laboratorio_fisica_remoto_2.html">Laboratorio de Física II Remoto</a></li><li><a class="dropdown-item" href="../laboratorio_fisica_remoto_3.html">Laboratorio de Física III Remoto</a></li></ul></li>
+      </ul>
+      <ul class="navbar-nav ms-auto mb-2 mb-lg-0"><li class="nav-item"><a class="nav-link" href="javascript:void(0)" style="color:white;">Iniciar Sesión <img src="../resources/is3.png" alt="" width="30" height="24"></a></li></ul>
+    </div>
+  </div>
+</nav>
+<div id="zona">
+  <div class="breadcrumb-bar">
+    <a href="../index.html">&#127968; Inicio</a><span class="sep">&rsaquo;</span>
+    <a href="../laboratorio_fisica_virtual_2.html">Lab. Física II Virtual</a><span class="sep">&rsaquo;</span>
+    <span class="bc-current">&#9889; Electrostática</span>
+  </div>
+  <div class="hero">
+    <div class="hero-badge">Práctica 01 — Física II Virtual</div>
+    <h1>Cargas Eléctricas,<br><span>Inducción y Electrómetro</span></h1>
+    <p>Completa el quiz para desbloquear la guía de práctica y el simulador interactivo.</p>
+  </div>
+  <div class="pasos-bar">
+    <div class="paso activo" id="paso1"><div class="paso-circulo" id="cir1">1</div><div><span class="paso-etq">Paso 1</span><span class="paso-nom">&#128221; Quiz</span></div></div>
+    <div class="paso" id="paso2"><div class="paso-circulo" id="cir2">2</div><div><span class="paso-etq">Paso 2</span><span class="paso-nom">&#128196; Guía</span></div></div>
+    <div class="paso" id="paso3"><div class="paso-circulo" id="cir3">3</div><div><span class="paso-etq">Paso 3</span><span class="paso-nom">&#128187; Simulador</span></div></div>
+  </div>
+  <!-- REGISTRO -->
+  <div class="pantalla activa" id="pantalla-reg">
+    <div class="reg-wrap">
+      <div class="tarjeta">
+        <div class="t-head"><span class="t-ico">&#128100;</span><div><h2>Identificación del Estudiante</h2><p>Ingresa tus datos para comenzar el quiz de conocimientos previos.</p></div></div>
+        <div class="t-body">
+          <div class="reg-intro"><span class="ico">&#9889;</span><h2>Quiz — Electrostática</h2><p>Responde <strong>10 preguntas aleatorias</strong> del banco de 100 preguntas.<br>Necesitas mínimo <strong>60 %</strong> para continuar.</p></div>
+          <div class="campo"><label for="rn">Nombre completo</label><input type="text" id="rn" placeholder="Ej: María García López" autocomplete="name"><span class="hint">Escribe tu nombre y apellidos completos</span></div>
+          <div class="campo"><label for="rc">Código estudiantil</label><input type="text" id="rc" placeholder="Ej: 2021023456" autocomplete="off"><span class="hint">Tu código tal como aparece en el carné</span></div>
+          <div class="campo"><label for="re">Correo institucional</label><input type="email" id="re" placeholder="Ej: estudiante@uniajc.edu.co" autocomplete="email"><span class="hint">Usa tu correo institucional (@uniajc.edu.co)</span></div>
+          <button class="btn-q" onclick="registrar()">Comenzar Quiz &rarr;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- QUIZ -->
+  <div class="pantalla" id="pantalla-quiz">
+    <div class="quiz-wrap">
+      <div class="tarjeta">
+        <div class="t-head"><span class="t-ico">&#128221;</span><div><h2>Quiz de Conocimientos Previos</h2><p>Responde todas las preguntas. Necesitas al menos 60 % para continuar.</p></div></div>
+        <div class="t-body">
+          <div id="badge-int"></div>
+          <div id="cnt-pregs"></div>
+          <button class="btn-q" id="btn-cal" onclick="calificar()">Calificar Quiz &#10003;</button>
+          <div class="res-quiz" id="res-div">
+            <div class="puntaje" id="pct-txt"></div>
+            <div class="nota-d" id="nota-txt"></div>
+            <p class="msg" id="res-msg"></p>
+            <p class="sub" id="res-sub"></p><br>
+            <button class="btn-c" id="btn-cont" onclick="desbloquear()" style="display:none">Continuar a la práctica &rarr;</button>
+            <button class="btn-r" id="btn-rein" onclick="segundoIntento()" style="display:none">&#128260; Segundo intento (nota máx. 4.0)</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- SELECTOR -->
+  <div class="pantalla" id="pantalla-sel">
+    <div class="sel-wrap">
+      <div class="sel-tit"><span class="ico-ok">&#127881;</span><h2>¡Quiz superado!</h2><p>Selecciona qué quieres abrir. Puedes ir y volver cuando quieras.</p></div>
+      <div class="sel-nota"><div class="nl">Tu nota del quiz</div><div class="nv" id="nota-fin">—</div></div>
+      <button class="btn-sec a" onclick="abrir('guia')"><span class="bi">&#128196;</span><div class="binfo"><span class="bt">Guía de Práctica</span><span class="bd">Cargas eléctricas, inducción electrostática y uso del electrómetro</span></div><span class="bf">&rsaquo;</span></button>
+      <button class="btn-sec b" onclick="abrir('simulador')"><span class="bi">&#128187;</span><div class="binfo"><span class="bt">Simulador Interactivo</span><span class="bd">Simulación de cargas positivas, negativas y fenómenos electrostáticos</span></div><span class="bf">&rsaquo;</span></button>
+    </div>
+    <footer><strong>Institución Universitaria Antonio José Camacho</strong> — Departamento de Ciencias Básicas<br>Laboratorio de Física II Virtual · Práctica 01 — Electrostática &copy; 2025</footer>
+  </div>
+</div>
+<!-- OVERLAY GUIA -->
+<div class="ov-cont" id="ov-guia">
+  <div class="ov-head a"><button class="btn-volver" onclick="cerrar()">&#8592;</button><div class="ov-info"><h3>&#128196; Guía de Práctica</h3><p>Electrostática — Guía completa</p></div></div>
+  <iframe class="ov-iframe" src="../Practica_Cargas_Electricas.html" title="Guía de Práctica"></iframe>
+</div>
+<!-- OVERLAY SIMULADOR -->
+<div class="ov-cont" id="ov-simulador">
+  <div class="ov-head b"><button class="btn-volver" onclick="cerrar()">&#8592;</button><div class="ov-info"><h3>&#128187; Simulador Interactivo</h3><p>Electrostática — Simulación de Cargas</p></div></div>
+  <iframe class="ov-iframe" src="../Simulador_Cargas_electricas.html" title="Simulador"></iframe>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const PRACTICA_NOMBRE='Práctica 01 — Electrostática';
+const BANCO=[
+  {texto:"¿Cuántos tipos de carga eléctrica existen?",ops:["Uno (solo positiva)","Dos (positiva y negativa)","Tres (positiva, negativa y neutra)","Cuatro"],c:1,fok:"✓ Existen dos tipos: carga positiva y carga negativa.",fmal:"✗ Solo hay DOS tipos de carga: positiva y negativa."},
+  {texto:"La unidad de carga eléctrica en el SI es:",ops:["Amperio (A)","Coulomb (C)","Voltio (V)","Ohm (Ω)"],c:1,fok:"✓ La unidad de carga es el Coulomb (C = A·s).",fmal:"✗ La unidad de carga eléctrica en el SI es el Coulomb (C)."},
+  {texto:"La carga del electrón es aproximadamente:",ops:["–1,6×10⁻¹⁹ C","–1,6×10⁻²⁴ C","+1,6×10⁻¹⁹ C","–9,1×10⁻³¹ C"],c:0,fok:"✓ e⁻ = –1,6×10⁻¹⁹ C (carga elemental negativa).",fmal:"✗ La carga del electrón es –1,6×10⁻¹⁹ C."},
+  {texto:"La carga del protón es:",ops:["–1,6×10⁻¹⁹ C","+1,6×10⁻¹⁹ C","Cero","Variable"],c:1,fok:"✓ El protón tiene carga +1,6×10⁻¹⁹ C.",fmal:"✗ El protón tiene carga +1,6×10⁻¹⁹ C."},
+  {texto:"¿Qué partícula subatómica no tiene carga eléctrica?",ops:["Electrón","Protón","Neutrón","Fotón"],c:2,fok:"✓ El neutrón es neutro, sin carga eléctrica.",fmal:"✗ El neutrón no tiene carga."},
+  {texto:"Un átomo neutro tiene:",ops:["Más protones que electrones","Más electrones que protones","Igual número de protones y electrones","Solo neutrones"],c:2,fok:"✓ En un átomo neutro: protones = electrones.",fmal:"✗ Un átomo neutro tiene igual número de protones y electrones."},
+  {texto:"Un ion positivo (catión) se forma cuando un átomo:",ops:["Gana electrones","Pierde electrones","Gana protones","Pierde neutrones"],c:1,fok:"✓ Un catión se forma cuando el átomo pierde electrones.",fmal:"✗ Los cationes se forman al PERDER electrones."},
+  {texto:"Un ion negativo (anión) se forma cuando un átomo:",ops:["Pierde electrones","Pierde protones","Gana electrones","Gana neutrones"],c:2,fok:"✓ Un anión se forma cuando el átomo gana electrones.",fmal:"✗ Los aniones se forman cuando el átomo GANA electrones."},
+  {texto:"¿Qué ley establece que la carga total de un sistema aislado se conserva?",ops:["Ley de Coulomb","Ley de conservación de la carga eléctrica","Ley de Faraday","Ley de Ohm"],c:1,fok:"✓ La Ley de Conservación de la Carga establece que la carga total no cambia.",fmal:"✗ Es la Ley de CONSERVACIÓN DE LA CARGA."},
+  {texto:"Dos cargas del mismo signo se:",ops:["Atraen","Repelen","No interactúan","Se neutralizan"],c:1,fok:"✓ Cargas del mismo signo se REPELEN.",fmal:"✗ Cargas del mismo signo se REPELEN, no se atraen."},
+  {texto:"¿Cuál es el método de electrización en que dos cuerpos se frotan entre sí?",ops:["Inducción","Conducción","Frotamiento","Polarización"],c:2,fok:"✓ El frotamiento transfiere electrones al rozarse.",fmal:"✗ Es el FROTAMIENTO."},
+  {texto:"Al frotar un globo contra el cabello, el globo adquiere carga negativa porque:",ops:["Gana protones del cabello","Gana electrones del cabello","Pierde neutrones","El cabello le transfiere carga positiva"],c:1,fok:"✓ El globo gana electrones del cabello.",fmal:"✗ El globo gana ELECTRONES del cabello."},
+  {texto:"¿En qué método hay transferencia de carga por contacto directo con un cuerpo cargado?",ops:["Frotamiento","Conducción","Inducción","Polarización"],c:1,fok:"✓ En la conducción la carga se transfiere por contacto directo.",fmal:"✗ La CONDUCCIÓN implica contacto directo con un cuerpo cargado."},
+  {texto:"En la electrización por inducción, el cuerpo que se electriza:",ops:["Toca al objeto cargado","No toca al objeto cargado","Pierde todos sus electrones","Se calienta"],c:1,fok:"✓ En la inducción el cuerpo se electriza SIN tocar al objeto cargado.",fmal:"✗ La inducción ocurre SIN CONTACTO."},
+  {texto:"Al acercar una varilla positiva a un conductor sin tocarlo, el lado más cercano queda cargado:",ops:["Positivamente","Negativamente","Neutro","No cambia"],c:1,fok:"✓ Los electrones se atraen hacia la varilla (+), dejando el lado cercano negativo.",fmal:"✗ El lado cercano queda NEGATIVO por atracción de electrones."},
+  {texto:"¿Qué diferencia existe entre un conductor y un aislante eléctrico?",ops:["El conductor es más pesado","En el conductor las cargas se mueven libremente; en el aislante no","El aislante conduce mejor el calor","No hay diferencia"],c:1,fok:"✓ En conductores los electrones libres se mueven fácilmente; en aislantes no.",fmal:"✗ La diferencia es la MOVILIDAD de las cargas."},
+  {texto:"Los metales son buenos conductores porque:",ops:["Son opacos","Tienen electrones de conducción libres","Son densos","Tienen muchos neutrones"],c:1,fok:"✓ Los metales tienen electrones en bandas de conducción libres.",fmal:"✗ La conductividad metálica se debe a los ELECTRONES LIBRES."},
+  {texto:"Un ejemplo de material aislante eléctrico es:",ops:["Cobre","Aluminio","Vidrio","Hierro"],c:2,fok:"✓ El vidrio es un aislante.",fmal:"✗ El vidrio es AISLANTE. Cobre, aluminio y hierro son conductores."},
+  {texto:"¿Qué es un semiconductor?",ops:["Un material que no conduce nunca","Un material que conduce siempre","Material con conductividad intermedia controlable","Un tipo de aislante perfecto"],c:2,fok:"✓ Los semiconductores tienen conductividad intermedia y controlable.",fmal:"✗ Los semiconductores tienen conductividad INTERMEDIA entre conductores y aislantes."},
+  {texto:"La polarización eléctrica de un dieléctrico consiste en:",ops:["Transferencia de electrones","Desplazamiento de centros de carga sin transferencia de carga","Rotura del material","Calentamiento"],c:1,fok:"✓ En polarización los dipolos se alinean sin transferencia de carga.",fmal:"✗ La polarización desplaza centros de carga SIN transferencia de electrones."},
+  {texto:"La Ley de Coulomb establece que la fuerza entre dos cargas puntuales es:",ops:["Inversamente proporcional a la distancia","Directamente proporcional al cuadrado de la distancia","Proporcional al producto de cargas e inversamente al cuadrado de la distancia","Independiente de la distancia"],c:2,fok:"✓ F = K₀|q₁q₂|/r².",fmal:"✗ F = K₀|q₁q₂|/r²."},
+  {texto:"La constante de Coulomb K₀ vale aproximadamente:",ops:["9×10⁶ N·m²/C²","9×10⁹ N·m²/C²","6,67×10⁻¹¹ N·m²/kg²","8,85×10⁻¹² C²/(N·m²)"],c:1,fok:"✓ K₀ ≈ 9×10⁹ N·m²/C².",fmal:"✗ K₀ ≈ 9×10⁹ N·m²/C²."},
+  {texto:"Si la distancia entre dos cargas se duplica, la fuerza:",ops:["Se duplica","Se reduce a la mitad","Se reduce a la cuarta parte","Se cuadruplica"],c:2,fok:"✓ F ∝ 1/r². Si r → 2r, F → F/4.",fmal:"✗ F ∝ 1/r². Al duplicar r la fuerza se divide entre CUATRO."},
+  {texto:"Dos cargas q₁=3 μC y q₂=6 μC separadas 0,3 m. ¿La fuerza es? (K₀=9×10⁹)",ops:["0,18 N","1,8 N (repulsión)","1,8 N (atracción)","18 N"],c:1,fok:"✓ F=9×10⁹×18×10⁻¹²/0,09=1,8 N (repulsión, mismo signo).",fmal:"✗ F=K₀|q₁q₂|/r²=1,8 N (repulsión)."},
+  {texto:"Si se triplica la carga q₁ manteniendo todo lo demás, la fuerza:",ops:["Se divide entre 3","Se triplica","Se multiplica por 9","No cambia"],c:1,fok:"✓ F ∝ q₁. Si q₁ → 3q₁, F → 3F.",fmal:"✗ F ∝ q₁. Triplicar q₁ triplica F."},
+  {texto:"El principio de superposición de fuerzas eléctricas dice:",ops:["Solo actúa la fuerza más grande","La fuerza resultante es la suma vectorial de las fuerzas individuales","Las fuerzas se cancelan","Solo aplica en el vacío"],c:1,fok:"✓ La fuerza total es la SUMA VECTORIAL de fuerzas individuales.",fmal:"✗ Por superposición la fuerza resultante es la SUMA VECTORIAL."},
+  {texto:"Dos cargas +8 μC y –2 μC se tocan y separan. ¿Cuánta carga tiene cada una?",ops:["0 y –2 μC","+8 μC y –2 μC","+3 μC cada una","+2 μC y –8 μC"],c:2,fok:"✓ Q_total=+6 μC. Se reparte igual: +3 μC cada una.",fmal:"✗ Q_total = 8+(–2)=+6 μC. Al repartirse: +3 μC cada una."},
+  {texto:"¿Para qué sirve el electrómetro (electroscopio)?",ops:["Medir corriente","Detectar y estimar presencia y signo de cargas eléctricas","Medir resistencia","Medir voltaje AC"],c:1,fok:"✓ El electrómetro detecta la presencia y tipo de carga.",fmal:"✗ El electrómetro DETECTA cargas eléctricas."},
+  {texto:"En un electroscopio de hojas de oro, ¿por qué se separan las hojas al cargarlo?",ops:["Por corriente","Las hojas adquieren cargas del mismo signo y se repelen","Por temperatura","Porque el oro es magnético"],c:1,fok:"✓ Las hojas adquieren igual signo → se repelen.",fmal:"✗ Las hojas adquieren el MISMO SIGNO de carga y se repelen."},
+  {texto:"Si acercamos un objeto positivo al terminal del electroscopio sin tocarlo, las hojas:",ops:["No se mueven","Se separan por inducción","Se pegan","Se caen"],c:1,fok:"✓ Por inducción las hojas se separan aunque no haya contacto.",fmal:"✗ Por inducción las hojas se SEPARAN sin contacto."},
+  {texto:"Cuando el electrómetro está descargado, las hojas están:",ops:["Completamente abiertas","Cerradas (juntas)","Horizontales","Girando"],c:1,fok:"✓ Sin carga no hay repulsión → hojas cerradas.",fmal:"✗ Sin carga las hojas están CERRADAS."},
+  {texto:"Para descargar un electrómetro se puede:",ops:["Acercar un objeto cargado","Tocarlo con la mano (conexión a tierra)","Aplicarle luz","Calentarlo"],c:1,fok:"✓ Tocar con la mano conecta a tierra y neutraliza la carga.",fmal:"✗ Conectarlo a tierra (tocar con la mano) descarga el electrómetro."},
+  {texto:"Si el electrómetro se carga por conducción con un objeto positivo, queda cargado:",ops:["Negativamente","Positivamente","Neutro","No se sabe"],c:1,fok:"✓ Por conducción adquiere la misma carga → queda positivo.",fmal:"✗ Por conducción adquiere la MISMA carga que el objeto."},
+  {texto:"¿Qué ocurre en el interior de un conductor cuando se acerca una carga externa?",ops:["Nada","Las cargas se redistribuyen creando campo que se opone al externo","Se genera calor","Los protones se desplazan"],c:1,fok:"✓ Las cargas libres se redistribuyen para que el campo interno sea cero.",fmal:"✗ Las cargas LIBRES se redistribuyen."},
+  {texto:"En un conductor esférico neutro, al acercar una carga +Q, el lado opuesto al inductor queda:",ops:["Negativo","Neutro","Positivo","No cambia"],c:2,fok:"✓ Los electrones van hacia el lado cercano → lado opuesto queda positivo.",fmal:"✗ El lado OPUESTO pierde electrones → queda POSITIVO."},
+  {texto:"¿Qué es la jaula de Faraday?",ops:["Un tipo de electroscopio","Conductor hueco que apantalla su interior del campo eléctrico externo","Un condensador","Un generador"],c:1,fok:"✓ Una jaula de Faraday es un conductor hueco que protege su interior.",fmal:"✗ Es un CONDUCTOR HUECO que apantalla el campo exterior."},
+  {texto:"Dentro de una jaula de Faraday el campo eléctrico externo es:",ops:["El mismo que fuera","Reducido a la mitad","Cero","El doble"],c:2,fok:"✓ Dentro de un conductor en equilibrio: E=0.",fmal:"✗ Dentro de la jaula el campo eléctrico es CERO."},
+  {texto:"¿Qué afirma el principio de conservación de la carga?",ops:["La carga puede crearse de la nada","La carga total del universo no cambia; puede transferirse pero no crearse ni destruirse","Las cargas positivas son más estables","Solo los metales conservan su carga"],c:1,fok:"✓ La carga total se conserva: puede transferirse pero no crearse ni destruirse.",fmal:"✗ La carga TOTAL no cambia; se redistribuye."},
+  {texto:"¿Puede existir carga eléctrica menor que la carga elemental e?",ops:["Sí, infinitamente pequeña","No, la carga está cuantizada en múltiplos de e=1,6×10⁻¹⁹ C","Solo en laboratorios","Solo en el espacio"],c:1,fok:"✓ La carga está cuantizada: Q = n·e donde n es entero.",fmal:"✗ La carga está CUANTIZADA en múltiplos de e."},
+  {texto:"Un cuerpo que cede electrones queda con carga:",ops:["Negativa","Positiva","Neutra","No definida"],c:1,fok:"✓ Al ceder electrones el cuerpo queda con exceso de protones → positivo.",fmal:"✗ Ceder electrones → el cuerpo queda POSITIVO."},
+  {texto:"Un cuerpo que recibe electrones queda con carga:",ops:["Positiva","Negativa","Neutra","Magnética"],c:1,fok:"✓ Al recibir electrones el cuerpo tiene exceso de carga negativa.",fmal:"✗ Recibir electrones → el cuerpo queda NEGATIVO."},
+  {texto:"La serie triboeléctrica es útil para:",ops:["Medir conductividad","Predecir qué material quedará positivo y cuál negativo al frotarse","Determinar temperatura de fusión","Calcular resistividad"],c:1,fok:"✓ La serie triboeléctrica ordena materiales por su tendencia a ceder o ganar electrones.",fmal:"✗ Predice qué material gana o pierde electrones al FROTARSE."},
+  {texto:"¿Por qué los papelitos son atraídos por una regla de plástico frotada?",ops:["La regla crea campo magnético","La regla cargada polariza o atrae los papelitos por inducción","El plástico crea vacío","Los papelitos tienen carga opuesta"],c:1,fok:"✓ La regla cargada POLARIZA o atrae por inducción los papelitos neutros.",fmal:"✗ La regla cargada POLARIZA los papelitos neutros → atracción."},
+  {texto:"La electrización por inducción NO requiere:",ops:["Presencia de campo eléctrico","Contacto físico entre el inductor y el conductor","Cargas libres en el conductor","Que el inductor esté cargado"],c:1,fok:"✓ La inducción no requiere CONTACTO FÍSICO.",fmal:"✗ En la inducción NO hay contacto físico."},
+  {texto:"Para cargar un conductor por inducción permanente se necesita:",ops:["Frotarlo","Conectarlo a tierra mientras el inductor está cerca, luego retirar tierra y después el inductor","Solo acercar el objeto","Calentarlo"],c:1,fok:"✓ Acercar inductor → tierra → retirar tierra → retirar inductor.",fmal:"✗ El proceso: acercar inductor, conectar tierra, retirar tierra, retirar inductor."},
+  {texto:"Cuando un conductor se carga por inducción permanente, su carga es:",ops:["Igual signo que el inductor","Signo opuesto al inductor","Neutra","Indefinida"],c:1,fok:"✓ Por inducción permanente: carga de SIGNO OPUESTO al inductor.",fmal:"✗ La inducción permanente deja carga de SIGNO OPUESTO."},
+  {texto:"¿Puede ocurrir inducción electrostática en aislantes?",ops:["No, nunca","Sí, ocurre polarización: los dipolos moleculares se orientan","Solo en semiconductores","Solo a bajas temperaturas"],c:1,fok:"✓ En aislantes ocurre POLARIZACIÓN (no inducción libre).",fmal:"✗ En aislantes ocurre POLARIZACIÓN DIELÉCTRICA."},
+  {texto:"Si un metal se carga positivamente, ¿qué partículas se movieron?",ops:["Los protones salieron","Los electrones salieron","Los neutrones entraron","Los fotones salieron"],c:1,fok:"✓ Los protones no se mueven en sólidos; carga positiva = electrones que salieron.",fmal:"✗ En sólidos los PROTONES no se mueven. Carga positiva = electrones que SALIERON."},
+  {texto:"Un átomo de sodio (Na) pierde un electrón. ¿Qué ion se forma?",ops:["Na⁻","Na⁺","Na²⁺","Na neutro"],c:1,fok:"✓ Na pierde 1 e⁻ → carga neta +1 → Na⁺.",fmal:"✗ Na pierde 1 electrón → Na⁺."},
+  {texto:"Un átomo de cloro (Cl) gana un electrón. ¿Qué ion se forma?",ops:["Cl⁺","Cl⁻","Cl²⁻","Cl neutro"],c:1,fok:"✓ Cl gana 1 e⁻ → carga neta –1 → Cl⁻.",fmal:"✗ Cl gana 1 electrón → Cl⁻."},
+  {texto:"La fuerza eléctrica entre protón y electrón en el átomo de hidrógeno es:",ops:["Repulsiva","Atractiva","Nula","Magnética"],c:1,fok:"✓ El protón (+) y el electrón (–) tienen cargas opuestas → se atraen.",fmal:"✗ Cargas OPUESTAS → fuerza ATRACTIVA."},
+  {texto:"¿Cuál es la razón principal por la que los aislantes no se descargan fácilmente?",ops:["Son transparentes","Sus electrones no son libres: están fuertemente ligados a los átomos","Son ligeros","Son rígidos"],c:1,fok:"✓ En aislantes los electrones están ligados → la carga permanece.",fmal:"✗ Los electrones están FUERTEMENTE LIGADOS y no pueden redistribuirse."},
+  {texto:"Al tocar tierra con el dedo un conductor positivo aislado, ¿qué ocurre?",ops:["El conductor se carga más","Los electrones de la tierra fluyen al conductor y lo neutralizan","El conductor explota","La tierra se carga positivamente"],c:1,fok:"✓ La tierra cede electrones al conductor positivo neutralizándolo.",fmal:"✗ La TIERRA cede electrones al conductor positivo, neutralizándolo."},
+  {texto:"Un rayo es un ejemplo de:",ops:["Inducción lenta","Descarga electrostática explosiva entre nubes o nube y tierra","Conducción controlada","Polarización permanente"],c:1,fok:"✓ El rayo es una descarga electrostática masiva.",fmal:"✗ El rayo es una DESCARGA ELECTROSTÁTICA violenta."},
+  {texto:"¿Para qué sirve el pararrayos?",ops:["Atraer más rayos","Proporcionar camino conductor controlado a tierra","Aumentar el voltaje","Generar electricidad"],c:1,fok:"✓ El pararrayos conduce la descarga a tierra de forma controlada.",fmal:"✗ Conduce la descarga eléctrica a tierra de forma segura."},
+  {texto:"El efecto triboeléctrico se refiere a:",ops:["Magnetismo de fricción","Electricidad generada por frotamiento entre materiales","Electricidad solar","Corriente de alta frecuencia"],c:1,fok:"✓ El triboeléctrico es la transferencia de carga por frotamiento.",fmal:"✗ Triboeléctrico = electricidad por FROTAMIENTO."},
+  {texto:"¿Por qué al peinar el cabello seco a veces se pega a la peineta?",ops:["Por el magnetismo","Por electrización triboeléctrica; peineta y cabello adquieren cargas opuestas","Por humedad","Por aceite del cabello"],c:1,fok:"✓ El frotamiento electriza cabello y peineta con cargas opuestas → se atraen.",fmal:"✗ ELECTRICIDAD ESTÁTICA por frotamiento: cargas opuestas → atracción."},
+  {texto:"Las impresoras láser usan electricidad estática para:",ops:["Calentar el papel","Atraer el tóner a zonas cargadas del tambor fotosensible","Generar imagen magnéticamente","Proyectar luz"],c:1,fok:"✓ El tambor cargado selectivamente atrae el tóner.",fmal:"✗ La impresora usa CARGA ESTÁTICA en el tambor para atraer el tóner."},
+  {texto:"El generador de Van de Graaff sirve para:",ops:["Generar corriente alterna","Acumular grandes cantidades de carga estática en una esfera","Medir resistencias","Producir campos magnéticos"],c:1,fok:"✓ El Van de Graaff acumula carga estática en su esfera.",fmal:"✗ Acumula CARGA ESTÁTICA en su esfera exterior."},
+  {texto:"Dos cargas q₁=–2 μC y q₂=–2 μC a 0,1 m. ¿Se atraen o repelen?",ops:["Se atraen","Se repelen","No interactúan","Depende del medio"],c:1,fok:"✓ Mismo signo (ambas negativas) → se REPELEN.",fmal:"✗ Mismo signo → se REPELEN."},
+  {texto:"¿Cuántos electrones hay en un Coulomb de carga?",ops:["1,6×10⁻¹⁹","6,25×10¹⁸","9,1×10³¹","1,6×10¹⁹"],c:1,fok:"✓ N = 1/1,6×10⁻¹⁹ = 6,25×10¹⁸ electrones.",fmal:"✗ N = 1/e = 6,25×10¹⁸ electrones."},
+  {texto:"¿Qué es la puesta a tierra en un sistema eléctrico?",ops:["Una resistencia de protección","Conexión al suelo que permite disipar cargas indeseadas","Un aislante","Un condensador"],c:1,fok:"✓ La tierra es un reservorio que neutraliza excesos de carga.",fmal:"✗ La tierra es un RESERVORIO que absorbe o cede carga."},
+  {texto:"Un cuerpo tiene 6,4×10⁻¹⁸ C de carga positiva. ¿Cuántas cargas elementales?",ops:["4","40","400","4000"],c:1,fok:"✓ n = Q/e = 6,4×10⁻¹⁸ / 1,6×10⁻¹⁹ = 40.",fmal:"✗ n = Q/e = 40 cargas elementales."},
+  {texto:"¿Por qué la ropa recién salida de la secadora a veces se pega?",ops:["Por el calor residual","Por electricidad estática generada por fricción en el tambor","Por magnetismo","Por humedad"],c:1,fok:"✓ La fricción en la secadora electriza las prendas con cargas opuestas.",fmal:"✗ La FRICCIÓN en la secadora genera cargas estáticas → atracción."},
+  {texto:"¿Por qué los equipos electrónicos sensibles se guardan en bolsas antiestáticas?",ops:["Para mantenerlos frescos","Para protegerlos de descargas electrostáticas que pueden dañarlos","Para evitar humedad","Para evitar polvo"],c:1,fok:"✓ Las descargas ESD pueden dañar los componentes.",fmal:"✗ Se protegen de ESD (descarga electrostática) que daña componentes."},
+  {texto:"El polvo se acumula más en pantallas de TV o monitores porque:",ops:["Son más calientes","Están cargadas estáticamente y atraen partículas","Generan campo magnético","Son rugosas"],c:1,fok:"✓ Las pantallas cargadas estáticamente atraen polvo.",fmal:"✗ La carga ESTÁTICA atrae las partículas de polvo."},
+  {texto:"En una planta de fabricación de explosivos se recomienda ropa antiestática porque:",ops:["Es más cómoda","Las chispas de descarga estática pueden causar ignición","Es obligatorio","Es más liviana"],c:1,fok:"✓ Una chispa de descarga estática puede encender explosivos.",fmal:"✗ Las descargas generan CHISPAS que pueden encender materiales explosivos."},
+  {texto:"¿Por qué al repostar combustible se recomienda tocar la carrocería antes de abrir?",ops:["Para abrirlo más fácil","Para disipar la carga estática y evitar chispas","Para comprobar la temperatura","Por tradición"],c:1,fok:"✓ Tocar la carrocería neutraliza la carga estática, evitando chispas.",fmal:"✗ Se descarga la electricidad estática para evitar CHISPAS cerca de vapores."},
+  {texto:"La pintura electrostática en autopartes funciona gracias a:",ops:["Alta temperatura","Carga opuesta entre la pintura y la carrocería, garantizando adhesión uniforme","Presión de aire","Gravedad"],c:1,fok:"✓ La atracción electrostática produce una capa de pintura uniforme.",fmal:"✗ La ATRACCIÓN ELECTROSTÁTICA entre cargas opuestas produce capa uniforme."},
+  {texto:"¿Por qué es seguro estar dentro de un automóvil durante una tormenta?",ops:["El caucho aísla","La carrocería metálica actúa como jaula de Faraday","El vidrio protege","El motor neutraliza cargas"],c:1,fok:"✓ La carrocería metálica distribuye la carga y protege el interior.",fmal:"✗ La carrocería METÁLICA actúa como jaula de Faraday."},
+  {texto:"Si aumentamos la temperatura de un conductor metálico, su resistencia:",ops:["Disminuye","Aumenta","No cambia","Primero sube luego baja"],c:1,fok:"✓ En metales la resistencia AUMENTA con la temperatura.",fmal:"✗ En metales la resistencia AUMENTA por mayor vibración de la red cristalina."},
+  {texto:"¿Cuál objeto es mejor conductor de electricidad?",ops:["Vidrio","Plástico PVC","Cobre","Madera seca"],c:2,fok:"✓ El cobre es uno de los mejores conductores: ρ ≈ 1,7×10⁻⁸ Ω·m.",fmal:"✗ El COBRE es el mejor conductor de la lista."},
+  {texto:"La carga eléctrica es una propiedad:",ops:["Solo de los electrones","Solo de los protones","Intrínseca de ciertas partículas fundamentales","Del neutrón"],c:2,fok:"✓ La carga es una propiedad intrínseca de partículas como electrones y protones.",fmal:"✗ La carga es INTRÍNSECA de partículas elementales."},
+  {texto:"¿Qué pasa con la masa de un objeto cuando se electriza?",ops:["Aumenta notablemente","Disminuye notablemente","Prácticamente no cambia","Desaparece"],c:2,fok:"✓ La masa del electrón es tan pequeña que el cambio es despreciable.",fmal:"✗ El cambio de masa es DESPRECIABLE (masa del e⁻ ≈ 9,1×10⁻³¹ kg)."},
+  {texto:"¿Cómo se pueden cargar dos esferas conductoras neutras usando solo inducción?",ops:["Es imposible","Acercar cargado, separarlas mientras el objeto está presente, luego retirarlo","Frotarlas entre sí","Calentarlas"],c:1,fok:"✓ Inducción → separar esferas → retirar inductor. Quedan con cargas opuestas.",fmal:"✗ Sí es posible: acercar inductor, SEPARAR, retirar inductor."},
+  {texto:"¿Por qué los globos frotados se pegan a la pared?",ops:["Por succión de aire","El globo cargado polariza la pared e induce cargas opuestas que lo atraen","Por humedad","Por magnetismo"],c:1,fok:"✓ El globo cargado polariza la pared → atracción.",fmal:"✗ El globo POLARIZA la pared induciendo cargas opuestas → atracción."},
+  {texto:"¿La fuerza de Coulomb obedece la tercera ley de Newton?",ops:["No, es especial","Sí, F₁₂ = –F₂₁","Solo para cargas iguales","Solo en vacío"],c:1,fok:"✓ La fuerza de Coulomb cumple la 3.ª ley de Newton.",fmal:"✗ Sí cumple la 3.ª ley: F₁₂ = –F₂₁."},
+  {texto:"La fuerza eléctrica de Coulomb es una fuerza:",ops:["Solo de contacto","A distancia","Solo magnética","Solo gravitacional"],c:1,fok:"✓ La fuerza de Coulomb actúa a distancia.",fmal:"✗ La fuerza de Coulomb actúa A DISTANCIA."},
+  {texto:"¿En qué medio es menor la fuerza de Coulomb comparada con el vacío?",ops:["En un conductor metálico","En el vacío","En un dieléctrico (εᵣ>1)","Son siempre iguales"],c:2,fok:"✓ En un dieléctrico: F = K₀q₁q₂/(εᵣr²), reducida por εᵣ.",fmal:"✗ En un dieléctrico la fuerza se REDUCE por εᵣ>1."},
+  {texto:"Dos bolas conductoras idénticas con +8 μC y –2 μC se tocan. ¿Cuánta carga queda en cada una?",ops:["0 y –2 μC","–8 μC y +2 μC","+3 μC cada una","+4 μC y –4 μC"],c:2,fok:"✓ Q_total=+6 μC. Se reparte igual: +3 μC cada una.",fmal:"✗ Q_total=+6 μC → +3 μC cada una."},
+  {texto:"¿En qué se diferencia conducción de inducción?",ops:["No hay diferencia","Conducción: contacto + transferencia. Inducción: sin contacto, redistribución interna","En inducción se usa más carga","La conducción es más rápida"],c:1,fok:"✓ CONDUCCIÓN = contacto + transferencia. INDUCCIÓN = sin contacto.",fmal:"✗ CONDUCCIÓN = contacto. INDUCCIÓN = sin contacto."},
+  {texto:"¿Por qué el ámbar frotado con lana da nombre a 'electricidad'?",ops:["Latín (electrum)","Griego (elektron = ámbar), por observaciones de Tales de Mileto","Árabe (al-khatram)","Inglés antiguo"],c:1,fok:"✓ 'Elektron' en griego = ámbar; Tales observó que atraía cuerpos pequeños.",fmal:"✗ La palabra viene del griego ELEKTRON (ámbar)."},
+  {texto:"Una carga negativa entre dos cargas positivas iguales equidistantes experimenta:",ops:["Fuerza hacia la derecha","Fuerza hacia arriba","Fuerza neta cero (equilibrio)","Fuerza hacia la izquierda"],c:2,fok:"✓ Por simetría las dos fuerzas son iguales y opuestas → fuerza neta cero.",fmal:"✗ Por simetría las fuerzas se cancelan → equilibrio."},
+  {texto:"Al recargar un teléfono, la corriente en los cables es principalmente:",ops:["Movimiento de protones","Movimiento de electrones en los conductores","Movimiento de neutrones","Movimiento de iones positivos"],c:1,fok:"✓ En los metales la corriente es flujo ordenado de electrones libres.",fmal:"✗ En metales la corriente es flujo de ELECTRONES LIBRES."},
+  {texto:"¿Cuánto vale la fuerza entre dos protones a 1 fm (10⁻¹⁵ m)? (K₀=9×10⁹)",ops:["≈230 N","≈23 N","≈2,3 kN","≈230 kN"],c:0,fok:"✓ F=K₀e²/r²=9×10⁹×(1,6×10⁻¹⁹)²/(10⁻¹⁵)²≈230 N.",fmal:"✗ F ≈ 230 N (la fuerza nuclear fuerte los mantiene juntos)."},
+  {texto:"¿Qué sucede con la carga de una esfera conductora aislada si se le agrega carga repetidamente?",ops:["Se rompe","La carga se acumula hasta que el campo ioniza el aire","Absorbe carga infinita","La carga desaparece"],c:1,fok:"✓ Al superar ~3 MV/m el aire se ioniza → descarga eléctrica.",fmal:"✗ Cuando el campo supera la rigidez dieléctrica del aire ocurre RUPTURA."},
+  {texto:"¿Por qué la fuerza eléctrica es mucho más intensa que la gravitacional a escala atómica?",ops:["Porque las masas son pequeñas","Porque K₀ >> G y las cargas elementales producen fuerzas mucho mayores","Porque la electricidad va más rápido","Porque el tiempo es diferente"],c:1,fok:"✓ K₀ ≈ 9×10⁹ vs G ≈ 6,67×10⁻¹¹. Razón Fₑ/Fg ≈ 10⁴² para p-e.",fmal:"✗ K₀ >> G: la fuerza eléctrica domina totalmente a escala atómica."},
+  {texto:"¿Qué tipo de fuerza es la fuerza entre dos cargas en el vacío?",ops:["Solo atractiva","Solo repulsiva","Puede ser atractiva o repulsiva según los signos","Siempre nula"],c:2,fok:"✓ Cargas iguales → repulsión; cargas opuestas → atracción.",fmal:"✗ Puede ser atractiva (opuestos) o repulsiva (igual signo)."},
+  {texto:"¿Qué propiedad hace al agua tan buen dieléctrico (εᵣ≈80)?",ops:["Alta densidad","Gran polaridad molecular (dipolos permanentes orientables)","Bajo punto de ebullición","Alta conductividad"],c:1,fok:"✓ Las moléculas de agua son dipolos permanentes muy polarizables.",fmal:"✗ Las moléculas de agua son DIPOLOS PERMANENTES muy orientables."},
+  {texto:"¿Qué es la carga elemental?",ops:["La carga del protón (1,6×10⁻¹⁹ C), mínima observable","La carga de un mol de protones","La carga de un microcoulomb","La carga del núcleo"],c:0,fok:"✓ La carga elemental e = 1,6×10⁻¹⁹ C es la mínima unidad observable.",fmal:"✗ La carga elemental es e = 1,6×10⁻¹⁹ C."},
+  {texto:"Si duplicamos ambas cargas q₁ y q₂ (distintos signos), la fuerza:",ops:["Se duplica","Se cuadruplica","Se mantiene","Se reduce a la mitad"],c:1,fok:"✓ F ∝ q₁q₂. Si ambas → 2q: F → 4F.",fmal:"✗ F ∝ q₁q₂. Duplicar ambas cuadruplica F."},
+  {texto:"¿Puede un cuerpo tener potencial eléctrico distinto de cero sin estar cargado?",ops:["No, solo con carga propia","Sí, si hay cargas externas que crean potencial en ese punto","Solo si está magnetizado","No, siempre es cero"],c:1,fok:"✓ El potencial depende de todas las cargas del entorno.",fmal:"✗ Sí: el potencial depende de TODAS las cargas del entorno."},
+  {texto:"El proceso de inducción electrostática es temporal cuando:",ops:["El material es conductor","No hay conexión a tierra antes de retirar el inductor","El material es metálico","El inductor es muy grande"],c:1,fok:"✓ Sin tierra, al retirar el inductor las cargas vuelven al equilibrio → neutro.",fmal:"✗ Sin conexión a tierra la inducción es TEMPORAL."},
+  {texto:"¿Qué partícula se transfiere principalmente durante el frotamiento de materiales?",ops:["Protones","Neutrones","Electrones","Fotones"],c:2,fok:"✓ El frotamiento transfiere ELECTRONES de un material a otro.",fmal:"✗ Se transfieren ELECTRONES (los protones están fijos en el núcleo)."},
+  {texto:"¿Qué indica la separación de las hojas del electroscopio?",ops:["La corriente que pasa","La presencia y magnitud relativa de carga eléctrica","La temperatura del sistema","La resistencia del material"],c:1,fok:"✓ Mayor separación = mayor cantidad de carga acumulada en el electroscopio.",fmal:"✗ La separación indica la CARGA presente: mayor separación = mayor carga."},
+  {texto:"¿Cuál es la dirección de la fuerza entre cargas de signo opuesto?",ops:["Repulsiva (se alejan)","Atractiva (se acercan)","Perpendicular a la línea que las une","No hay fuerza"],c:1,fok:"✓ Cargas de signo opuesto se ATRAEN: la fuerza apunta de una carga hacia la otra.",fmal:"✗ Cargas de signo OPUESTO se ATRAEN."},
+  {texto:"Un conductor conectado a tierra se denomina:",ops:["Aislado","Blindado","Aterrizado o 'aterrizado'","Polarizado"],c:2,fok:"✓ Un conductor conectado a tierra (aterrizado) puede ganar o perder carga libremente.",fmal:"✗ Un conductor conectado a tierra se llama ATERRIZADO o con toma de tierra."},
+  {texto:"¿Qué nombre recibe la cantidad de carga elemental? (e = 1,6×10⁻¹⁹ C)",ops:["Carga de Faraday","Cuanto de carga o carga elemental","Carga de Bohr","Carga de Planck"],c:1,fok:"✓ e = 1,6×10⁻¹⁹ C se llama carga elemental o cuanto de carga.",fmal:"✗ Se llama CARGA ELEMENTAL o cuanto de carga."},
+  {texto:"¿Por qué las gotas de lluvia actúan como conductores y facilitan la descarga de nubes cargadas?",ops:["Porque son redondas","Porque el agua pura no conduce","Porque el agua con sales disueltas conduce la electricidad","Por la temperatura"],c:2,fok:"✓ El agua con sales disueltas forma iones que permiten la conducción eléctrica.",fmal:"✗ El agua de lluvia contiene sales e impurezas que la hacen conductora."},
+  {texto:"¿Cómo se llama la cantidad mínima de carga que puede tener un objeto macroscópico?",ops:["1 Coulomb","1 Amperio","1 carga elemental (e = 1,6×10⁻¹⁹ C)","0,5 carga elemental"],c:2,fok:"✓ La mínima carga observable es 1 carga elemental: e = 1,6×10⁻¹⁹ C.",fmal:"✗ La mínima carga observable es e = 1,6×10⁻¹⁹ C (1 carga elemental)."}
+];
+const POWER_AUTOMATE_URL='PEGA_AQUI_TU_URL_DE_POWER_AUTOMATE';
+const NUM_PREGUNTAS=10;
+let est={},intento=1,pregs=[],notaFinal=0;
+function mezclar(a){const r=[...a];for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]];}return r;}
+function seleccionar(){return mezclar(BANCO).slice(0,NUM_PREGUNTAS).map(p=>({...p,ops:mezclar(p.ops.map((o,i)=>({t:o,ok:i===p.c})))}));}
+function registrar(){
+    const n=document.getElementById('rn').value.trim(),c=document.getElementById('rc').value.trim(),e=document.getElementById('re').value.trim();
+    let v=true;['rn','rc','re'].forEach(id=>document.getElementById(id).classList.remove('err'));
+    if(!n){document.getElementById('rn').classList.add('err');v=false;}
+    if(!c){document.getElementById('rc').classList.add('err');v=false;}
+    if(!e||!e.includes('@')){document.getElementById('re').classList.add('err');v=false;}
+    if(!v){alert('⚠️ Completa todos los campos correctamente.');return;}
+    est={n,c,e};intento=1;iniciarQuiz();
+}
+function iniciarQuiz(){
+    pregs=seleccionar();
+    document.getElementById('badge-int').innerHTML=intento===1?'<div class="badge-int">📝 Primer intento — Nota máxima: 5.0</div>':'<div class="badge-int s2">⚠️ Segundo intento — Nota máxima: 4.0</div>';
+    const cnt=document.getElementById('cnt-pregs');cnt.innerHTML='';
+    pregs.forEach((p,i)=>{const ops=p.ops.map((o,j)=>`<label class="opcion"><input type="radio" name="q${i}" value="${j}"> ${o.t}</label>`).join('');cnt.innerHTML+=`<div class="pregunta"><p class="preg-txt"><span class="preg-num">${i+1}</span>${p.texto}</p>${ops}<div class="fb" id="fb${i}"></div></div>`;});
+    document.getElementById('btn-cal').style.display='block';document.getElementById('res-div').style.display='none';document.getElementById('btn-cont').style.display='none';document.getElementById('btn-rein').style.display='none';pantalla('pantalla-quiz');
+}
+function calificar(){
+    const sin=[];pregs.forEach((_,i)=>{if(!document.querySelector(`input[name="q${i}"]:checked`))sin.push(i+1);});
+    if(sin.length){alert(`⚠️ Faltan preguntas: ${sin.join(', ')}`);return;}
+    let cor=0;
+    pregs.forEach((p,i)=>{const si=parseInt(document.querySelector(`input[name="q${i}"]:checked`).value);const todas=document.querySelectorAll(`input[name="q${i}"]`);const fb=document.getElementById('fb'+i);todas.forEach(o=>{o.disabled=true;o.closest('.opcion').classList.add('lock');});if(p.ops[si].ok){cor++;todas[si].closest('.opcion').classList.add('ok');fb.className='fb ok';fb.textContent=p.fok;}else{todas[si].closest('.opcion').classList.add('mal');fb.className='fb mal';fb.textContent=p.fmal;p.ops.forEach((o,j)=>{if(o.ok)todas[j].closest('.opcion').classList.add('oka');});}});
+    const pct=Math.round(cor/NUM_PREGUNTAS*100),ap=pct>=60,nb=intento===1?5:4;notaFinal=(cor/NUM_PREGUNTAS*nb).toFixed(1);
+    document.getElementById('btn-cal').style.display='none';const rd=document.getElementById('res-div');rd.style.display='block';rd.className='res-quiz '+(ap?'ap':'rep');
+    document.getElementById('pct-txt').textContent=`${cor} / ${NUM_PREGUNTAS} — ${pct}%`;document.getElementById('nota-txt').textContent=`Nota: ${notaFinal} / ${nb}`;
+    document.getElementById('res-msg').textContent=ap?'🎉 ¡Felicitaciones! Has superado el quiz.':'❌ No alcanzaste el puntaje mínimo (60%).';
+    document.getElementById('res-sub').textContent=ap?'Toca el botón para continuar a la práctica.':intento===1?`Obtuviste ${cor}/${NUM_PREGUNTAS}. Tienes un segundo intento (máx. 4.0).`:`Obtuviste ${cor}/${NUM_PREGUNTAS}. No hay más intentos.`;
+    if(ap){document.getElementById('btn-cont').style.display='block';document.getElementById('paso1').classList.replace('activo','completo');document.getElementById('cir1').textContent='✓';enviar(cor,pct,true);}
+    else{if(intento===1)document.getElementById('btn-rein').style.display='block';enviar(cor,pct,false);}
+}
+function segundoIntento(){intento=2;iniciarQuiz();}
+function pantalla(id){document.querySelectorAll('.pantalla').forEach(p=>p.classList.remove('activa'));document.getElementById(id).classList.add('activa');window.scrollTo(0,0);}
+function desbloquear(){document.getElementById('nota-fin').textContent=`${notaFinal} / ${intento===1?'5.0':'4.0'}`;document.getElementById('paso2').classList.add('activo');document.getElementById('paso3').classList.add('activo');pantalla('pantalla-sel');}
+function abrir(cual){document.getElementById('ov-'+cual).classList.add('activa');document.body.style.overflow='hidden';}
+function cerrar(){document.querySelectorAll('.ov-cont').forEach(p=>p.classList.remove('activa'));document.body.style.overflow='';}
+async function enviar(cor,pct,ap){
+    if(!POWER_AUTOMATE_URL||POWER_AUTOMATE_URL==='PEGA_AQUI_TU_URL_DE_POWER_AUTOMATE')return;
+    document.getElementById('env-ov').classList.add('activo');
+    const d={nombre:est.n,codigo:est.c,correo:est.e,practica:PRACTICA_NOMBRE,intento,correctas:cor,total:NUM_PREGUNTAS,porcentaje:pct,nota:parseFloat(notaFinal),notaBase:intento===1?5:4,aprobado:ap,fecha:new Date().toLocaleDateString('es-CO'),hora:new Date().toLocaleTimeString('es-CO')};
+    try{await fetch(POWER_AUTOMATE_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});}catch(e){console.warn(e);}finally{document.getElementById('env-ov').classList.remove('activo');}
+}
+</script>
+</body>
+</html>

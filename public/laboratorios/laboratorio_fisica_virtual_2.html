@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laboratorio de Física II Virtual</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --azul: #093f7c; --amarillo: #FFD100; --naranja: #e67e22; --naranja-claro: #f39c12; --gris-fondo: #f4f6fb; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Source Sans 3', sans-serif; background: var(--gris-fondo); color: #1a1a2e; }
+        .line li { width: auto; height: 50px; transition: background-position-x 0.9s linear; }
+        .line li a { text-decoration: none; transition: all 0.5s; }
+        .line li:hover { background: url("data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIGlkPSJMYXllcl8xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4PSIwcHgiIHk9IjBweCIgd2lkdGg9IjM5MHB4IiBoZWlnaHQ9IjUwcHgiIHZpZXdCb3g9IjAgMCAzOTAgNTAiIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgMCAwIDM5MCA1MCIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+PHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSIjRkZGRjAwIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLW1pdGVybGltaXQ9IjEwIiBkPSJNMCw0Ny41ODVjMCwwLDk3LjUsMCwxMzAsMCAxMy43NSwwLDI4Ljc0LTM4Ljc3OCw0Ni4xNjgtMTkuNDE2QzE5Mi42NjksNDYuNSwyNDMuNjAzLDQ3LjU4NSwyNjAsNDcuNTg1YzMxLjgyMSwwLDEzMCwwLDEzMCwwIi8+PC9zdmc+"); animation: line 0.90s forwards; }
+        .line li:hover a { color: rgb(1,1,20); }
+        .line li:not(:last-child) { margin-right: 30px; }
+        @keyframes line { 0% { background-position-x: 600px; } 100% { background-position-x: 130px; } }
+
+        /* ===== FIX MENÚ MÓVIL ===== */
+        @media (max-width: 991.98px) {
+            .navbar-collapse { max-height: 80vh; overflow-y: auto; }
+            .dropdown-menu { border: none !important; background: rgba(255,255,255,0.1) !important; margin-top: 0 !important; }
+            .dropdown-item { color: rgba(255,255,255,0.92) !important; padding: 10px 24px !important; font-size: 0.95rem; }
+            .dropdown-item:hover, .dropdown-item:focus { background: rgba(255,255,255,0.2) !important; color: #fff !important; }
+            .dropdown-item:first-child { padding-top: 14px !important; }
+        }
+
+        .hero { background: linear-gradient(135deg, #7a2800 0%, #e67e22 55%, #9c3d00 100%); position: relative; padding: 70px 40px 80px; overflow: hidden; color: white; }
+        .hero::before { content: ''; position: absolute; top: -60px; right: -60px; width: 350px; height: 350px; background: radial-gradient(circle, rgba(243,156,18,0.2) 0%, transparent 70%); border-radius: 50%; }
+        .hero-badge { display: inline-block; background: var(--amarillo); color: #7a2800; font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 0.85rem; letter-spacing: 3px; text-transform: uppercase; padding: 5px 18px; border-radius: 30px; margin-bottom: 20px; }
+        .hero h1 { font-family: 'Rajdhani', sans-serif; font-size: clamp(2.2rem, 5vw, 3.8rem); font-weight: 700; line-height: 1.1; margin-bottom: 18px; }
+        .hero h1 span { color: var(--amarillo); }
+        .hero p { font-size: 1.1rem; color: #f5cba0; max-width: 600px; line-height: 1.7; margin-bottom: 30px; }
+        .hero-stats { display: flex; gap: 40px; flex-wrap: wrap; }
+        .stat-number { font-family: 'Rajdhani', sans-serif; font-size: 2.2rem; font-weight: 700; color: var(--amarillo); line-height: 1; }
+        .stat-label { font-size: 0.8rem; color: #e0b080; text-transform: uppercase; letter-spacing: 1px; }
+        .hero-icon { position: absolute; right: 80px; top: 50%; transform: translateY(-50%); font-size: 10rem; opacity: 0.07; pointer-events: none; }
+        .wave-divider { line-height: 0; background: var(--gris-fondo); }
+        .wave-divider svg { display: block; }
+        .section-title { font-family: 'Rajdhani', sans-serif; font-size: 2rem; font-weight: 700; color: var(--azul); border-left: 5px solid var(--naranja); padding-left: 16px; margin-bottom: 8px; }
+        .section-subtitle { color: #666; font-size: 1rem; margin-bottom: 30px; padding-left: 21px; }
+        .practicas-section { padding: 60px 40px; background: white; }
+        .practicas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 22px; margin-top: 10px; }
+
+        /* Tarjeta con quiz (clickeable) */
+        .practica-card { background: var(--gris-fondo); border-radius: 14px; padding: 28px 24px; border-left: 4px solid var(--azul); transition: all 0.3s ease; }
+        .practica-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(230,126,34,0.15); border-left-color: var(--naranja); }
+        .practica-card.con-quiz { cursor: pointer; position: relative; }
+        .practica-card.con-quiz:hover { box-shadow: 0 14px 36px rgba(230,126,34,0.22); border-left-color: var(--naranja); }
+        .practica-card.con-quiz::after {
+            content: '▶ Iniciar Quiz';
+            position: absolute; bottom: 16px; right: 18px;
+            background: var(--naranja); color: white;
+            font-size: 0.72rem; font-weight: 700; font-family: 'Rajdhani', sans-serif;
+            letter-spacing: 1px; text-transform: uppercase;
+            padding: 4px 12px; border-radius: 20px;
+            opacity: 0; transition: opacity 0.2s;
+        }
+        .practica-card.con-quiz:hover::after { opacity: 1; }
+
+        .practica-num { font-family: 'Rajdhani', sans-serif; font-size: 2.5rem; font-weight: 700; color: rgba(230,126,34,0.12); line-height: 1; margin-bottom: 6px; }
+        .practica-card h4 { font-size: 1rem; font-weight: 600; color: var(--azul); margin-bottom: 8px; }
+        .practica-card p { font-size: 0.88rem; color: #555; line-height: 1.6; }
+        .practica-tag { display: inline-block; margin-top: 10px; background: rgba(230,126,34,0.1); color: var(--naranja); font-size: 0.75rem; font-weight: 600; padding: 3px 10px; border-radius: 20px; }
+        .practica-tag.tag-quiz { background: rgba(9,63,124,0.1); color: var(--azul); margin-left: 6px; }
+
+        .docentes-section { padding: 60px 40px; background: var(--gris-fondo); }
+        .docente-card { background: white; border-radius: 14px; padding: 28px 24px; text-align: center; box-shadow: 0 4px 16px rgba(9,63,124,0.08); transition: transform 0.3s; }
+        .docente-card:hover { transform: translateY(-5px); }
+        .docente-avatar { width: 90px; height: 90px; border-radius: 50%; background: linear-gradient(135deg, #7a2800, #e67e22); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; margin: 0 auto 16px; }
+        .docente-card h5 { font-weight: 700; color: var(--azul); margin-bottom: 4px; }
+        .docente-card .cargo { font-size: 0.85rem; color: #888; margin-bottom: 10px; }
+        .docente-card .email { font-size: 0.82rem; background: rgba(230,126,34,0.1); padding: 5px 12px; border-radius: 20px; display: inline-block; color: var(--naranja); }
+        .horarios-section { padding: 60px 40px; background: white; }
+        .tabla-horarios { width: 100%; border-collapse: separate; border-spacing: 0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(9,63,124,0.1); }
+        .tabla-horarios thead tr { background: linear-gradient(90deg, #7a2800, #e67e22); color: white; }
+        .tabla-horarios thead th { padding: 16px 20px; font-family: 'Rajdhani', sans-serif; font-size: 1rem; font-weight: 600; letter-spacing: 1px; }
+        .tabla-horarios tbody tr { background: white; transition: background 0.2s; }
+        .tabla-horarios tbody tr:nth-child(even) { background: var(--gris-fondo); }
+        .tabla-horarios tbody tr:hover { background: rgba(230,126,34,0.07); }
+        .tabla-horarios td { padding: 14px 20px; font-size: 0.95rem; border-bottom: 1px solid #eee; }
+        .badge-grupo { background: var(--naranja); color: white; font-size: 0.78rem; padding: 3px 10px; border-radius: 20px; }
+        .requisitos-section { padding: 60px 40px; background: linear-gradient(135deg, #7a2800, #e67e22); color: white; }
+        .requisito-item { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 20px; }
+        .req-icon { width: 44px; height: 44px; border-radius: 10px; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; }
+        .req-text h6 { font-weight: 700; margin-bottom: 4px; }
+        .req-text p { font-size: 0.9rem; color: #f5cba0; margin: 0; }
+        .breadcrumb-bar { background: white; padding: 12px 40px; border-bottom: 1px solid #e8edf5; }
+        .breadcrumb-bar a { color: var(--azul); text-decoration: none; font-size: 0.9rem; }
+        .breadcrumb-bar a:hover { color: var(--naranja); }
+        .breadcrumb-bar span { color: #aaa; margin: 0 8px; font-size: 0.9rem; }
+        .breadcrumb-current { color: #555; font-size: 0.9rem; }
+        footer { background: #2c0e00; color: #8899bb; text-align: center; padding: 28px 20px; font-size: 0.88rem; }
+        footer strong { color: white; }
+
+        /* ===== RESPONSIVE MOBILE ===== */
+        @media (max-width: 768px) {
+            .navbar-brand img { width: 90px !important; height: 38px !important; }
+            .line li:not(:last-child) { margin-right: 0 !important; }
+            .hero { padding: 35px 16px 45px; }
+            .hero h1 { font-size: clamp(1.6rem, 7vw, 2.5rem) !important; }
+            .hero p { font-size: 0.95rem !important; }
+            .hero-icon { font-size: 5rem; right: 10px; opacity: 0.05; }
+            .hero-stats { gap: 20px; }
+            .stat-number { font-size: 1.6rem !important; }
+            .breadcrumb-bar { padding: 10px 15px; overflow-x: auto; white-space: nowrap; }
+            .practicas-section, .docentes-section, .horarios-section, .requisitos-section { padding: 30px 14px; }
+            .practicas-grid { grid-template-columns: 1fr; }
+            .horarios-section { overflow-x: auto; }
+            .tabla-horarios { min-width: 480px; }
+            .tabla-horarios th, .tabla-horarios td { padding: 10px 10px; font-size: 0.82rem; }
+            .section-title { font-size: 1.5rem; }
+            .requisitos-section .col-md-6 { margin-bottom: 20px; }
+            .practica-card.con-quiz::after { opacity: 1; bottom: 12px; }
+        }
+        @media (max-width: 480px) {
+            .hero { padding: 24px 12px 32px; }
+            .hero-stats { gap: 12px; }
+            .stat-number { font-size: 1.3rem !important; }
+            .stat-label { font-size: 0.68rem; }
+            .practicas-section, .docentes-section, .horarios-section, .requisitos-section { padding: 22px 10px; }
+            .practica-card { padding: 18px 14px; }
+            .section-title { font-size: 1.2rem; }
+            .docente-card { padding: 20px 16px; }
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg" style="background-color:rgb(9, 63, 124);">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="index.html">
+            <img src="resources/logo_camacho.png" alt="Logo" width="120" height="50" class="d-inline-block align-text">
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse line" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" style="color:white;">
+                        Laboratorios de Física Presencial
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="laboratorio_fisica_presencial_1.html">Laboratorio de Física I Presencial</a></li>
+                        <li><a class="dropdown-item" href="laboratorio_fisica_presencial_2.html">Laboratorio de Física II Presencial</a></li>
+                        <li><a class="dropdown-item" href="laboratorio_fisica_presencial_3.html">Laboratorio de Física III Presencial</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" style="color:white;">
+                        Laboratorios de Física Virtual
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="laboratorio_fisica_virtual_1.html">Laboratorio de Física I Virtual</a></li>
+                        <li><a class="dropdown-item fw-bold" href="laboratorio_fisica_virtual_2.html">Laboratorio de Física II Virtual</a></li>
+                        <li><a class="dropdown-item" href="laboratorio_fisica_virtual_3.html">Laboratorio de Física III Virtual</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" style="color:white;">
+                        Laboratorios de Física Remotos
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="laboratorio_fisica_remoto_1.html">Laboratorio de Física I Remoto</a></li>
+                        <li><a class="dropdown-item" href="laboratorio_fisica_remoto_2.html">Laboratorio de Física II Remoto</a></li>
+                        <li><a class="dropdown-item" href="laboratorio_fisica_remoto_3.html">Laboratorio de Física III Remoto</a></li>
+                    </ul>
+                </li>
+            </ul>
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link" href="#" style="color:white;">
+                        Iniciar Sesión
+                        <img src="resources/is3.png" alt="Iniciar Sesión" width="30" height="24">
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="breadcrumb-bar">
+    <a href="index.html">🏠 Inicio</a>
+    <span>›</span>
+    <a href="#">Laboratorios Virtuales</a>
+    <span>›</span>
+    <span class="breadcrumb-current">Física II Virtual</span>
+</div>
+
+<div class="hero">
+    <div class="hero-icon">🔌</div>
+    <div class="hero-badge">Laboratorio Virtual</div>
+    <h1>Laboratorio de<br><span>Física II</span> Virtual</h1>
+    <p>Ellectroststica y Magnetismo en entorno digital. Simula circuitos eléctricos, campos magnéticos y fenómenos térmicos con herramientas interactivas en línea.</p>
+    <div class="hero-stats">
+        <div class="stat-item"><div class="stat-number">6</div><div class="stat-label">Simulaciones</div></div>
+        <div class="stat-item"><div class="stat-number">100%</div><div class="stat-label">En línea</div></div>
+        <div class="stat-item"><div class="stat-number">24/7</div><div class="stat-label">Disponible</div></div>
+        <div class="stat-item"><div class="stat-number">20%</div><div class="stat-label">Curso Principal</div></div>
+    </div>
+</div>
+
+<div class="wave-divider">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 60" preserveAspectRatio="none" style="height:60px;width:100%;">
+        <path fill="#f4f6fb" d="M0,30 C360,60 1080,0 1440,30 L1440,60 L0,60 Z"/>
+    </svg>
+</div>
+
+<div class="practicas-section">
+    <div class="section-title">Simulaciones de Laboratorio</div>
+    <div class="section-subtitle">Prácticas interactivas de Física II — Electrostatica y Electromagnetismo</div>
+    <div class="practicas-grid">
+
+        <!-- P01: Electrostática -->
+        <div class="practica-card con-quiz"
+             onclick="window.location.href='lab_fisica2_virtual/electrostatica.html'"
+             title="Ingresar al quiz de Electrostática">
+            <div class="practica-num">01</div>
+            <h4>Cargas Positiva-Negativa, Inducción Eléctrica y Electrómetro</h4>
+            <p>Identificación de cargas eléctricas por frotamiento. Fenómeno de inducción electrostática y uso del electrómetro para detectar y comparar cargas.</p>
+            <span class="practica-tag">⚡ Electrostática</span>
+            <span class="practica-tag tag-quiz">📝 Quiz disponible</span>
+        </div>
+
+        <!-- P02: Coulomb — quiz ya existente -->
+        <div class="practica-card con-quiz"
+             onclick="window.location.href='lab_fisica2_virtual/coulomb.html'"
+             title="Ingresar al quiz de Ley de Coulomb">
+            <div class="practica-num">02</div>
+            <h4>Fuerza Eléctrica y Ley de Coulomb — Carga Puntual</h4>
+            <p>Medición de la fuerza entre cargas puntuales en función de la distancia y la magnitud. Verificación experimental de la Ley de Coulomb.</p>
+            <span class="practica-tag">🔌 Ley de Coulomb</span>
+            <span class="practica-tag tag-quiz">📝 Quiz disponible</span>
+        </div>
+
+        <!-- P03: Campo Eléctrico -->
+        <div class="practica-card con-quiz"
+             onclick="window.location.href='lab_fisica2_virtual/campo_electrico.html'"
+             title="Ingresar al quiz de Campo Eléctrico">
+            <div class="practica-num">03</div>
+            <h4>Líneas Equipotenciales y Campo Eléctrico</h4>
+            <p>Mapeo experimental de líneas de campo eléctrico y superficies equipotenciales usando electrodos de distintas geometrías en cuba electrolítica.</p>
+            <span class="practica-tag">🗺️ Campo eléctrico</span>
+            <span class="practica-tag tag-quiz">📝 Quiz disponible</span>
+        </div>
+
+        <!-- P04: Dieléctrico -->
+        <div class="practica-card con-quiz"
+             onclick="window.location.href='lab_fisica2_virtual/dielectrico.html'"
+             title="Ingresar al quiz de Constante Dieléctrica">
+            <div class="practica-num">04</div>
+            <h4>Constante Dieléctrica</h4>
+            <p>Determinación experimental de la permitividad relativa de distintos materiales dieléctricos mediante medición de capacitancia con y sin dieléctrico.</p>
+            <span class="practica-tag">🔲 Dieléctricos</span>
+            <span class="practica-tag tag-quiz">📝 Quiz disponible</span>
+        </div>
+
+        <!-- P05: Resistividad -->
+        <div class="practica-card con-quiz"
+             onclick="window.location.href='lab_fisica2_virtual/resistividad.html'"
+             title="Ingresar al quiz de Resistividad">
+            <div class="practica-num">05</div>
+            <h4>Resistividad</h4>
+            <p>Medición de la resistencia eléctrica en conductores de distintos materiales, longitudes y secciones transversales. Determinación de la resistividad del material.</p>
+            <span class="practica-tag">🔋 Resistividad</span>
+            <span class="practica-tag tag-quiz">📝 Quiz disponible</span>
+        </div>
+
+        <!-- P06: Campo-Distancia -->
+        <div class="practica-card con-quiz"
+             onclick="window.location.href='lab_fisica2_virtual/campo_distancia.html'"
+             title="Ingresar al quiz de Dependencia Campo-Distancia">
+            <div class="practica-num">06</div>
+            <h4>Dependencia del Campo y la Distancia</h4>
+            <p>Medición del campo eléctrico a diferentes distancias de una fuente puntual. Verificación de la relación inversa al cuadrado y análisis gráfico de los resultados.</p>
+            <span class="practica-tag">📏 Campo-Distancia</span>
+            <span class="practica-tag tag-quiz">📝 Quiz disponible</span>
+        </div>
+
+    </div>
+</div>
+
+<div class="docentes-section">
+    <div class="section-title">Docentes del Laboratorio</div>
+    <div class="section-subtitle">Equipo académico a cargo del laboratorio virtual de Física II</div>
+    <div class="row g-4 mt-1">
+        <div class="col-md-4">
+            <div class="docente-card">
+                <div class="docente-avatar">👨‍💻</div>
+                    <h5>Mg. Julian Angel</h5>
+                    <div class="cargo">Docente TC — Laboratorios </div>
+                    <div class="email"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="533e7d213a3c2013263d3a3239307d3637267d303c">[email&#160;protected]</a></div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="docente-card">
+                    <div class="docente-avatar">👨‍💻</div>
+                    <h5>Dr. Jose Valenzuela</h5>
+                    <div class="cargo">Docente TC — Laboratorios </div>
+                    <div class="email"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="7a1e540a1b0e1314153a0f14131b1019541f1e0f541915">[email&#160;protected]</a></div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="docente-card">
+                    <div class="docente-avatar">👨‍🔬</div>
+                    <h5>Ing. Sebastian Hernandez</h5>
+                    <div class="cargo">Auxiliar de Laboratorio</div>
+                    <div class="email"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="a2d48ccdd1d2cbccc3e2d7cccbc3c8c18cc7c6d78cc1cd">[email&#160;protected]</a></div>
+                </div>
+        </div>
+    </div>
+</div>
+
+<div class="horarios-section">
+    <div class="section-title">Horarios de Asesoría Virtual</div>
+    <div class="section-subtitle">Sesiones sincrónicas de acompañamiento por videollamada</div>
+    <div style="overflow-x:auto">
+        <table class="tabla-horarios mt-3">
+            <thead>
+                <tr><th>Grupo</th><th>Día</th><th>Hora</th><th>Plataforma</th><th>Docente</th></tr>
+            </thead>
+            <tbody>
+                <tr><td><span class="badge-grupo">G-01</span></td><td>🗓️ Lunes</td><td>09:00 – 11:00 a.m.</td><td>Google Meet</td><td>Dra. Marcela Ríos</td></tr>
+                <tr><td><span class="badge-grupo">G-02</span></td><td>🗓️ Martes</td><td>11:00 – 01:00 p.m.</td><td>Microsoft Teams</td><td>Mg. Diego Patiño</td></tr>
+                <tr><td><span class="badge-grupo">G-03</span></td><td>🗓️ Miércoles</td><td>07:00 – 09:00 a.m.</td><td>Google Meet</td><td>Dra. Marcela Ríos</td></tr>
+                <tr><td><span class="badge-grupo">G-04</span></td><td>🗓️ Jueves</td><td>02:00 – 04:00 p.m.</td><td>Microsoft Teams</td><td>Mg. Diego Patiño</td></tr>
+                <tr><td><span class="badge-grupo">G-05</span></td><td>🗓️ Viernes</td><td>10:00 – 12:00 m.</td><td>Google Meet</td><td>Fís. Valentina Ospina</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="requisitos-section">
+    <div class="container-fluid px-0">
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <h2 class="section-title" style="color:white; border-left-color:var(--amarillo);">Requisitos Técnicos</h2>
+                <p style="color:#f5cba0; padding-left:21px; margin-bottom:20px;">Lo que necesitas para acceder al laboratorio virtual</p>
+                <div class="mt-2">
+                    <div class="requisito-item"><div class="req-icon">🌐</div><div class="req-text"><h6>Conexión a internet</h6><p>Mínimo 5 Mbps. Se recomienda conexión estable para simulaciones de circuitos en tiempo real.</p></div></div>
+                    <div class="requisito-item"><div class="req-icon">💻</div><div class="req-text"><h6>Dispositivo compatible</h6><p>PC, laptop o celular con navegador actualizado. Las simulaciones funcionan en cualquier dispositivo moderno.</p></div></div>
+                    <div class="requisito-item"><div class="req-icon">🔑</div><div class="req-text"><h6>Credenciales institucionales</h6><p>Acceso con correo institucional UNIAJC al campus virtual para ingresar a las herramientas de simulación.</p></div></div>
+                    <div class="requisito-item"><div class="req-icon">📋</div><div class="req-text"><h6>Quiz de conocimientos previos</h6><p>Responder el quiz de conocimientos previos antes de cada sesión sincrónica. Mínimo 60% para continuar.</p></div></div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <h2 class="section-title" style="color:white; border-left-color:var(--amarillo);">Evaluación</h2>
+                <p style="color:#f5cba0; padding-left:21px; margin-bottom:20px;">Distribución porcentual de la nota</p>
+                <div class="mt-2">
+                    <div class="requisito-item"><div class="req-icon">📝</div><div class="req-text"><h6>Quiz de conocimientos previos — 20%</h6><p>Quiz realizado antes de cada práctica para verificar la preparación teórica del estudiante.</p></div></div>
+                    <div class="requisito-item"><div class="req-icon">🖥️</div><div class="req-text"><h6>Desempeño en simulación — 30%</h6><p>Correcta configuración del simulador, toma de datos y análisis durante la sesión.</p></div></div>
+                    <div class="requisito-item"><div class="req-icon">📊</div><div class="req-text"><h6>Informe final — 40%</h6><p>Análisis de resultados, gráficas y comparación con valores teóricos entregados virtualmente.</p></div></div>
+                    <div class="requisito-item"><div class="req-icon">🎤</div><div class="req-text"><h6>Socialización — 10%</h6><p>Presentación de resultados en sesión sincrónica grupal.</p></div></div>
+                <
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

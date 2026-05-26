@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador 3D — Constante Dieléctrica</title>
+<style>
+:root{
+  --bg:#010c1a;--bg2:#020e1e;--header-bg:#010e20;
+  --border:#0a2030;--border2:#0d2840;--border3:#062030;
+  --text:#5ab0cc;--text2:#2a6a8a;--text3:#2a6080;
+  --text4:#1a4060;--text5:#1a5070;--h1:#88d8f0;
+  --btn-on-bg:rgba(58,138,170,.12);--btn-on-border:#3a8aaa;--btn-on-color:#88d8f0;
+  --hud-col:#1a4060;--scroll-bg:#010c1a;--scroll-th:#0d2840;
+  --inp-bg:#010c1a;--lbl-col:#2a7090;--sec-border:#061828;
+  --val-col:#3af0c8;--val-bg:#001018;
+}
+body.day{
+  --bg:#e8f4fb;--bg2:#d4ecf7;--header-bg:#b8dff0;
+  --border:#5aa0c0;--border2:#4a90b8;--border3:#5aaac8;
+  --text:#1a35cc;--text2:#1530bb;--text3:#142eb0;
+  --text4:#1228a0;--text5:#1632c8;--h1:#0d1f99;
+  --btn-on-bg:rgba(20,50,200,.14);--btn-on-border:#1530bb;--btn-on-color:#0a1888;
+  --hud-col:#1228a0;--scroll-bg:#d0e8f4;--scroll-th:#7090e0;
+  --inp-bg:#dff0f9;--lbl-col:#1228a0;--sec-border:#5aaac8;
+  --val-col:#004080;--val-bg:#c0ddf0;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;overflow:hidden;}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:'Courier New',monospace;
+  display:flex;flex-direction:column;
+  font-size:18px;
+  transition:background .4s,color .4s;
+}
+/* HEADER */
+header{
+  padding:8px 18px;border-bottom:2px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;background:var(--header-bg);
+  min-height:56px;
+}
+header h1{font-size:17px;letter-spacing:.10em;color:var(--h1);font-weight:700;}
+#medium-badge{font-size:14px;letter-spacing:.06em;color:var(--text4);margin-top:2px;}
+/* MAIN LAYOUT */
+#main{display:flex;flex:1;min-height:0;}
+#viewport{flex:1;position:relative;min-width:0;min-height:0;}
+#viewport canvas{display:block;width:100%!important;height:100%!important;}
+/* PANEL */
+#panel{
+  width:360px;min-width:360px;
+  background:var(--bg2);border-left:2px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+/* TABS */
+.mode-tabs{display:flex;border-bottom:2px solid var(--border);background:var(--header-bg);flex-shrink:0;}
+.mode-tab{
+  flex:1;padding:10px 4px;text-align:center;
+  font-size:15px;font-weight:700;letter-spacing:.04em;
+  border:none;border-right:1px solid var(--border);
+  cursor:pointer;font-family:'Courier New',monospace;
+  background:transparent;color:var(--text2);transition:all .2s;
+}
+.mode-tab:last-child{border-right:none;}
+.mode-tab:hover{color:var(--text);background:var(--btn-on-bg);}
+.mode-tab.active{
+  background:var(--btn-on-bg);
+  border-bottom:3px solid var(--btn-on-border);
+  color:var(--btn-on-color);margin-bottom:-2px;
+}
+/* SCROLLABLE CONTENT */
+#panel-scroll{flex:1;overflow-y:auto;padding:14px;}
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:var(--scroll-bg);}
+::-webkit-scrollbar-thumb{background:var(--scroll-th);border-radius:3px;}
+/* SECTIONS */
+.sec{margin-bottom:16px;}
+.sec-title{
+  font-size:13px;letter-spacing:.16em;color:var(--text4);
+  margin-bottom:9px;border-bottom:1px solid var(--sec-border);
+  padding-bottom:5px;text-transform:uppercase;font-weight:700;
+}
+/* BUTTONS */
+.btn{
+  background:transparent;border:1px solid var(--border2);
+  color:var(--text2);padding:8px 14px;border-radius:5px;
+  cursor:pointer;font-family:'Courier New',monospace;
+  font-size:15px;transition:all .15s;
+}
+.btn:hover{border-color:var(--text5);color:var(--text);}
+.btn.on{border-color:var(--btn-on-border);color:var(--btn-on-color);background:var(--btn-on-bg);}
+.btn-full{width:100%;margin-bottom:6px;text-align:center;display:block;}
+/* INPUTS */
+select,input[type=number]{
+  background:var(--inp-bg);border:1px solid var(--border2);
+  color:var(--text);padding:7px 10px;border-radius:5px;
+  font-family:'Courier New',monospace;font-size:15px;
+  width:100%;margin-bottom:7px;
+}
+.lbl{font-size:14px;color:var(--lbl-col);display:block;margin-bottom:3px;font-weight:600;}
+.row2{display:flex;gap:6px;margin-bottom:6px;}
+.row2 .btn{flex:1;font-size:14px;padding:7px 4px;text-align:center;}
+input[type=range]{width:100%;accent-color:#3aa0c0;margin:3px 0 8px;height:6px;}
+/* VALUE CARDS */
+.val-card{
+  background:var(--val-bg);border:1px solid var(--border3);
+  border-radius:5px;padding:7px 11px;margin-bottom:5px;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.val-name{font-size:14px;color:var(--text3);}
+.val-num{font-size:17px;color:var(--val-col);font-weight:700;}
+.val-unit{font-size:12px;color:var(--text4);margin-left:3px;}
+/* HUD */
+.hud{
+  position:absolute;bottom:14px;left:16px;
+  font-size:15px;color:var(--hud-col);line-height:2;
+  pointer-events:none;
+}
+/* HEADER BUTTONS */
+.vbtns{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+.vbtns .btn{font-size:13px;padding:5px 12px;}
+/* MODE TOGGLE (sigma/V) */
+.mode-toggle{display:flex;border:1px solid var(--border2);border-radius:5px;overflow:hidden;margin-bottom:8px;}
+.mode-toggle .btn{flex:1;border:none;border-radius:0;font-size:14px;padding:7px 4px;margin-bottom:0;}
+/* COMPARE BARS */
+.cmp-track{height:10px;border-radius:5px;background:var(--sec-border);overflow:hidden;position:relative;margin-bottom:6px;}
+.cmp-vac{position:absolute;height:100%;border-radius:5px;background:#ff6633;opacity:.35;width:100%;}
+.cmp-die{height:100%;border-radius:5px;background:#3af0c8;transition:width .5s;}
+/* TABLE */
+.data-table{width:100%;border-collapse:collapse;font-size:14px;margin:8px 0;}
+.data-table th{padding:6px 8px;border-bottom:2px solid var(--border2);color:var(--text4);font-size:13px;letter-spacing:.06em;text-align:center;font-weight:700;}
+.data-table td{padding:5px 8px;text-align:center;border-bottom:1px solid var(--sec-border);color:var(--text3);font-size:14px;}
+.data-table td.vval{color:var(--val-col);font-weight:700;font-size:15px;}
+/* GAME */
+.score-card{text-align:center;padding:10px;background:var(--val-bg);border:1px solid var(--border3);border-radius:8px;margin-bottom:10px;}
+.score-big{font-size:40px;color:var(--val-col);font-weight:700;line-height:1.1;}
+.score-sub{font-size:13px;color:var(--text4);}
+.mat-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;}
+.mat-btn{
+  padding:8px 5px;font-size:13px;text-align:center;
+  border:1px solid var(--border2);border-radius:5px;
+  cursor:pointer;font-family:'Courier New',monospace;
+  background:transparent;color:var(--text2);
+  transition:all .2s;line-height:1.5;
+}
+.mat-btn:hover:not(:disabled){border-color:var(--text5);color:var(--text);}
+.mat-btn.correct{border-color:#22cc66!important;color:#22cc66!important;background:rgba(34,204,102,.12)!important;}
+.mat-btn.wrong{border-color:#cc3322!important;color:#cc3322!important;background:rgba(204,51,34,.08)!important;}
+.mat-btn:disabled{opacity:.4;cursor:default;}
+.meas-btn{width:100%;margin-bottom:5px;text-align:left;padding:9px 11px;font-size:14px;}
+.meas-btn.used{border-color:var(--btn-on-border);color:var(--btn-on-color);}
+.meas-btn:disabled{opacity:.5;cursor:default;}
+.meas-result{font-size:14px;color:var(--val-col);font-weight:700;float:right;}
+.feedback{min-height:40px;font-size:14px;text-align:center;padding:7px;border-radius:5px;margin-bottom:6px;}
+.feedback.ok{background:rgba(34,204,102,.12);border:1px solid #22cc66;color:#22cc66;}
+.feedback.err{background:rgba(204,51,34,.08);border:1px solid #cc3322;color:#cc4433;}
+.feedback.info{background:var(--val-bg);border:1px solid var(--border3);color:var(--text3);}
+/* TOAST */
+#toast{
+  position:fixed;bottom:70px;left:50%;transform:translateX(-50%);
+  background:rgba(0,20,40,.93);color:#88d8f0;
+  padding:9px 20px;border-radius:22px;font-size:14px;
+  font-family:'Courier New',monospace;opacity:0;transition:opacity .3s;
+  z-index:2000;pointer-events:none;border:1px solid #3a8aaa;
+  max-width:320px;text-align:center;
+}
+/* SPECIAL BUTTONS */
+.btn-apply{
+  padding:9px 14px;font-size:15px;font-weight:700;
+  border:2px solid #2255cc;color:#fff;
+  background:linear-gradient(135deg,#2255cc,#3a7aee);
+  border-radius:6px;box-shadow:0 2px 8px rgba(34,85,204,.4);
+  transition:background .2s,transform .12s;cursor:pointer;
+  font-family:'Courier New',monospace;
+}
+.btn-apply:hover{background:linear-gradient(135deg,#1a44bb,#2d66dd);transform:translateY(-1px);}
+.btn-new{
+  padding:9px 14px;font-size:15px;font-weight:700;
+  border:2px solid #18a050;color:#fff;
+  background:linear-gradient(135deg,#18a050,#22cc66);
+  border-radius:6px;box-shadow:0 2px 8px rgba(24,160,80,.4);
+  transition:all .15s;cursor:pointer;
+  font-family:'Courier New',monospace;
+}
+.btn-new:hover{background:linear-gradient(135deg,#128840,#1ab858);transform:translateY(-1px);}
+/* MOBILE */
+#panel-handle{display:none;}
+#panel-toggle{
+  display:none;position:fixed;bottom:22px;right:18px;z-index:999;
+  background:var(--btn-on-border);color:#fff;border:none;
+  border-radius:50%;width:56px;height:56px;font-size:24px;
+  cursor:pointer;box-shadow:0 3px 14px rgba(0,0,0,.4);
+  align-items:center;justify-content:center;
+}
+#panel-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:599;}
+#panel-overlay.show{display:block;}
+@media(max-width:900px){
+  #panel{width:300px;min-width:300px;}
+  header h1{font-size:14px;}
+}
+@media(max-width:700px){
+  header{flex-direction:column;align-items:flex-start;gap:5px;padding:7px 12px;}
+  header h1{font-size:13px;}
+  #panel{position:fixed;top:0;right:0;bottom:0;width:330px!important;min-width:0!important;border-left:2px solid var(--border);transform:translateX(110%);transition:transform .28s ease;z-index:600;box-shadow:-4px 0 24px rgba(0,0,0,.35);overflow-y:auto;}
+  #panel.open{transform:translateX(0);}
+  #panel-handle{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 6px;cursor:pointer;border-bottom:1px solid var(--sec-border);font-size:15px;color:var(--text4);}
+  #panel-handle::before{content:'CONTROLES';}
+  #panel-handle::after{content:'✕';font-size:18px;color:var(--text2);}
+  #panel-toggle{display:flex;}
+  .hud{font-size:13px;bottom:80px;left:12px;}
+}
+@media(max-width:480px){#panel{width:92vw!important;}}
+</style>
+</head>
+<body class="day">
+<div id="panel-overlay" onclick="togglePanel()"></div>
+<div id="toast"></div>
+
+<header>
+  <div>
+    <h1>⚡ SIMULADOR 3D — CONSTANTE DIELÉCTRICA &nbsp;|&nbsp; CAPACITOR PLACAS PARALELAS</h1>
+    <div id="medium-badge">
+      🌌 <b style="color:var(--h1)">Vacío / Aire</b> &nbsp;·&nbsp;
+      <span style="color:var(--text)">εᵣ = 1.00 · Sin atenuación del campo</span>
+    </div>
+  </div>
+  <div class="vbtns">
+    <button class="btn" id="btn-daynight" onclick="toggleDayNight()">☀️ Día</button>
+    <button class="btn" onclick="resetView()">🔄 Vista</button>
+    <button class="btn on" id="btn-3d"    onclick="setView('3d')">3D</button>
+    <button class="btn"    id="btn-top"   onclick="setView('top')">Superior</button>
+    <button class="btn"    id="btn-side"  onclick="setView('side')">Lateral</button>
+    <button class="btn"    id="btn-front" onclick="setView('front')">Frontal</button>
+  </div>
+</header>
+
+<div id="main">
+  <div id="viewport"><canvas id="c"></canvas></div>
+
+  <div id="panel">
+    <div id="panel-handle" onclick="togglePanel()" role="button"></div>
+
+    <div class="mode-tabs">
+      <button class="mode-tab active" id="tab-open" onclick="setSimMode('open')">📐 Abierto</button>
+      <button class="mode-tab"        id="tab-A"    onclick="setSimMode('A')">🔬 Modo A</button>
+      <button class="mode-tab"        id="tab-B"    onclick="setSimMode('B')">⚔️ Modo B</button>
+    </div>
+
+    <div id="panel-scroll">
+
+      <!-- ══════════════════ MODO ABIERTO ══════════════════ -->
+      <div id="panel-open">
+
+        <div class="sec">
+          <div class="sec-title">Capas Visuales</div>
+          <div class="row2">
+            <button class="btn on" id="tog-equip"   onclick="tog('equip')">Equipot.</button>
+            <button class="btn on" id="tog-field"   onclick="tog('field')">Campo E</button>
+          </div>
+          <div class="row2">
+            <button class="btn on" id="tog-dipoles" onclick="tog('dipoles')">Dipoles</button>
+            <button class="btn on" id="tog-bound"   onclick="tog('bound')">Cargas σᵦ</button>
+          </div>
+          <div class="row2">
+            <button class="btn on" id="tog-grid"    onclick="tog('grid')">Grilla</button>
+            <button class="btn on" id="tog-axes"    onclick="tog('axes')">Ejes</button>
+          </div>
+          <span class="lbl">Planos equipotenciales: <b id="sv">6</b></span>
+          <input type="range" min="1" max="14" value="6" oninput="setNEq(+this.value)">
+          <span class="lbl">Líneas de campo N×N: <b id="fv">4</b></span>
+          <input type="range" min="2" max="7" value="4" oninput="setNField(+this.value)">
+          <span class="lbl">Opacidad planos: <b id="ov">65</b>%</span>
+          <input type="range" min="10" max="100" value="65" oninput="setOpacity(+this.value)">
+        </div>
+
+        <div class="sec">
+          <div class="sec-title">Material Dieléctrico</div>
+          <select id="mat-select" onchange="selectMaterial(+this.value)">
+            <option value="0">🌌 Vacío / Aire (εᵣ = 1.0)</option>
+            <option value="1">🔶 Polietileno (εᵣ = 2.25)</option>
+            <option value="2">🛢️ Aceite mineral (εᵣ = 2.5)</option>
+            <option value="3">⚫ Caucho / Goma (εᵣ = 4.0)</option>
+            <option value="4">🔬 Vidrio Borosilicato (εᵣ = 4.7)</option>
+            <option value="5">🪨 Mica (εᵣ = 6.0)</option>
+            <option value="6">⚡ Vidrio / Cuarzo (εᵣ = 7.0)</option>
+            <option value="7">🌊 Agua Destilada (εᵣ = 80)</option>
+            <option value="8">🔩 BaTiO₃ (εᵣ = 1200)</option>
+            <option value="9">🎛️ Personalizado</option>
+          </select>
+          <span class="lbl">εᵣ — Permitividad Relativa: <b id="eps-val">1.00</b></span>
+          <input type="range" id="eps-slider" min="1" max="200" step="0.1" value="1" oninput="setEpsR(+this.value)">
+        </div>
+
+        <div class="sec">
+          <div class="sec-title">Parámetros del Capacitor</div>
+          <div class="mode-toggle">
+            <button class="btn on" id="mode-sigma" onclick="setCapMode('sigma')">σ Fija</button>
+            <button class="btn"    id="mode-V"     onclick="setCapMode('V')">V Fija</button>
+          </div>
+          <span class="lbl" id="lbl-sigma">σ libre: <b id="sigma-val">1.0</b> μC/m²</span>
+          <input type="range" id="sigma-slider" min="0.2" max="3.0" step="0.1" value="1.0" oninput="setSigma(+this.value)">
+          <span class="lbl" id="lbl-V" style="display:none;">Voltaje V₀: <b id="V-val">10.0</b> V</span>
+          <input type="range" id="V-slider" min="1" max="50" step="0.5" value="10" oninput="setVoltage(+this.value)" style="display:none;">
+          <span class="lbl">Separación d: <b id="d-val">2.0</b> cm</span>
+          <input type="range" id="d-slider" min="0.8" max="5.0" step="0.1" value="2.0" oninput="setD(+this.value)">
+        </div>
+
+        <div class="sec">
+          <div class="sec-title">Valores Calculados</div>
+          <div class="val-card"><span class="val-name">Campo E</span><span><span class="val-num" id="v-E">—</span><span class="val-unit">kV/m</span></span></div>
+          <div class="val-card"><span class="val-name">Desplaz. D</span><span><span class="val-num" id="v-D">—</span><span class="val-unit">μC/m²</span></span></div>
+          <div class="val-card"><span class="val-name">Voltaje ΔV</span><span><span class="val-num" id="v-V">—</span><span class="val-unit">V</span></span></div>
+          <div class="val-card"><span class="val-name">C / Área</span><span><span class="val-num" id="v-C">—</span><span class="val-unit">pF/m²</span></span></div>
+          <div class="val-card"><span class="val-name">Polarización P</span><span><span class="val-num" id="v-P">—</span><span class="val-unit">μC/m²</span></span></div>
+          <div class="val-card"><span class="val-name">Carga ligada σᵦ</span><span><span class="val-num" id="v-sb">—</span><span class="val-unit">μC/m²</span></span></div>
+          <div class="val-card"><span class="val-name">Energía u</span><span><span class="val-num" id="v-u">—</span><span class="val-unit">mJ/m³</span></span></div>
+        </div>
+
+        <div class="sec">
+          <div class="sec-title">Comparación vs Vacío</div>
+          <span class="lbl">Campo E (↓ con εᵣ)</span>
+          <div class="cmp-track"><div class="cmp-vac"></div><div class="cmp-die" id="bar-E" style="width:100%;"></div></div>
+          <span class="lbl">Capacitancia C (↑ con εᵣ)</span>
+          <div class="cmp-track"><div class="cmp-vac"></div><div class="cmp-die" id="bar-C" style="width:5%;"></div></div>
+          <div style="font-size:13px;color:var(--text4);margin-top:4px;">
+            <span style="color:#ff6633;">■</span> Vacío &nbsp;
+            <span style="color:#3af0c8;">■</span> Con dieléctrico
+          </div>
+        </div>
+
+      </div><!-- /panel-open -->
+
+
+      <!-- ══════════════════ MODO A ══════════════════ -->
+      <div id="panel-modeA" style="display:none;">
+
+        <div class="sec">
+          <div class="sec-title">🔬 Identificar Material</div>
+          <div style="font-size:14px;color:var(--text3);line-height:1.6;margin-bottom:10px;">
+            Un material <b>desconocido</b> está entre las placas.<br>
+            Condiciones fijas:<br>
+            <b style="color:var(--val-col);">σ = 1.0 μC/m² &nbsp;|&nbsp; d varía</b><br><br>
+            Usa la tabla ΔV vs d para calcular εᵣ e identificar el material.
+          </div>
+          <div style="font-size:13px;color:var(--text4);background:var(--val-bg);padding:8px 10px;border-radius:5px;margin-bottom:10px;border:1px solid var(--border3);line-height:1.8;">
+            <b>Fórmula:</b><br>
+            εᵣ = σ·d / (ε₀·V)<br>
+            εᵣ ≈ 1129.4 · d<sub>[cm]</sub> / V<sub>[V]</sub>
+          </div>
+          <button class="btn btn-new btn-full" onclick="initModeA()">🎲 Nuevo Material Aleatorio</button>
+        </div>
+
+        <div class="sec">
+          <div class="sec-title">Datos Experimentales</div>
+          <table class="data-table" id="modeA-table">
+            <thead><tr><th>d (cm)</th><th>ΔV (V)</th><th>εᵣ calc.</th></tr></thead>
+            <tbody id="modeA-tbody"></tbody>
+          </table>
+        </div>
+
+        <div class="sec">
+          <div class="sec-title">Tu Respuesta</div>
+          <div class="val-card" style="margin-bottom:10px;">
+            <span class="val-name">εᵣ promedio estimado</span>
+            <span class="val-num" id="modeA-epsCalc">—</span>
+          </div>
+          <span class="lbl">¿Cuál material es?</span>
+          <select id="modeA-guess" style="margin-bottom:10px;">
+            <option value="-1">— Selecciona un material —</option>
+            <option value="1">🔶 Polietileno (εᵣ=2.25)</option>
+            <option value="2">🛢️ Aceite mineral (εᵣ=2.5)</option>
+            <option value="3">⚫ Caucho / Goma (εᵣ=4.0)</option>
+            <option value="4">🔬 Vidrio Borosilicato (εᵣ=4.7)</option>
+            <option value="5">🪨 Mica (εᵣ=6.0)</option>
+            <option value="6">⚡ Vidrio / Cuarzo (εᵣ=7.0)</option>
+            <option value="7">🌊 Agua Destilada (εᵣ=80)</option>
+            <option value="8">🔩 BaTiO₃ (εᵣ=1200)</option>
+          </select>
+          <button class="btn btn-apply btn-full" onclick="verifyModeA()">✔ Verificar Respuesta</button>
+          <div class="feedback" id="modeA-feedback" style="display:none;margin-top:8px;"></div>
+        </div>
+
+        <div class="sec" style="font-size:13px;color:var(--text4);line-height:1.8;border-top:1px solid var(--sec-border);padding-top:10px;">
+          <b>Instrucciones:</b><br>
+          1. Lee εᵣ calculado en cada fila<br>
+          2. Compara con la lista de materiales<br>
+          3. Selecciona el material y verifica<br>
+          4. Rota la vista 3D para observar el campo
+        </div>
+
+      </div><!-- /panel-modeA -->
+
+
+      <!-- ══════════════════ MODO B ══════════════════ -->
+      <div id="panel-modeB" style="display:none;">
+
+        <!-- START -->
+        <div id="modeB-start">
+          <div style="text-align:center;padding:20px 10px;">
+            <div style="font-size:44px;margin-bottom:8px;">⚔️</div>
+            <div style="font-size:18px;color:var(--h1);font-weight:700;letter-spacing:.08em;margin-bottom:10px;">RETO DEL LABORATORIO</div>
+            <div style="font-size:14px;color:var(--text3);line-height:1.7;margin-bottom:16px;">
+              5 rondas · Material oculto · 4 instrumentos<br>
+              Usa <b>menos instrumentos</b> para más puntos.<br>
+              ¿Puedes identificarlos sin ayuda?
+            </div>
+            <div style="background:var(--val-bg);border:1px solid var(--border3);border-radius:6px;padding:10px;font-size:13px;color:var(--text3);margin-bottom:16px;text-align:left;line-height:1.8;">
+              <b style="color:var(--val-col);">Parámetros fijos:</b><br>
+              σ = 1.0 μC/m² &nbsp;·&nbsp; d = 2.0 cm<br><br>
+              <b style="color:var(--val-col);">Puntos por ronda:</b><br>
+              Sin instrumentos: 100 pts ★★★<br>
+              1–2 instrumentos: ~70 pts ★★<br>
+              3–4 instrumentos: ~40 pts ★<br>
+              Respuesta errónea: 0 pts ✗
+            </div>
+            <button class="btn btn-apply btn-full" onclick="startModeB()">▶ COMENZAR RETO</button>
+          </div>
+        </div>
+
+        <!-- GAME -->
+        <div id="modeB-game" style="display:none;">
+          <div class="score-card">
+            <div class="score-sub">RONDA <span id="b-round">1</span>/5 &nbsp;·&nbsp; ACUMULADO</div>
+            <div class="score-big" id="b-score">0</div>
+            <div class="score-sub">Esta ronda: <span id="b-rnd-pts">100</span> pts disponibles</div>
+          </div>
+
+          <div class="sec">
+            <div class="sec-title">Instrumentos de Medición</div>
+            <div style="font-size:13px;color:var(--text4);margin-bottom:7px;">Cada instrumento resta puntos de la ronda.</div>
+            <button class="btn meas-btn" id="bm-E" onclick="revealB('E')">📊 Campo E <span class="meas-result" id="br-E">−20 pts</span></button>
+            <button class="btn meas-btn" id="bm-V" onclick="revealB('V')">🔋 Voltaje ΔV <span class="meas-result" id="br-V">−15 pts</span></button>
+            <button class="btn meas-btn" id="bm-C" onclick="revealB('C')">💡 Capacitancia C/A <span class="meas-result" id="br-C">−25 pts</span></button>
+            <button class="btn meas-btn" id="bm-u" onclick="revealB('u')">⚡ Energía u <span class="meas-result" id="br-u">−10 pts</span></button>
+          </div>
+
+          <div class="sec">
+            <div class="sec-title">Identifica el Material</div>
+            <div class="mat-grid" id="b-mat-grid"></div>
+            <div class="feedback" id="b-feedback" style="display:none;"></div>
+          </div>
+
+          <div id="b-next-wrap" style="display:none;margin-top:4px;">
+            <button class="btn btn-apply btn-full" onclick="nextRoundB()">Siguiente Ronda →</button>
+          </div>
+        </div>
+
+        <!-- END -->
+        <div id="modeB-end" style="display:none;text-align:center;padding:18px 12px;">
+          <div style="font-size:44px;margin-bottom:8px;" id="b-end-medal">🏆</div>
+          <div style="font-size:17px;color:var(--h1);font-weight:700;margin-bottom:6px;" id="b-end-title">EXPERTO</div>
+          <div class="score-big" id="b-end-score">500</div>
+          <div style="font-size:13px;color:var(--text4);margin-bottom:14px;">/ 500 puntos máximos</div>
+          <div id="b-end-detail" style="font-size:13px;color:var(--text3);line-height:2;text-align:left;background:var(--val-bg);border:1px solid var(--border3);border-radius:6px;padding:10px;margin-bottom:14px;"></div>
+          <button class="btn btn-apply btn-full" onclick="resetModeB()">↺ Jugar de Nuevo</button>
+        </div>
+
+      </div><!-- /panel-modeB -->
+
+    </div><!-- /panel-scroll -->
+
+    <!-- Color bar -->
+    <div style="padding:8px 12px;border-top:2px solid var(--sec-border);flex-shrink:0;">
+      <div style="font-size:11px;color:var(--text4);margin-bottom:3px;letter-spacing:.10em;">POTENCIAL ELÉCTRICO V</div>
+      <div style="display:flex;align-items:center;gap:6px;font-size:12px;">
+        <span style="color:#5a8fff;">−V</span>
+        <div style="flex:1;height:7px;border-radius:4px;background:linear-gradient(to right,#001478,#0050ff,#00d0c8,#d0c800,#ff6400,#ff0000);border:1px solid var(--sec-border);"></div>
+        <span style="color:#ff5a5a;">+V</span>
+      </div>
+    </div>
+  </div><!-- /panel -->
+</div><!-- /main -->
+
+<div class="hud" id="hud">Arrastra para rotar · Scroll para zoom</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ══════════════════════════════════════════════════════
+// CONSTANTS & MATERIALS
+// ══════════════════════════════════════════════════════
+const eps0=8.854187817e-12, DOM=5, PH=3.6;
+
+const MATS=[
+  {name:'Vacío / Aire',        epsR:1.0,   icon:'🌌',desc:'εᵣ=1.00 · Sin atenuación',              col3:0x010c1a,opac:.00,fog:0x010c1a},
+  {name:'Polietileno',         epsR:2.25,  icon:'🔶',desc:'εᵣ=2.25 · Aislante plástico',            col3:0xffaa00,opac:.10,fog:0x0a0800},
+  {name:'Aceite mineral',      epsR:2.5,   icon:'🛢️',desc:'εᵣ=2.50 · Aislante en transformadores',  col3:0x886622,opac:.12,fog:0x080600},
+  {name:'Caucho / Goma',       epsR:4.0,   icon:'⚫',desc:'εᵣ=4.00 · Aislante en cables',           col3:0x555555,opac:.15,fog:0x060606},
+  {name:'Vidrio Borosilicato', epsR:4.7,   icon:'🔬',desc:'εᵣ=4.70 · Vidrio de laboratorio',        col3:0x00cccc,opac:.12,fog:0x030a0a},
+  {name:'Mica',                epsR:6.0,   icon:'🪨',desc:'εᵣ=6.00 · Excelente dieléctrico',        col3:0xccbb66,opac:.14,fog:0x0a0900},
+  {name:'Vidrio / Cuarzo',     epsR:7.0,   icon:'⚡',desc:'εᵣ=7.00 · Sustrato en CI',               col3:0x0088ff,opac:.14,fog:0x060810},
+  {name:'Agua Destilada',      epsR:80.0,  icon:'🌊',desc:'εᵣ=80.0 · Campo muy atenuado',           col3:0x0044cc,opac:.25,fog:0x000a18},
+  {name:'BaTiO₃',              epsR:1200,  icon:'🔩',desc:'εᵣ=1200 · Ferroeléctrico MLCC',          col3:0xff44cc,opac:.22,fog:0x10001a},
+];
+let curMat=MATS[0];
+
+// ══════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════
+let S={epsR:1.0,sigma:1.0,d:2.0,V0:10.0,capMode:'sigma',nEq:6,nField:4,opacity:.65,
+  layers:{equip:true,field:true,dipoles:true,bound:true,grid:true,axes:true}};
+let isDayMode=true, viewMode='3d', simMode='open', hideLabels=false;
+function px(){return Math.max(0.9,Math.min(DOM*.80,S.d*.60));}
+
+// ══════════════════════════════════════════════════════
+// PHYSICS
+// ══════════════════════════════════════════════════════
+function calcPhys(){
+  const d_si=S.d*.01, sig_si=S.sigma*1e-6;
+  let E_si,sigFree;
+  if(S.capMode==='sigma'){sigFree=sig_si;E_si=sig_si/(eps0*S.epsR);}
+  else{E_si=S.V0/d_si;sigFree=eps0*S.epsR*E_si;}
+  const V_si=E_si*d_si, C_si=eps0*S.epsR/d_si;
+  const D_si=eps0*S.epsR*E_si, P_si=eps0*(S.epsR-1)*E_si;
+  const u_si=.5*eps0*S.epsR*E_si*E_si;
+  return{E:E_si*1e-3,D:D_si*1e6,V:V_si,C:C_si*1e12,P:P_si*1e6,sb:P_si*1e6,u:u_si*1e3};
+}
+
+// ══════════════════════════════════════════════════════
+// THREE.JS SETUP
+// ══════════════════════════════════════════════════════
+const canvasEl=document.getElementById('c');
+const renderer=new THREE.WebGLRenderer({canvas:canvasEl,antialias:true,alpha:false});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+renderer.setClearColor(0xd0e8f5);
+renderer.sortObjects=true;
+
+const scene=new THREE.Scene();
+
+const camP=new THREE.PerspectiveCamera(50,1,.05,200);
+camP.position.set(9,7,11); camP.lookAt(0,0,0);
+
+function makeOrtho(){return new THREE.OrthographicCamera(-DOM*1.4,DOM*1.4,DOM*1.4,-DOM*1.4,.05,200);}
+const camTop=makeOrtho(); camTop.position.set(0,25,0); camTop.lookAt(0,0,0);
+const camSide=makeOrtho(); camSide.position.set(0,0,25); camSide.lookAt(0,0,0);
+const camFront=makeOrtho(); camFront.position.set(25,0,0); camFront.lookAt(0,0,0);
+let activeCam=camP;
+
+scene.add(new THREE.AmbientLight(0x334455,1.2));
+const dl=new THREE.DirectionalLight(0xaaccff,.60); dl.position.set(6,10,7); scene.add(dl);
+const dl2=new THREE.DirectionalLight(0xff8844,.20); dl2.position.set(-5,-3,0); scene.add(dl2);
+
+const G={};
+['plates','dielectric','equip','field','dipoles','bound','grid','axes'].forEach(n=>{
+  G[n]=new THREE.Group(); scene.add(G[n]);
+});
+
+// ══════════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════════
+function clearGroup(g){
+  while(g.children.length){
+    const c=g.children[0];
+    if(c.geometry)c.geometry.dispose();
+    if(c.material){
+      if(Array.isArray(c.material))c.material.forEach(m=>{if(m.map)m.map.dispose();m.dispose();});
+      else{if(c.material.map)c.material.map.dispose();c.material.dispose();}
+    }
+    g.remove(c);
+  }
+}
+
+function mapRGB(t){
+  t=Math.max(0,Math.min(1,t));
+  if(t<.20){const s=t/.20;return[0,Math.round(s*80),Math.round(120+s*135)];}
+  if(t<.42){const s=(t-.20)/.22;return[0,Math.round(80+s*175),255];}
+  if(t<.55){const s=(t-.42)/.13;return[Math.round(s*160),255,Math.round(255-s*255)];}
+  if(t<.78){const s=(t-.55)/.23;return[Math.round(160+s*95),Math.round(255-s*90),0];}
+  const s=(t-.78)/.22;return[255,Math.round(165-s*165),0];
+}
+
+function makeSprite(x,y,z,text,color,grp){
+  const cv=document.createElement('canvas');
+  cv.width=Math.max(90,text.length*14+24); cv.height=34;
+  const c2=cv.getContext('2d');
+  c2.font='bold 20px Courier New'; c2.fillStyle=color;
+  c2.textAlign='center'; c2.textBaseline='middle';
+  c2.fillText(text,cv.width/2,17);
+  const tex=new THREE.CanvasTexture(cv);
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false}));
+  sp.position.set(x,y,z);
+  sp.scale.set(Math.max(.5,cv.width/56),.34,1);
+  (grp||G.plates).add(sp);
+}
+
+function plateTex(pos){
+  const sz=256,tc=document.createElement('canvas'); tc.width=tc.height=sz;
+  const c2=tc.getContext('2d');
+  const g=c2.createLinearGradient(0,0,sz,sz);
+  if(pos){g.addColorStop(0,'#bb1800');g.addColorStop(.5,'#ff4400');g.addColorStop(1,'#bb1800');}
+  else{g.addColorStop(0,'#001166');g.addColorStop(.5,'#0044bb');g.addColorStop(1,'#001166');}
+  c2.fillStyle=g; c2.fillRect(0,0,sz,sz);
+  const sh=c2.createLinearGradient(0,0,sz,0);
+  sh.addColorStop(0,'rgba(255,255,255,0)');sh.addColorStop(.4,'rgba(255,255,255,.20)');
+  sh.addColorStop(.6,'rgba(255,255,255,.08)');sh.addColorStop(1,'rgba(255,255,255,0)');
+  c2.fillStyle=sh; c2.fillRect(0,0,sz,sz);
+  c2.strokeStyle=pos?'rgba(255,180,120,.2)':'rgba(100,160,255,.2)'; c2.lineWidth=1;
+  for(let i=42;i<sz;i+=42){c2.beginPath();c2.moveTo(i,0);c2.lineTo(i,sz);c2.stroke();c2.beginPath();c2.moveTo(0,i);c2.lineTo(sz,i);c2.stroke();}
+  c2.font='bold 32px Courier New'; c2.fillStyle=pos?'rgba(255,220,200,.80)':'rgba(180,205,255,.80)';
+  c2.textAlign='center'; c2.textBaseline='middle';
+  for(let y=21;y<sz;y+=42)for(let x=21;x<sz;x+=42)c2.fillText(pos?'+':'−',x,y);
+  c2.strokeStyle=pos?'rgba(255,180,80,.75)':'rgba(80,150,255,.75)'; c2.lineWidth=5;
+  c2.strokeRect(2,2,sz-4,sz-4);
+  const tex=new THREE.CanvasTexture(tc); tex.needsUpdate=true; return tex;
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast'); t.textContent=msg; t.style.opacity='1';
+  clearTimeout(t._tmr); t._tmr=setTimeout(()=>t.style.opacity='0',2800);
+}
+
+// ══════════════════════════════════════════════════════
+// BUILD FUNCTIONS
+// ══════════════════════════════════════════════════════
+function buildPlates(){
+  clearGroup(G.plates);
+  const ppx=px(),THICK=.20,H2=PH;
+  [-1,1].forEach(side=>{
+    const isPos=(side===-1), xPos=side*ppx;
+    // Slab
+    const geo=new THREE.BoxGeometry(THICK,H2*2,H2*2);
+    const mesh=new THREE.Mesh(geo,new THREE.MeshPhongMaterial({
+      map:plateTex(isPos),shininess:85,
+      color:isPos?0xff3300:0x1144cc,emissive:isPos?0x2a0800:0x000818}));
+    mesh.position.x=xPos; G.plates.add(mesh);
+    // Edges
+    const em=new THREE.LineBasicMaterial({color:isPos?0xff6622:0x3388ff,transparent:true,opacity:.85});
+    const edg=new THREE.LineSegments(new THREE.EdgesGeometry(geo),em); edg.position.x=xPos; G.plates.add(edg);
+    // Rings (animated)
+    const rGeo=new THREE.TorusGeometry(H2*.76,.022,8,48);
+    const rMat=new THREE.MeshBasicMaterial({color:isPos?0xff9955:0x66aaff,transparent:true,opacity:.42});
+    const r1=new THREE.Mesh(rGeo,rMat); r1.position.x=xPos; r1.rotation.y=Math.PI/2; G.plates.add(r1);
+    const r2=new THREE.Mesh(rGeo.clone(),rMat.clone()); r2.position.x=xPos; r2.rotation.y=Math.PI/2; r2.rotation.x=Math.PI/2; G.plates.add(r2);
+    // Wire
+    const wire=new THREE.Mesh(new THREE.CylinderGeometry(.045,.045,.72,8),new THREE.MeshBasicMaterial({color:isPos?0xff6622:0x2255ff}));
+    wire.rotation.z=Math.PI/2; wire.position.set(xPos+side*.47,H2*.70,0); G.plates.add(wire);
+    // Label
+    makeSprite(xPos,H2+.55,0,isPos?'+ σ':'− σ',isPos?'#ff9966':'#7aadff');
+  });
+}
+
+function buildDielectric(){
+  clearGroup(G.dielectric);
+  if(S.epsR<=1.001)return;
+  const ppx=px(),THICK=.20,slabW=(ppx-THICK/2)*2,H2=PH*.96;
+  const useCol=hideLabels?0x008888:curMat.col3;
+  const useOpac=hideLabels?.20:Math.min(.40,curMat.opac+.06);
+  const geo=new THREE.BoxGeometry(slabW,H2*2,H2*2);
+  G.dielectric.add(new THREE.Mesh(geo,new THREE.MeshPhongMaterial({color:useCol,transparent:true,opacity:useOpac,side:THREE.DoubleSide,depthWrite:false,shininess:20})));
+  G.dielectric.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo),new THREE.LineBasicMaterial({color:useCol,transparent:true,opacity:.50})));
+  if(!hideLabels){
+    makeSprite(0,0,H2+.32,`εᵣ = ${S.epsR<=10?S.epsR.toFixed(2):S.epsR.toFixed(0)}`,'#55eedd',G.dielectric);
+    makeSprite(0,-.72,H2+.32,curMat.name,'#33ccbb',G.dielectric);
+  } else {
+    makeSprite(0,0,H2+.32,'? Material desconocido ?','#44bbaa',G.dielectric);
+  }
+}
+
+function buildEquip(){
+  clearGroup(G.equip);
+  if(!S.layers.equip)return;
+  const ppx=px(),THICK=.20,x1=-ppx+THICK/2,x2=ppx-THICK/2,H2=PH;
+  const ph=calcPhys();
+  for(let i=1;i<=S.nEq;i++){
+    const t=i/(S.nEq+1),xPos=x1+t*(x2-x1),pot=1-t;
+    const [r,gg,b]=mapRGB(pot),col=(r<<16)|(gg<<8)|b;
+    const geo=new THREE.PlaneGeometry(H2*2,H2*2);
+    const mesh=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:S.opacity,side:THREE.DoubleSide,depthWrite:false}));
+    mesh.rotation.y=Math.PI/2; mesh.position.x=xPos; G.equip.add(mesh);
+    const edg=new THREE.LineSegments(new THREE.EdgesGeometry(geo),new THREE.LineBasicMaterial({color:col,transparent:true,opacity:.75}));
+    edg.rotation.y=Math.PI/2; edg.position.x=xPos; G.equip.add(edg);
+    makeSprite(xPos,H2+.50,0,`${(ph.V*pot).toFixed(1)}V`,`rgb(${r},${gg},${b})`,G.equip);
+  }
+}
+
+function buildField(){
+  clearGroup(G.field);
+  if(!S.layers.field)return;
+  const ppx=px(),THICK=.20;
+  const x1=-ppx+THICK/2+.06, x2=ppx-THICK/2-.06;
+  const N=S.nField,H2=PH*.82,step=H2*2/(N-1);
+  const verts=[],arrows=[];
+  for(let yi=0;yi<N;yi++)for(let zi=0;zi<N;zi++){
+    const y=-H2+yi*step,z=-H2+zi*step;
+    verts.push(x1,y,z,x2,y,z);
+    arrows.push([(x1+x2)/2,y,z]);
+  }
+  const lGeo=new THREE.BufferGeometry(); lGeo.setAttribute('position',new THREE.Float32BufferAttribute(verts,3));
+  G.field.add(new THREE.LineSegments(lGeo,new THREE.LineBasicMaterial({color:0xff6633,transparent:true,opacity:.84})));
+  const cMat=new THREE.MeshBasicMaterial({color:0xff9955,transparent:true,opacity:.92});
+  arrows.forEach(([ax,ay,az])=>{
+    const c=new THREE.Mesh(new THREE.ConeGeometry(.075,.24,8),cMat.clone());
+    c.position.set(ax,ay,az); c.rotation.z=-Math.PI/2; G.field.add(c);
+  });
+  // D-field teal line outside plates — no text
+  const dppx=ppx+.70;
+  const dv=[-dppx,0,H2*1.18,dppx,0,H2*1.18];
+  const dGeo=new THREE.BufferGeometry(); dGeo.setAttribute('position',new THREE.Float32BufferAttribute(dv,3));
+  G.field.add(new THREE.LineSegments(dGeo,new THREE.LineBasicMaterial({color:0x44ffcc,transparent:true,opacity:.68})));
+  const dc=new THREE.Mesh(new THREE.ConeGeometry(.080,.28,8),new THREE.MeshBasicMaterial({color:0x44ffcc,transparent:true,opacity:.72}));
+  dc.position.set(dppx-.14,0,H2*1.18); dc.rotation.z=-Math.PI/2; G.field.add(dc);
+}
+
+function buildDipoles(){
+  clearGroup(G.dipoles);
+  if(!S.layers.dipoles||S.epsR<=1.01)return;
+  const ppx=px(),THICK=.20,x1=-ppx+THICK/2+.18,x2=ppx-THICK/2-.18;
+  const slabW=x2-x1,H2=PH*.76;
+  const cols=Math.max(2,Math.min(5,Math.round(slabW*1.1))),rows=4,depth=3;
+  const Pn=Math.min(1,(S.epsR-1)/(S.epsR+8)),dLen=Math.max(.09,Math.min(.35,Pn*.50));
+  const bMat=new THREE.MeshBasicMaterial({color:0xaaccff,transparent:true,opacity:.84});
+  const tMat=new THREE.MeshBasicMaterial({color:0xff9966,transparent:true,opacity:.92});
+  const nMat=new THREE.MeshBasicMaterial({color:0x6688ff,transparent:true,opacity:.92});
+  for(let ci=0;ci<cols;ci++)for(let ri=0;ri<rows;ri++)for(let di=0;di<depth;di++){
+    const xp=x1+(ci+.5)/cols*slabW,yp=-H2+(ri+.5)/rows*H2*2,zp=-H2*.62+(di+.5)/depth*H2*1.24;
+    const body=new THREE.Mesh(new THREE.CylinderGeometry(.025,.025,dLen*2,6),bMat.clone());
+    body.position.set(xp,yp,zp); body.rotation.z=Math.PI/2; G.dipoles.add(body);
+    const tip=new THREE.Mesh(new THREE.ConeGeometry(.055,.14,7),tMat.clone());
+    tip.position.set(xp+dLen+.07,yp,zp); tip.rotation.z=-Math.PI/2; G.dipoles.add(tip);
+    const neg=new THREE.Mesh(new THREE.SphereGeometry(.055,7,7),nMat.clone());
+    neg.position.set(xp-dLen-.04,yp,zp); G.dipoles.add(neg);
+  }
+}
+
+function buildBound(){
+  clearGroup(G.bound);
+  if(!S.layers.bound||S.epsR<=1.01)return;
+  const ppx=px(),THICK=.20,x1=-ppx+THICK/2+.04,x2=ppx-THICK/2-.04,H2=PH*.82;
+  const Pn=Math.min(1,(S.epsR-1)/(S.epsR+5)),sz=Math.max(.056,Math.min(.135,Pn*.16+.04));
+  const N=Math.max(3,Math.min(7,Math.round(4+Pn*3)));
+  const pMat=new THREE.MeshPhongMaterial({color:0xff3311,emissive:0x330600,transparent:true,opacity:.92,shininess:70});
+  const nMat=new THREE.MeshPhongMaterial({color:0x1133ff,emissive:0x00062a,transparent:true,opacity:.92,shininess:70});
+  const sGeo=new THREE.SphereGeometry(sz,9,9);
+  for(let yi=0;yi<N;yi++)for(let zi=0;zi<N;zi++){
+    const y=-H2+(yi+.5)/N*H2*2,z=-H2+(zi+.5)/N*H2*2;
+    const sp=new THREE.Mesh(sGeo,pMat.clone()); sp.position.set(x2+.06,y,z); G.bound.add(sp);
+    const sn=new THREE.Mesh(sGeo,nMat.clone()); sn.position.set(x1-.06,y,z); G.bound.add(sn);
+  }
+  makeSprite(x2+.55,0,0,'+σᵦ','#ff8866',G.bound);
+  makeSprite(x1-.55,0,0,'−σᵦ','#8899ff',G.bound);
+}
+
+function buildGrid(){
+  clearGroup(G.grid); clearGroup(G.axes);
+  if(S.layers.grid){
+    const pts=[];
+    for(let i=-DOM;i<=DOM;i++){pts.push(i,-DOM*.88,-DOM,i,-DOM*.88,DOM);pts.push(-DOM,-DOM*.88,i,DOM,-DOM*.88,i);}
+    const geo=new THREE.BufferGeometry(); geo.setAttribute('position',new THREE.Float32BufferAttribute(pts,3));
+    G.grid.add(new THREE.LineSegments(geo,new THREE.LineBasicMaterial({color:isDayMode?0x99cce0:0x051828,opacity:.65,transparent:true})));
+  }
+  if(S.layers.axes){
+    const ax=new THREE.AxesHelper(DOM*1.1); ax.position.y=-DOM*.88; G.axes.add(ax);
+    [['X',DOM*1.22,-DOM*.88,0,'#ff4444'],['Y',0,-DOM*.88+DOM*1.22,0,'#44ff44'],['Z',0,-DOM*.88,DOM*1.22,'#4444ff']].forEach(([t,x,y,z,col])=>{
+      const cv=document.createElement('canvas'); cv.width=36; cv.height=36;
+      const c2=cv.getContext('2d'); c2.fillStyle=col; c2.font='bold 24px Courier New';
+      c2.textAlign='center'; c2.textBaseline='middle'; c2.fillText(t,18,18);
+      const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),transparent:true,depthTest:false}));
+      s.position.set(x,y,z); s.scale.set(.42,.42,1); G.axes.add(s);
+    });
+  }
+}
+
+function rebuild(){buildPlates();buildDielectric();buildEquip();buildField();buildDipoles();buildBound();buildGrid();}
+
+// ══════════════════════════════════════════════════════
+// UI UPDATE (Modo Abierto)
+// ══════════════════════════════════════════════════════
+function updateUI(){
+  if(simMode!=='open')return;
+  const ph=calcPhys();
+  const f=(v,d=3)=>Math.abs(v)<.0005?'0.000':v.toFixed(d);
+  document.getElementById('v-E').textContent=f(ph.E,3);
+  document.getElementById('v-D').textContent=f(ph.D,3);
+  document.getElementById('v-V').textContent=f(ph.V,2);
+  document.getElementById('v-C').textContent=f(ph.C,2);
+  document.getElementById('v-P').textContent=f(ph.P,3);
+  document.getElementById('v-sb').textContent=f(ph.sb,3);
+  document.getElementById('v-u').textContent=f(ph.u,3);
+  document.getElementById('bar-E').style.width=Math.max(2,100/S.epsR)+'%';
+  document.getElementById('bar-C').style.width=Math.min(100,S.epsR*2)+'%';
+  document.getElementById('medium-badge').innerHTML=
+    `${curMat.icon} <b style="color:var(--h1)">${curMat.name}</b> &nbsp;·&nbsp; <span style="color:var(--text)">${curMat.desc}</span>`;
+}
+
+// ══════════════════════════════════════════════════════
+// LAYER TOGGLES
+// ══════════════════════════════════════════════════════
+function tog(name){
+  S.layers[name]=!S.layers[name];
+  document.getElementById('tog-'+name).classList.toggle('on',S.layers[name]);
+  if(S.epsR<=1.01&&(name==='dipoles'||name==='bound')){
+    if(S.layers[name]) showToast('Selecciona un dieléctrico (εᵣ > 1) para ver esta capa');
+    return;
+  }
+  if(name==='grid'||name==='axes')buildGrid();
+  else if(name==='equip')buildEquip();
+  else if(name==='field')buildField();
+  else if(name==='dipoles')buildDipoles();
+  else if(name==='bound')buildBound();
+}
+
+// ══════════════════════════════════════════════════════
+// OPEN MODE CONTROLS
+// ══════════════════════════════════════════════════════
+function setNEq(v){S.nEq=v;document.getElementById('sv').textContent=v;buildEquip();}
+function setNField(v){S.nField=v;document.getElementById('fv').textContent=v;buildField();}
+function setOpacity(v){S.opacity=v/100;document.getElementById('ov').textContent=v;buildEquip();}
+function selectMaterial(idx){
+  if(idx<9){curMat=MATS[idx];S.epsR=curMat.epsR;
+    document.getElementById('eps-slider').value=Math.min(200,S.epsR);
+    document.getElementById('eps-val').textContent=S.epsR<=10?S.epsR.toFixed(2):S.epsR.toFixed(0);
+    if(!isDayMode)renderer.setClearColor(curMat.fog);}
+  rebuild();
+}
+function setEpsR(v){
+  S.epsR=v; document.getElementById('eps-val').textContent=v.toFixed(v>=10?1:2);
+  const m=MATS.findIndex(x=>Math.abs(x.epsR-v)<.06);
+  if(m>=0){curMat=MATS[m];document.getElementById('mat-select').value=m;}
+  else{curMat={name:'Personalizado',epsR:v,icon:'🎛️',desc:`εᵣ=${v.toFixed(2)} · Personalizado`,col3:0xaa44ff,opac:.13,fog:0x08001a};document.getElementById('mat-select').value=9;}
+  rebuild();
+}
+function setSigma(v){S.sigma=v;document.getElementById('sigma-val').textContent=v.toFixed(1);}
+function setVoltage(v){S.V0=v;document.getElementById('V-val').textContent=v.toFixed(1);}
+function setD(v){S.d=v;document.getElementById('d-val').textContent=v.toFixed(1);rebuild();}
+function setCapMode(m){
+  S.capMode=m;
+  document.getElementById('mode-sigma').classList.toggle('on',m==='sigma');
+  document.getElementById('mode-V').classList.toggle('on',m==='V');
+  ['lbl-sigma','sigma-slider'].forEach(id=>document.getElementById(id).style.display=m==='sigma'?'block':'none');
+  ['lbl-V','V-slider'].forEach(id=>document.getElementById(id).style.display=m==='V'?'block':'none');
+}
+function toggleDayNight(){
+  isDayMode=!isDayMode;
+  document.body.classList.toggle('day',isDayMode);
+  document.getElementById('btn-daynight').textContent=isDayMode?'☀️ Día':'🌙 Noche';
+  renderer.setClearColor(isDayMode?0xd0e8f5:curMat.fog);
+  buildGrid();
+}
+
+// ══════════════════════════════════════════════════════
+// SIM MODE
+// ══════════════════════════════════════════════════════
+function setSimMode(m){
+  simMode=m;
+  ['open','A','B'].forEach(x=>{
+    document.getElementById('tab-'+x).classList.toggle('active',x===m);
+    const pid=x==='open'?'panel-open':'panel-mode'+x;
+    document.getElementById(pid).style.display=x===m?'block':'none';
+  });
+  document.getElementById('medium-badge').style.display=m==='open'?'block':'none';
+  if(m==='open'){hideLabels=false;rebuild();}
+  else if(m==='A'){hideLabels=true;initModeA();}
+  else if(m==='B'){
+    hideLabels=true;
+    document.getElementById('modeB-start').style.display='block';
+    document.getElementById('modeB-game').style.display='none';
+    document.getElementById('modeB-end').style.display='none';
+    S.epsR=4.0;S.sigma=1.0;S.d=2.0;curMat=MATS[3];rebuild();
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// MODO A
+// ══════════════════════════════════════════════════════
+let modeA_mat=null;
+function initModeA(){
+  const idx=1+Math.floor(Math.random()*(MATS.length-1));
+  modeA_mat=MATS[idx];
+  S.epsR=modeA_mat.epsR; S.sigma=1.0; S.d=2.0; S.capMode='sigma';
+  curMat=modeA_mat; hideLabels=true; rebuild();
+  const E_si=(S.sigma*1e-6)/(eps0*modeA_mat.epsR);
+  const ds=[0.5,1.0,1.5,2.0,2.5,3.0,3.5,4.0,4.5,5.0];
+  let rows='', epsSum=0;
+  ds.forEach(d_cm=>{
+    const V=E_si*(d_cm*.01);
+    const epsCalc=(S.sigma*1e-6*(d_cm*.01))/(eps0*V);
+    epsSum+=epsCalc;
+    rows+=`<tr><td>${d_cm.toFixed(1)}</td><td class="vval">${V.toFixed(2)}</td><td>${epsCalc.toFixed(2)}</td></tr>`;
+  });
+  document.getElementById('modeA-tbody').innerHTML=rows;
+  document.getElementById('modeA-epsCalc').textContent=(epsSum/ds.length).toFixed(2);
+  document.getElementById('modeA-guess').value='-1';
+  const fb=document.getElementById('modeA-feedback');
+  fb.style.display='none'; fb.className='feedback';
+}
+function verifyModeA(){
+  const guessIdx=+document.getElementById('modeA-guess').value;
+  const fb=document.getElementById('modeA-feedback');
+  fb.style.display='block';
+  if(guessIdx<0){fb.textContent='⚠ Selecciona un material primero.';fb.className='feedback info';return;}
+  const correct=MATS[guessIdx].epsR===modeA_mat.epsR;
+  if(correct){
+    fb.innerHTML=`✅ ¡Correcto! Era <b>${modeA_mat.icon} ${modeA_mat.name}</b> (εᵣ=${modeA_mat.epsR})`;
+    fb.className='feedback ok'; showToast('🎉 ¡Respuesta correcta!');
+    hideLabels=false; rebuild();
+  } else {
+    fb.innerHTML=`❌ Incorrecto. Elegiste εᵣ=${MATS[guessIdx].epsR}<br>Revisa el εᵣ calculado en la tabla.`;
+    fb.className='feedback err'; showToast('Pista: compara el εᵣ promedio con la lista');
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// MODO B
+// ══════════════════════════════════════════════════════
+const MEAS=[
+  {id:'E',cost:20,unit:'kV/m',  fn:ph=>ph.E.toFixed(3)},
+  {id:'V',cost:15,unit:'V',     fn:ph=>ph.V.toFixed(2)},
+  {id:'C',cost:25,unit:'pF/m²', fn:ph=>ph.C.toFixed(2)},
+  {id:'u',cost:10,unit:'mJ/m³', fn:ph=>ph.u.toFixed(3)},
+];
+const MEAS_LABELS={E:'📊 Campo E',V:'🔋 Voltaje ΔV',C:'💡 Capacitancia C/A',u:'⚡ Energía u'};
+let B={round:0,score:0,mat:null,roundPts:100,revealed:[],guessed:false,roundLog:[]};
+
+function startModeB(){
+  B={round:0,score:0,mat:null,roundPts:100,revealed:[],guessed:false,roundLog:[]};
+  document.getElementById('modeB-start').style.display='none';
+  document.getElementById('modeB-game').style.display='block';
+  document.getElementById('modeB-end').style.display='none';
+  startRoundB();
+}
+function startRoundB(){
+  B.round++; B.roundPts=100; B.revealed=[]; B.guessed=false;
+  const idx=1+Math.floor(Math.random()*(MATS.length-1));
+  B.mat=MATS[idx];
+  S.epsR=B.mat.epsR; S.sigma=1.0; S.d=2.0; S.capMode='sigma';
+  curMat=B.mat; hideLabels=true; rebuild();
+  document.getElementById('b-round').textContent=B.round;
+  document.getElementById('b-score').textContent=B.score;
+  document.getElementById('b-rnd-pts').textContent=B.roundPts;
+  MEAS.forEach(m=>{
+    const btn=document.getElementById('bm-'+m.id);
+    btn.disabled=false; btn.classList.remove('used');
+    document.getElementById('br-'+m.id).textContent='−'+m.cost+' pts';
+  });
+  buildMatGrid();
+  const fb=document.getElementById('b-feedback'); fb.style.display='none';
+  document.getElementById('b-next-wrap').style.display='none';
+}
+function buildMatGrid(){
+  const grid=document.getElementById('b-mat-grid'); grid.innerHTML='';
+  MATS.slice(1).forEach((m,i)=>{
+    const btn=document.createElement('button'); btn.className='mat-btn';
+    btn.innerHTML=`${m.icon}<br>${m.name}<br><span style="color:var(--text4);font-size:12px;">εᵣ=${m.epsR<=10?m.epsR.toFixed(2):m.epsR.toFixed(0)}</span>`;
+    btn.onclick=()=>guessMaterialB(i+1,btn); grid.appendChild(btn);
+  });
+}
+function revealB(id){
+  if(B.guessed)return;
+  if(B.revealed.includes(id)){showToast('Ya revelaste esta medida');return;}
+  const meas=MEAS.find(m=>m.id===id);
+  B.revealed.push(id);
+  B.roundPts=Math.max(0,B.roundPts-meas.cost);
+  document.getElementById('b-rnd-pts').textContent=B.roundPts;
+  S.epsR=B.mat.epsR; S.sigma=1.0; S.d=2.0; S.capMode='sigma';
+  const ph=calcPhys();
+  const btn=document.getElementById('bm-'+id);
+  btn.classList.add('used'); btn.disabled=true;
+  document.getElementById('br-'+id).textContent=`= ${meas.fn(ph)} ${meas.unit}`;
+  showToast(`${MEAS_LABELS[id]}: ${meas.fn(ph)} ${meas.unit}`);
+}
+function guessMaterialB(matIdx,btnEl){
+  if(B.guessed)return;
+  B.guessed=true;
+  const isCorrect=(MATS[matIdx].epsR===B.mat.epsR);
+  document.getElementById('b-mat-grid').querySelectorAll('.mat-btn').forEach(b=>b.disabled=true);
+  const correctIdx=MATS.indexOf(B.mat)-1;
+  document.getElementById('b-mat-grid').children[correctIdx].classList.add('correct');
+  if(!isCorrect){btnEl.classList.add('wrong');B.roundPts=0;}
+  const stars=B.revealed.length===0?'★★★':B.revealed.length<=2?'★★':'★';
+  const fb=document.getElementById('b-feedback'); fb.style.display='block';
+  if(isCorrect){
+    fb.innerHTML=`${stars} ¡Correcto! <b>${B.mat.icon} ${B.mat.name}</b><br>+${B.roundPts} puntos`;
+    fb.className='feedback ok';
+  } else {
+    fb.innerHTML=`✗ Era <b>${B.mat.icon} ${B.mat.name}</b><br>+0 puntos`;
+    fb.className='feedback err';
+  }
+  B.score+=B.roundPts;
+  B.roundLog.push({mat:B.mat,pts:B.roundPts,correct:isCorrect,reveals:B.revealed.length});
+  document.getElementById('b-score').textContent=B.score;
+  document.getElementById('b-next-wrap').style.display='block';
+  hideLabels=false; rebuild();
+}
+function nextRoundB(){if(B.round>=5)endModeB();else startRoundB();}
+function endModeB(){
+  document.getElementById('modeB-game').style.display='none';
+  document.getElementById('modeB-end').style.display='block';
+  const score=B.score;
+  let medal='🏆',title='EXPERTO EN DIELÉCTRICOS';
+  if(score<100){medal='🔬';title='PRINCIPIANTE';}
+  else if(score<200){medal='📚';title='EN DESARROLLO';}
+  else if(score<300){medal='🥉';title='COMPETENTE';}
+  else if(score<400){medal='🥈';title='AVANZADO';}
+  document.getElementById('b-end-medal').textContent=medal;
+  document.getElementById('b-end-title').textContent=title;
+  document.getElementById('b-end-score').textContent=score;
+  let detail='';
+  B.roundLog.forEach((r,i)=>{
+    const s=r.reveals===0?'★★★':r.reveals<=2?'★★':'★';
+    detail+=`${r.correct?'✅':'❌'} Ronda ${i+1}: ${r.mat.icon} ${r.mat.name} · ${r.correct?'+'+r.pts:'0'} pts ${s}<br>`;
+  });
+  document.getElementById('b-end-detail').innerHTML=detail;
+  hideLabels=false; S.epsR=1; curMat=MATS[0]; rebuild();
+}
+function resetModeB(){
+  document.getElementById('modeB-start').style.display='block';
+  document.getElementById('modeB-game').style.display='none';
+  document.getElementById('modeB-end').style.display='none';
+}
+
+// ══════════════════════════════════════════════════════
+// CAMERA / ORBIT
+// ══════════════════════════════════════════════════════
+let sph={theta:.9,phi:.65,r:17},dragging=false,mx=0,my=0,lastPinch=0;
+function updateCam(){
+  camP.position.set(
+    sph.r*Math.sin(sph.phi)*Math.sin(sph.theta),
+    sph.r*Math.cos(sph.phi),
+    sph.r*Math.sin(sph.phi)*Math.cos(sph.theta));
+  camP.lookAt(0,0,0);
+}
+updateCam();
+function resetView(){
+  sph={theta:.9,phi:.65,r:17}; updateCam();
+  [camTop,camSide,camFront].forEach(cam=>{
+    const asp=(canvasEl.width/canvasEl.height)||1,d=DOM*1.4;
+    cam.left=-d*asp;cam.right=d*asp;cam.top=d;cam.bottom=-d;cam.updateProjectionMatrix();
+  });
+  setView('3d');
+}
+function setView(v){
+  viewMode=v;
+  ['3d','top','side','front'].forEach(x=>document.getElementById('btn-'+x).classList.toggle('on',x===v));
+  const map={
+    '3d':{cam:camP,hud:'Arrastra para rotar · Scroll para zoom'},
+    'top':{cam:camTop,hud:'Vista Superior (XZ) · Scroll para zoom'},
+    'side':{cam:camSide,hud:'Vista Lateral (XY) · Scroll para zoom'},
+    'front':{cam:camFront,hud:'Vista Frontal (YZ) · Scroll para zoom'},
+  };
+  activeCam=map[v].cam; document.getElementById('hud').textContent=map[v].hud; resize();
+}
+const vpEl=document.getElementById('viewport');
+vpEl.addEventListener('mousedown',e=>{dragging=true;mx=e.clientX;my=e.clientY;});
+window.addEventListener('mouseup',()=>dragging=false);
+window.addEventListener('mousemove',e=>{
+  if(!dragging||viewMode!=='3d')return;
+  const dx=e.clientX-mx,dy=e.clientY-my;mx=e.clientX;my=e.clientY;
+  sph.theta-=dx*.008;sph.phi=Math.max(.04,Math.min(Math.PI-.04,sph.phi+dy*.008));updateCam();
+});
+vpEl.addEventListener('touchstart',e=>{
+  if(e.touches.length===1){dragging=true;mx=e.touches[0].clientX;my=e.touches[0].clientY;lastPinch=0;}
+  else if(e.touches.length===2){dragging=false;const dx=e.touches[0].clientX-e.touches[1].clientX,dy=e.touches[0].clientY-e.touches[1].clientY;lastPinch=Math.sqrt(dx*dx+dy*dy);}
+},{passive:true});
+window.addEventListener('touchend',e=>{if(e.touches.length===0){dragging=false;lastPinch=0;}});
+window.addEventListener('touchmove',e=>{
+  if(e.touches.length===2){
+    const dx=e.touches[0].clientX-e.touches[1].clientX,dy=e.touches[0].clientY-e.touches[1].clientY;
+    const dist=Math.sqrt(dx*dx+dy*dy);
+    if(lastPinch>0){const delta=lastPinch-dist;if(viewMode==='3d'){sph.r=Math.max(4,Math.min(38,sph.r+delta*.04));updateCam();}else{const c=activeCam,s=1+delta*.003;c.left*=s;c.right*=s;c.top*=s;c.bottom*=s;c.updateProjectionMatrix();}}
+    lastPinch=dist;return;
+  }
+  if(!dragging||viewMode!=='3d'||e.touches.length!==1)return;
+  const dx=e.touches[0].clientX-mx,dy=e.touches[0].clientY-my;
+  mx=e.touches[0].clientX;my=e.touches[0].clientY;
+  sph.theta-=dx*.012;sph.phi=Math.max(.04,Math.min(Math.PI-.04,sph.phi+dy*.012));updateCam();
+},{passive:true});
+vpEl.addEventListener('wheel',e=>{
+  e.preventDefault();
+  if(viewMode==='3d'){sph.r=Math.max(4,Math.min(38,sph.r+e.deltaY*.022));updateCam();}
+  else{const c=activeCam,s=1+e.deltaY*.0012;c.left*=s;c.right*=s;c.top*=s;c.bottom*=s;c.updateProjectionMatrix();}
+},{passive:false});
+
+// ══════════════════════════════════════════════════════
+// RESIZE
+// ══════════════════════════════════════════════════════
+function resize(){
+  const vp2=document.getElementById('viewport');
+  const W=vp2.clientWidth, H=vp2.clientHeight;
+  if(W>0&&H>0){
+    renderer.setSize(W,H,false);
+    camP.aspect=W/H; camP.updateProjectionMatrix();
+    const asp=W/H,d=DOM*1.4;
+    [camTop,camSide,camFront].forEach(cam=>{cam.left=-d*asp;cam.right=d*asp;cam.top=d;cam.bottom=-d;cam.updateProjectionMatrix();});
+  }
+}
+window.addEventListener('resize',resize);
+
+// ══════════════════════════════════════════════════════
+// MOBILE PANEL
+// ══════════════════════════════════════════════════════
+function togglePanel(){
+  const panel=document.getElementById('panel'),btn=document.getElementById('panel-toggle'),ov=document.getElementById('panel-overlay');
+  const open=panel.classList.toggle('open');
+  if(ov)ov.classList.toggle('show',open);
+  btn.textContent=open?'✕':'⚙️';
+  setTimeout(resize,310);
+}
+
+// ══════════════════════════════════════════════════════
+// ANIMATION LOOP
+// ══════════════════════════════════════════════════════
+let t0=Date.now();
+function animate(){
+  requestAnimationFrame(animate);
+  const t=(Date.now()-t0)*.001;
+  // Rotate plate rings
+  G.plates.children.forEach((obj,i)=>{
+    if(obj.geometry&&obj.geometry.type==='TorusGeometry') obj.rotation.x=t*.35+(i*.8);
+  });
+  // Dipole opacity pulse
+  if(S.epsR>1.01) G.dipoles.children.forEach((obj,i)=>{
+    if(obj.material&&obj.material.opacity!==undefined) obj.material.opacity=.58+.24*Math.sin(t*1.1+i*.25);
+  });
+  updateUI();
+  renderer.render(scene,activeCam);
+}
+
+// ══════════════════════════════════════════════════════
+// INIT — wait for layout, then resize, then rebuild
+// ══════════════════════════════════════════════════════
+window.addEventListener('load',()=>{
+  resize();
+  rebuild();
+  animate();
+});
+// Fallback if load already fired
+if(document.readyState==='complete'){resize();rebuild();animate();}
+</script>
+<button id="panel-toggle" onclick="togglePanel()" title="Panel de control">⚙️</button>
+</body>
+</html>

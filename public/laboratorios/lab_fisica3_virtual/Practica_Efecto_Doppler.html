@@ -1,0 +1,1542 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guía de Laboratorio — Efecto Doppler</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>
+  MathJax = {
+    tex: { inlineMath: [['$','$'],['\\(','\\)']], displayMath: [['$$','$$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+  :root {
+    --ink:       #1a1a2e;
+    --ink-soft:  #3d3d5c;
+    --ink-muted: #7a7a9a;
+    --paper:     #faf8f3;
+    --paper-alt: #f2ede3;
+    --rule:      #d4c9b0;
+    --accent:    #1a5276;
+    --accent2:   #c0392b;
+    --gold:      #b8860b;
+    --green:     #1e8449;
+    --mono:      'JetBrains Mono', monospace;
+    --serif:     'Source Serif 4', Georgia, serif;
+    --display:   'Playfair Display', Georgia, serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: #dde3e8;
+    font-family: var(--serif);
+    color: var(--ink);
+    font-size: 17px;
+    line-height: 1.8;
+    min-height: 100vh;
+    padding: 30px 15px 80px;
+  }
+
+  /* ═══ DOCUMENTO ═══ */
+  .documento {
+    max-width: 860px;
+    margin: 0 auto;
+    background: var(--paper);
+    box-shadow: 0 2px 4px rgba(0,0,0,.08), 0 8px 32px rgba(0,0,0,.14), 0 20px 60px rgba(0,0,0,.08);
+    position: relative;
+    overflow-x: hidden;
+  }
+  .documento::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0; width: 5px;
+    background: linear-gradient(180deg, var(--accent) 0%, var(--accent2) 50%, var(--gold) 100%);
+  }
+
+  /* ═══ HEADER ═══ */
+  .header {
+    background: var(--ink);
+    color: #fff;
+    padding: 36px 50px 30px 55px;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::after {
+    content: 'f';
+    font-family: var(--display);
+    font-size: 320px;
+    font-weight: 700;
+    font-style: italic;
+    color: rgba(255,255,255,.04);
+    position: absolute;
+    right: -20px; top: -70px;
+    line-height: 1;
+    pointer-events: none;
+    user-select: none;
+  }
+  .header-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    gap: 20px;
+  }
+  .badge-codigo {
+    font-family: var(--mono);
+    font-size: .72em;
+    background: var(--accent);
+    color: #fff;
+    padding: 3px 10px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+  .badge-tipo {
+    font-family: var(--mono);
+    font-size: .72em;
+    color: rgba(255,255,255,.5);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    border: 1px solid rgba(255,255,255,.15);
+    padding: 3px 10px;
+  }
+  .header h1 {
+    font-family: var(--display);
+    font-size: 2.1em;
+    font-weight: 700;
+    line-height: 1.2;
+    color: #fff;
+    margin-bottom: 6px;
+  }
+  .header h1 em {
+    font-style: italic;
+    color: rgba(255,255,255,.65);
+    font-size: .82em;
+  }
+  .header-sub {
+    font-size: .82em;
+    color: rgba(255,255,255,.45);
+    font-weight: 300;
+    letter-spacing: .04em;
+    margin-top: 4px;
+  }
+  .header-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 24px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,.12);
+  }
+  .field-item label {
+    display: block;
+    font-family: var(--mono);
+    font-size: .68em;
+    color: rgba(255,255,255,.4);
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    margin-bottom: 4px;
+  }
+  .field-item input[type="text"],
+  .field-item input[type="date"] {
+    width: 100%;
+    background: rgba(255,255,255,.07);
+    border: none;
+    border-bottom: 1px solid rgba(255,255,255,.25);
+    color: #fff;
+    font-family: var(--serif);
+    font-size: .9em;
+    padding: 4px 0;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .field-item input:focus { border-bottom-color: var(--accent2); }
+  .field-item input::placeholder { color: rgba(255,255,255,.2); }
+
+  /* ═══ BODY ═══ */
+  .body { padding: 44px 50px 50px 55px; }
+  .seccion { margin-bottom: 42px; }
+  .seccion-titulo {
+    font-family: var(--display);
+    font-size: 1.1em;
+    font-weight: 600;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--rule);
+  }
+  .seccion-titulo .num {
+    font-family: var(--mono);
+    font-size: .72em;
+    color: var(--accent);
+    background: #e8f0f7;
+    padding: 2px 7px;
+    letter-spacing: .05em;
+    min-width: 36px;
+    text-align: center;
+  }
+  .subseccion-titulo {
+    font-family: var(--display);
+    font-size: .98em;
+    font-weight: 600;
+    color: var(--accent);
+    margin: 22px 0 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .subseccion-titulo::before {
+    content: '';
+    width: 14px; height: 2px;
+    background: var(--accent);
+    display: inline-block;
+    flex-shrink: 0;
+  }
+  p { margin-bottom: 10px; color: var(--ink-soft); font-size: 1em; }
+  p:last-child { margin-bottom: 0; }
+
+  /* ═══ RESUMEN ═══ */
+  .resumen-box {
+    background: var(--paper-alt);
+    border-left: 3px solid var(--accent);
+    padding: 16px 20px;
+    font-size: .9em;
+    font-style: italic;
+    color: var(--ink-soft);
+    line-height: 1.7;
+  }
+
+  /* ═══ OBJETIVOS ═══ */
+  .objetivos-lista { list-style: none; padding: 0; }
+  .objetivos-lista li {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 8px 0;
+    border-bottom: 1px dashed var(--rule);
+    font-size: .93em;
+    color: var(--ink-soft);
+  }
+  .objetivos-lista li:last-child { border-bottom: none; }
+  .objetivos-lista li .obj-num {
+    font-family: var(--mono);
+    font-size: .75em;
+    color: #fff;
+    background: var(--accent);
+    min-width: 22px; height: 22px;
+    display: flex; align-items: center; justify-content: center;
+    margin-top: 2px; flex-shrink: 0;
+  }
+
+  /* ═══ FÓRMULAS ═══ */
+  .formula-box {
+    background: var(--ink);
+    color: #fff;
+    padding: 18px 24px;
+    margin: 18px 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .formula-box::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0; width: 3px;
+    background: var(--accent2);
+  }
+  .formula-box .formula-label {
+    font-family: var(--mono);
+    font-size: .65em;
+    color: rgba(255,255,255,.4);
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    margin-bottom: 10px;
+  }
+  .formula-main { font-size: 1.15em; text-align: center; padding: 6px 0; }
+  .formula-num {
+    font-family: var(--mono);
+    font-size: .65em;
+    color: rgba(255,255,255,.35);
+    text-align: right;
+    margin-top: 6px;
+  }
+
+  /* ═══ PASOS ═══ */
+  .paso { display: flex; gap: 16px; margin-bottom: 20px; align-items: flex-start; }
+  .paso-num {
+    font-family: var(--mono); font-size: .8em;
+    background: var(--accent); color: #fff;
+    min-width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 2px;
+  }
+  .paso-content { flex: 1; }
+  .paso-content p { margin-bottom: 6px; }
+  .paso-content ul { margin: 4px 0 4px 16px; color: var(--ink-soft); font-size: .9em; }
+  .paso-content ul li { margin-bottom: 3px; }
+
+  /* ═══ NOTA / ALERTA / TIP ═══ */
+  .nota {
+    background: #fef9e7;
+    border-left: 3px solid var(--gold);
+    padding: 10px 16px;
+    font-size: .85em; color: #7d6608;
+    margin: 14px 0; font-style: italic;
+  }
+  .nota strong { font-style: normal; color: var(--gold); }
+  .alerta {
+    background: #fdf2f2;
+    border-left: 3px solid var(--accent2);
+    padding: 10px 16px;
+    font-size: .85em; color: #7b241c;
+    margin: 14px 0;
+  }
+  .alerta strong { color: var(--accent2); }
+  .tip {
+    background: #eafaf1;
+    border-left: 3px solid var(--green);
+    padding: 10px 16px;
+    font-size: .85em; color: #186a3b;
+    margin: 14px 0;
+  }
+  .tip strong { color: var(--green); }
+
+  /* ═══ EJEMPLO ═══ */
+  .ejemplo-box {
+    background: #f0f7f0;
+    border-left: 3px solid var(--green);
+    padding: 14px 18px; margin: 14px 0; font-size: .9em;
+  }
+  .ejemplo-box .ej-label {
+    font-family: var(--mono); font-size: .65em; color: var(--green);
+    text-transform: uppercase; letter-spacing: .12em;
+    margin-bottom: 8px; display: block; font-weight: 500;
+  }
+  .ejemplo-box p { margin-bottom: 6px; color: var(--ink-soft); }
+
+  /* ═══ TABLAS ═══ */
+  .tabla-resultados {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .92em;
+    margin: 14px 0;
+  }
+  .tabla-resultados th {
+    background: var(--ink);
+    color: #fff;
+    font-family: var(--mono);
+    font-size: .72em;
+    letter-spacing: .05em;
+    padding: 10px 8px;
+    text-align: center;
+    font-weight: 500;
+    border: 1px solid #444;
+  }
+  .tabla-resultados td {
+    padding: 8px 8px;
+    border: 1px solid var(--rule);
+    text-align: center;
+    color: var(--ink-soft);
+    vertical-align: middle;
+  }
+  .tabla-resultados td.input-cell { padding: 3px 4px; }
+  .tabla-resultados input[type="text"] {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid var(--rule);
+    background: transparent;
+    font-family: var(--mono);
+    font-size: .88em;
+    color: var(--ink);
+    padding: 4px 4px;
+    text-align: center;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .tabla-resultados input:focus { border-bottom-color: var(--accent); }
+  .tabla-resultados tr:nth-child(even) td { background: var(--paper-alt); }
+  .tabla-resultados .row-label {
+    font-family: var(--mono);
+    font-size: .82em;
+    font-weight: 500;
+    color: var(--accent);
+  }
+
+  /* ═══ TABLA REFERENCIA (sin inputs) ═══ */
+  .ref-tabla {
+    width: 100%; border-collapse: collapse;
+    font-size: .88em; margin: 12px 0;
+  }
+  .ref-tabla th {
+    background: var(--ink); color: #fff;
+    font-family: var(--mono); font-size: .72em;
+    padding: 9px 12px; letter-spacing: .06em; text-align: center;
+  }
+  .ref-tabla td {
+    padding: 8px 12px; border: 1px solid var(--rule);
+    vertical-align: middle; font-size: .9em; color: var(--ink-soft);
+  }
+  .ref-tabla tr:nth-child(even) td { background: var(--paper-alt); }
+  .ref-tabla td.dest { font-weight: 600; color: var(--ink); font-family: var(--mono); font-size:.82em; }
+  .bueno { color: var(--green); font-weight: 600; }
+  .medio { color: var(--gold);  font-weight: 600; }
+  .malo  { color: var(--accent2); font-weight: 600; }
+
+  /* ═══ RESULTADOS ═══ */
+  .result-box {
+    background: var(--paper-alt);
+    border: 1px solid var(--rule);
+    padding: 16px 20px; margin: 14px 0;
+    display: grid; grid-template-columns: repeat(3,1fr);
+    gap: 16px;
+  }
+  .result-box.col2 { grid-template-columns: 1fr 1fr; }
+  .result-box.col4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+  .res-campo label {
+    font-family: var(--mono); font-size: .72em;
+    color: var(--ink-muted); text-transform: uppercase;
+    letter-spacing: .08em; display: block; margin-bottom: 6px;
+    line-height: 1.4;
+  }
+  .res-campo input[type="text"] {
+    width: 100%; border: none;
+    border-bottom: 2px solid var(--rule);
+    background: transparent; font-family: var(--mono);
+    font-size: .95em; color: var(--ink); padding: 5px 0;
+    outline: none; transition: border-color .2s; text-align: center;
+  }
+  .res-campo input:focus { border-bottom-color: var(--accent); }
+
+  /* ═══ ÁREA DE TRABAJO ═══ */
+  .trabajo-area {
+    width: 100%; min-height: 110px;
+    border: 1px solid var(--rule);
+    background: #fff;
+    font-family: var(--serif);
+    font-size: .9em; color: var(--ink);
+    padding: 14px 16px; resize: vertical; outline: none;
+    line-height: 1.8; transition: border-color .2s; display: block;
+  }
+  .trabajo-area:focus { border-color: var(--accent); }
+  .trabajo-area::placeholder { color: #bbb; font-style: italic; }
+  /* el div de reemplazo solo existe en impresión, ocultar en pantalla */
+  .print-div { display: none; }
+  .area-label {
+    font-family: var(--mono); font-size: .72em;
+    color: var(--ink-muted); text-transform: uppercase;
+    letter-spacing: .08em; margin-bottom: 5px; margin-top: 14px;
+    display: block; line-height: 1.5;
+  }
+
+  /* ═══ RETO ═══ */
+  .reto-header {
+    background: var(--ink); color: #fff;
+    padding: 16px 20px; display: flex; gap: 16px; align-items: flex-start;
+  }
+  .reto-header h4 { font-family: var(--display); font-size: 1em; margin-bottom: 4px; }
+  .reto-header p  { font-size: .82em; color: rgba(255,255,255,.55); margin: 0; }
+  .reto-badge {
+    font-family: var(--mono); font-size: .65em;
+    background: var(--accent2); color: #fff;
+    padding: 3px 8px; letter-spacing: .1em; white-space: nowrap; margin-top: 3px;
+  }
+  .reto-body { border: 1px solid var(--rule); padding: 20px; border-top: none; }
+
+  /* ═══ ADJUNTO ═══ */
+  .adjunto-slot {
+    border: 2px dashed var(--rule);
+    padding: 24px; text-align: center;
+    cursor: pointer; position: relative;
+    transition: border-color .2s; margin-top: 8px;
+  }
+  .adjunto-slot:hover { border-color: var(--accent); }
+  .adjunto-slot input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%;
+  }
+  .slot-icon  { display: block; font-size: 1.8em; margin-bottom: 6px; }
+  .slot-label { display: block; font-family: var(--mono); font-size: .75em; color: var(--ink-soft); }
+  .slot-hint  { display: block; font-size: .72em; color: var(--ink-muted); margin-top: 4px; }
+  .preview-img { display: none; max-width: 100%; margin-top: 14px; border: 1px solid var(--rule); }
+
+  /* ═══ DIVIDER ═══ */
+  .divider {
+    display: flex; align-items: center; gap: 12px;
+    margin: 28px 0 18px;
+    font-family: var(--mono); font-size: .68em;
+    color: var(--ink-muted); text-transform: uppercase; letter-spacing: .1em;
+  }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--rule); }
+
+  /* ═══ RANGO TABLA ═══ */
+  .rango-tabla {
+    width: 100%; border-collapse: collapse;
+    font-size: .88em; margin: 12px 0;
+  }
+  .rango-tabla th {
+    background: var(--ink); color: #fff;
+    font-family: var(--mono); font-size: .72em;
+    padding: 9px 12px; letter-spacing: .06em; text-align: center;
+  }
+  .rango-tabla td {
+    padding: 8px 12px; border: 1px solid var(--rule);
+    text-align: center; font-size: .9em;
+  }
+
+  /* ═══ FIRMA ═══ */
+  .firma-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 30px; }
+  .firma-slot {
+    text-align: center; padding-top: 50px;
+    border-top: 1px solid var(--rule);
+    font-family: var(--mono); font-size: .68em;
+    color: var(--ink-muted); text-transform: uppercase; letter-spacing: .08em;
+  }
+
+  /* ═══ BTN IMPRIMIR ═══ */
+  .btn-imprimir {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--accent); color: #fff; border: none;
+    padding: 12px 22px; font-family: var(--mono);
+    font-size: .75em; letter-spacing: .1em; text-transform: uppercase;
+    cursor: pointer; box-shadow: 0 4px 16px rgba(26,82,118,.35);
+    transition: transform .15s, box-shadow .15s; z-index: 100;
+  }
+  .btn-imprimir:hover { transform: translateY(-2px); box-shadow: 0 6px 22px rgba(26,82,118,.45); }
+
+  /* ═══ RESPONSIVE ═══ */
+  @media (max-width: 680px) {
+    body { padding: 10px 0 40px; }
+    .documento { border-radius: 0; }
+    .header { padding: 22px 18px 20px 22px; }
+    .header::after { font-size: 160px; }
+    .header h1 { font-size: 1.4em !important; }
+    .header-meta { flex-direction: column; gap: 8px; }
+    .header-fields { grid-template-columns: 1fr !important; gap: 10px 0; }
+    .body { padding: 22px 16px 28px 20px; }
+    .tabla-resultados, .ref-tabla, .rango-tabla { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .result-box, .result-box.col2, .result-box.col4 { grid-template-columns: 1fr 1fr !important; }
+    .firma-grid { grid-template-columns: 1fr !important; gap: 20px; }
+    .paso { gap: 10px; }
+    .reto-header { padding: 12px 14px; gap: 10px; }
+    .reto-body { padding: 14px; }
+  }
+  @media (max-width: 420px) {
+    .header { padding: 18px 14px 16px 18px; }
+    .body { padding: 16px 12px 20px 14px; }
+    .result-box, .result-box.col2, .result-box.col4 { grid-template-columns: 1fr !important; }
+    .header h1 { font-size: 1.2em !important; }
+    .formula-main { font-size: 1em !important; }
+  }
+  /* ═══ IMPRESIÓN ═══ */
+  @media print {
+    /* — página — */
+    @page {
+      size: A4 portrait;
+      margin: 18mm 16mm 20mm 16mm;
+    }
+
+    /* — reset cuerpo — */
+    html, body {
+      background: #fff !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      font-size: 12px !important;
+      line-height: 1.6 !important;
+      color: #000 !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    /* — contenedor — */
+    .documento {
+      max-width: 100% !important;
+      width: 100% !important;
+      box-shadow: none !important;
+      margin: 0 !important;
+      overflow: visible !important;
+    }
+
+    /* — barra lateral de color — */
+    .documento::before {
+      display: none;
+    }
+
+    /* — header — */
+    .header {
+      padding: 18px 20px 14px 20px !important;
+      background: #1a1a2e !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+    .header::after { display: none; }
+    .header h1 { font-size: 1.4em !important; }
+    .header-fields { grid-template-columns: 1fr 1fr !important; gap: 8px 16px !important; margin-top: 14px !important; }
+    .field-item input { font-size: .85em !important; padding: 2px 0 !important; }
+
+    /* — cuerpo — */
+    .body {
+      padding: 20px 20px 20px 24px !important;
+    }
+
+    /* — secciones: nunca cortar el título de su contenido — */
+    .seccion {
+      margin-bottom: 22px !important;
+      page-break-inside: auto;
+      break-inside: auto;
+    }
+    .seccion-titulo {
+      page-break-after: avoid;
+      break-after: avoid;
+      margin-bottom: 8px !important;
+      font-size: .95em !important;
+    }
+    .subseccion-titulo {
+      page-break-after: avoid;
+      break-after: avoid;
+      margin: 14px 0 6px !important;
+      font-size: .88em !important;
+    }
+
+    /* — fórmulas: no cortar — */
+    .formula-box {
+      page-break-inside: avoid;
+      break-inside: avoid;
+      margin: 10px 0 !important;
+      padding: 12px 16px !important;
+      background: #1a1a2e !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .formula-main { font-size: .95em !important; }
+
+    /* — ejemplos y notas: no cortar — */
+    .ejemplo-box, .nota, .alerta, .tip {
+      page-break-inside: avoid;
+      break-inside: avoid;
+      margin: 8px 0 !important;
+      padding: 8px 12px !important;
+      font-size: .82em !important;
+    }
+    .ejemplo-box {
+      background: #f0f7f0 !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .nota  { background: #fef9e7 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .alerta{ background: #fdf2f2 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .tip   { background: #eafaf1 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+    /* — tablas: encabezado se repite en cada página — */
+    .tabla-resultados, .ref-tabla, .rango-tabla {
+      font-size: .78em !important;
+      margin: 8px 0 !important;
+      page-break-inside: auto;
+      break-inside: auto;
+      width: 100% !important;
+      display: table !important;
+      overflow: visible !important;
+    }
+    .tabla-resultados thead, .ref-tabla thead, .rango-tabla thead {
+      display: table-header-group; /* repite encabezado en pág siguientes */
+    }
+    .tabla-resultados tr, .ref-tabla tr, .rango-tabla tr {
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+    .tabla-resultados th, .ref-tabla th, .rango-tabla th {
+      background: #1a1a2e !important;
+      color: #fff !important;
+      padding: 6px 5px !important;
+      font-size: .72em !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .tabla-resultados td, .ref-tabla td, .rango-tabla td {
+      padding: 5px !important;
+      font-size: .78em !important;
+    }
+    .tabla-resultados input[type="text"] {
+      border: none !important;
+      border-bottom: 1px solid #bbb !important;
+      font-size: .85em !important;
+      padding: 2px !important;
+    }
+
+    /* — result-box — */
+    .result-box {
+      page-break-inside: avoid;
+      break-inside: avoid;
+      padding: 10px 12px !important;
+      margin: 8px 0 !important;
+      gap: 10px !important;
+      background: #f2ede3 !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .result-box.col4 { grid-template-columns: 1fr 1fr 1fr 1fr !important; }
+    .result-box.col2 { grid-template-columns: 1fr 1fr !important; }
+    .res-campo input[type="text"] {
+      font-size: .82em !important;
+      border-bottom: 1px solid #aaa !important;
+    }
+
+    /* — pasos — */
+    .paso {
+      page-break-inside: avoid;
+      break-inside: avoid;
+      margin-bottom: 10px !important;
+    }
+    .paso-num {
+      background: #1a5276 !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+      min-width: 22px !important; height: 22px !important;
+      font-size: .72em !important;
+    }
+    .paso-content p { font-size: .88em !important; margin-bottom: 4px !important; }
+    .paso-content ul { font-size: .84em !important; }
+
+    /* — área de trabajo: ocultar textarea, mostrar div de reemplazo — */
+    textarea.trabajo-area { display: none !important; }
+    .print-div {
+      display: block !important;
+      width: 100%;
+      min-height: 40px;
+      border: 1px solid #ccc;
+      background: #fafafa;
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: .82em;
+      color: #1a1a2e;
+      padding: 8px 10px;
+      line-height: 1.65;
+      white-space: pre-wrap;
+      word-break: break-word;
+      page-break-inside: auto;
+      break-inside: auto;
+      margin-bottom: 6px;
+    }
+    .area-label {
+      font-size: .66em !important;
+      margin-top: 8px !important;
+      margin-bottom: 3px !important;
+    }
+
+    /* — adjunto — */
+    .adjunto-slot {
+      border: 1px dashed #bbb !important;
+      padding: 12px !important;
+      font-size: .8em !important;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+    .adjunto-slot input[type="file"] { display: none !important; }
+    .preview-img { max-width: 100% !important; page-break-inside: avoid; break-inside: avoid; }
+
+    /* — reto — */
+    .reto-header {
+      page-break-inside: avoid;
+      break-inside: avoid;
+      padding: 10px 14px !important;
+      background: #1a1a2e !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .reto-header h4 { font-size: .9em !important; }
+    .reto-header p  { font-size: .78em !important; }
+    .reto-badge {
+      background: #c0392b !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .reto-body { padding: 12px 14px !important; }
+
+    /* — divider — */
+    .divider {
+      margin: 14px 0 10px !important;
+      font-size: .65em !important;
+    }
+
+    /* — objetivos — */
+    .objetivos-lista li {
+      padding: 5px 0 !important;
+      font-size: .88em !important;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+    .obj-num {
+      background: #1a5276 !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+      min-width: 20px !important; height: 20px !important;
+    }
+
+    /* — resumen — */
+    .resumen-box {
+      padding: 10px 14px !important;
+      font-size: .88em !important;
+      page-break-inside: avoid;
+      break-inside: avoid;
+      background: #f2ede3 !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    /* — firmas — */
+    .firma-grid {
+      margin-top: 20px !important;
+      gap: 20px !important;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    /* — saltos de página entre secciones principales — */
+    .seccion:nth-child(4),
+    .seccion:nth-child(7),
+    .seccion:nth-child(8) {
+      page-break-before: always;
+      break-before: always;
+    }
+
+    /* — ocultar botón de impresión — */
+    .btn-imprimir { display: none !important; }
+
+    /* — quitar sombras y fondos de pantalla — */
+    * { box-shadow: none !important; text-shadow: none !important; }
+    p { color: #2a2a3c !important; }
+    .ink-soft, .ink-muted { color: #4a4a5c !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="documento">
+
+  <!-- ══ ENCABEZADO ══ -->
+  <div class="header">
+    <div class="header-meta">
+      <span class="badge-codigo" id="codigoPractica">PRÁCTICA FIS-DOP-01</span>
+      <span class="badge-tipo">Laboratorio de Física · Simulador Digital 3D</span>
+    </div>
+    <h1>Efecto Doppler<br><em>y determinación de la frecuencia observada f'</em></h1>
+    <div class="header-sub">Simulador 3D · Modos 1–6 · Análisis de frecuencia · Reto experimental</div>
+    <div class="header-fields">
+      <div class="field-item">
+        <label>Nombre del estudiante</label>
+        <input type="text" placeholder="Escriba su nombre completo">
+      </div>
+      <div class="field-item">
+        <label>Código estudiantil</label>
+        <input type="text" placeholder="Código">
+      </div>
+      <div class="field-item">
+        <label>Grupo / Sección</label>
+        <input type="text" placeholder="Ej. Grupo A — Lunes 10 am">
+      </div>
+      <div class="field-item">
+        <label>Modo asignado por el docente</label>
+        <input type="text" placeholder="Ej. Modo 3 — Observador hacia fuente">
+      </div>
+      <div class="field-item">
+        <label>Fecha de realización</label>
+        <input type="date">
+      </div>
+      <div class="field-item">
+        <label>Docente</label>
+        <input type="text" placeholder="Nombre del profesor/a">
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ CUERPO ══ -->
+  <div class="body">
+
+    <!-- 00. RESUMEN -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">00</span> Resumen</h2>
+      <div class="resumen-box">
+        En esta práctica se utiliza el simulador digital 3D del efecto Doppler para explorar
+        cómo cambia la frecuencia percibida $f'$ cuando existe movimiento relativo entre una
+        fuente sonora y un observador. El simulador genera seis configuraciones de movimiento
+        (Modos 1 a 6) con velocidades controlables. El estudiante mide y calcula $f'$ para
+        distintas combinaciones de velocidades, construye tablas de datos y verifica
+        experimentalmente la fórmula general del efecto Doppler. En el <em>Modo Reto</em>,
+        se presentan datos aleatorios únicos que el estudiante debe resolver y verificar.
+      </div>
+      <p style="margin-top:10px;"><strong>Palabras clave:</strong>
+        efecto Doppler · frecuencia observada · fuente en movimiento · observador en movimiento ·
+        velocidad del sonido · compresión de onda · redshift acústico · simulador 3D
+      </p>
+    </div>
+
+    <!-- 01. OBJETIVOS -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">01</span> Objetivos</h2>
+      <ul class="objetivos-lista">
+        <li><span class="obj-num">1</span>Comprender el principio físico del efecto Doppler y su dependencia con las velocidades relativas de fuente y observador.</li>
+        <li><span class="obj-num">2</span>Aplicar la fórmula general $f' = f_0 \cdot (v \pm v_0)/(v \mp v_s)$ en las seis configuraciones de movimiento del simulador.</li>
+        <li><span class="obj-num">3</span>Cuantificar el cambio de frecuencia $\Delta f = f' - f_0$ y la longitud de onda $\lambda$ en frente y detrás de la fuente para distintas velocidades.</li>
+        <li><span class="obj-num">4</span>Comparar los valores calculados con los que entrega el simulador e identificar fuentes de discrepancia.</li>
+        <li><span class="obj-num">5</span>En el Modo Reto: calcular la frecuencia observada a partir de datos aleatorios y verificar la respuesta en el simulador superando el reto.</li>
+      </ul>
+    </div>
+
+    <!-- 02. MARCO TEÓRICO -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">02</span> Marco Teórico</h2>
+
+      <div class="subseccion-titulo">2.1 · El efecto Doppler</div>
+      <p>
+        El efecto Doppler es el cambio aparente en la frecuencia de una onda cuando existe
+        movimiento relativo entre la fuente que la emite y el observador que la recibe.
+        Fue descrito por Christian Doppler en 1842 y tiene aplicaciones en medicina
+        (ecografía Doppler), astronomía (corrimiento al rojo), meteorología (radar Doppler)
+        y control de tráfico (velocímetros).
+      </p>
+
+      <div class="subseccion-titulo">2.2 · Fórmula general</div>
+      <p>
+        Cuando la fuente emite una onda con frecuencia $f_0$ en un medio donde el sonido
+        se propaga a velocidad $v$, la frecuencia percibida por el observador es:
+      </p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 1 — Fórmula general del efecto Doppler</div>
+        <div class="formula-main">$$f' = f_0 \cdot \frac{v \pm v_0}{v \mp v_s}$$</div>
+        <div class="formula-num">(1)</div>
+      </div>
+      <p>
+        donde $v_s$ es la velocidad de la fuente y $v_0$ es la velocidad del observador.
+        Los signos se eligen según la dirección de movimiento:
+      </p>
+      <table class="ref-tabla">
+        <thead>
+          <tr><th>Quién se mueve</th><th>Dirección</th><th>Signo numerador ($v_0$)</th><th>Signo denominador ($v_s$)</th><th>Efecto en $f'$</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="dest">Fuente</td><td>Acercándose al observador</td><td>—</td><td>$v - v_s$</td><td class="bueno">$f' > f_0$</td></tr>
+          <tr><td class="dest">Fuente</td><td>Alejándose del observador</td><td>—</td><td>$v + v_s$</td><td class="malo">$f' < f_0$</td></tr>
+          <tr><td class="dest">Observador</td><td>Acercándose a la fuente</td><td>$v + v_0$</td><td>—</td><td class="bueno">$f' > f_0$</td></tr>
+          <tr><td class="dest">Observador</td><td>Alejándose de la fuente</td><td>$v - v_0$</td><td>—</td><td class="malo">$f' < f_0$</td></tr>
+        </tbody>
+      </table>
+
+      <div class="subseccion-titulo">2.3 · Los seis modos del simulador</div>
+      <table class="ref-tabla">
+        <thead>
+          <tr><th>Modo</th><th>Configuración</th><th>Fórmula aplicable</th><th>Efecto esperado</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="dest">1</td><td>Fuente → Observador estático</td><td>$f' = f_0 \cdot v\,/\,(v - v_s)$</td><td class="bueno">$f' > f_0$</td></tr>
+          <tr><td class="dest">2</td><td>Fuente ← Observador estático</td><td>$f' = f_0 \cdot v\,/\,(v + v_s)$</td><td class="malo">$f' < f_0$</td></tr>
+          <tr><td class="dest">3</td><td>Fuente estática · Observador →</td><td>$f' = f_0 \cdot (v + v_0)\,/\,v$</td><td class="bueno">$f' > f_0$</td></tr>
+          <tr><td class="dest">4</td><td>Fuente estática · Observador ←</td><td>$f' = f_0 \cdot (v - v_0)\,/\,v$</td><td class="malo">$f' < f_0$</td></tr>
+          <tr><td class="dest">5</td><td>Ambos acercándose</td><td>$f' = f_0 \cdot (v + v_0)\,/\,(v - v_s)$</td><td class="bueno">Máximo $f'$</td></tr>
+          <tr><td class="dest">6</td><td>Ambos alejándose</td><td>$f' = f_0 \cdot (v - v_0)\,/\,(v + v_s)$</td><td class="malo">Mínimo $f'$</td></tr>
+        </tbody>
+      </table>
+
+      <div class="subseccion-titulo">2.4 · Longitud de onda y compresión de frentes</div>
+      <p>
+        Cuando la fuente se mueve, las longitudes de onda delante y detrás de ella son distintas:
+      </p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 2 — Longitudes de onda frente y detrás de la fuente</div>
+        <div class="formula-main">$$\lambda_{\text{frente}} = \frac{v - v_s}{f_0} \qquad \lambda_{\text{detrás}} = \frac{v + v_s}{f_0}$$</div>
+        <div class="formula-num">(2)</div>
+      </div>
+      <p>
+        Si la fuente está estática ($v_s = 0$), ambas longitudes de onda son iguales:
+        $\lambda = v/f_0$.
+      </p>
+
+      <div class="subseccion-titulo">2.5 · Cambio de frecuencia $\Delta f$</div>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 3 — Variación de frecuencia</div>
+        <div class="formula-main">$$\Delta f = f' - f_0$$</div>
+        <div class="formula-num">(3)</div>
+      </div>
+      <p>
+        Un $\Delta f > 0$ indica que el observador percibe un tono más agudo (acercamiento);
+        $\Delta f < 0$ indica un tono más grave (alejamiento).
+      </p>
+
+      <div class="subseccion-titulo">2.6 · Ejemplo numérico completo — Modo 1</div>
+      <div class="ejemplo-box">
+        <span class="ej-label">Datos: f₀ = 440 Hz · vₛ = 30 m/s · v₀ = 0 · v = 343 m/s</span>
+        <p><strong>Fórmula (Modo 1):</strong> $f' = f_0 \cdot v\,/\,(v - v_s)$</p>
+        <p style="margin-top:6px;">$$f' = 440 \cdot \frac{343}{343 - 30} = 440 \cdot \frac{343}{313} = 440 \times 1{,}0958 = 482{,}2 \text{ Hz}$$</p>
+        <p style="margin-top:6px;">$\Delta f = 482{,}2 - 440 = +42{,}2 \text{ Hz}$ — el observador percibe un tono <strong>más agudo</strong>.</p>
+        <p style="margin-top:6px;">$\lambda_{\text{frente}} = (343-30)/440 = 313/440 = 0{,}711 \text{ m}$</p>
+        <p style="margin-top:6px;">$\lambda_{\text{detrás}} = (343+30)/440 = 373/440 = 0{,}848 \text{ m}$</p>
+      </div>
+    </div>
+
+    <!-- 03. PROCEDIMIENTO -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">03</span> Procedimiento Experimental</h2>
+      <p>Abra el simulador en el navegador. El modo día se activa por defecto mostrando la escena 3D con carretera, árboles y cielo. Siga estos pasos para cada configuración:</p>
+
+      <div class="paso">
+        <div class="paso-num">1</div>
+        <div class="paso-content">
+          <p><strong>Seleccione el modo de movimiento</strong> con los botones M1 a M6 en la barra superior. Lea la descripción que aparece en el panel lateral izquierdo para identificar qué se mueve y en qué dirección.</p>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">2</div>
+        <div class="paso-content">
+          <p><strong>Configure los parámetros</strong> con los deslizadores del panel izquierdo:</p>
+          <ul>
+            <li><strong>Frecuencia $f_0$</strong> (100 – 2 000 Hz): frecuencia emitida por la fuente.</li>
+            <li><strong>Vel. fuente $v_s$</strong> (0 – 150 m/s): velocidad de la fuente.</li>
+            <li><strong>Vel. observador $v_0$</strong> (0 – 80 m/s): velocidad del observador.</li>
+            <li><strong>Vel. sonido $v$</strong> (200 – 500 m/s): velocidad de propagación en el medio.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">3</div>
+        <div class="paso-content">
+          <p><strong>Observe la simulación 3D.</strong> Presione ▶ para iniciar. Observe los frentes de onda (anillos verdes) expandiéndose desde la fuente. Note cómo se comprimen frente a la fuente y se expanden detrás cuando $v_s > 0$.</p>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">4</div>
+        <div class="paso-content">
+          <p><strong>Lea los valores del panel lateral.</strong> El simulador muestra en tiempo real $f_0$, $f'$ observada y $\Delta f$. Registre estos valores en las tablas de datos de la Sección 4.</p>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">5</div>
+        <div class="paso-content">
+          <p><strong>Calcule $f'$ manualmente</strong> con la fórmula del modo activo y compare con el valor del simulador. Muestre el procedimiento en el área de trabajo de cada subsección.</p>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">6</div>
+        <div class="paso-content">
+          <p><strong>Repita para al menos tres configuraciones de velocidad</strong> dentro de cada modo asignado, variando uno de los parámetros y manteniendo los demás fijos. Esto permite observar la tendencia.</p>
+        </div>
+      </div>
+
+      <div class="nota">
+        <strong>Consejo:</strong> active el botón 🔊 Sonido para escuchar en tiempo real el tono emitido vs. el tono observado. Esto refuerza intuitivamente el concepto antes del análisis numérico.
+      </div>
+      <div class="alerta">
+        <strong>Restricción:</strong> $v_s$ debe ser siempre menor que $v$ (velocidad del sonido). Si $v_s \geq v$, el denominador de la ecuación se hace cero o negativo y el modelo clásico no aplica (cono de Mach). El simulador limita los controles para evitar este caso.
+      </div>
+    </div>
+
+    <!-- 04. REGISTRO DE DATOS -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">04</span> Registro de Datos por Modo</h2>
+
+      <!-- MODO 1 -->
+      <div class="subseccion-titulo">4.1 · Modo 1 — Fuente en movimiento hacia el observador</div>
+      <p style="font-size:.85em; color:var(--ink-muted); font-style:italic; margin-bottom:6px;">
+        Tabla 1. $f_0$ y $v_s$ variables · $v_0 = 0$ · $v = 343$ m/s fijos.
+      </p>
+      <div style="overflow-x:auto; -webkit-overflow-scrolling:touch;">
+        <table class="tabla-resultados" id="tabla-m1">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>f₀ (Hz)</th>
+              <th>vₛ (m/s)</th>
+              <th>v (m/s)</th>
+              <th>f' simulador (Hz)</th>
+              <th>f' calculado (Hz)</th>
+              <th>Δf (Hz)</th>
+            </tr>
+          </thead>
+          <tbody id="body-m1"></tbody>
+        </table>
+      </div>
+      <span class="area-label">Cálculo de f' para cada fila — aplique la Ec. (1) con los signos del Modo 1</span>
+      <textarea class="trabajo-area"
+        placeholder="Fila 1:  f' = f₀ · v / (v − vₛ) = ___ · ___ / (___ − ___) = ___ Hz&#10;Fila 2:  f' = ___ · ___ / (___ − ___) = ___ Hz&#10;Fila 3:  f' = ___ · ___ / (___ − ___) = ___ Hz"></textarea>
+
+      <!-- MODO 2 -->
+      <div class="subseccion-titulo">4.2 · Modo 2 — Fuente alejándose del observador</div>
+      <p style="font-size:.85em; color:var(--ink-muted); font-style:italic; margin-bottom:6px;">
+        Tabla 2. $f_0$ y $v_s$ variables · $v_0 = 0$ · $v = 343$ m/s fijos.
+      </p>
+      <div style="overflow-x:auto; -webkit-overflow-scrolling:touch;">
+        <table class="tabla-resultados" id="tabla-m2">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>f₀ (Hz)</th>
+              <th>vₛ (m/s)</th>
+              <th>v (m/s)</th>
+              <th>f' simulador (Hz)</th>
+              <th>f' calculado (Hz)</th>
+              <th>Δf (Hz)</th>
+            </tr>
+          </thead>
+          <tbody id="body-m2"></tbody>
+        </table>
+      </div>
+      <span class="area-label">Cálculo de f' — Modo 2</span>
+      <textarea class="trabajo-area"
+        placeholder="Fila 1:  f' = f₀ · v / (v + vₛ) = ___ · ___ / (___ + ___) = ___ Hz&#10;Fila 2:  f' = ___ Hz&#10;Fila 3:  f' = ___ Hz"></textarea>
+
+      <!-- MODO 3 -->
+      <div class="subseccion-titulo">4.3 · Modo 3 — Observador acercándose a la fuente estática</div>
+      <p style="font-size:.85em; color:var(--ink-muted); font-style:italic; margin-bottom:6px;">
+        Tabla 3. $f_0$ y $v_0$ variables · $v_s = 0$ · $v = 343$ m/s fijos.
+      </p>
+      <div style="overflow-x:auto; -webkit-overflow-scrolling:touch;">
+        <table class="tabla-resultados" id="tabla-m3">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>f₀ (Hz)</th>
+              <th>v₀ (m/s)</th>
+              <th>v (m/s)</th>
+              <th>f' simulador (Hz)</th>
+              <th>f' calculado (Hz)</th>
+              <th>Δf (Hz)</th>
+            </tr>
+          </thead>
+          <tbody id="body-m3"></tbody>
+        </table>
+      </div>
+      <span class="area-label">Cálculo de f' — Modo 3</span>
+      <textarea class="trabajo-area"
+        placeholder="Fila 1:  f' = f₀ · (v + v₀) / v = ___ · (___ + ___) / ___ = ___ Hz&#10;Fila 2:  f' = ___ Hz&#10;Fila 3:  f' = ___ Hz"></textarea>
+
+      <!-- MODO 4 -->
+      <div class="subseccion-titulo">4.4 · Modo 4 — Observador alejándose de la fuente estática</div>
+      <p style="font-size:.85em; color:var(--ink-muted); font-style:italic; margin-bottom:6px;">
+        Tabla 4. $f_0$ y $v_0$ variables · $v_s = 0$ · $v = 343$ m/s fijos.
+      </p>
+      <div style="overflow-x:auto; -webkit-overflow-scrolling:touch;">
+        <table class="tabla-resultados" id="tabla-m4">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>f₀ (Hz)</th>
+              <th>v₀ (m/s)</th>
+              <th>v (m/s)</th>
+              <th>f' simulador (Hz)</th>
+              <th>f' calculado (Hz)</th>
+              <th>Δf (Hz)</th>
+            </tr>
+          </thead>
+          <tbody id="body-m4"></tbody>
+        </table>
+      </div>
+      <span class="area-label">Cálculo de f' — Modo 4</span>
+      <textarea class="trabajo-area"
+        placeholder="Fila 1:  f' = f₀ · (v − v₀) / v = ___ · (___ − ___) / ___ = ___ Hz&#10;Fila 2:  f' = ___ Hz&#10;Fila 3:  f' = ___ Hz"></textarea>
+
+      <!-- MODO 5 -->
+      <div class="subseccion-titulo">4.5 · Modo 5 — Ambos acercándose (máxima compresión)</div>
+      <p style="font-size:.85em; color:var(--ink-muted); font-style:italic; margin-bottom:6px;">
+        Tabla 5. $f_0$, $v_s$ y $v_0$ variables · $v = 343$ m/s fijo.
+      </p>
+      <div style="overflow-x:auto; -webkit-overflow-scrolling:touch;">
+        <table class="tabla-resultados" id="tabla-m5">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>f₀ (Hz)</th>
+              <th>vₛ (m/s)</th>
+              <th>v₀ (m/s)</th>
+              <th>v (m/s)</th>
+              <th>f' simulador (Hz)</th>
+              <th>f' calculado (Hz)</th>
+            </tr>
+          </thead>
+          <tbody id="body-m5"></tbody>
+        </table>
+      </div>
+      <span class="area-label">Cálculo de f' — Modo 5</span>
+      <textarea class="trabajo-area"
+        placeholder="Fila 1:  f' = f₀ · (v + v₀) / (v − vₛ) = ___ Hz&#10;Fila 2:  f' = ___ Hz&#10;Fila 3:  f' = ___ Hz"></textarea>
+
+      <!-- MODO 6 -->
+      <div class="subseccion-titulo">4.6 · Modo 6 — Ambos alejándose (redshift acústico)</div>
+      <p style="font-size:.85em; color:var(--ink-muted); font-style:italic; margin-bottom:6px;">
+        Tabla 6. $f_0$, $v_s$ y $v_0$ variables · $v = 343$ m/s fijo.
+      </p>
+      <div style="overflow-x:auto; -webkit-overflow-scrolling:touch;">
+        <table class="tabla-resultados" id="tabla-m6">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>f₀ (Hz)</th>
+              <th>vₛ (m/s)</th>
+              <th>v₀ (m/s)</th>
+              <th>v (m/s)</th>
+              <th>f' simulador (Hz)</th>
+              <th>f' calculado (Hz)</th>
+            </tr>
+          </thead>
+          <tbody id="body-m6"></tbody>
+        </table>
+      </div>
+      <span class="area-label">Cálculo de f' — Modo 6</span>
+      <textarea class="trabajo-area"
+        placeholder="Fila 1:  f' = f₀ · (v − v₀) / (v + vₛ) = ___ Hz&#10;Fila 2:  f' = ___ Hz&#10;Fila 3:  f' = ___ Hz"></textarea>
+    </div>
+
+    <!-- 05. ANÁLISIS COMPARATIVO -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">05</span> Análisis Comparativo de los Seis Modos</h2>
+      <p>
+        Una vez completadas las tablas, consolide los resultados en la siguiente tabla resumen.
+        Para cada modo registre los valores promedio de $f'$ y el porcentaje de cambio respecto a $f_0$.
+      </p>
+      <p style="font-size:.85em; color:var(--ink-muted); font-style:italic; margin-bottom:6px;">
+        Tabla 7. Resumen comparativo de frecuencias por modo.
+      </p>
+      <div style="overflow-x:auto;">
+        <table class="tabla-resultados" id="tabla-resumen">
+          <thead>
+            <tr>
+              <th>Modo</th>
+              <th>Configuración</th>
+              <th>f₀ (Hz)</th>
+              <th>f' prom. (Hz)</th>
+              <th>Δf prom. (Hz)</th>
+              <th>%Δf</th>
+              <th>Tipo de efecto</th>
+            </tr>
+          </thead>
+          <tbody id="body-resumen"></tbody>
+        </table>
+      </div>
+
+      <div class="divider"><span>error relativo entre cálculo y simulador</span></div>
+      <p>
+        Para evaluar la precisión de sus cálculos manuales, calcule el error relativo porcentual
+        entre el valor calculado y el valor del simulador para cada fila:
+      </p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 4 — Error relativo entre cálculo y simulador</div>
+        <div class="formula-main">$$\text{ER} = \frac{|f'_{\text{calc}} - f'_{\text{sim}}|}{f'_{\text{sim}}} \times 100\%$$</div>
+        <div class="formula-num">(4)</div>
+      </div>
+
+      <table class="rango-tabla">
+        <thead><tr><th>Rango ER</th><th>Interpretación</th></tr></thead>
+        <tbody>
+          <tr><td class="bueno">ER = 0 %</td><td>Cálculo idéntico al simulador</td></tr>
+          <tr><td class="bueno">ER &lt; 1 %</td><td>Error de redondeo — aceptable</td></tr>
+          <tr><td class="medio">1 % &lt; ER &lt; 5 %</td><td>Revisar el número de cifras decimales</td></tr>
+          <tr><td class="malo">ER &gt; 5 %</td><td>Error de fórmula o de signo — revisar procedimiento</td></tr>
+        </tbody>
+      </table>
+
+      <span class="area-label">Cálculo del ER para cada fila de las Tablas 1–6 (muestre al menos 6 casos)</span>
+      <textarea class="trabajo-area" style="min-height:140px;"
+        placeholder="Modo 1, Fila 1:  ER = |f'_calc − f'_sim| / f'_sim × 100% = |___ − ___| / ___ × 100% = ___ %&#10;Modo 1, Fila 2:  ER = ___ %&#10;Modo 2, Fila 1:  ER = ___ %&#10;..."></textarea>
+
+      <span class="area-label">Captura de pantalla — simulador con el modo y los datos registrados</span>
+      <div class="adjunto-slot">
+        <input type="file" accept="image/*" onchange="previsualizarImagen(this,'prevSim')">
+        <span class="slot-icon">📡</span>
+        <span class="slot-label">Adjuntar captura del simulador con datos visibles</span>
+        <span class="slot-hint">Debe verse la escena 3D, los parámetros y la frecuencia f' · PNG, JPG</span>
+        <img id="prevSim" class="preview-img" alt="">
+      </div>
+    </div>
+
+    <!-- 06. MODO RETO -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">06</span> Modo Reto — Cálculo con Datos Aleatorios</h2>
+
+      <div class="reto-header">
+        <div>
+          <span class="reto-badge">MODO RETO</span>
+          <h4>Calcula f' con datos únicos y verifica en el simulador</h4>
+          <p>El simulador genera un escenario aleatorio con datos únicos por sesión. Nadie tiene los mismos valores. Calcula $f'$ manualmente y verifica en el simulador para superarlo.</p>
+        </div>
+      </div>
+      <div class="reto-body">
+
+        <div class="paso" style="margin-top:14px;">
+          <div class="paso-num">1</div>
+          <div class="paso-content">
+            <p>Presione el botón <strong>⚡ RETO</strong> en la barra superior del simulador. Aparece un panel con el escenario y los datos asignados aleatoriamente: $f_0$, $v_s$, $v_0$, $v$ y el modo de movimiento.</p>
+          </div>
+        </div>
+        <div class="paso">
+          <div class="paso-num">2</div>
+          <div class="paso-content">
+            <p>Registre todos los datos del reto en los campos siguientes de este informe <strong>antes</strong> de hacer ningún cálculo.</p>
+          </div>
+        </div>
+        <div class="paso">
+          <div class="paso-num">3</div>
+          <div class="paso-content">
+            <p>Identifique la fórmula correcta según el modo indicado (ver Tabla de Modos en la Sec. 2.3). Aplíquela paso a paso en el área de trabajo.</p>
+          </div>
+        </div>
+        <div class="paso">
+          <div class="paso-num">4</div>
+          <div class="paso-content">
+            <p>Ingrese su resultado en el campo del simulador y presione <strong>VERIFICAR RESPUESTA</strong>. El simulador acepta un margen de ±5 %. Tiene 3 intentos.</p>
+          </div>
+        </div>
+        <div class="paso">
+          <div class="paso-num">5</div>
+          <div class="paso-content">
+            <p>Al superar el reto, presione <strong>📸 Capturar</strong>. El simulador descarga una imagen con la escena 3D, los datos del reto y el sello <em>APROBADO</em>. Adjúntela en la sección de evidencias de este informe.</p>
+          </div>
+        </div>
+
+        <div class="divider"><span>datos del reto</span></div>
+
+        <div class="result-box col4">
+          <div class="res-campo">
+            <label>Escenario / descripción</label>
+            <input type="text" placeholder="Ej. Ambulancia acercándose">
+          </div>
+          <div class="res-campo">
+            <label>Modo de movimiento</label>
+            <input type="text" placeholder="Ej. Modo 1">
+          </div>
+          <div class="res-campo">
+            <label>f₀ emitida (Hz)</label>
+            <input type="text" placeholder="0.0">
+          </div>
+          <div class="res-campo">
+            <label>v sonido (m/s)</label>
+            <input type="text" placeholder="0.0">
+          </div>
+          <div class="res-campo">
+            <label>vₛ fuente (m/s)</label>
+            <input type="text" placeholder="0.0">
+          </div>
+          <div class="res-campo">
+            <label>v₀ observador (m/s)</label>
+            <input type="text" placeholder="0.0">
+          </div>
+          <div class="res-campo">
+            <label>Fórmula aplicable</label>
+            <input type="text" placeholder="Ej. f' = f₀·v/(v−vₛ)">
+          </div>
+          <div class="res-campo">
+            <label>f' calculado (Hz)</label>
+            <input type="text" placeholder="0.0" style="color:var(--accent);font-weight:600;">
+          </div>
+        </div>
+
+        <span class="area-label">Cálculo paso a paso de f' del Reto — aplique la Ec. (1) con los signos del modo indicado</span>
+        <textarea class="trabajo-area" style="min-height:180px;"
+          placeholder="Modo asignado: ___&#10;Fórmula:  f' = f₀ · (___ ± v₀) / (___ ∓ vₛ)&#10;&#10;Datos del reto:&#10;  f₀ = ___ Hz&#10;  vₛ = ___ m/s&#10;  v₀ = ___ m/s&#10;  v  = ___ m/s&#10;&#10;Sustituyendo:&#10;  f' = ___ · (___) / (___)&#10;  f' = ___ · ___&#10;  f' = ___ Hz&#10;&#10;Verificación con la tolerancia del 5%:&#10;  5% de f' = ___ Hz&#10;  Rango aceptable: [___ , ___] Hz"></textarea>
+
+        <span class="area-label">Captura de pantalla — evidencia del reto superado con sello APROBADO</span>
+        <div class="adjunto-slot">
+          <input type="file" accept="image/*" onchange="previsualizarImagen(this,'prevReto')">
+          <span class="slot-icon">🎯</span>
+          <span class="slot-label">Adjuntar captura descargada del simulador al superar el reto</span>
+          <span class="slot-hint">Debe verse la escena 3D, los datos del reto y el sello APROBADO · PNG</span>
+          <img id="prevReto" class="preview-img" alt="">
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 07. DISCUSIÓN -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">07</span> Discusión de Resultados</h2>
+
+      <span class="area-label">7.1 · Compare Modo 1 y Modo 2. ¿Qué diferencia fundamental existe en la ecuación aplicada y cómo se refleja eso en el valor de f' y en la distribución de los frentes de onda visualizados en el simulador?</span>
+      <textarea class="trabajo-area" placeholder="Escriba su análisis aquí..."></textarea>
+
+      <span class="area-label">7.2 · Compare Modo 1 (fuente en movimiento) con Modo 3 (observador en movimiento). Para la misma velocidad relativa, ¿obtiene el mismo f'? ¿Por qué sí o por qué no? Use los valores de sus tablas.</span>
+      <textarea class="trabajo-area" placeholder="Escriba su análisis aquí..."></textarea>
+
+      <span class="area-label">7.3 · En el Modo 5 (ambos acercándose), ¿es f' mayor o menor que la suma de los efectos individuales del Modo 1 y el Modo 3? Justifique con la ecuación y con un ejemplo numérico de su tabla.</span>
+      <textarea class="trabajo-area" placeholder="Escriba su análisis aquí..."></textarea>
+
+      <span class="area-label">7.4 · ¿Qué pasaría si la velocidad de la fuente se acercase a la velocidad del sonido (vₛ → v)? Analice el límite matemático de la fórmula del Modo 1 y explique el fenómeno físico asociado.</span>
+      <textarea class="trabajo-area" placeholder="Escriba su análisis aquí..."></textarea>
+
+      <span class="area-label">7.5 · En el Modo Reto, ¿cuántos intentos necesitó y cuál fue la diferencia porcentual entre su respuesta y el valor correcto? Identifique en qué paso del cálculo estuvo el error si no lo superó al primer intento.</span>
+      <textarea class="trabajo-area" placeholder="Escriba su análisis aquí..."></textarea>
+    </div>
+
+    <!-- 08. CONCLUSIONES -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">08</span> Conclusiones</h2>
+      <p>Redacte tres conclusiones concretas que respondan directamente a los objetivos planteados.</p>
+
+      <span class="area-label">Conclusión 1 — Sobre la verificación de la fórmula general del efecto Doppler en los seis modos</span>
+      <textarea class="trabajo-area" style="min-height:90px;" placeholder="Redacte su primera conclusión..."></textarea>
+
+      <span class="area-label">Conclusión 2 — Sobre la diferencia entre movimiento de la fuente y movimiento del observador para producir el mismo Δf</span>
+      <textarea class="trabajo-area" style="min-height:90px;" placeholder="Redacte su segunda conclusión..."></textarea>
+
+      <span class="area-label">Conclusión 3 — Sobre la precisión de sus cálculos (ER) y el resultado del Modo Reto</span>
+      <textarea class="trabajo-area" style="min-height:90px;" placeholder="Redacte su tercera conclusión..."></textarea>
+    </div>
+
+    <!-- 09. REFERENCIAS -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">09</span> Referencias</h2>
+      <p style="font-size:.88em; line-height:2.1;">
+        [1] Serway, R. A. &amp; Jewett, J. W. <em>Physics for Scientists and Engineers</em>. 10ª ed. Cengage Learning, 2019. Cap. 17 — Ondas Sonoras.<br>
+        [2] Sears, F. W., Zemansky, M. W. &amp; Young, H. D. <em>University Physics</em>. 14ª ed. Pearson, 2016. Cap. 16 — El efecto Doppler.<br>
+        [3] Tipler, P. A. &amp; Llewellyn, R. A. <em>Physics for Scientists and Engineers</em>. 6ª ed. W. H. Freeman, 2008. Cap. 15 — Ondas.<br>
+        [4] Halliday, D., Resnick, R. &amp; Walker, J. <em>Fundamentals of Physics</em>. 10ª ed. Wiley, 2014. Cap. 17 — Ondas II.
+      </p>
+    </div>
+
+    <!-- FIRMAS -->
+    <div class="seccion" style="margin-bottom:0;">
+      <div class="firma-grid">
+        <div class="firma-slot">Firma del estudiante</div>
+        <div class="firma-slot">Vo. Bo. Docente</div>
+      </div>
+    </div>
+
+  </div><!-- /body -->
+</div><!-- /documento -->
+
+<button class="btn-imprimir" onclick="window.print()">🖨 Imprimir / PDF</button>
+
+<script>
+/* ═══════════════════════════════════════════
+   CONSTRUIR TABLAS DE DATOS (3 filas c/u)
+═══════════════════════════════════════════ */
+const TABLAS_SIMPLE = [
+  { id:'body-m1', cols:['f₀ (Hz)','vₛ (m/s)','v (m/s)','f\' sim (Hz)','f\' calc (Hz)','Δf (Hz)'] },
+  { id:'body-m2', cols:['f₀ (Hz)','vₛ (m/s)','v (m/s)','f\' sim (Hz)','f\' calc (Hz)','Δf (Hz)'] },
+  { id:'body-m3', cols:['f₀ (Hz)','v₀ (m/s)','v (m/s)','f\' sim (Hz)','f\' calc (Hz)','Δf (Hz)'] },
+  { id:'body-m4', cols:['f₀ (Hz)','v₀ (m/s)','v (m/s)','f\' sim (Hz)','f\' calc (Hz)','Δf (Hz)'] },
+];
+const TABLAS_DOBLE = [
+  { id:'body-m5', cols:['f₀ (Hz)','vₛ (m/s)','v₀ (m/s)','v (m/s)','f\' sim (Hz)','f\' calc (Hz)'] },
+  { id:'body-m6', cols:['f₀ (Hz)','vₛ (m/s)','v₀ (m/s)','v (m/s)','f\' sim (Hz)','f\' calc (Hz)'] },
+];
+const NROWS = 5;
+
+function buildTabla(tbodyId, numCols){
+  const tb = document.getElementById(tbodyId);
+  for(let i = 0; i < NROWS; i++){
+    const tr = tb.insertRow(-1);
+    tr.innerHTML = `<td class="row-label">${i+1}</td>` +
+      Array.from({length: numCols}, () =>
+        `<td class="input-cell"><input type="text" placeholder="—"></td>`
+      ).join('');
+  }
+}
+
+TABLAS_SIMPLE.forEach(t => buildTabla(t.id, 6));
+TABLAS_DOBLE .forEach(t => buildTabla(t.id, 6));
+
+/* ═══════════════════════════════════════════
+   TABLA RESUMEN — 6 filas manuales
+═══════════════════════════════════════════ */
+const MODOS_RESUMEN = [
+  'M1 — Fuente hacia obs.',
+  'M2 — Fuente alejándose',
+  'M3 — Obs. hacia fuente',
+  'M4 — Obs. alejándose',
+  'M5 — Ambos acercándose',
+  'M6 — Ambos alejándose',
+];
+function buildTablaResumen(){
+  const tb = document.getElementById('body-resumen');
+  MODOS_RESUMEN.forEach((m,i) => {
+    const tr = tb.insertRow(-1);
+    tr.innerHTML = `
+      <td class="row-label">M${i+1}</td>
+      <td style="font-size:.82em;color:var(--ink-soft);">${m}</td>
+      <td class="input-cell"><input type="text" placeholder="—"></td>
+      <td class="input-cell"><input type="text" placeholder="—"></td>
+      <td class="input-cell"><input type="text" placeholder="—"></td>
+      <td class="input-cell"><input type="text" placeholder="—"></td>
+      <td class="input-cell"><input type="text" placeholder="—"></td>`;
+  });
+}
+buildTablaResumen();
+
+/* ═══════════════════════════════════════════
+   ADJUNTO IMAGEN
+═══════════════════════════════════════════ */
+function previsualizarImagen(input, previewId){
+  const file = input.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = document.getElementById(previewId);
+    if(img){ img.src = e.target.result; img.style.display = 'block'; }
+  };
+  reader.readAsDataURL(file);
+}
+
+/* ═══════════════════════════════════════════
+   INICIALIZACIÓN
+═══════════════════════════════════════════ */
+window.addEventListener('load', () => {
+  const now = new Date(), sem = now.getMonth() < 6 ? '1' : '2';
+  document.getElementById('codigoPractica').textContent =
+    `PRÁCTICA FIS-DOP-01 · ${now.getFullYear()}-${sem}`;
+  document.querySelectorAll('input[type="date"]').forEach(i =>
+    i.value = now.toISOString().split('T')[0]);
+});
+
+/* ═══════════════════════════════════════════
+   IMPRESIÓN — reemplazar textareas por divs
+   Los navegadores NO imprimen el contenido
+   completo de un <textarea>; solo imprimen
+   lo que es visible en pantalla.
+   Solución: antes de imprimir crear un <div>
+   con todo el texto y ocultar el textarea.
+   Después restaurar el estado original.
+═══════════════════════════════════════════ */
+function prepararParaImpresion() {
+  document.querySelectorAll('textarea.trabajo-area').forEach(ta => {
+    // Crear div de reemplazo
+    const div = document.createElement('div');
+    div.className = 'print-div';
+    div.setAttribute('data-print-replace', 'true');
+
+    const texto = ta.value.trim();
+    // Si hay contenido, mostrarlo; si no, mostrar el placeholder en gris
+    if (texto) {
+      div.textContent = texto;
+      div.style.color = '#1a1a2e';
+    } else {
+      div.textContent = ta.placeholder || '(sin contenido)';
+      div.style.color = '#aaa';
+      div.style.fontStyle = 'italic';
+    }
+
+    // Insertar justo después del textarea
+    ta.parentNode.insertBefore(div, ta.nextSibling);
+  });
+}
+
+function restaurarDespuesDeImpresion() {
+  document.querySelectorAll('[data-print-replace="true"]').forEach(div => {
+    div.remove();
+  });
+}
+
+// API moderna
+window.addEventListener('beforeprint', prepararParaImpresion);
+window.addEventListener('afterprint',  restaurarDespuesDeImpresion);
+
+// Fallback para Safari / iOS que no dispara beforeprint/afterprint correctamente
+const _printOriginal = window.print;
+window.print = function() {
+  prepararParaImpresion();
+  setTimeout(() => {
+    _printOriginal.call(window);
+    // Safari no dispara afterprint, restaurar tras un retardo
+    setTimeout(restaurarDespuesDeImpresion, 1500);
+  }, 100);
+};
+</script>
+</body>
+</html>

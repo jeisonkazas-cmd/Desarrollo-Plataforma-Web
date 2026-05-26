@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiénes Somos – Laboratorio de Física UNIAJC</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* ===== NAVBAR ===== */
+        .line li {
+            width: auto;
+            height: 50px;
+            transition: background-position-x 0.9s linear;
+        }
+        .line li a {
+            text-decoration: none;
+            transition: all 0.5s;
+        }
+        .line li:hover {
+            background: url("data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIGlkPSJMYXllcl8xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4PSIwcHgiIHk9IjBweCIgd2lkdGg9IjM5MHB4IiBoZWlnaHQ9IjUwcHgiIHZpZXdCb3g9IjAgMCAzOTAgNTAiIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgMCAwIDM5MCA1MCIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+PHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSIjRkZGRjAwIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLW1pdGVybGltaXQ9IjEwIiBkPSJNMCw0Ny41ODVjMCwwLDk3LjUsMCwxMzAsMCAxMy43NSwwLDI4Ljc0LTM4Ljc3OCw0Ni4xNjgtMTkuNDE2QzE5Mi42NjksNDYuNSwyNDMuNjAzLDQ3LjU4NSwyNjAsNDcuNTg1YzMxLjgyMSwwLDEzMCwwLDEzMCwwIi8+PC9zdmc+");
+            animation: line 0.90s forwards;
+        }
+        .line li:hover a { color: rgb(1, 1, 20); }
+        .line li:not(:last-child) { margin-right: 30px; }
+        @keyframes line {
+            0%   { background-position-x: 600px; }
+            100% { background-position-x: 130px; }
+        }
+
+        /* ===== HERO BANNER ===== */
+        .hero-banner {
+            background: linear-gradient(135deg, #093f7c 0%, #1565c0 60%, #0d47a1 100%);
+            padding: 55px 40px 45px 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-banner::before {
+            content: '';
+            position: absolute;
+            top: -40px; left: -40px;
+            width: 220px; height: 220px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 50%;
+        }
+        .hero-banner::after {
+            content: '';
+            position: absolute;
+            bottom: -60px; right: -30px;
+            width: 280px; height: 280px;
+            background: rgba(255,127,0,0.08);
+            border-radius: 50%;
+        }
+        .hero-banner h1 {
+            color: white;
+            font-size: 2.4rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            position: relative; z-index: 1;
+        }
+        .hero-banner p {
+            color: #cfe2ff;
+            font-size: 1.1rem;
+            max-width: 700px;
+            margin: 0 auto;
+            position: relative; z-index: 1;
+        }
+        .hero-banner .linea-naranja {
+            width: 70px;
+            height: 4px;
+            background-color: #FFD100;
+            margin: 14px auto 0 auto;
+            border-radius: 2px;
+            position: relative; z-index: 1;
+        }
+
+        /* ===== CONTENIDO PRINCIPAL ===== */
+        .contenido-principal {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 45px 25px 60px 25px;
+        }
+
+        /* Secciones */
+        .seccion {
+            margin-bottom: 45px;
+        }
+        .seccion-titulo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+            border-left: 5px solid #FFD100;
+            padding-left: 14px;
+        }
+        .seccion-titulo h2 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #093f7c;
+            margin: 0;
+        }
+        .seccion p {
+            font-size: 1rem;
+            color: #333;
+            line-height: 1.8;
+            text-align: justify;
+        }
+
+        /* Objetivos */
+        .objetivo-general {
+            background: #eef4fb;
+            border-left: 5px solid #093f7c;
+            border-radius: 8px;
+            padding: 18px 20px;
+            margin-bottom: 20px;
+            font-size: 1rem;
+            color: #1a1a2e;
+            line-height: 1.8;
+            text-align: justify;
+        }
+        .objetivos-lista {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .objetivos-lista li {
+            background: #f9f9f9;
+            border-radius: 8px;
+            padding: 14px 18px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            font-size: 0.97rem;
+            color: #333;
+            line-height: 1.7;
+            text-align: justify;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+        }
+        .objetivos-lista li .icono-obj {
+            font-size: 1.3rem;
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+
+        /* Infraestructura cards */
+        .infra-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+            margin-top: 10px;
+        }
+        .infra-card {
+            background: #f5f8ff;
+            border-radius: 10px;
+            padding: 18px 20px;
+            border-top: 4px solid #093f7c;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+        }
+        .infra-card h4 {
+            color: #093f7c;
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .infra-card p {
+            font-size: 0.93rem;
+            color: #444;
+            margin: 0;
+            line-height: 1.7;
+            text-align: justify;
+        }
+
+        /* Normas */
+        .normas-lista {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .normas-lista li {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 0.96rem;
+            color: #333;
+            line-height: 1.7;
+            text-align: justify;
+        }
+        .normas-lista li::before {
+            content: "✔";
+            color: #FFD100;
+            font-size: 1rem;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        /* Servicios */
+        .servicios-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 10px;
+        }
+        .servicio-item {
+            background: #093f7c;
+            color: white;
+            border-radius: 10px;
+            padding: 20px 15px;
+            text-align: center;
+            transition: transform 0.3s, background 0.3s;
+        }
+        .servicio-item:hover {
+            transform: translateY(-4px);
+            background: #FFD100; color: #1a1a1a !important;
+        }
+        .servicio-item .emoji { font-size: 2rem; margin-bottom: 8px; }
+        .servicio-item p { font-size: 0.9rem; margin: 0; color: white; text-align: center; }
+
+        /* Contacto */
+        .contacto-box {
+            background: linear-gradient(135deg, #093f7c, #1565c0);
+            border-radius: 12px;
+            padding: 28px 30px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .contacto-box h3 { font-size: 1.3rem; font-weight: 700; margin: 0 0 6px 0; }
+        .contacto-box p  { margin: 4px 0; font-size: 0.95rem; color: #d0e4ff; }
+        .contacto-box a.btn-contacto {
+            background: #FFD100; color: #1a1a1a !important;
+            color: white;
+            padding: 10px 24px;
+            border-radius: 6px;
+            font-weight: bold;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: background 0.3s;
+        }
+        .contacto-box a.btn-contacto:hover { background: #e6bc00; }
+
+        /* Footer simple */
+        .footer-simple {
+            background-color: #093f7c;
+            color: #cfe2ff;
+            text-align: center;
+            padding: 18px;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+
+        /* Volver */
+        .btn-volver {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #093f7c;
+            font-weight: 600;
+            text-decoration: none;
+            margin-bottom: 30px;
+            font-size: 0.95rem;
+            transition: color 0.3s;
+        }
+        .btn-volver:hover { color: #FFD100; }
+
+        @media (max-width: 768px) {
+            .infra-grid { grid-template-columns: 1fr; }
+            .servicios-grid { grid-template-columns: 1fr 1fr; }
+            .hero-banner h1 { font-size: 1.7rem; }
+        }
+
+        /* ===== RESPONSIVE COMPLEMENTARIO ===== */
+        @media (max-width: 768px) {
+            .navbar-brand img { width: 90px !important; height: 38px !important; }
+            .line li:not(:last-child) { margin-right: 0 !important; }
+            section, .container, .container-fluid { padding-left: 14px !important; padding-right: 14px !important; }
+        }
+        @media (max-width: 480px) {
+            h1 { font-size: 1.6rem !important; }
+            h2 { font-size: 1.3rem !important; }
+        }
+
+
+        /* ===== RESPONSIVE COMPLEMENTARIO ===== */
+        @media (max-width: 768px) {
+            .navbar-brand img { width: 90px !important; height: 38px !important; }
+            .line li:not(:last-child) { margin-right: 0 !important; }
+            .container, .container-fluid { padding-left: 14px !important; padding-right: 14px !important; }
+            section { padding-left: 14px; padding-right: 14px; }
+        }
+        @media (max-width: 480px) {
+            h1 { font-size: 1.6rem !important; }
+            h2 { font-size: 1.3rem !important; }
+        }
+
+        /* ===== BREADCRUMB ===== */
+        .breadcrumb-bar {
+            background: white;
+            padding: 12px 40px;
+            border-bottom: 1px solid #e8edf5;
+        }
+        .breadcrumb-bar a { color: #093f7c; text-decoration: none; font-size: 0.9rem; }
+        .breadcrumb-bar a:hover { color: #c0392b; }
+        .breadcrumb-bar span { color: #aaa; margin: 0 8px; font-size: 0.9rem; }
+        .breadcrumb-current { color: #555; font-size: 0.9rem; }
+        @media (max-width: 576px) {
+            .breadcrumb-bar { padding: 10px 15px; overflow-x: auto; white-space: nowrap; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR (idéntico al index) -->
+    <nav class="navbar navbar-expand-lg" style="background-color:rgb(9, 63, 124);">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="index.html">
+                <img src="resources/logo_camacho.png" alt="Logo" width="120" height="50" class="d-inline-block align-text">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse line" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" style="color:white;">
+                            Laboratorios de Física Presencial
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="laboratorio_fisica_presencial_1.html">Laboratorio de Física I Presencial</a></li>
+                            <li><a class="dropdown-item" href="laboratorio_fisica_presencial_2.html">Laboratorio de Física II Presencial</a></li>
+                            <li><a class="dropdown-item" href="laboratorio_fisica_presencial_3.html">Laboratorio de Física III Presencial</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" style="color:white;">
+                            Laboratorios de Física Virtual
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="laboratorio_fisica_virtual_1.html">Laboratorio de Física I Virtual</a></li>
+                            <li><a class="dropdown-item" href="laboratorio_fisica_virtual_2.html">Laboratorio de Física II Virtual</a></li>
+                            <li><a class="dropdown-item" href="laboratorio_fisica_virtual_3.html">Laboratorio de Física III Virtual</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" style="color:white;">
+                            Laboratorios de Física Remotos
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="laboratorio_fisica_remoto_1.html">Laboratorio de Física I Remoto</a></li>
+                            <li><a class="dropdown-item" href="laboratorio_fisica_remoto_2.html">Laboratorio de Física II Remoto</a></li>
+                            <li><a class="dropdown-item" href="laboratorio_fisica_remoto_3.html">Laboratorio de Física III Remoto</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" style="color:white;">
+                            Iniciar Sesión
+                            <img src="resources/is3.png" alt="Iniciar Sesión" width="30" height="24">
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- BREADCRUMB -->
+    <div class="breadcrumb-bar">
+        <a href="index.html">🏠 Inicio</a>
+        <span>›</span>
+        <span class="breadcrumb-current">Quiénes Somos</span>
+    </div>
+
+    <!-- HERO BANNER -->
+    <div class="hero-banner">
+        <h1>🔬 Laboratorio de Física e Investigación Científica</h1>
+        <p>Institución Universitaria Antonio José Camacho — Departamento de Ciencias Básicas</p>
+        <div class="linea-naranja"></div>
+    </div>
+
+    <!-- CONTENIDO -->
+    <div class="contenido-principal">
+
+        <a href="index.html" class="btn-volver">← Volver al inicio</a>
+
+        <!-- INTRODUCCIÓN -->
+        <div class="seccion">
+            <div class="seccion-titulo">
+                <h2>¿Qué es el Laboratorio de Física UNIAJC?</h2>
+            </div>
+            <p>El Laboratorio de Física de la Institución Universitaria Antonio José Camacho es un espacio académico, científico y tecnológico adscrito al Departamento de Ciencias Básicas (DCB). Su propósito es articular la teoría y la práctica en la formación de los estudiantes de las asignaturas de Física I, Física II y Física III, fomentando el desarrollo del pensamiento crítico, científico e investigativo.</p>
+            <p>Los laboratorios constituyen un eje fundamental para la innovación académica. Permiten orientar los procesos de enseñanza y aprendizaje hacia la generación de conocimiento aplicado, el desarrollo de servicios y la construcción de soluciones en contextos reales. Las prácticas se estructuran en tres momentos: Trabajo Independiente (TI), Trabajo Independiente Dirigido (TID) y Trabajo Dirigido (TD), integrando saberes conceptuales, procedimentales y actitudinales en un sistema interdisciplinar que atraviesa toda la malla curricular.</p>
+        </div>
+
+        <!-- OBJETIVOS -->
+        <div class="seccion">
+            <div class="seccion-titulo">
+                <h2>Objetivo General</h2>
+            </div>
+            <div class="objetivo-general">
+                Consolidar un espacio académico, científico y tecnológico para el desarrollo de prácticas formativas, proyectos aplicados y procesos de investigación en física, orientados a la innovación educativa, la experimentación de alta precisión y la integración de metodologías emergentes (presenciales, virtuales y remotas), fortaleciendo los procesos de enseñanza-aprendizaje en las diferentes modalidades en que se ofertan los programas académicos de la institución, y contribuyendo al mejoramiento continuo de la formación integral de los estudiantes.
+            </div>
+            <div class="seccion-titulo" style="margin-top: 20px;">
+                <h2>Objetivos Específicos</h2>
+            </div>
+            <ul class="objetivos-lista">
+                <li>
+                    <span class="icono-obj">🎯</span>
+                    Favorecer la apropiación de conceptos fundamentales de la física a través de prácticas de laboratorio presenciales, virtuales y remotas, potenciando el aprendizaje experiencial de los fenómenos físicos.
+                </li>
+                <li>
+                    <span class="icono-obj">🔧</span>
+                    Fortalecer la capacidad experimental del laboratorio mediante la actualización, calibración y gestión de equipos e instrumentos, garantizando condiciones de seguridad, precisión y calidad en los procesos académicos e investigativos.
+                </li>
+                <li>
+                    <span class="icono-obj">🧬</span>
+                    Fomentar el desarrollo de proyectos y actividades de investigación aplicada en física, articulando metodologías emergentes y herramientas digitales que impulsen la innovación educativa y la transferencia de conocimiento dentro de la institución.
+                </li>
+            </ul>
+        </div>
+
+        <!-- INFRAESTRUCTURA -->
+        <div class="seccion">
+            <div class="seccion-titulo">
+                <h2>Infraestructura Física y Tecnológica</h2>
+            </div>
+            <p>El Laboratorio de Física se ubica en la Avenida 6N No 28N-102 de Cali y cuenta con aproximadamente <strong>60 m²</strong> distribuidos en dos ambientes complementarios:</p>
+            <div class="infra-grid">
+                <div class="infra-card">
+                    <h4>Salón C109 — Laboratorio de Física</h4>
+                    <p>Cuenta con cuatro mesas de trabajo de 2m × 1m, 30 sillas tipo butaco, seis equipos de cómputo, dos estanterías con puertas de vidrio, archivadores e instrumentos de medición. Dispone de iluminación LED y ventilación adecuada para el desarrollo de prácticas de Física I, II y III.</p>
+                </div>
+                <div class="infra-card">
+                    <h4>Cuarto Oscuro y Espacio de Investigación</h4>
+                    <p>Espacio destiando para montajes de Física con fenomenos a poca luz, y Habilitado después de la pandemia 2020-2021, como complemento para experiencias avanzadas, trabajo con semilleristas de AppliScience, SpaceU y Semosima, proyectos integradores y el grupo de investigación GICSBA. Cuenta con mesas auxiliares, armarios metálicos y equipos de demostración.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SERVICIOS -->
+        <div class="seccion">
+            <div class="seccion-titulo">
+                <h2>Servicios a la Comunidad</h2>
+            </div>
+            <p>El laboratorio ofrece sus recursos tanto a la comunidad universitaria interna como a instituciones y empresas del sector externo, en el marco del apoyo académico e investigativo que promueve el DCB.</p>
+            <div class="servicios-grid">
+                <div class="servicio-item">
+                    <div class="emoji">📚</div>
+                    <p>Prácticas de laboratorio presenciales, virtuales y remotas para Física I, II y III</p>
+                </div>
+                <div class="servicio-item">
+                    <div class="emoji">🔭</div>
+                    <p>Asesoría técnica y uso de equipos especializados para proyectos académicos</p>
+                </div>
+                <div class="servicio-item">
+                    <div class="emoji">🤝</div>
+                    <p>Convenios con instituciones educativas y empresas para investigación aplicada</p>
+                </div>
+                <div class="servicio-item">
+                    <div class="emoji">🧑‍🔬</div>
+                    <p>Apoyo a semilleros de investigación y grupos del área de ciencias básicas</p>
+                </div>
+                <div class="servicio-item">
+                    <div class="emoji">🛠️</div>
+                    <p>Mantenimiento preventivo y correctivo de equipos e instrumentos científicos</p>
+                </div>
+                <div class="servicio-item">
+                    <div class="emoji">🎓</div>
+                    <p>Formación en pensamiento científico, investigativo y habilidades analíticas</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- NORMAS -->
+        <div class="seccion">
+            <div class="seccion-titulo">
+                <h2>Normas de Uso del Laboratorio</h2>
+            </div>
+            <p>Para garantizar el buen funcionamiento del espacio y la seguridad de todos los usuarios, se establecen las siguientes normas generales:</p>
+            <ul class="normas-lista">
+                <li>Solo podrán ingresar personas autorizadas. Los usuarios son responsables de los equipos durante su uso y deben diligenciar los formatos correspondientes de préstamo.</li>
+                <li>Ante cualquier anomalía en los equipos, se debe informar de manera inmediata al laboratorista y registrar la novedad en el formato correspondiente.</li>
+                <li>Al finalizar la práctica, los montajes e implementos deben ser entregados al laboratorista en orden y con verificación de funcionamiento.</li>
+                <li>Queda estrictamente prohibido el ingreso o consumo de alimentos y bebidas dentro del laboratorio.</li>
+                <li>Antes de iniciar, se deben encender las luces y la ventilación; al finalizar, apagar todo y subir los butacos a las mesas.</li>
+                <li>En caso de tormenta eléctrica, todos los equipos deben ser apagados de inmediato.</li>
+                <li>Los maletines y cascos deben ubicarse en las bandejas inferiores de las mesas, dejando libre la superficie de trabajo.</li>
+                <li>Para solicitar el espacio de manera autónoma, los estudiantes deben enviar un correo a labfisica@admon.uniajc.edu.co indicando con detalle sus requerimientos.</li>
+            </ul>
+        </div>
+
+        <!-- CONTACTO -->
+        <div class="contacto-box">
+            <div>
+                <h3>📍 ¿Cómo contactarnos?</h3>
+                <p>📧 <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="labfisica@admon.uniajc.edu.co">[email&#160;protected]</a></p>
+                <p>📞 PBX 602-6652828 Ext. 1703</p>
+                <p>📌 Avenida 6N No 28N-102, Cali – Colombia</p>
+            </div>
+            <a href="/cdn-cgi/l/email-protection#94f8f5f6f2fde7fdf7f5d4f5f0f9fbfabae1fafdf5fef7baf1f0e1baf7fb" class="btn-contacto">Escríbenos</a>

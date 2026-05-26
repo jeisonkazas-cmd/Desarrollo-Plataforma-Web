@@ -1,0 +1,1688 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Práctica de Laboratorio — MRU y MUA</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>
+  MathJax = {
+    tex: { inlineMath: [['$','$'],['\\(','\\)']], displayMath: [['$$','$$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+  :root {
+    --ink:       #1a1a2e;
+    --ink-soft:  #3d3d5c;
+    --ink-muted: #7a7a9a;
+    --paper:     #faf8f3;
+    --paper-alt: #f2ede3;
+    --rule:      #d4c9b0;
+    --accent:    #1a5276;
+    --accent2:   #c0392b;
+    --gold:      #b8860b;
+    --green:     #1e8449;
+    --mono:      'JetBrains Mono', monospace;
+    --serif:     'Source Serif 4', Georgia, serif;
+    --display:   'Playfair Display', Georgia, serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: #dde3e8;
+    font-family: var(--serif);
+    color: var(--ink);
+    font-size: 15px;
+    line-height: 1.75;
+    min-height: 100vh;
+    padding: 30px 15px 80px;
+  }
+  .documento {
+    max-width: 860px;
+    margin: 0 auto;
+    background: var(--paper);
+    box-shadow: 0 2px 4px rgba(0,0,0,.08), 0 8px 32px rgba(0,0,0,.14), 0 20px 60px rgba(0,0,0,.08);
+    position: relative;
+   overflow-x: hidden; }
+  .documento::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 5px;
+    background: linear-gradient(180deg, var(--accent) 0%, var(--accent2) 50%, var(--gold) 100%);
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--ink);
+    color: #fff;
+    padding: 36px 50px 30px 55px;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::after {
+    content: 'v';
+    font-family: var(--display);
+    font-size: 300px;
+    font-weight: 700;
+    color: rgba(255,255,255,.04);
+    position: absolute;
+    right: -10px; top: -60px;
+    line-height: 1;
+    pointer-events: none;
+    user-select: none;
+  }
+  .header-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    gap: 20px;
+  }
+  .badge-codigo {
+    font-family: var(--mono);
+    font-size: .7em;
+    background: var(--accent);
+    color: #fff;
+    padding: 3px 10px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+  .badge-tipo {
+    font-family: var(--mono);
+    font-size: .7em;
+    color: rgba(255,255,255,.5);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    border: 1px solid rgba(255,255,255,.15);
+    padding: 3px 10px;
+  }
+  .header h1 {
+    font-family: var(--display);
+    font-size: 2.1em;
+    font-weight: 700;
+    line-height: 1.2;
+    color: #fff;
+    margin-bottom: 6px;
+  }
+  .header h1 em {
+    font-style: italic;
+    color: rgba(255,255,255,.65);
+    font-size: .82em;
+  }
+  .header-sub {
+    font-size: .82em;
+    color: rgba(255,255,255,.45);
+    font-weight: 300;
+    letter-spacing: .04em;
+    margin-top: 4px;
+  }
+  .header-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 24px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,.12);
+  }
+  .field-item label {
+    display: block;
+    font-family: var(--mono);
+    font-size: .65em;
+    color: rgba(255,255,255,.4);
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    margin-bottom: 4px;
+  }
+  .field-item input[type="text"],
+  .field-item input[type="date"] {
+    width: 100%;
+    background: rgba(255,255,255,.07);
+    border: none;
+    border-bottom: 1px solid rgba(255,255,255,.25);
+    color: #fff;
+    font-family: var(--serif);
+    font-size: .9em;
+    padding: 4px 0;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .field-item input:focus { border-bottom-color: var(--accent2); }
+  .field-item input::placeholder { color: rgba(255,255,255,.2); }
+
+  /* ── BODY ── */
+  .body { padding: 44px 50px 50px 55px; }
+  .seccion { margin-bottom: 42px; }
+  .seccion-titulo {
+    font-family: var(--display);
+    font-size: 1.15em;
+    font-weight: 600;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--rule);
+  }
+  .seccion-titulo .num {
+    font-family: var(--mono);
+    font-size: .75em;
+    color: var(--accent);
+    background: #e8f0f7;
+    padding: 2px 7px;
+    letter-spacing: .05em;
+    min-width: 36px;
+    text-align: center;
+  }
+  .subseccion-titulo {
+    font-family: var(--display);
+    font-size: 1em;
+    font-weight: 600;
+    color: var(--accent);
+    margin: 22px 0 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .subseccion-titulo::before {
+    content: '';
+    width: 14px; height: 2px;
+    background: var(--accent);
+    display: inline-block;
+    flex-shrink: 0;
+  }
+  p { margin-bottom: 10px; color: var(--ink-soft); font-size: .95em; }
+  p:last-child { margin-bottom: 0; }
+
+  /* ── RESUMEN ── */
+  .resumen-box {
+    background: var(--paper-alt);
+    border-left: 3px solid var(--accent);
+    padding: 16px 20px;
+    font-size: .9em;
+    font-style: italic;
+    color: var(--ink-soft);
+    line-height: 1.7;
+  }
+
+  /* ── OBJETIVOS ── */
+  .objetivos-lista { list-style: none; padding: 0; }
+  .objetivos-lista li {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 8px 0;
+    border-bottom: 1px dashed var(--rule);
+    font-size: .93em;
+    color: var(--ink-soft);
+  }
+  .objetivos-lista li:last-child { border-bottom: none; }
+  .objetivos-lista li .obj-num {
+    font-family: var(--mono);
+    font-size: .75em;
+    color: #fff;
+    background: var(--accent);
+    min-width: 22px; height: 22px;
+    display: flex; align-items: center; justify-content: center;
+    margin-top: 2px; flex-shrink: 0;
+  }
+
+  /* ── FÓRMULAS ── */
+  .formula-box {
+    background: var(--ink);
+    color: #fff;
+    padding: 18px 24px;
+    margin: 18px 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .formula-box::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--accent2);
+  }
+  .formula-box .formula-label {
+    font-family: var(--mono);
+    font-size: .65em;
+    color: rgba(255,255,255,.4);
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    margin-bottom: 10px;
+  }
+  .formula-main { font-size: 1.2em; text-align: center; padding: 6px 0; }
+  .formula-num {
+    font-family: var(--mono);
+    font-size: .65em;
+    color: rgba(255,255,255,.35);
+    text-align: right;
+    margin-top: 6px;
+  }
+
+  /* ── TABLA DATOS ── */
+  .tabla-resultados {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .86em;
+    margin: 14px 0;
+  }
+  .tabla-resultados th {
+    background: var(--ink);
+    color: #fff;
+    font-family: var(--mono);
+    font-size: .7em;
+    letter-spacing: .07em;
+    padding: 9px 12px;
+    text-align: center;
+    font-weight: 500;
+    border: 1px solid #444;
+  }
+  .tabla-resultados td {
+    padding: 7px 10px;
+    border: 1px solid var(--rule);
+    text-align: center;
+    color: var(--ink-soft);
+    vertical-align: middle;
+  }
+  .tabla-resultados td.input-cell { padding: 3px 4px; }
+  .tabla-resultados input[type="text"] {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid var(--rule);
+    background: transparent;
+    font-family: var(--mono);
+    font-size: .88em;
+    color: var(--ink);
+    padding: 4px 4px;
+    text-align: center;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .tabla-resultados input:focus { border-bottom-color: var(--accent); }
+  .tabla-resultados tr:nth-child(even) td { background: var(--paper-alt); }
+  .tabla-resultados tr:nth-child(even) td.input-cell { background: var(--paper-alt); }
+  .tabla-resultados .row-label {
+    font-family: var(--mono);
+    font-size: .82em;
+    font-weight: 500;
+    color: var(--accent);
+  }
+
+  /* ── PASOS ── */
+  .paso { display: flex; gap: 16px; margin-bottom: 20px; align-items: flex-start; }
+  .paso-num {
+    font-family: var(--mono); font-size: .8em;
+    background: var(--accent); color: #fff;
+    min-width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 2px;
+  }
+  .paso-content { flex: 1; }
+  .paso-content p { margin-bottom: 6px; }
+
+  /* ── ÁREA DE TRABAJO ── */
+  .trabajo-area {
+    width: 100%; min-height: 110px;
+    border: 1px solid var(--rule);
+    background: #fff;
+    font-family: var(--serif);
+    font-size: .9em; color: var(--ink);
+    padding: 14px 16px; resize: vertical; outline: none;
+    line-height: 1.8; transition: border-color .2s; display: block;
+  }
+  .trabajo-area:focus { border-color: var(--accent); }
+  .trabajo-area::placeholder { color: #bbb; font-style: italic; }
+  .area-label {
+    font-family: var(--mono); font-size: .68em;
+    color: var(--ink-muted); text-transform: uppercase;
+    letter-spacing: .1em; margin-bottom: 5px; margin-top: 14px; display: block;
+  }
+
+  /* ── NOTA ── */
+  .nota {
+    background: #fef9e7;
+    border-left: 3px solid var(--gold);
+    padding: 10px 16px;
+    font-size: .85em; color: #7d6608;
+    margin: 14px 0; font-style: italic;
+  }
+  .nota strong { font-style: normal; color: var(--gold); }
+
+  /* ── CAJAS DE RESULTADO ── */
+  .result-box {
+    background: var(--paper-alt);
+    border: 1px solid var(--rule);
+    padding: 16px 20px; margin: 14px 0;
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  .result-box.col2 { grid-template-columns: 1fr 1fr; }
+  .result-box.col4 { grid-template-columns: repeat(4, 1fr); }
+  @media(max-width:600px) {
+    .result-box, .result-box.col2, .result-box.col4 { grid-template-columns: 1fr 1fr; }
+  }
+  .res-campo label {
+    font-family: var(--mono); font-size: .63em;
+    color: var(--ink-muted); text-transform: uppercase;
+    letter-spacing: .1em; display: block; margin-bottom: 5px;
+  }
+  .res-campo input[type="text"] {
+    width: 100%; border: none;
+    border-bottom: 2px solid var(--rule);
+    background: transparent; font-family: var(--mono);
+    font-size: 1em; color: var(--ink); padding: 4px 0;
+    outline: none; transition: border-color .2s; text-align: center;
+  }
+  .res-campo input:focus { border-bottom-color: var(--accent); }
+
+  /* ── INTERPRETACIÓN RANGOS ── */
+  .rango-tabla {
+    width: 100%; border-collapse: collapse;
+    font-size: .85em; margin: 12px 0;
+  }
+  .rango-tabla th {
+    background: var(--ink); color: #fff;
+    font-family: var(--mono); font-size: .68em;
+    padding: 7px 12px; letter-spacing: .08em; text-align: center;
+  }
+  .rango-tabla td {
+    padding: 6px 12px; border: 1px solid var(--rule);
+    text-align: center; font-size: .88em;
+  }
+  .rango-tabla .bueno { color: var(--green); font-weight: 600; }
+  .rango-tabla .medio { color: var(--gold); font-weight: 600; }
+  .rango-tabla .malo  { color: var(--accent2); font-weight: 600; }
+
+  /* ── GRÁFICA ── */
+  .grafica-box {
+    border: 1px solid var(--rule);
+    background: #fff; margin: 14px 0;
+    overflow: hidden;
+  }
+  .grafica-header {
+    background: var(--ink); color: #fff;
+    padding: 8px 16px;
+    font-family: var(--mono); font-size: .68em;
+    letter-spacing: .1em; text-transform: uppercase;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .grafica-canvas {
+    display: block; width: 100%;
+    background: #fafafa;
+    cursor: crosshair;
+  }
+  .grafica-controles {
+    padding: 10px 16px;
+    border-top: 1px solid var(--rule);
+    display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+  }
+  .btn-ctrl {
+    font-family: var(--mono); font-size: .7em;
+    padding: 5px 12px; border: 1px solid var(--rule);
+    background: var(--paper-alt); color: var(--ink-soft);
+    cursor: pointer; transition: all .2s; letter-spacing: .05em;
+  }
+  .btn-ctrl:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-ctrl.activo { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .grafica-info {
+    font-family: var(--mono); font-size: .7em;
+    color: var(--ink-muted); margin-left: auto;
+  }
+
+  /* ── ADJUNTO ── */
+  .adjunto-slot {
+    border: 2px dashed var(--rule);
+    background: var(--paper-alt);
+    padding: 24px 16px;
+    text-align: center;
+    margin-top: 10px;
+    position: relative;
+    cursor: pointer;
+    transition: border-color .2s, background .2s;
+  }
+  .adjunto-slot:hover { border-color: var(--accent); background: #edf2f7; }
+  .adjunto-slot input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+  }
+  .adjunto-slot .slot-icon { font-size: 1.8em; margin-bottom: 5px; display: block; }
+  .adjunto-slot .slot-label {
+    font-family: var(--mono); font-size: .68em;
+    color: var(--ink-muted); text-transform: uppercase; letter-spacing: .1em; display: block;
+  }
+  .adjunto-slot .slot-hint { font-size: .78em; color: var(--ink-muted); margin-top: 3px; display: block; }
+  .adjunto-slot .preview-img {
+    max-width: 100%; max-height: 200px;
+    margin-top: 10px; border: 1px solid var(--rule); display: none;
+  }
+
+  /* ── RETO ── */
+  .reto-header {
+    background: linear-gradient(135deg, #1a1a2e 0%, #2c1654 100%);
+    color: #fff;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .reto-badge {
+    font-family: var(--mono); font-size: .65em;
+    background: var(--accent2); color: #fff;
+    padding: 3px 9px; letter-spacing: .12em;
+    text-transform: uppercase; flex-shrink: 0;
+  }
+  .reto-header h4 {
+    font-family: var(--display); font-size: 1em;
+    font-weight: 600; color: #fff; margin: 0;
+  }
+  .reto-header p { font-size: .8em; color: rgba(255,255,255,.6); margin: 2px 0 0; }
+  .reto-body {
+    border: 1px solid #2c1654;
+    border-top: none;
+    padding: 20px;
+    background: #faf8ff;
+  }
+
+  /* ── SEPARADOR ── */
+  .divider {
+    display: flex; align-items: center; gap: 12px;
+    margin: 32px 0; opacity: .4;
+  }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--rule); }
+  .divider span {
+    font-family: var(--mono); font-size: .65em;
+    color: var(--ink-muted); letter-spacing: .1em; text-transform: uppercase;
+  }
+
+  /* ── FIRMA ── */
+  .firma-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 30px; }
+  .firma-slot {
+    text-align: center; padding-top: 50px;
+    border-top: 1px solid var(--rule);
+    font-family: var(--mono); font-size: .68em;
+    color: var(--ink-muted); text-transform: uppercase; letter-spacing: .08em;
+  }
+
+  /* ── BTN IMPRIMIR ── */
+  .btn-imprimir {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--accent); color: #fff; border: none;
+    padding: 12px 22px; font-family: var(--mono);
+    font-size: .75em; letter-spacing: .1em; text-transform: uppercase;
+    cursor: pointer; box-shadow: 0 4px 16px rgba(26,82,118,.35);
+    transition: transform .15s, box-shadow .15s; z-index: 100;
+  }
+  .btn-imprimir:hover { transform: translateY(-2px); box-shadow: 0 6px 22px rgba(26,82,118,.45); }
+
+
+  /* ===== RESPONSIVE MOBILE ===== */
+  @media (max-width: 680px) {
+    body { padding: 10px 0 40px; }
+    .documento { border-radius: 0; }
+
+    /* Header */
+    .header { padding: 22px 18px 20px 22px; }
+    .header::after { font-size: 160px; }
+    .header h1 { font-size: 1.4em !important; }
+    .header-meta { flex-direction: column; gap: 8px; }
+    .header-fields { grid-template-columns: 1fr !important; gap: 10px 0; }
+
+    /* Body */
+    .body { padding: 22px 16px 28px 20px; }
+
+    /* Tablas — scroll horizontal */
+    .tabla-resultados,
+    .rango-tabla { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+    /* Result boxes — máx 2 columnas */
+    .result-box,
+    .result-box.col2,
+    .result-box.col4,
+    .result-box.col5,
+    .result-box.col6 { grid-template-columns: 1fr 1fr !important; }
+
+    /* Grids de firma */
+    .firma-grid { grid-template-columns: 1fr !important; gap: 20px; }
+
+    /* Pasos de procedimiento */
+    .paso { gap: 10px; }
+
+    /* Parte headers */
+    .parte-header,
+    .reto-header { padding: 12px 14px; gap: 10px; }
+    .parte-header h4,
+    .reto-header h4 { font-size: 0.9em; }
+    .parte-body,
+    .reto-body { padding: 14px; }
+
+    /* Controles de gráfica */
+    .grafica-controles { gap: 6px; flex-wrap: wrap; }
+    .btn-ctrl { font-size: 0.65em; padding: 4px 8px; }
+
+    /* Section titles */
+    .seccion-titulo { font-size: 1em; gap: 8px; }
+
+    /* Adjunto slot */
+    .adjunto-slot { padding: 16px 10px; }
+
+    /* Trabajo área */
+    .trabajo-area { min-height: 80px; }
+  }
+
+  @media (max-width: 420px) {
+    .header { padding: 18px 14px 16px 18px; }
+    .body { padding: 16px 12px 20px 14px; }
+    .result-box,
+    .result-box.col2,
+    .result-box.col4,
+    .result-box.col5,
+    .result-box.col6 { grid-template-columns: 1fr !important; }
+    .header h1 { font-size: 1.2em !important; }
+    .formula-main { font-size: 1em !important; }
+  }
+
+  @media print {
+    body { background: #fff; padding: 0; }
+    .documento { box-shadow: none; }
+    .btn-imprimir, .grafica-controles { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="documento">
+
+  <!-- ══ ENCABEZADO ══ -->
+  <div class="header">
+    <div class="header-meta">
+      <span class="badge-codigo" id="codigoPractica">PRÁCTICA FIS-MRU-01</span>
+      <span class="badge-tipo">Laboratorio de Física · Cinemática</span>
+    </div>
+    <h1>MRU y MUA<br><em>Movimiento Rectilíneo Uniforme y Uniformemente Acelerado</em></h1>
+    <div class="header-sub">Posición · Velocidad · Aceleración · Análisis gráfico · Propagación de errores</div>
+    <div class="header-fields">
+      <div class="field-item">
+        <label>Nombre del estudiante</label>
+        <input type="text" placeholder="Escriba su nombre completo">
+      </div>
+      <div class="field-item">
+        <label>Código</label>
+        <input type="text" placeholder="Código estudiantil">
+      </div>
+      <div class="field-item">
+        <label>Grupo / Sección</label>
+        <input type="text" placeholder="Ej. Grupo B — Martes 8 am">
+      </div>
+      <div class="field-item">
+        <label>Docente</label>
+        <input type="text" placeholder="Nombre del profesor/a">
+      </div>
+      <div class="field-item">
+        <label>Fecha de realización</label>
+        <input type="date">
+      </div>
+      <div class="field-item">
+        <label>Sede</label>
+        <input type="text" placeholder="Campus / Laboratorio">
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ CUERPO ══ -->
+  <div class="body">
+
+    <!-- 00. RESUMEN -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">00</span> Resumen</h2>
+      <div class="resumen-box">
+        En esta práctica se estudian experimentalmente dos tipos de movimiento rectilíneo mediante un simulador
+        interactivo con sensores de posición S1 y S2: el <strong>Movimiento Rectilíneo Uniforme (MRU)</strong>,
+        en el que la velocidad es constante, y el <strong>Movimiento Uniformemente Acelerado (MUA)</strong>, en
+        el que la aceleración es constante. A partir de las medidas de posición y tiempo registradas, se
+        construyen gráficas de posición en función del tiempo, se ajustan modelos lineal y polinomial de grado 2,
+        y se determinan experimentalmente la velocidad (MRU) y la aceleración (MUA), comparando los resultados
+        con los valores teóricos mediante el cálculo de incertidumbres, incertidumbre relativa (IR) y
+        error relativo (ER).
+      </div>
+      <p style="margin-top:10px;"><strong>Palabras clave:</strong>
+        MRU · MUA · velocidad constante · aceleración · posición · tiempo · ajuste lineal · ajuste parabólico · propagación de errores
+      </p>
+    </div>
+
+    <!-- 01. OBJETIVOS -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">01</span> Objetivos</h2>
+      <ul class="objetivos-lista">
+        <li><span class="obj-num">1</span>Medir posiciones S1 y S2 y tiempos de tránsito en el simulador para caracterizar el MRU y el MUA.</li>
+        <li><span class="obj-num">2</span>Construir e interpretar gráficas de posición $x(t)$ para el MRU (ajuste lineal) y para el MUA (ajuste parabólico).</li>
+        <li><span class="obj-num">3</span>Determinar experimentalmente la velocidad en el MRU y la aceleración en el MUA a partir de los coeficientes del ajuste.</li>
+        <li><span class="obj-num">4</span>Calcular la incertidumbre de los resultados y evaluar su calidad mediante la incertidumbre relativa (IR) y el error relativo porcentual (ER).</li>
+        <li><span class="obj-num">5</span>Aplicar las ecuaciones de posición, velocidad y aceleración en función del tiempo tal como las presenta el enfoque analítico del libro de texto.</li>
+      </ul>
+    </div>
+
+    <!-- 02. MARCO TEÓRICO -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">02</span> Marco Teórico</h2>
+
+      <div class="subseccion-titulo">2.1 · Movimiento Rectilíneo Uniforme (MRU)</div>
+      <p>
+        En el MRU la velocidad $v$ es constante y la aceleración es nula. Las ecuaciones cinemáticas
+        que describen el movimiento son:
+      </p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 1 — Posición en función del tiempo (MRU)</div>
+        <div class="formula-main">$$x(t) = x_0 + v\,t$$</div>
+        <div class="formula-num">(1)</div>
+      </div>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 2 — Velocidad en función del tiempo (MRU)</div>
+        <div class="formula-main">$$v(t) = v = \text{constante}$$</div>
+        <div class="formula-num">(2)</div>
+      </div>
+      <p>
+        La gráfica $x$ vs. $t$ es una <strong>recta</strong> cuya pendiente es la velocidad $v$ y cuya
+        ordenada al origen es la posición inicial $x_0$. Para dos posiciones medidas $x_1 = S_1$ y
+        $x_2 = S_2$ con un tiempo de tránsito $\Delta t$:
+      </p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 3 — Velocidad experimental (MRU)</div>
+        <div class="formula-main">$$v = \frac{\Delta x}{\Delta t} = \frac{S_2 - S_1}{\Delta t}$$</div>
+        <div class="formula-num">(3)</div>
+      </div>
+
+      <div class="subseccion-titulo">2.2 · Movimiento Uniformemente Acelerado (MUA)</div>
+      <p>
+        En el MUA la aceleración $a$ es constante. A partir de una posición inicial $x_0$ y una velocidad
+        inicial $v_0$ (en el instante en que el móvil llega a S1), las ecuaciones cinemáticas son:
+      </p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 4 — Posición en función del tiempo (MUA)</div>
+        <div class="formula-main">$$x(t) = x_0 + v_0\,t + \tfrac{1}{2}\,a\,t^2$$</div>
+        <div class="formula-num">(4)</div>
+      </div>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 5 — Velocidad en función del tiempo (MUA)</div>
+        <div class="formula-main">$$v(t) = v_0 + a\,t$$</div>
+        <div class="formula-num">(5)</div>
+      </div>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 6 — Aceleración (MUA)</div>
+        <div class="formula-main">$$a(t) = a = \text{constante}$$</div>
+        <div class="formula-num">(6)</div>
+      </div>
+      <p>
+        La gráfica $x$ vs. $t$ en el MUA es una <strong>parábola</strong>. Al ajustar los datos
+        a un polinomio de grado 2, $x = At^2 + Bt + C$, los coeficientes quedan:
+        $A = \tfrac{1}{2}a$, $B = v_0$, $C = x_0$.
+      </p>
+
+      <div class="subseccion-titulo">2.3 · Incertidumbre y errores</div>
+      <p>
+        Toda medición experimental conlleva una incertidumbre $\Delta x$. La incertidumbre de escala
+        de la regla asignada en el simulador corresponde a la mínima división del instrumento.
+        Para la velocidad experimental (MRU), la propagación de la incertidumbre por la regla de
+        la división es:
+      </p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 7 — Propagación de incertidumbre de la velocidad (MRU)</div>
+        <div class="formula-main">$$\Delta v = \frac{S_2\,\Delta(\Delta t) + \Delta t\,\Delta S_2 + \Delta t\,\Delta S_1}{\Delta t^{2}}$$</div>
+        <div class="formula-num">(7)</div>
+      </div>
+      <p>
+        La <strong>Incertidumbre Relativa (IR)</strong> y el <strong>Error Relativo (ER)</strong> permiten
+        evaluar la calidad del resultado:
+      </p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 8 — IR y ER</div>
+        <div class="formula-main">$$\text{IR} = \frac{\Delta v}{v} \times 100\% \qquad \text{ER} = \frac{|v_{\exp} - v_{\text{teo}}|}{v_{\text{teo}}} \times 100\%$$</div>
+        <div class="formula-num">(8)</div>
+      </div>
+
+      <table class="rango-tabla" style="margin-top:10px;">
+        <thead>
+          <tr><th>Indicador</th><th>Rango</th><th>Interpretación</th></tr>
+        </thead>
+        <tbody>
+          <tr><td rowspan="3" style="font-family:var(--mono);font-size:.85em;">IR</td>
+            <td class="bueno">IR &lt; 1 %</td><td>Resultado muy preciso</td></tr>
+          <tr><td class="medio">1 % &lt; IR &lt; 10 %</td><td>Resultado preciso</td></tr>
+          <tr><td class="malo">IR &gt; 10 %</td><td>Resultado poco preciso</td></tr>
+          <tr><td rowspan="3" style="font-family:var(--mono);font-size:.85em;">ER</td>
+            <td class="bueno">ER &lt; 1 %</td><td>Resultado muy exacto</td></tr>
+          <tr><td class="medio">1 % &lt; ER &lt; 10 %</td><td>Resultado exacto</td></tr>
+          <tr><td class="malo">ER &gt; 10 %</td><td>Resultado poco exacto</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 03. PROCEDIMIENTO -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">03</span> Procedimiento Experimental</h2>
+
+      <div class="paso">
+        <div class="paso-num">1</div>
+        <div class="paso-content">
+          <p><strong>Configuración inicial.</strong> Abra el simulador y seleccione el modo <em>MRU (Velocidad constante)</em>. Anote la mínima división de la regla asignada:</p>
+          <div class="result-box col2" style="margin-top:8px;">
+            <div class="res-campo">
+              <label>Mínima división de la regla (Δx)</label>
+              <input type="text" id="minDiv" placeholder="± ___ cm">
+            </div>
+            <div class="res-campo">
+              <label>Incertidumbre del tiempo (Δt)</label>
+              <input type="text" placeholder="± ___ s">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">2</div>
+        <div class="paso-content">
+          <p><strong>Posicionamiento de sensores.</strong> Arrastre S1 y S2 a las posiciones deseadas en la regla. Registre S1 y S2 antes de iniciar cada corrida. Presione <em>INICIAR</em> y anote el tiempo $\Delta t$ que aparece automáticamente en la tabla del simulador.</p>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">3</div>
+        <div class="paso-content">
+          <p><strong>Parte A — MRU.</strong> Realice al menos 5 mediciones variando la posición de S2 (manteniendo S1 fijo) y complete la Tabla 1. Luego construya la gráfica $x$ vs. $t$ y ajuste una recta.</p>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">4</div>
+        <div class="paso-content">
+          <p><strong>Parte B — MUA.</strong> Cambie al modo <em>MUA</em>. Repita el procedimiento con al menos 5 mediciones y complete la Tabla 2. La gráfica $x$ vs. $t$ es ahora una parábola; ajuste un polinomio de grado 2.</p>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">5</div>
+        <div class="paso-content">
+          <p><strong>Parte C — Reto.</strong> Active el <em>Modo Reto</em> en el simulador. Con los datos proporcionados (S1, $v_0$, $a$ o $v$), calcule la posición S2 que produce el tiempo objetivo y mueva el sensor para verificarlo.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════ -->
+    <!-- 04. PARTE A — MRU -->
+    <!-- ════════════════════════════════════════════ -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">04</span> Parte A — MRU: Movimiento Rectilíneo Uniforme</h2>
+
+      <div class="nota">
+        <strong>Modo del simulador:</strong> Asegúrese de tener seleccionado <em>MRU (Velocidad constante)</em>. La velocidad real del simulador permanece oculta hasta completar el reto.
+      </div>
+
+      <div class="subseccion-titulo">Tabla 1 — Registro de datos MRU</div>
+      <p style="font-size:.85em;color:var(--ink-muted);font-style:italic;">
+        Tabla 1. Posiciones S1 y S2 y tiempo de tránsito $\Delta t$ para cinco configuraciones en MRU.
+      </p>
+      <table class="tabla-resultados" id="tablaMRU">
+        <thead>
+          <tr>
+            <th rowspan="2">Medición</th>
+            <th colspan="2">Posición (cm)</th>
+            <th rowspan="2">$\Delta x$ (cm)</th>
+            <th rowspan="2">$\Delta t$ (s)</th>
+            <th rowspan="2">$v_{\exp}$ (cm/s)</th>
+            <th rowspan="2">$\Delta v$ (cm/s)</th>
+          </tr>
+          <tr>
+            <th>$S_1$</th>
+            <th>$S_2$</th>
+          </tr>
+        </thead>
+        <tbody id="bodyMRU"></tbody>
+      </table>
+
+      <div class="divider"><span>Gráfica A — Posición vs. Tiempo (MRU)</span></div>
+
+      <p>Ingrese los datos de $\Delta t$ (eje $x$) y $S_2$ (eje $y$) para visualizar la gráfica $x$ vs. $t$.
+      Active la regresión lineal para obtener la ecuación de la recta y la velocidad experimental.</p>
+
+      <div class="grafica-box">
+        <div class="grafica-header">
+          <span>Gráfica A: Posición $x$ (cm) vs. Tiempo $t$ (s) — MRU</span>
+          <span id="pendienteMRU" style="color:rgba(255,255,255,.6);font-size:.9em;">pendiente v = —</span>
+        </div>
+        <canvas class="grafica-canvas" id="graficaMRU" height="340"></canvas>
+        <div class="grafica-controles">
+          <button class="btn-ctrl" id="btnRegMRU" onclick="toggleRegMRU()">📈 Ajuste lineal</button>
+          <button class="btn-ctrl" onclick="limpiarManualMRU()">✏ Recta manual</button>
+          <span class="grafica-info" id="eqMRU">—</span>
+        </div>
+      </div>
+
+      <div class="nota">
+        <strong>Ecuaciones del movimiento (estilo libro de texto):</strong> a partir del ajuste lineal
+        $x = v\,t + x_0$, identifique los coeficientes y escriba las ecuaciones completas.
+      </div>
+
+      <div class="subseccion-titulo">Ecuaciones de posición y velocidad — MRU</div>
+      <span class="area-label">Ecuación de posición obtenida del ajuste: $x(t) = \rule{1.5cm}{0.4pt}\cdot t + \rule{1.5cm}{0.4pt}$</span>
+      <div class="result-box" style="margin-top:6px;">
+        <div class="res-campo">
+          <label>Pendiente = v (cm/s)</label>
+          <input type="text" id="mruV" placeholder="0.000" oninput="calcErroresMRU()">
+        </div>
+        <div class="res-campo">
+          <label>Intercepto = x₀ (cm)</label>
+          <input type="text" id="mruX0" placeholder="0.000">
+        </div>
+        <div class="res-campo">
+          <label>R² del ajuste</label>
+          <input type="text" id="mruR2" placeholder="0.000">
+        </div>
+      </div>
+
+      <span class="area-label">Ecuación de velocidad: $v(t) = \rule{2cm}{0.4pt}$ cm/s (constante)</span>
+      <span class="area-label">Procedimiento de cálculo — Velocidad promedio y su incertidumbre</span>
+      <textarea class="trabajo-area" style="min-height:130px;"
+        placeholder="v̄ = Σvᵢ / n = ...&#10;Δv = ...  (propagación según Ec. 7)&#10;Resultado: v = ___ ± ___ cm/s"></textarea>
+
+      <div class="subseccion-titulo">Análisis de errores — Parte A</div>
+      <div class="result-box col4">
+        <div class="res-campo">
+          <label>v promedio (cm/s)</label>
+          <input type="text" id="mruVprom" placeholder="0.000">
+        </div>
+        <div class="res-campo">
+          <label>Δv promedio (cm/s)</label>
+          <input type="text" id="mruDv" placeholder="± 0.000">
+        </div>
+        <div class="res-campo">
+          <label>IR = (Δv/v) × 100 %</label>
+          <input type="text" id="mruIR" placeholder="0.00 %">
+        </div>
+        <div class="res-campo">
+          <label>ER = |v_exp − v_teo| / v_teo × 100 %</label>
+          <input type="text" id="mruER" placeholder="0.00 %">
+        </div>
+      </div>
+      <div class="nota" style="margin-top:6px;">
+        <strong>v teórica:</strong> Se revela al completar el reto del simulador (Parte C). Anótela aquí:
+        <input type="text" id="mruVteo" placeholder="v_teo = ___ cm/s"
+          style="border:none;border-bottom:1px solid var(--gold);background:transparent;font-family:var(--mono);font-size:.9em;width:180px;padding:2px 4px;outline:none;margin-left:8px;">
+      </div>
+
+      <span class="area-label">Captura del simulador — Parte A</span>
+      <div class="adjunto-slot">
+        <input type="file" accept="image/*" onchange="previsualizarImagen(this,'prevA')">
+        <span class="slot-icon">📸</span>
+        <span class="slot-label">Adjuntar captura del simulador — MRU</span>
+        <span class="slot-hint">Haga clic o arrastre · PNG, JPG</span>
+        <img id="prevA" class="preview-img" alt="">
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════ -->
+    <!-- 05. PARTE B — MUA -->
+    <!-- ════════════════════════════════════════════ -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">05</span> Parte B — MUA: Movimiento Uniformemente Acelerado</h2>
+
+      <div class="nota">
+        <strong>Modo del simulador:</strong> Cambie a <em>MUA (Movimiento acelerado)</em>. Anote la velocidad $v_0$ en S1 que muestra el simulador en cada corrida.
+      </div>
+
+      <div class="subseccion-titulo">Tabla 2 — Registro de datos MUA</div>
+      <p style="font-size:.85em;color:var(--ink-muted);font-style:italic;">
+        Tabla 2. Posiciones S1 y S2, tiempo $\Delta t$ y velocidad inicial $v_0$ en S1 para cinco configuraciones en MUA.
+      </p>
+      <table class="tabla-resultados" id="tablaMUA">
+        <thead>
+          <tr>
+            <th rowspan="2">Medición</th>
+            <th colspan="2">Posición (cm)</th>
+            <th rowspan="2">$\Delta x$ (cm)</th>
+            <th rowspan="2">$\Delta t$ (s)</th>
+            <th rowspan="2">$v_0$ en S1 (cm/s)</th>
+            <th rowspan="2">$a_{\exp}$ (cm/s²)</th>
+            <th rowspan="2">$\Delta a$ (cm/s²)</th>
+          </tr>
+          <tr>
+            <th>$S_1$</th>
+            <th>$S_2$</th>
+          </tr>
+        </thead>
+        <tbody id="bodyMUA"></tbody>
+      </table>
+
+      <div class="divider"><span>Gráfica B — Posición vs. Tiempo (MUA)</span></div>
+
+      <p>La gráfica $x$ vs. $t$ en el MUA es una <strong>parábola</strong>. Ingrese los pares
+      $(\Delta t,\, S_2)$ para visualizar los puntos y active el ajuste polinomial de grado 2.</p>
+
+      <div class="grafica-box">
+        <div class="grafica-header">
+          <span>Gráfica B: Posición $x$ (cm) vs. Tiempo $t$ (s) — MUA</span>
+          <span id="pendienteMUA" style="color:rgba(255,255,255,.6);font-size:.9em;">ajuste: —</span>
+        </div>
+        <canvas class="grafica-canvas" id="graficaMUA" height="340"></canvas>
+        <div class="grafica-controles">
+          <button class="btn-ctrl" id="btnRegMUA" onclick="toggleRegMUA()">📈 Ajuste polinomial grado 2</button>
+          <span class="grafica-info" id="eqMUA">—</span>
+        </div>
+      </div>
+
+      <div class="subseccion-titulo">Ecuaciones de posición, velocidad y aceleración — MUA</div>
+      <div class="nota">
+        Del ajuste $x = At^2 + Bt + C$ se obtiene: $a = 2A$, $v_0 = B$, $x_0 = C$.
+        Escriba a continuación las ecuaciones completas identificadas.
+      </div>
+      <div class="result-box col4">
+        <div class="res-campo">
+          <label>A = ½a (cm/s²)</label>
+          <input type="text" id="muaA" placeholder="0.000" oninput="calcEcuacionesMUA()">
+        </div>
+        <div class="res-campo">
+          <label>B = v₀ (cm/s)</label>
+          <input type="text" id="muaB" placeholder="0.000" oninput="calcEcuacionesMUA()">
+        </div>
+        <div class="res-campo">
+          <label>C = x₀ (cm)</label>
+          <input type="text" id="muaC" placeholder="0.000" oninput="calcEcuacionesMUA()">
+        </div>
+        <div class="res-campo">
+          <label>R² del ajuste</label>
+          <input type="text" id="muaR2" placeholder="0.000">
+        </div>
+      </div>
+
+      <span class="area-label">Ecuaciones identificadas del movimiento</span>
+      <div class="result-box" style="grid-template-columns:1fr;">
+        <div class="res-campo">
+          <label>Posición: x(t) = ___ t² + ___ t + ___ (cm)</label>
+          <input type="text" id="muaEqX" placeholder="x(t) = ..." style="font-size:.9em;">
+        </div>
+      </div>
+      <div class="result-box col2" style="margin-top:4px;">
+        <div class="res-campo">
+          <label>Velocidad: v(t) = ___ t + ___ (cm/s)</label>
+          <input type="text" id="muaEqV" placeholder="v(t) = ...">
+        </div>
+        <div class="res-campo">
+          <label>Aceleración: a = ___ (cm/s²)</label>
+          <input type="text" id="muaEqA" placeholder="a = ...">
+        </div>
+      </div>
+
+      <!-- Gráficas de v(t) y a(t) -->
+      <div class="divider"><span>Gráficas de v(t) y a(t) — MUA</span></div>
+      <p>A partir de las ecuaciones anteriores, grafique $v(t)$ (recta) y $a(t)$ (constante):</p>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div class="grafica-box">
+          <div class="grafica-header"><span>v(t) — MUA</span></div>
+          <canvas class="grafica-canvas" id="graficaVt" height="220"></canvas>
+        </div>
+        <div class="grafica-box">
+          <div class="grafica-header"><span>a(t) — MUA</span></div>
+          <canvas class="grafica-canvas" id="graficaAt" height="220"></canvas>
+        </div>
+      </div>
+
+      <div class="subseccion-titulo">Análisis de errores — Parte B</div>
+      <span class="area-label">Procedimiento de cálculo — Aceleración promedio y su incertidumbre</span>
+      <textarea class="trabajo-area" style="min-height:130px;"
+        placeholder="ā = 2·Ā  (donde Ā es el promedio del coeficiente A del ajuste)&#10;Δa = ...  (propagación)&#10;Resultado: a = ___ ± ___ cm/s²"></textarea>
+
+      <div class="result-box col4">
+        <div class="res-campo">
+          <label>a promedio (cm/s²)</label>
+          <input type="text" id="muaAprom" placeholder="0.000">
+        </div>
+        <div class="res-campo">
+          <label>Δa promedio (cm/s²)</label>
+          <input type="text" id="muaDa" placeholder="± 0.000">
+        </div>
+        <div class="res-campo">
+          <label>IR = (Δa/a) × 100 %</label>
+          <input type="text" id="muaIR" placeholder="0.00 %">
+        </div>
+        <div class="res-campo">
+          <label>ER = |a_exp − a_teo| / a_teo × 100 %</label>
+          <input type="text" id="muaER" placeholder="0.00 %">
+        </div>
+      </div>
+      <div class="nota" style="margin-top:6px;">
+        <strong>a teórica:</strong> Se revela al completar el reto (Parte C). Anótela aquí:
+        <input type="text" id="muaAteo" placeholder="a_teo = ___ cm/s²"
+          style="border:none;border-bottom:1px solid var(--gold);background:transparent;font-family:var(--mono);font-size:.9em;width:200px;padding:2px 4px;outline:none;margin-left:8px;">
+      </div>
+
+      <span class="area-label">Captura del simulador — Parte B</span>
+      <div class="adjunto-slot">
+        <input type="file" accept="image/*" onchange="previsualizarImagen(this,'prevB')">
+        <span class="slot-icon">📸</span>
+        <span class="slot-label">Adjuntar captura del simulador — MUA</span>
+        <span class="slot-hint">Haga clic o arrastre · PNG, JPG</span>
+        <img id="prevB" class="preview-img" alt="">
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════ -->
+    <!-- 06. PARTE C — RETO -->
+    <!-- ════════════════════════════════════════════ -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">06</span> Parte C — Reto de Verificación</h2>
+
+      <div>
+        <div class="reto-header">
+          <div><span class="reto-badge">Parte C</span></div>
+          <div>
+            <h4>Reto — Encontrar la posición S2</h4>
+            <p>Con los datos que proporciona el simulador, calcule manualmente S2 y mueva el sensor hasta que el tiempo medido coincida con el objetivo.</p>
+          </div>
+        </div>
+        <div class="reto-body">
+
+          <span class="area-label">Datos del reto (anótelos al activar el modo reto)</span>
+          <div class="result-box col4" style="margin-top:6px;">
+            <div class="res-campo">
+              <label>Modo (MRU / MUA)</label>
+              <input type="text" placeholder="MRU / MUA">
+            </div>
+            <div class="res-campo">
+              <label>S1 fijo (cm)</label>
+              <input type="text" placeholder="x₁ = ___">
+            </div>
+            <div class="res-campo">
+              <label>t objetivo (s)</label>
+              <input type="text" placeholder="t = ___">
+            </div>
+            <div class="res-campo">
+              <label>v₀ en S1 (cm/s) — solo MUA</label>
+              <input type="text" placeholder="v₀ = ___">
+            </div>
+          </div>
+
+          <span class="area-label">Procedimiento de cálculo — Posición S2</span>
+          <textarea class="trabajo-area" style="min-height:200px;"
+            placeholder="Si MRU:&#10;  S2 = S1 + v · t = ...&#10;&#10;Si MUA:&#10;  S2 = S1 + v₀·t + ½·a·t² = ...&#10;&#10;Sustituyendo valores:&#10;  S2 = ___ + ___ · ___ + ...&#10;  S2 = ___ cm&#10;&#10;Posición calculada de S2: ___ cm"></textarea>
+
+          <div class="result-box col2" style="margin-top:4px;">
+            <div class="res-campo">
+              <label>S2 calculado (cm)</label>
+              <input type="text" placeholder="S2 = ___">
+            </div>
+            <div class="res-campo">
+              <label>S2 obtenido en simulador (cm)</label>
+              <input type="text" placeholder="S2 = ___">
+            </div>
+          </div>
+
+          <span class="area-label">Captura de pantalla — Reto aprobado</span>
+          <div class="adjunto-slot">
+            <input type="file" accept="image/*" onchange="previsualizarImagen(this,'prevReto')">
+            <span class="slot-icon">🏆</span>
+            <span class="slot-label">Adjuntar captura del reto aprobado</span>
+            <span class="slot-hint">Debe verse el mensaje de aprobación · PNG, JPG</span>
+            <img id="prevReto" class="preview-img" alt="">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 07. DISCUSIÓN -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">07</span> Discusión de Resultados</h2>
+
+      <span class="area-label">7.1 · ¿La gráfica $x$ vs. $t$ del MRU resultó una recta? ¿Qué indica la pendiente?</span>
+      <textarea class="trabajo-area" placeholder="Escriba su análisis aquí..."></textarea>
+
+      <span class="area-label">7.2 · ¿La gráfica $x$ vs. $t$ del MUA resultó una parábola? ¿Cómo se obtiene $a$ del coeficiente $A$ del ajuste?</span>
+      <textarea class="trabajo-area" placeholder="Escriba su análisis aquí..."></textarea>
+
+      <span class="area-label">7.3 · Compare IR y ER para el MRU y el MUA. ¿Cuál resultado fue más preciso? ¿Más exacto? Justifique con los valores.</span>
+      <textarea class="trabajo-area" placeholder="Escriba su análisis aquí..."></textarea>
+
+      <span class="area-label">7.4 · ¿Qué fuentes de error influyeron en la práctica? ¿Son sistemáticas o aleatorias?</span>
+      <textarea class="trabajo-area" placeholder="Escriba su análisis aquí..."></textarea>
+    </div>
+
+    <!-- 08. CONCLUSIONES -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">08</span> Conclusiones</h2>
+      <p>Redacte tres conclusiones concretas que respondan a los objetivos planteados.</p>
+
+      <span class="area-label">Conclusión 1 — Sobre el MRU y la relación lineal entre posición y tiempo</span>
+      <textarea class="trabajo-area" style="min-height:90px;" placeholder="Redacte su primera conclusión..."></textarea>
+
+      <span class="area-label">Conclusión 2 — Sobre el MUA y el ajuste parabólico para determinar la aceleración</span>
+      <textarea class="trabajo-area" style="min-height:90px;" placeholder="Redacte su segunda conclusión..."></textarea>
+
+      <span class="area-label">Conclusión 3 — Sobre la calidad de los resultados (IR y ER) y fuentes de error</span>
+      <textarea class="trabajo-area" style="min-height:90px;" placeholder="Redacte su tercera conclusión..."></textarea>
+    </div>
+
+    <!-- 09. REFERENCIAS -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">09</span> Referencias</h2>
+      <p style="font-size:.88em; line-height:2.1;">
+        [1] Sears, F. W., Zemansky, M. W. &amp; Young, H. D. <em>University Physics</em>. 14ª ed. Pearson, 2016.<br>
+        [2] Tipler, P. A. &amp; Llewellyn, R. A. <em>Physics for Scientists and Engineers</em>. 6ª ed. W. H. Freeman, 2008.<br>
+        [3] Serway, R. A. &amp; Jewett, J. W. <em>Physics for Scientists and Engineers</em>. 10ª ed. Cengage Learning, 2019.<br>
+        [4] Giancoli, D. C. <em>Physics: Principles with Applications</em>. 7ª ed. Pearson Prentice Hall, 2014.<br>
+        [5] Halliday, D., Resnick, R. &amp; Krane, K. S. <em>Physics</em>. 5ª ed. John Wiley &amp; Sons, 2002.<br>
+        [6] Beer, F. P. &amp; Johnston, E. R. <em>Vector Mechanics for Engineers: Dynamics</em>. 12ª ed. McGraw-Hill, 2019.
+      </p>
+    </div>
+
+    <div class="firma-grid">
+      <div class="firma-slot">Firma del estudiante</div>
+      <div class="firma-slot">Visto bueno del docente</div>
+    </div>
+
+  </div><!-- fin body -->
+</div><!-- fin documento -->
+
+<button class="btn-imprimir" onclick="window.print()">🖨 Imprimir / PDF</button>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+//  TABLAS DINÁMICAS
+// ══════════════════════════════════════════════════════════════
+const N_FILAS = 5;
+
+function buildTablas() {
+  const bodyMRU = document.getElementById('bodyMRU');
+  const bodyMUA = document.getElementById('bodyMUA');
+  for (let i = 1; i <= N_FILAS; i++) {
+    // MRU
+    const trM = document.createElement('tr');
+    trM.innerHTML = `
+      <td class="row-label">M${i}</td>
+      <td class="input-cell"><input type="text" id="mruS1_${i}" placeholder="0.0" oninput="actualizarMRU()"></td>
+      <td class="input-cell"><input type="text" id="mruS2_${i}" placeholder="0.0" oninput="actualizarMRU()"></td>
+      <td class="input-cell"><input type="text" id="mruDx_${i}" placeholder="—" readonly style="color:var(--accent);"></td>
+      <td class="input-cell"><input type="text" id="mruDt_${i}" placeholder="0.000" oninput="actualizarMRU()"></td>
+      <td class="input-cell"><input type="text" id="mruVe_${i}" placeholder="—" readonly style="color:var(--green);font-weight:600;"></td>
+      <td class="input-cell"><input type="text" id="mruDv_${i}" placeholder="—" readonly style="color:var(--ink-muted);"></td>`;
+    bodyMRU.appendChild(trM);
+
+    // MUA
+    const trA = document.createElement('tr');
+    trA.innerHTML = `
+      <td class="row-label">M${i}</td>
+      <td class="input-cell"><input type="text" id="muaS1_${i}" placeholder="0.0" oninput="actualizarMUA()"></td>
+      <td class="input-cell"><input type="text" id="muaS2_${i}" placeholder="0.0" oninput="actualizarMUA()"></td>
+      <td class="input-cell"><input type="text" id="muaDx_${i}" placeholder="—" readonly style="color:var(--accent);"></td>
+      <td class="input-cell"><input type="text" id="muaDt_${i}" placeholder="0.000" oninput="actualizarMUA()"></td>
+      <td class="input-cell"><input type="text" id="muaV0_${i}" placeholder="0.0" oninput="actualizarMUA()"></td>
+      <td class="input-cell"><input type="text" id="muaAe_${i}" placeholder="—" readonly style="color:var(--green);font-weight:600;"></td>
+      <td class="input-cell"><input type="text" id="muaDa_${i}" placeholder="—" readonly style="color:var(--ink-muted);"></td>`;
+    bodyMUA.appendChild(trA);
+  }
+}
+
+function pNum(s) { return parseFloat((s||'').replace(',','.')); }
+function fmt(n, d) { return isNaN(n) ? '—' : n.toFixed(d); }
+
+function getMinDiv() {
+  const v = pNum(document.getElementById('minDiv').value.replace('±','').trim());
+  return isNaN(v) ? 0.1 : Math.abs(v);
+}
+
+// ── ACTUALIZAR TABLA MRU ────────────────────────────────────
+const mruData = [];
+function actualizarMRU() {
+  mruData.length = 0;
+  const dDiv = getMinDiv();
+  for (let i = 1; i <= N_FILAS; i++) {
+    const s1 = pNum(document.getElementById(`mruS1_${i}`).value);
+    const s2 = pNum(document.getElementById(`mruS2_${i}`).value);
+    const dt = pNum(document.getElementById(`mruDt_${i}`).value);
+    if (!isNaN(s1) && !isNaN(s2) && !isNaN(dt) && dt > 0) {
+      const dx = s2 - s1;
+      const v  = dx / dt;
+      // Δv = (|dx|·Δdt + dt·Δs2 + dt·Δs1) / dt² — simplificado: (Δx·Δt_err + 2·dt·dDiv) / dt²
+      const ddt = 0.001; // precisión del cronómetro digital (1 ms)
+      const dv  = (Math.abs(dx) * ddt + dt * dDiv + dt * dDiv) / (dt * dt);
+      document.getElementById(`mruDx_${i}`).value = fmt(dx, 2);
+      document.getElementById(`mruVe_${i}`).value = fmt(v, 3);
+      document.getElementById(`mruDv_${i}`).value = '±' + fmt(dv, 3);
+      mruData.push({ t: dt, x: s2, v, dv });
+    } else {
+      document.getElementById(`mruDx_${i}`).value = '—';
+      document.getElementById(`mruVe_${i}`).value = '—';
+      document.getElementById(`mruDv_${i}`).value = '—';
+    }
+  }
+  dibujarGraficaMRU();
+}
+
+// ── ACTUALIZAR TABLA MUA ────────────────────────────────────
+const muaData = [];
+function actualizarMUA() {
+  muaData.length = 0;
+  const dDiv = getMinDiv();
+  for (let i = 1; i <= N_FILAS; i++) {
+    const s1 = pNum(document.getElementById(`muaS1_${i}`).value);
+    const s2 = pNum(document.getElementById(`muaS2_${i}`).value);
+    const dt = pNum(document.getElementById(`muaDt_${i}`).value);
+    const v0 = pNum(document.getElementById(`muaV0_${i}`).value);
+    if (!isNaN(s1) && !isNaN(s2) && !isNaN(dt) && dt > 0 && !isNaN(v0)) {
+      const dx = s2 - s1;
+      // a = 2(Δx - v0·dt) / dt²
+      const a  = 2 * (dx - v0 * dt) / (dt * dt);
+      const ddt = 0.001;
+      const da  = Math.abs(2 / (dt * dt)) * (dDiv + dDiv) + Math.abs(4 * dx / Math.pow(dt, 3)) * ddt;
+      document.getElementById(`muaDx_${i}`).value = fmt(dx, 2);
+      document.getElementById(`muaAe_${i}`).value = fmt(a, 3);
+      document.getElementById(`muaDa_${i}`).value = '±' + fmt(da, 3);
+      muaData.push({ t: dt, x: s2, a, da, v0 });
+    } else {
+      document.getElementById(`muaDx_${i}`).value = '—';
+      document.getElementById(`muaAe_${i}`).value = '—';
+      document.getElementById(`muaDa_${i}`).value = '—';
+    }
+  }
+  dibujarGraficaMUA();
+  calcEcuacionesMUA();
+}
+
+// ── ECUACIONES MUA AUTO ─────────────────────────────────────
+function calcEcuacionesMUA() {
+  const A = pNum(document.getElementById('muaA').value);
+  const B = pNum(document.getElementById('muaB').value);
+  const C = pNum(document.getElementById('muaC').value);
+  if (!isNaN(A) && !isNaN(B) && !isNaN(C)) {
+    document.getElementById('muaEqX').value = `x(t) = ${fmt(A,3)}t² + ${fmt(B,3)}t + ${fmt(C,3)}  (cm)`;
+    document.getElementById('muaEqV').value = `v(t) = ${fmt(2*A,3)}t + ${fmt(B,3)}  (cm/s)`;
+    document.getElementById('muaEqA').value = `a = ${fmt(2*A,3)}  (cm/s²)`;
+    dibujarVt(2*A, B);
+    dibujarAt(2*A);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  GRÁFICA A — MRU (regresión lineal)
+// ══════════════════════════════════════════════════════════════
+let regMRUon = false;
+let rectaManualMRU = null, draggingMRU = false, dragStartMRU = null;
+
+function toggleRegMRU() {
+  regMRUon = !regMRUon;
+  document.getElementById('btnRegMRU').classList.toggle('activo', regMRUon);
+  dibujarGraficaMRU();
+}
+function limpiarManualMRU() {
+  rectaManualMRU = null;
+  dibujarGraficaMRU();
+}
+
+function dibujarGraficaMRU() {
+  const cv = document.getElementById('graficaMRU');
+  const ctx = cv.getContext('2d');
+  cv.width  = cv.offsetWidth * window.devicePixelRatio || 760;
+  const pts = mruData.filter(d => d.t > 0);
+
+  const PAD = {top:30, right:30, bottom:45, left:60};
+  const W   = cv.width, H = cv.height;
+  const pw  = W - PAD.left - PAD.right;
+  const ph  = H - PAD.top - PAD.bottom;
+
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#fafafa';
+  ctx.fillRect(0, 0, W, H);
+
+  if (pts.length < 2) {
+    ctx.fillStyle = '#bbb';
+    ctx.font = `14px 'Source Serif 4', serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText('Ingrese los datos en la Tabla 1 para ver los puntos aquí', W/2, H/2);
+    return;
+  }
+
+  const xVals = pts.map(d => d.t);
+  const yVals = pts.map(d => d.x);
+  const xMin = Math.min(...xVals) * 0.9;
+  const xMax = Math.max(...xVals) * 1.1;
+  const yMin = Math.min(...yVals) * 0.9;
+  const yMax = Math.max(...yVals) * 1.1;
+
+  function toCanX(x) { return PAD.left + (x - xMin)/(xMax - xMin) * pw; }
+  function toCanY(y) { return PAD.top  + ph - (y - yMin)/(yMax - yMin) * ph; }
+
+  // Cuadrícula
+  ctx.strokeStyle = '#e8e4dc'; ctx.lineWidth = 1;
+  for (let i = 0; i <= 5; i++) {
+    const y = PAD.top + i * ph / 5;
+    ctx.beginPath(); ctx.moveTo(PAD.left, y); ctx.lineTo(PAD.left+pw, y); ctx.stroke();
+    const x = PAD.left + i * pw / 5;
+    ctx.beginPath(); ctx.moveTo(x, PAD.top); ctx.lineTo(x, PAD.top+ph); ctx.stroke();
+  }
+
+  // Ejes
+  ctx.strokeStyle = '#888'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(PAD.left, PAD.top); ctx.lineTo(PAD.left, PAD.top+ph); ctx.lineTo(PAD.left+pw, PAD.top+ph); ctx.stroke();
+
+  // Labels
+  ctx.fillStyle = '#3d3d5c'; ctx.font = `bold 11px 'JetBrains Mono', monospace`; ctx.textAlign = 'center';
+  ctx.fillText('t  (s)', PAD.left + pw/2, H - 4);
+  ctx.save(); ctx.translate(14, PAD.top + ph/2); ctx.rotate(-Math.PI/2);
+  ctx.fillText('x  (cm)', 0, 0); ctx.restore();
+
+  // Ticks
+  ctx.fillStyle = '#888'; ctx.font = `10px 'JetBrains Mono', monospace`;
+  for (let i = 0; i <= 5; i++) {
+    const xv = xMin + i*(xMax-xMin)/5;
+    ctx.textAlign = 'center';
+    ctx.fillText(xv.toFixed(2), toCanX(xv), PAD.top+ph+14);
+    const yv = yMin + i*(yMax-yMin)/5;
+    ctx.textAlign = 'right';
+    ctx.fillText(yv.toFixed(1), PAD.left-4, toCanY(yv)+4);
+  }
+
+  // Regresión lineal
+  if (regMRUon && pts.length >= 2) {
+    const n = pts.length;
+    const sx = xVals.reduce((a,b)=>a+b,0), sy = yVals.reduce((a,b)=>a+b,0);
+    const sxx = xVals.reduce((a,b)=>a+b*b,0), sxy = xVals.reduce((a,v,i)=>a+v*yVals[i],0);
+    const m = (n*sxy - sx*sy)/(n*sxx - sx*sx);
+    const b = (sy - m*sx)/n;
+    const xp = [xMin, xMax];
+    ctx.strokeStyle = '#1a5276'; ctx.lineWidth = 2;
+    ctx.setLineDash([6,3]);
+    ctx.beginPath();
+    xp.forEach((xv,i) => {
+      const cy = toCanY(m*xv + b);
+      i===0 ? ctx.moveTo(toCanX(xv), cy) : ctx.lineTo(toCanX(xv), cy);
+    });
+    ctx.stroke(); ctx.setLineDash([]);
+
+    // R²
+    const yMean = sy/n;
+    const ssTot = yVals.reduce((a,v)=>a+(v-yMean)**2,0);
+    const ssRes = yVals.reduce((a,v,i)=>a+(v - (m*xVals[i]+b))**2,0);
+    const r2 = 1 - ssRes/ssTot;
+
+    const eqStr = `x(t) = ${m.toFixed(3)} t + ${b.toFixed(2)}   |   R² = ${r2.toFixed(4)}`;
+    document.getElementById('eqMRU').textContent = eqStr;
+    document.getElementById('pendienteMRU').textContent = `v = ${m.toFixed(3)} cm/s`;
+    document.getElementById('mruV').value = m.toFixed(3);
+    document.getElementById('mruX0').value = b.toFixed(3);
+    document.getElementById('mruR2').value = r2.toFixed(4);
+  }
+
+  // Puntos
+  const COLORS = ['#1a5276','#c0392b','#1e8449','#b8860b','#6c3483'];
+  pts.forEach((p, i) => {
+    ctx.fillStyle = COLORS[i % COLORS.length];
+    ctx.beginPath(); ctx.arc(toCanX(p.t), toCanY(p.x), 5, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = COLORS[i%COLORS.length]; ctx.font='bold 10px JetBrains Mono,monospace'; ctx.textAlign='left';
+    ctx.fillText('M'+(i+1), toCanX(p.t)+8, toCanY(p.x)-5);
+  });
+
+  // Recta manual
+  if (rectaManualMRU) {
+    ctx.strokeStyle = '#b8860b'; ctx.lineWidth = 1.5;
+    ctx.setLineDash([4,4]);
+    ctx.beginPath();
+    ctx.moveTo(rectaManualMRU.x1, rectaManualMRU.y1);
+    ctx.lineTo(rectaManualMRU.x2, rectaManualMRU.y2);
+    ctx.stroke(); ctx.setLineDash([]);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  GRÁFICA B — MUA (ajuste polinomial grado 2)
+// ══════════════════════════════════════════════════════════════
+let regMUAon = false;
+
+function toggleRegMUA() {
+  regMUAon = !regMUAon;
+  document.getElementById('btnRegMUA').classList.toggle('activo', regMUAon);
+  dibujarGraficaMUA();
+}
+
+function ajustePolinomio2(xs, ys) {
+  // Mínimos cuadrados para y = Ax² + Bx + C
+  const n = xs.length;
+  let s0=n, s1=0, s2=0, s3=0, s4=0, t0=0, t1=0, t2=0;
+  for (let i=0;i<n;i++) {
+    const x=xs[i], y=ys[i];
+    s1+=x; s2+=x*x; s3+=x*x*x; s4+=x*x*x*x;
+    t0+=y; t1+=x*y; t2+=x*x*y;
+  }
+  // Resolver sistema 3x3: [[s0,s1,s2],[s1,s2,s3],[s2,s3,s4]] * [C,B,A] = [t0,t1,t2]
+  const M = [[s0,s1,s2],[s1,s2,s3],[s2,s3,s4]];
+  const T = [t0,t1,t2];
+  // Eliminación gaussiana
+  for (let c=0;c<3;c++) {
+    let maxR=c;
+    for (let r=c+1;r<3;r++) if (Math.abs(M[r][c])>Math.abs(M[maxR][c])) maxR=r;
+    [M[c],M[maxR]]=[M[maxR],M[c]]; [T[c],T[maxR]]=[T[maxR],T[c]];
+    for (let r=c+1;r<3;r++) {
+      const f=M[r][c]/M[c][c];
+      for (let k=c;k<3;k++) M[r][k]-=f*M[c][k];
+      T[r]-=f*T[c];
+    }
+  }
+  const sol=[0,0,0];
+  for (let r=2;r>=0;r--) {
+    sol[r]=T[r];
+    for (let k=r+1;k<3;k++) sol[r]-=M[r][k]*sol[k];
+    sol[r]/=M[r][r];
+  }
+  return { C:sol[0], B:sol[1], A:sol[2] }; // y = A·x² + B·x + C
+}
+
+function dibujarGraficaMUA() {
+  const cv  = document.getElementById('graficaMUA');
+  const ctx = cv.getContext('2d');
+  cv.width  = cv.offsetWidth * window.devicePixelRatio || 760;
+  const pts = muaData.filter(d => d.t > 0);
+
+  const PAD = {top:30, right:30, bottom:45, left:60};
+  const W=cv.width, H=cv.height, pw=W-PAD.left-PAD.right, ph=H-PAD.top-PAD.bottom;
+
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#fafafa'; ctx.fillRect(0,0,W,H);
+
+  if (pts.length < 3) {
+    ctx.fillStyle='#bbb'; ctx.font=`14px 'Source Serif 4', serif`; ctx.textAlign='center';
+    ctx.fillText('Ingrese los datos en la Tabla 2 para ver los puntos aquí', W/2, H/2);
+    return;
+  }
+
+  const xVals=pts.map(d=>d.t), yVals=pts.map(d=>d.x);
+  const xMin=Math.min(...xVals)*0.9, xMax=Math.max(...xVals)*1.1;
+  const yMin=Math.min(...yVals)*0.9, yMax=Math.max(...yVals)*1.1;
+
+  function toCanX(x){return PAD.left+(x-xMin)/(xMax-xMin)*pw;}
+  function toCanY(y){return PAD.top+ph-(y-yMin)/(yMax-yMin)*ph;}
+
+  // Cuadrícula
+  ctx.strokeStyle='#e8e4dc'; ctx.lineWidth=1;
+  for(let i=0;i<=5;i++){
+    const y=PAD.top+i*ph/5; ctx.beginPath(); ctx.moveTo(PAD.left,y); ctx.lineTo(PAD.left+pw,y); ctx.stroke();
+    const x=PAD.left+i*pw/5; ctx.beginPath(); ctx.moveTo(x,PAD.top); ctx.lineTo(x,PAD.top+ph); ctx.stroke();
+  }
+  ctx.strokeStyle='#888'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(PAD.left,PAD.top); ctx.lineTo(PAD.left,PAD.top+ph); ctx.lineTo(PAD.left+pw,PAD.top+ph); ctx.stroke();
+
+  ctx.fillStyle='#3d3d5c'; ctx.font=`bold 11px 'JetBrains Mono', monospace`; ctx.textAlign='center';
+  ctx.fillText('t  (s)', PAD.left+pw/2, H-4);
+  ctx.save(); ctx.translate(14,PAD.top+ph/2); ctx.rotate(-Math.PI/2); ctx.fillText('x  (cm)',0,0); ctx.restore();
+  ctx.fillStyle='#888'; ctx.font=`10px 'JetBrains Mono', monospace`;
+  for(let i=0;i<=5;i++){
+    const xv=xMin+i*(xMax-xMin)/5; ctx.textAlign='center'; ctx.fillText(xv.toFixed(2),toCanX(xv),PAD.top+ph+14);
+    const yv=yMin+i*(yMax-yMin)/5; ctx.textAlign='right'; ctx.fillText(yv.toFixed(1),PAD.left-4,toCanY(yv)+4);
+  }
+
+  // Ajuste parabólico
+  if (regMUAon && pts.length >= 3) {
+    const coef = ajustePolinomio2(xVals, yVals);
+    const steps = 80;
+    ctx.strokeStyle='#1a5276'; ctx.lineWidth=2.5; ctx.setLineDash([]);
+    ctx.beginPath();
+    for(let i=0;i<=steps;i++){
+      const xv=xMin+i*(xMax-xMin)/steps;
+      const yv=coef.A*xv*xv + coef.B*xv + coef.C;
+      i===0 ? ctx.moveTo(toCanX(xv),toCanY(yv)) : ctx.lineTo(toCanX(xv),toCanY(yv));
+    }
+    ctx.stroke();
+
+    // R²
+    const yMean=yVals.reduce((a,b)=>a+b,0)/pts.length;
+    const ssTot=yVals.reduce((a,v)=>a+(v-yMean)**2,0);
+    const ssRes=yVals.reduce((a,v,i)=>a+(v-(coef.A*xVals[i]**2+coef.B*xVals[i]+coef.C))**2,0);
+    const r2=1-ssRes/ssTot;
+
+    const eqStr=`x(t) = ${coef.A.toFixed(3)}t² + ${coef.B.toFixed(3)}t + ${coef.C.toFixed(2)}   |   R² = ${r2.toFixed(4)}`;
+    document.getElementById('eqMUA').textContent=eqStr;
+    document.getElementById('pendienteMUA').textContent=`a = ${(2*coef.A).toFixed(3)} cm/s²`;
+    document.getElementById('muaA').value=coef.A.toFixed(4);
+    document.getElementById('muaB').value=coef.B.toFixed(4);
+    document.getElementById('muaC').value=coef.C.toFixed(4);
+    document.getElementById('muaR2').value=r2.toFixed(4);
+    calcEcuacionesMUA();
+  }
+
+  // Puntos
+  const COLORS=['#1a5276','#c0392b','#1e8449','#b8860b','#6c3483'];
+  pts.forEach((p,i)=>{
+    ctx.fillStyle=COLORS[i%COLORS.length];
+    ctx.beginPath(); ctx.arc(toCanX(p.t),toCanY(p.x),5,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle=COLORS[i%COLORS.length]; ctx.font='bold 10px JetBrains Mono,monospace'; ctx.textAlign='left';
+    ctx.fillText('M'+(i+1),toCanX(p.t)+8,toCanY(p.x)-5);
+  });
+}
+
+// ══════════════════════════════════════════════════════════════
+//  GRÁFICAS v(t) y a(t) — MUA
+// ══════════════════════════════════════════════════════════════
+function dibujarVt(a, v0) {
+  const cv = document.getElementById('graficaVt');
+  const ctx = cv.getContext('2d');
+  cv.width = cv.offsetWidth * window.devicePixelRatio || 360;
+  const W=cv.width, H=cv.height;
+  const PAD={top:20,right:20,bottom:35,left:55};
+  const pw=W-PAD.left-PAD.right, ph=H-PAD.top-PAD.bottom;
+  ctx.clearRect(0,0,W,H); ctx.fillStyle='#fafafa'; ctx.fillRect(0,0,W,H);
+
+  const tMax = muaData.length > 0 ? Math.max(...muaData.map(d=>d.t))*1.1 : 2;
+  const vMin = v0, vMax = v0 + a * tMax;
+  const yMin=Math.min(vMin,vMax)*0.9, yMax=Math.max(vMin,vMax)*1.1;
+  function cx(t){return PAD.left+(t/tMax)*pw;}
+  function cy(v){return PAD.top+ph-(v-yMin)/(yMax-yMin)*ph;}
+
+  ctx.strokeStyle='#e8e4dc'; ctx.lineWidth=1;
+  for(let i=0;i<=4;i++){const y=PAD.top+i*ph/4;ctx.beginPath();ctx.moveTo(PAD.left,y);ctx.lineTo(PAD.left+pw,y);ctx.stroke();}
+  ctx.strokeStyle='#888'; ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(PAD.left,PAD.top);ctx.lineTo(PAD.left,PAD.top+ph);ctx.lineTo(PAD.left+pw,PAD.top+ph);ctx.stroke();
+
+  ctx.fillStyle='#3d3d5c'; ctx.font=`bold 10px 'JetBrains Mono',monospace`; ctx.textAlign='center';
+  ctx.fillText('t (s)',PAD.left+pw/2,H-3);
+  ctx.save();ctx.translate(12,PAD.top+ph/2);ctx.rotate(-Math.PI/2);ctx.fillText('v (cm/s)',0,0);ctx.restore();
+  ctx.fillStyle='#888'; ctx.font=`9px 'JetBrains Mono',monospace`;
+  for(let i=0;i<=4;i++){
+    const tv=tMax*i/4; ctx.textAlign='center'; ctx.fillText(tv.toFixed(2),cx(tv),PAD.top+ph+12);
+    const vv=yMin+i*(yMax-yMin)/4; ctx.textAlign='right'; ctx.fillText(vv.toFixed(1),PAD.left-3,cy(vv)+3);
+  }
+
+  ctx.strokeStyle='#c0392b'; ctx.lineWidth=2.5;
+  ctx.beginPath(); ctx.moveTo(cx(0),cy(v0)); ctx.lineTo(cx(tMax),cy(v0+a*tMax)); ctx.stroke();
+  ctx.fillStyle='#c0392b'; ctx.font=`bold 10px JetBrains Mono,monospace`; ctx.textAlign='right';
+  ctx.fillText(`v(t)=${fmt(a,2)}t+${fmt(v0,2)}`,PAD.left+pw-4,PAD.top+14);
+}
+
+function dibujarAt(a) {
+  const cv = document.getElementById('graficaAt');
+  const ctx = cv.getContext('2d');
+  cv.width = cv.offsetWidth * window.devicePixelRatio || 360;
+  const W=cv.width, H=cv.height;
+  const PAD={top:20,right:20,bottom:35,left:55};
+  const pw=W-PAD.left-PAD.right, ph=H-PAD.top-PAD.bottom;
+  ctx.clearRect(0,0,W,H); ctx.fillStyle='#fafafa'; ctx.fillRect(0,0,W,H);
+
+  const tMax = muaData.length > 0 ? Math.max(...muaData.map(d=>d.t))*1.1 : 2;
+  const yMin=0, yMax=Math.abs(a)*1.5 || 1;
+  function cx(t){return PAD.left+(t/tMax)*pw;}
+  function cy(v){return PAD.top+ph-(v-yMin)/(yMax-yMin)*ph;}
+
+  ctx.strokeStyle='#e8e4dc'; ctx.lineWidth=1;
+  for(let i=0;i<=4;i++){const y=PAD.top+i*ph/4;ctx.beginPath();ctx.moveTo(PAD.left,y);ctx.lineTo(PAD.left+pw,y);ctx.stroke();}
+  ctx.strokeStyle='#888'; ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(PAD.left,PAD.top);ctx.lineTo(PAD.left,PAD.top+ph);ctx.lineTo(PAD.left+pw,PAD.top+ph);ctx.stroke();
+
+  ctx.fillStyle='#3d3d5c'; ctx.font=`bold 10px 'JetBrains Mono',monospace`; ctx.textAlign='center';
+  ctx.fillText('t (s)',PAD.left+pw/2,H-3);
+  ctx.save();ctx.translate(12,PAD.top+ph/2);ctx.rotate(-Math.PI/2);ctx.fillText('a (cm/s²)',0,0);ctx.restore();
+  ctx.fillStyle='#888'; ctx.font=`9px 'JetBrains Mono',monospace`;
+  for(let i=0;i<=4;i++){
+    const tv=tMax*i/4; ctx.textAlign='center'; ctx.fillText(tv.toFixed(2),cx(tv),PAD.top+ph+12);
+    const av=yMin+i*(yMax-yMin)/4; ctx.textAlign='right'; ctx.fillText(av.toFixed(1),PAD.left-3,cy(av)+3);
+  }
+
+  ctx.strokeStyle='#1e8449'; ctx.lineWidth=2.5;
+  ctx.setLineDash([8,4]);
+  ctx.beginPath(); ctx.moveTo(cx(0),cy(Math.abs(a))); ctx.lineTo(cx(tMax),cy(Math.abs(a))); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='#1e8449'; ctx.font=`bold 10px JetBrains Mono,monospace`; ctx.textAlign='right';
+  ctx.fillText(`a = ${fmt(a,2)} cm/s² (cte.)`,PAD.left+pw-4,PAD.top+14);
+}
+
+// ══════════════════════════════════════════════════════════════
+//  ADJUNTOS / IMÁGENES
+// ══════════════════════════════════════════════════════════════
+function previsualizarImagen(input, previewId) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = document.getElementById(previewId);
+    if (img) { img.src = e.target.result; img.style.display = 'block'; }
+  };
+  reader.readAsDataURL(file);
+}
+
+// ══════════════════════════════════════════════════════════════
+//  RECTA MANUAL MRU (mouse)
+// ══════════════════════════════════════════════════════════════
+(function setupManualMRU() {
+  const cv = document.getElementById('graficaMRU');
+  cv.addEventListener('mousedown', e => {
+    if (document.getElementById('btnRegMRU').classList.contains('activo')) return;
+    const r = cv.getBoundingClientRect();
+    draggingMRU = true;
+    dragStartMRU = { x: (e.clientX-r.left)*(cv.width/r.width), y: (e.clientY-r.top)*(cv.height/r.height) };
+  });
+  window.addEventListener('mousemove', e => {
+    if (!draggingMRU) return;
+    const r = cv.getBoundingClientRect();
+    rectaManualMRU = {
+      x1: dragStartMRU.x, y1: dragStartMRU.y,
+      x2: (e.clientX-r.left)*(cv.width/r.width), y2: (e.clientY-r.top)*(cv.height/r.height)
+    };
+    dibujarGraficaMRU();
+  });
+  window.addEventListener('mouseup', () => { draggingMRU = false; });
+})();
+
+// ══════════════════════════════════════════════════════════════
+//  INICIALIZACIÓN
+// ══════════════════════════════════════════════════════════════
+window.addEventListener('load', () => {
+  buildTablas();
+  dibujarGraficaMRU();
+  dibujarGraficaMUA();
+
+  // Código de práctica
+  const now = new Date();
+  const sem = now.getMonth() < 6 ? '1' : '2';
+  document.getElementById('codigoPractica').textContent = `PRÁCTICA FIS-MRU-01 · ${now.getFullYear()}-${sem}`;
+  document.querySelectorAll('input[type="date"]').forEach(i => i.value = now.toISOString().split('T')[0]);
+});
+
+window.addEventListener('resize', () => {
+  dibujarGraficaMRU();
+  dibujarGraficaMUA();
+});
+</script>
+</body>
+</html>

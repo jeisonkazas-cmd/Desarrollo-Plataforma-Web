@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>Masa-Resorte — Laboratorio de Física III Virtual</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --amarillo: #FFD100;
+            --primario: #6c3483;
+            --primario-claro: #9b59b6;
+            --primario-oscuro: #3b1a5e;
+            --color2: #1a5276;
+            --color2-oscuro: #0d2b45;
+            --gris-fondo: #f4f6fb;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Source Sans 3', sans-serif; background: var(--gris-fondo); color: #1a1a2e; }
+
+        .line li { width: auto; height: 50px; transition: background-position-x 0.9s linear; }
+        .line li a { text-decoration: none; transition: all 0.5s; }
+        .line li:hover { background: url("data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIGlkPSJMYXllcl8xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4PSIwcHgiIHk9IjBweCIgd2lkdGg9IjM5MHB4IiBoZWlnaHQ9IjUwcHgiIHZpZXdCb3g9IjAgMCAzOTAgNTAiIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgMCAwIDM5MCA1MCIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+PHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSIjRkZGRjAwIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLW1pdGVybGltaXQ9IjEwIiBkPSJNMCw0Ny41ODVjMCwwLDk3LjUsMCwxMzAsMCAxMy43NSwwLDI4Ljc0LTM4Ljc3OCw0Ni4xNjgtMTkuNDE2QzE5Mi42NjksNDYuNSwyNDMuNjAzLDQ3LjU4NSwyNjAsNDcuNTg1YzMxLjgyMSwwLDEzMCwwLDEzMCwwIi8+PC9zdmc+"); animation: line 0.90s forwards; }
+        .line li:hover a { color: rgb(1,1,20); }
+        .line li:not(:last-child) { margin-right: 30px; }
+        @keyframes line { 0% { background-position-x: 600px; } 100% { background-position-x: 130px; } }
+
+        .breadcrumb-bar { background: white; padding: 12px 16px; border-bottom: 1px solid #e8edf5; }
+        .breadcrumb-bar a { color: #093f7c; text-decoration: none; font-size: 0.85rem; }
+        .breadcrumb-bar span.sep { color: #aaa; margin: 0 6px; }
+        .breadcrumb-current { color: #555; font-size: 0.85rem; font-weight: 600; }
+
+        .hero {
+            background: linear-gradient(135deg, var(--primario-oscuro) 0%, var(--primario) 55%, var(--primario-claro) 100%);
+            padding: 28px 20px 36px; color: white; position: relative; overflow: hidden;
+        }
+        .hero::before {
+            content: ''; position: absolute; top: -50px; right: -50px; width: 260px; height: 260px;
+            background: radial-gradient(circle, rgba(255,209,0,0.14) 0%, transparent 70%); border-radius: 50%;
+        }
+        .hero-badge {
+            display: inline-block; background: var(--amarillo); color: var(--primario-oscuro);
+            font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 0.72rem;
+            letter-spacing: 2.5px; text-transform: uppercase; padding: 3px 14px; border-radius: 30px; margin-bottom: 10px;
+        }
+        .hero h1 { font-family: 'Rajdhani', sans-serif; font-size: clamp(1.7rem, 5vw, 2.6rem); font-weight: 700; line-height: 1.1; }
+        .hero h1 span { color: var(--amarillo); }
+        .hero p { font-size: 0.9rem; color: rgba(255,255,255,0.75); margin-top: 8px; line-height: 1.6; }
+
+        .pasos-bar {
+            background: white; padding: 14px 20px; border-bottom: 2px solid #eef1f8;
+            display: flex; align-items: center; position: sticky; top: 0; z-index: 100;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+        .paso { display: flex; align-items: center; gap: 8px; flex: 1; position: relative; }
+        .paso:not(:last-child)::after {
+            content: ''; position: absolute; left: 40px; right: 0; top: 50%;
+            height: 3px; background: #dee3ef; transform: translateY(-50%); z-index: 0; transition: background 0.5s;
+        }
+        .paso.completo:not(:last-child)::after { background: var(--primario); }
+        .paso-circulo {
+            width: 34px; height: 34px; border-radius: 50%; background: #dee3ef; color: #aaa;
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 0.95rem;
+            flex-shrink: 0; z-index: 1; transition: all 0.4s;
+        }
+        .paso.activo .paso-circulo { background: var(--primario); color: white; box-shadow: 0 0 0 4px rgba(0,0,0,0.1); }
+        .paso.completo .paso-circulo { background: var(--primario); color: white; }
+        .paso-etiqueta { font-size: 0.58rem; text-transform: uppercase; letter-spacing: 1px; color: #aaa; font-weight: 600; display: block; }
+        .paso-nombre { font-size: 0.76rem; font-weight: 700; color: #bbb; display: block; }
+        .paso.activo .paso-etiqueta, .paso.completo .paso-etiqueta { color: var(--primario-claro); }
+        .paso.activo .paso-nombre, .paso.completo .paso-nombre { color: #1a1a2e; }
+
+        .pantalla { display: none; }
+        .pantalla.activa { display: block; }
+
+        /* REGISTRO */
+        .pantalla-registro-wrap { padding: 24px 16px 40px; max-width: 600px; margin: 0 auto; }
+        .registro-intro { text-align: center; margin-bottom: 24px; }
+        .registro-intro .icono-reg { font-size: 2.6rem; display: block; margin-bottom: 10px; }
+        .registro-intro h2 { font-family: 'Rajdhani', sans-serif; font-size: 1.5rem; font-weight: 700; color: var(--primario); }
+        .registro-intro p { font-size: 0.9rem; color: #666; margin-top: 6px; line-height: 1.5; }
+        .campo-reg { margin-bottom: 18px; }
+        .campo-reg label { display: block; font-weight: 600; font-size: 0.88rem; color: var(--primario-oscuro); margin-bottom: 6px; }
+        .campo-reg input, .campo-reg select {
+            width: 100%; padding: 13px 16px; border: 2px solid #e0e8f0; border-radius: 10px;
+            font-size: 0.95rem; font-family: 'Source Sans 3', sans-serif; background: white;
+            transition: border-color 0.2s; outline: none;
+        }
+        .campo-reg input:focus, .campo-reg select:focus { border-color: var(--primario-claro); }
+        .campo-reg input.error, .campo-reg select.error { border-color: #e74c3c; }
+        .campo-reg .campo-hint { font-size: 0.78rem; color: #999; margin-top: 4px; }
+        .badge-intento {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: var(--amarillo); color: var(--primario-oscuro);
+            font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 0.78rem;
+            letter-spacing: 1.5px; text-transform: uppercase; padding: 4px 14px; border-radius: 20px; margin-bottom: 14px;
+        }
+        .badge-intento.segundo { background: #fde8d8; color: var(--color2-oscuro); }
+
+        /* QUIZ */
+        .pantalla-quiz-wrap { padding: 20px 16px 40px; max-width: 700px; margin: 0 auto; }
+        .tarjeta { background: white; border-radius: 16px; box-shadow: 0 4px 24px rgba(9,63,124,0.08); overflow: hidden; margin-bottom: 20px; }
+        .tarjeta-header { padding: 18px 20px; display: flex; align-items: center; gap: 14px; color: white; }
+        .tarjeta-header.color-principal { background: linear-gradient(90deg, var(--primario-oscuro), var(--primario-claro)); }
+        .tarjeta-icono { font-size: 1.6rem; }
+        .tarjeta-header h2 { font-family: 'Rajdhani', sans-serif; font-size: 1.25rem; font-weight: 700; margin: 0; }
+        .tarjeta-header p { font-size: 0.8rem; color: rgba(255,255,255,0.72); margin: 2px 0 0; }
+        .tarjeta-cuerpo { padding: 22px 18px; }
+
+        .pregunta { margin-bottom: 26px; padding-bottom: 22px; border-bottom: 1px dashed #e0e8f0; }
+        .pregunta:last-of-type { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .pregunta-texto { font-weight: 600; font-size: 0.95rem; color: var(--primario-oscuro); margin-bottom: 14px; line-height: 1.6; }
+        .pregunta-num {
+            display: inline-flex; align-items: center; justify-content: center;
+            background: var(--primario); color: white; font-family: 'Rajdhani', sans-serif; font-weight: 700;
+            width: 24px; height: 24px; border-radius: 50%; font-size: 0.8rem; margin-right: 8px; flex-shrink: 0;
+        }
+        .opcion {
+            display: flex; align-items: center; gap: 12px; padding: 13px 16px; border-radius: 10px;
+            border: 2px solid #e8edf5; margin-bottom: 8px; cursor: pointer; transition: all 0.2s;
+            font-size: 0.93rem; background: var(--gris-fondo); user-select: none; min-height: 50px;
+        }
+        .opcion:hover { border-color: var(--primario-claro); background: rgba(0,0,0,0.03); }
+        .opcion input[type="radio"] { accent-color: var(--primario); width: 20px; height: 20px; flex-shrink: 0; cursor: pointer; }
+        .opcion.correcta      { border-color: var(--primario-claro); background: rgba(0,0,0,0.04); color: var(--primario-oscuro); font-weight: 600; }
+        .opcion.incorrecta    { border-color: #e74c3c; background: rgba(231,76,60,0.07); }
+        .opcion.resp-correcta { border-color: var(--primario-claro); background: rgba(0,0,0,0.07); font-weight: 700; }
+        .opcion.bloqueada     { pointer-events: none; }
+        .feedback { display: none; margin-top: 10px; padding: 9px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; }
+        .feedback.ok  { background: rgba(0,0,0,0.05); color: var(--primario-oscuro); display: block; }
+        .feedback.mal { background: rgba(231,76,60,0.1); color: #a93226; display: block; }
+
+        .resultado-quiz { display: none; text-align: center; padding: 26px 16px; border-radius: 14px; margin-top: 22px; }
+        @keyframes aparecer { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+        .resultado-quiz { animation: aparecer 0.5s ease; }
+        .resultado-quiz.aprobado  { background: rgba(0,0,0,0.04); border: 2px solid rgba(0,0,0,0.15); }
+        .resultado-quiz.reprobado { background: rgba(231,76,60,0.07); border: 2px solid rgba(231,76,60,0.25); }
+        .puntaje-grande { font-family: 'Rajdhani', sans-serif; font-size: 3.5rem; font-weight: 700; line-height: 1; }
+        .resultado-quiz.aprobado  .puntaje-grande { color: var(--primario); }
+        .resultado-quiz.reprobado .puntaje-grande { color: #e74c3c; }
+        .resultado-quiz .msg { font-size: 1rem; margin-top: 10px; color: #444; }
+        .resultado-quiz .sub { font-size: 0.85rem; color: #888; margin-top: 6px; }
+        .nota-display { font-size: 0.92rem; margin-top: 10px; font-weight: 600; color: #555; }
+
+        .btn-calificar {
+            background: var(--primario); color: white; border: none; padding: 15px 36px; border-radius: 12px;
+            font-weight: 700; font-size: 1rem; cursor: pointer; transition: background 0.3s;
+            display: block; width: 100%; margin-top: 28px; font-family: 'Rajdhani', sans-serif;
+            letter-spacing: 1px; min-height: 52px;
+        }
+        .btn-calificar:hover { background: var(--primario-claro); }
+        .btn-continuar {
+            background: var(--primario-claro); color: white; border: none; padding: 15px 36px; border-radius: 12px;
+            font-weight: 700; font-size: 1rem; cursor: pointer; transition: all 0.3s;
+            display: block; width: 100%; margin-top: 14px; font-family: 'Rajdhani', sans-serif;
+            letter-spacing: 1px; min-height: 52px;
+        }
+        .btn-continuar:hover { background: var(--primario-oscuro); transform: translateY(-1px); }
+        .btn-reintentar {
+            background: #e74c3c; color: white; border: none; padding: 13px 28px; border-radius: 10px;
+            font-weight: 700; font-size: 0.95rem; cursor: pointer; margin-top: 12px;
+            font-family: 'Rajdhani', sans-serif; min-height: 48px; width: 100%;
+        }
+        .btn-reintentar:hover { background: #c0392b; }
+
+        /* SELECTOR */
+        .pantalla-selector-wrap { padding: 28px 16px 40px; max-width: 700px; margin: 0 auto; }
+        .selector-titulo { text-align: center; margin-bottom: 28px; }
+        .selector-titulo .icono-ok { font-size: 3rem; display: block; margin-bottom: 8px; }
+        .selector-titulo h2 { font-family: 'Rajdhani', sans-serif; font-size: 1.6rem; font-weight: 700; color: var(--primario); }
+        .selector-titulo p { font-size: 0.92rem; color: #666; margin-top: 6px; }
+        .selector-nota { background: rgba(0,0,0,0.04); border: 2px solid rgba(0,0,0,0.12); border-radius: 12px; padding: 14px 18px; margin-bottom: 24px; text-align: center; }
+        .selector-nota .nota-label { font-size: 0.8rem; color: var(--primario); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+        .selector-nota .nota-val { font-family: 'Rajdhani', sans-serif; font-size: 2.2rem; font-weight: 700; color: var(--primario); line-height: 1.2; }
+
+        .btn-seccion {
+            display: flex; align-items: center; gap: 18px; width: 100%; padding: 22px;
+            border-radius: 16px; border: none; cursor: pointer; text-align: left; margin-bottom: 16px;
+            transition: transform 0.15s, box-shadow 0.15s; color: white;
+            font-family: 'Source Sans 3', sans-serif; box-shadow: 0 4px 20px rgba(0,0,0,0.15); min-height: 90px;
+        }
+        .btn-seccion:active { transform: scale(0.98); }
+        .btn-seccion:hover  { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,0,0,0.22); }
+        .btn-seccion.btn-guia      { background: linear-gradient(135deg, var(--primario-oscuro), var(--primario-claro)); }
+        .btn-seccion.btn-simulador { background: linear-gradient(135deg, var(--color2-oscuro), var(--color2)); }
+        .btn-seccion .btn-icono  { font-size: 2.4rem; flex-shrink: 0; }
+        .btn-seccion .btn-info   { flex: 1; }
+        .btn-seccion .btn-titulo { font-family: 'Rajdhani', sans-serif; font-size: 1.3rem; font-weight: 700; display: block; line-height: 1.2; }
+        .btn-seccion .btn-desc   { font-size: 0.82rem; color: rgba(255,255,255,0.75); display: block; margin-top: 3px; }
+        .btn-seccion .btn-flecha { font-size: 1.6rem; opacity: 0.7; flex-shrink: 0; }
+
+        /* OVERLAY CONTENIDO */
+        .pantalla-contenido {
+            display: none; position: fixed; inset: 0; z-index: 9999; flex-direction: column; background: white;
+        }
+        .pantalla-contenido.activa { display: flex; }
+        .contenido-header { display: flex; align-items: center; gap: 14px; padding: 12px 16px; color: white; flex-shrink: 0; }
+        .contenido-header.header-guia      { background: linear-gradient(90deg, var(--primario-oscuro), var(--primario-claro)); }
+        .contenido-header.header-simulador { background: linear-gradient(90deg, var(--color2-oscuro), var(--color2)); }
+        .btn-volver {
+            background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.3); color: white;
+            width: 42px; height: 42px; border-radius: 10px; font-size: 1.3rem; cursor: pointer;
+            flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+            transition: background 0.2s; font-weight: 700;
+        }
+        .btn-volver:hover { background: rgba(255,255,255,0.35); }
+        .contenido-header-info { flex: 1; min-width: 0; }
+        .contenido-header-info h3 { font-family: 'Rajdhani', sans-serif; font-size: 1.1rem; font-weight: 700; margin: 0; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .contenido-header-info p  { font-size: 0.72rem; color: rgba(255,255,255,0.72); margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .contenido-iframe { flex: 1; width: 100%; border: none; display: block; }
+
+        /* LOADING */
+        .enviando-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:9999; align-items:center; justify-content:center; flex-direction:column; gap:14px; }
+        .enviando-overlay.activo { display:flex; }
+        .enviando-overlay p { color:white; font-weight:600; font-size:1rem; }
+        .spinner { width:44px; height:44px; border:5px solid rgba(255,255,255,0.3); border-top-color:white; border-radius:50%; animation:spin 0.8s linear infinite; }
+        @keyframes spin { to { transform:rotate(360deg); } }
+
+        footer { background: #0a0a0a; color: #8899bb; text-align: center; padding: 24px 16px; font-size: 0.82rem; }
+        footer strong { color: white; }
+
+        @media (max-width: 768px) {
+            .navbar-brand img { width: 90px !important; height: 38px !important; }
+            .line li:not(:last-child) { margin-right: 0 !important; }
+            .pasos-bar { padding: 10px 12px; gap: 4px; }
+            .paso-etiqueta { display: none !important; }
+            .paso-nombre { font-size: 0.7rem !important; }
+            .paso-circulo { width: 28px; height: 28px; font-size: 0.82rem; }
+            .paso:not(:last-child)::after { left: 32px; }
+            .pantalla-quiz-wrap, .pantalla-selector-wrap, .pantalla-registro-wrap { padding: 14px 10px 30px; }
+            .tarjeta-header { padding: 14px 14px; gap: 10px; }
+            .tarjeta-header h2 { font-size: 1.05rem !important; }
+            .tarjeta-icono { font-size: 1.3rem !important; }
+            .tarjeta-cuerpo { padding: 16px 12px; }
+            .pregunta { margin-bottom: 20px; padding-bottom: 18px; }
+            .pregunta-texto { font-size: 0.9rem !important; }
+            .opcion { padding: 10px 12px; font-size: 0.88rem; min-height: 44px; gap: 10px; }
+            .btn-calificar, .btn-continuar { padding: 13px 20px; font-size: 0.92rem; }
+            .btn-reintentar { padding: 11px 20px; font-size: 0.88rem; }
+            .btn-seccion { padding: 16px 14px; min-height: 80px; gap: 12px; }
+            .btn-seccion .btn-titulo { font-size: 1.1rem !important; }
+            .selector-titulo h2 { font-size: 1.35rem !important; }
+            .contenido-header { padding: 10px 12px; gap: 10px; }
+            .contenido-header-info h3 { font-size: 0.95rem !important; }
+        }
+        @media (max-width: 480px) {
+            .pasos-bar { padding: 8px 10px; }
+            .paso-nombre { font-size: 0.65rem !important; }
+            .paso-circulo { width: 26px; height: 26px; font-size: 0.78rem; }
+            .tarjeta-header h2 { font-size: 0.95rem !important; }
+            .opcion { padding: 9px 10px; font-size: 0.84rem; }
+            .puntaje-grande { font-size: 2.4rem !important; }
+            .btn-seccion .btn-icono { font-size: 1.8rem !important; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="enviando-overlay" id="overlay-enviando">
+    <div class="spinner"></div>
+    <p>Enviando resultados...</p>
+</div>
+
+<nav class="navbar navbar-expand-lg" style="background-color:rgb(9,63,124);">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="../laboratorio_fisica_virtual_3.html">
+            <img src="../resources/logo_camacho.png" alt="Logo" width="120" height="50">
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse line" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" style="color:white;">Laboratorios de Física Presencial</a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="../laboratorio_fisica_presencial_1.html">Laboratorio de Física I Presencial</a></li>
+                        <li><a class="dropdown-item" href="../laboratorio_fisica_presencial_2.html">Laboratorio de Física II Presencial</a></li>
+                        <li><a class="dropdown-item" href="../laboratorio_fisica_presencial_3.html">Laboratorio de Física III Presencial</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" style="color:white;">Laboratorios de Física Virtual</a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="../laboratorio_fisica_virtual_1.html">Laboratorio de Física I Virtual</a></li>
+                        <li><a class="dropdown-item" href="../laboratorio_fisica_virtual_2.html">Laboratorio de Física II Virtual</a></li>
+                        <li><a class="dropdown-item fw-bold" href="../laboratorio_fisica_virtual_3.html">Laboratorio de Física III Virtual</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" style="color:white;">Laboratorios de Física Remotos</a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="../laboratorio_fisica_remoto_1.html">Laboratorio de Física I Remoto</a></li>
+                        <li><a class="dropdown-item" href="../laboratorio_fisica_remoto_2.html">Laboratorio de Física II Remoto</a></li>
+                        <li><a class="dropdown-item" href="../laboratorio_fisica_remoto_3.html">Laboratorio de Física III Remoto</a></li>
+                    </ul>
+                </li>
+            </ul>
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link" href="#" style="color:white;">Iniciar Sesión
+                        <img src="../resources/is3.png" alt="Iniciar Sesión" width="30" height="24">
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div id="zona-principal">
+    <div class="breadcrumb-bar">
+        <a href="../index.html">🏠 Inicio</a>
+        <span class="sep">›</span>
+        <a href="../laboratorio_fisica_virtual_3.html">Lab. Física III Virtual</a>
+        <span class="sep">›</span>
+        <span class="breadcrumb-current">🌀 Movimiento Masa-Resorte</span>
+    </div>
+
+    <div class="hero">
+        <div class="hero-badge">Práctica 02 — Física III Virtual</div>
+        <h1>Oscilador<br><span>Masa-Resorte (MAS)</span></h1>
+        <p>Completa el quiz para desbloquear la guía y el simulador interactivo.</p>
+    </div>
+
+    <div class="pasos-bar">
+        <div class="paso activo" id="paso1">
+            <div class="paso-circulo" id="circulo1">1</div>
+            <div><span class="paso-etiqueta">Paso 1</span><span class="paso-nombre">📝 Quiz</span></div>
+        </div>
+        <div class="paso" id="paso2">
+            <div class="paso-circulo" id="circulo2">2</div>
+            <div><span class="paso-etiqueta">Paso 2</span><span class="paso-nombre">📄 Guía</span></div>
+        </div>
+        <div class="paso" id="paso3">
+            <div class="paso-circulo" id="circulo3">3</div>
+            <div><span class="paso-etiqueta">Paso 3</span><span class="paso-nombre">🖥️ Simulador</span></div>
+        </div>
+    </div>
+
+    <!-- PANTALLA REGISTRO -->
+    <div class="pantalla activa" id="pantalla-registro">
+        <div class="pantalla-registro-wrap">
+            <div class="tarjeta">
+                <div class="tarjeta-header color-principal">
+                    <span class="tarjeta-icono">👤</span>
+                    <div>
+                        <h2>Identificación del Estudiante</h2>
+                        <p>Ingresa tus datos para comenzar el quiz de conocimientos previos.</p>
+                    </div>
+                </div>
+                <div class="tarjeta-cuerpo">
+                    <div class="registro-intro">
+                        <span class="icono-reg">🌀</span>
+                        <h2>Quiz — Masa-Resorte</h2>
+                        <p>Antes de acceder a la práctica, debes completar un quiz de <strong>10 preguntas aleatorias</strong>.<br>Necesitas mínimo <strong>60%</strong> para continuar.</p>
+                    </div>
+                    <div class="campo-reg">
+                        <label for="reg-nombre">Nombre completo</label>
+                        <input type="text" id="reg-nombre" placeholder="Ej: María García López" autocomplete="name">
+                        <span class="campo-hint">Escribe tu nombre y apellidos completos</span>
+                    </div>
+                    <div class="campo-reg">
+                        <label for="reg-codigo">Código estudiantil</label>
+                        <input type="text" id="reg-codigo" placeholder="Ej: 2021023456" autocomplete="off">
+                        <span class="campo-hint">Tu código tal como aparece en el carné</span>
+                    </div>
+                    <div class="campo-reg">
+                        <label for="reg-grupo">Grupo</label>
+                        <select id="reg-grupo">
+                            <option value="">— Selecciona tu grupo —</option>
+                            <option value="G1">Grupo 1 — Lunes/Miércoles</option>
+                            <option value="G2">Grupo 2 — Martes/Jueves</option>
+                            <option value="G3">Grupo 3 — Viernes</option>
+                            <option value="G4">Grupo 4 — Sábado</option>
+                        </select>
+                        <span class="campo-hint">Selecciona tu grupo de laboratorio</span>
+                    </div>
+                    <div class="campo-reg">
+                        <label for="reg-correo">Correo institucional</label>
+                        <input type="email" id="reg-correo" placeholder="Ej: estudiante@uniajc.edu.co" autocomplete="email">
+                        <span class="campo-hint">Usa tu correo institucional (@uniajc.edu.co)</span>
+                    </div>
+                    <button class="btn-calificar" onclick="iniciarRegistro()">Comenzar Quiz →</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANTALLA QUIZ -->
+    <div class="pantalla" id="pantalla-quiz">
+        <div class="pantalla-quiz-wrap">
+            <div class="tarjeta">
+                <div class="tarjeta-header color-principal">
+                    <span class="tarjeta-icono">📝</span>
+                    <div id="quiz-header-info">
+                        <h2>Quiz de Conocimientos Previos</h2>
+                        <p>Responde todas las preguntas. Necesitas al menos 60% para continuar.</p>
+                    </div>
+                </div>
+                <div class="tarjeta-cuerpo">
+                    <div id="badge-intento-wrap"></div>
+                    <div id="contenedor-preguntas"></div>
+                    <button class="btn-calificar" id="btn-calificar" onclick="calificarQuiz()">Calificar Quiz ✓</button>
+                    <div class="resultado-quiz" id="resultado-quiz">
+                        <div class="puntaje-grande" id="puntaje-txt"></div>
+                        <div class="nota-display" id="nota-txt"></div>
+                        <p class="msg" id="resultado-msg"></p>
+                        <p class="sub" id="resultado-sub"></p>
+                        <br>
+                        <button class="btn-continuar" id="btn-continuar" onclick="desbloquear()" style="display:none;">Continuar a la práctica →</button>
+                        <button class="btn-reintentar" id="btn-reintentar" onclick="segundoIntento()" style="display:none;">🔄 Segundo intento (nota máx. 4.0)</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANTALLA SELECTOR -->
+    <div class="pantalla" id="pantalla-selector">
+        <div class="pantalla-selector-wrap">
+            <div class="selector-titulo">
+                <span class="icono-ok">🎉</span>
+                <h2>¡Quiz superado!</h2>
+                <p>Selecciona qué quieres abrir. Puedes ir y volver cuando quieras.</p>
+            </div>
+            <div class="selector-nota">
+                <div class="nota-label">Tu nota del quiz</div>
+                <div class="nota-val" id="nota-final-display">—</div>
+            </div>
+            <button class="btn-seccion btn-guia" onclick="abrirSeccion('guia')">
+                <span class="btn-icono">📄</span>
+                <div class="btn-info">
+                    <span class="btn-titulo">Guía de Práctica</span>
+                    <span class="btn-desc">Guía del oscilador masa-resorte — constante elástica y período</span>
+                </div>
+                <span class="btn-flecha">›</span>
+            </button>
+            <button class="btn-seccion btn-simulador" onclick="abrirSeccion('simulador')">
+                <span class="btn-icono">🖥️</span>
+                <div class="btn-info">
+                    <span class="btn-titulo">Simulador — Masa-Resorte</span>
+                    <span class="btn-desc">Simulación del sistema masa-resorte con análisis de energía</span>
+                </div>
+                <span class="btn-flecha">›</span>
+            </button>
+        </div>
+        <footer>
+            <strong>Institución Universitaria Antonio José Camacho</strong> — Departamento de Ciencias Básicas<br>
+            Laboratorio de Física III Virtual · Práctica 02 — Física III Virtual &copy; 2025 · Todos los derechos reservados
+        </footer>
+    </div>
+</div>
+
+<!-- OVERLAY GUÍA -->
+<div class="pantalla-contenido" id="pantalla-guia">
+    <div class="contenido-header header-guia">
+        <button class="btn-volver" onclick="cerrarSeccion()">←</button>
+        <div class="contenido-header-info">
+            <h3>📄 Guía de Práctica</h3>
+            <p>Masa-Resorte — Laboratorio de Física III Virtual</p>
+        </div>
+    </div>
+    <iframe class="contenido-iframe" src="Practica_Masa-Resorte.html" title="Guía de Práctica"></iframe>
+</div>
+
+<!-- OVERLAY SIMULADOR -->
+<div class="pantalla-contenido" id="pantalla-simulador">
+    <div class="contenido-header header-simulador">
+        <button class="btn-volver" onclick="cerrarSeccion()">←</button>
+        <div class="contenido-header-info">
+            <h3>🖥️ Simulador — Masa-Resorte</h3>
+            <p>Masa-Resorte — Simulación interactiva</p>
+        </div>
+    </div>
+    <iframe class="contenido-iframe" src="Simulador_Masa-Resorte.html" title="Simulador"></iframe>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const POWER_AUTOMATE_URL = 'PEGA_AQUI_TU_URL_DE_POWER_AUTOMATE';
+const NUM_PREGUNTAS = 10;
+
+const BANCO_PREGUNTAS = [
+  {texto:"La Ley de Hooke establece que la fuerza de restauración de un resorte es:",opciones:["F = m·a","F = k·x","F = m·g","F = k/x"],correcta:1,fb_ok:"✓ Correcto. La Ley de Hooke: F = -k·x (la fuerza es proporcional al desplazamiento y restauradora).",fb_mal:"✗ Incorrecto. La Ley de Hooke establece F = k·x, donde k es la constante del resorte y x el desplazamiento."},
+  {texto:"¿Qué representa la constante 'k' en la Ley de Hooke?",opciones:["La masa del sistema","La rigidez o constante elástica del resorte","La amplitud de oscilación","La frecuencia natural"],correcta:1,fb_ok:"✓ Correcto. 'k' es la constante elástica (rigidez) del resorte. Unidades: N/m.",fb_mal:"✗ Incorrecto. 'k' es la constante elástica del resorte (N/m). A mayor k, más rígido el resorte."},
+  {texto:"La fórmula del período de un oscilador masa-resorte es:",opciones:["T = 2π√(L/g)","T = 2π√(m/k)","T = 2π√(k/m)","T = m/(2πk)"],correcta:1,fb_ok:"✓ Correcto. T = 2π√(m/k). El período aumenta con la masa y disminuye con la rigidez.",fb_mal:"✗ Incorrecto. La fórmula correcta es T = 2π√(m/k), no √(k/m)."},
+  {texto:"Si se duplica la masa en un sistema masa-resorte, ¿cómo varía el período?",opciones:["Se duplica","Se reduce a la mitad","Aumenta por factor √2","No cambia"],correcta:2,fb_ok:"✓ Correcto. T ∝ √m. Si m → 2m, entonces T → T·√2 ≈ 1.41·T.",fb_mal:"✗ Incorrecto. T ∝ √m. Al duplicar m, T crece por √2 ≈ 1.41, no se duplica."},
+  {texto:"¿Cuál es la unidad de la constante elástica 'k' en el SI?",opciones:["kg·m","N/m","J/kg","Pa"],correcta:1,fb_ok:"✓ Correcto. La unidad de k es N/m (Newton por metro). Un resorte con k = 100 N/m requiere 100 N para estirarse 1 m.",fb_mal:"✗ Incorrecto. k se mide en N/m. De F = k·x → k = F/x = N/m."},
+  {texto:"En el punto de equilibrio del oscilador masa-resorte, ¿qué condición se cumple?",opciones:["La velocidad es máxima y la fuerza neta es cero","La velocidad es cero y la fuerza es máxima","La aceleración es máxima","La energía potencial es máxima"],correcta:0,fb_ok:"✓ Correcto. En el equilibrio: fuerza neta = 0, velocidad = máxima, aceleración = 0.",fb_mal:"✗ Incorrecto. En el equilibrio la fuerza neta es cero (x=0) y la velocidad es máxima."},
+  {texto:"La energía total de un oscilador masa-resorte sin rozamiento es:",opciones:["Variable en el tiempo","Constante (se conserva)","Igual solo a la energía cinética","Siempre cero"],correcta:1,fb_ok:"✓ Correcto. Sin rozamiento la energía mecánica total E = E_c + E_p = ½kA² se conserva.",fb_mal:"✗ Incorrecto. Sin fuerzas disipativas la energía total E = ½kA² es constante (se conserva)."},
+  {texto:"¿Qué tipo de energía almacena el resorte cuando está en máxima deformación?",opciones:["Energía cinética pura","Energía potencial elástica","Energía térmica","Energía gravitatoria"],correcta:1,fb_ok:"✓ Correcto. En máxima deformación (amplitud) toda la energía es E_p = ½kA² (potencial elástica).",fb_mal:"✗ Incorrecto. En máxima deformación: velocidad = 0 y E = ½kA² (potencial elástica pura)."},
+  {texto:"La frecuencia angular ω de un oscilador masa-resorte se expresa como:",opciones:["ω = √(m/k)","ω = √(k/m)","ω = 2π/k","ω = k·m"],correcta:1,fb_ok:"✓ Correcto. ω = √(k/m) en rad/s. Se relaciona con el período: T = 2π/ω = 2π√(m/k).",fb_mal:"✗ Incorrecto. ω = √(k/m). De T = 2π/ω se obtiene ω = 2π/T = √(k/m)."},
+  {texto:"Si se duplica la constante k del resorte, ¿cómo cambia el período?",opciones:["Se duplica","Se reduce a la mitad","Se reduce por factor √2","No cambia"],correcta:2,fb_ok:"✓ Correcto. T ∝ 1/√k. Si k → 2k, T_nueva = T/√2 ≈ 0.707·T.",fb_mal:"✗ Incorrecto. T ∝ 1/√k. Al duplicar k, T se reduce por factor √2."},
+  {texto:"¿Qué método estático se usa para determinar k de un resorte?",opciones:["Medir el período de oscilación","Colgar masas y medir el alargamiento: k = F/x = mg/Δx","Medir la velocidad máxima","Calcular la energía potencial"],correcta:1,fb_ok:"✓ Correcto. Método estático: se cuelga una masa m, se mide el estiramiento Δx y k = mg/Δx.",fb_mal:"✗ Incorrecto. El método estático consiste en colgar masas conocidas y medir el estiramiento: k = mg/Δx."},
+  {texto:"¿Qué ventaja tiene el método dinámico (período) para determinar k respecto al método estático?",opciones:["Es más rápido pero menos preciso","Permite incluir la masa del resorte en el análisis","No requiere conocer la masa","Solo funciona para resortes muy rígidos"],correcta:1,fb_ok:"✓ Correcto. En el método dinámico se puede corregir por la masa efectiva del resorte: m_ef = m + m_resorte/3.",fb_mal:"✗ Incorrecto. El método dinámico permite considerar la masa efectiva del resorte (m_ef = m + m_resorte/3)."},
+  {texto:"Si k = 50 N/m y m = 0.2 kg, ¿cuál es el período de oscilación?",opciones:["T ≈ 0.40 s","T ≈ 0.63 s","T ≈ 1.26 s","T ≈ 2.0 s"],correcta:1,fb_ok:"✓ Correcto. T = 2π√(m/k) = 2π√(0.2/50) = 2π√0.004 = 2π·0.063 ≈ 0.40 s. ¡La opción A es correcta!",fb_mal:"✗ Incorrecto. T = 2π√(0.2/50) = 2π·0.063 ≈ 0.40 s."},
+  {texto:"En la gráfica T² vs m del oscilador masa-resorte, la pendiente es igual a:",opciones:["k","4π²/k","k/(4π²)","2π/k"],correcta:1,fb_ok:"✓ Correcto. De T² = (4π²/k)·m, la pendiente es 4π²/k, de donde k = 4π²/pendiente.",fb_mal:"✗ Incorrecto. T² = (4π²/k)·m. La recta T² vs m tiene pendiente 4π²/k."},
+  {texto:"¿Cuál es la posición de equilibrio en el sistema masa-resorte vertical?",opciones:["Donde el resorte no está deformado","Donde el peso iguala la fuerza elástica (mg = k·Δx)","Donde la velocidad es cero","Donde la aceleración es máxima"],correcta:1,fb_ok:"✓ Correcto. En equilibrio: ΣF = 0 → mg = k·Δx. El resorte se estira una cantidad Δx = mg/k.",fb_mal:"✗ Incorrecto. En equilibrio estático: peso = fuerza elástica → mg = k·Δx → Δx = mg/k."},
+  {texto:"La ecuación de movimiento del oscilador masa-resorte es m·ẍ = -k·x. Esto indica que:",opciones:["La aceleración es proporcional al desplazamiento y en sentido contrario","La fuerza es constante","La velocidad es proporcional al desplazamiento","La masa aumenta con el tiempo"],correcta:0,fb_ok:"✓ Correcto. ẍ = -(k/m)·x = -ω²·x. La aceleración es proporcional a x y opuesta (restauradora).",fb_mal:"✗ Incorrecto. La ecuación ẍ = -(k/m)x muestra que la aceleración es proporcional a x y de sentido opuesto."},
+  {texto:"¿Qué ocurre con la amplitud de oscilación si no hay fuerzas disipativas?",opciones:["Decrece exponencialmente","Crece con el tiempo","Se mantiene constante","Varía con la frecuencia"],correcta:2,fb_ok:"✓ Correcto. Sin rozamiento la energía se conserva y la amplitud permanece constante (oscilación armónica ideal).",fb_mal:"✗ Incorrecto. Sin fuerzas disipativas la amplitud permanece constante. Con rozamiento decrece (amortiguamiento)."},
+  {texto:"Un resorte se estira 0.05 m al colgar una masa de 500 g. ¿Cuál es su constante k?",opciones:["k = 9.8 N/m","k = 49 N/m","k = 98 N/m","k = 196 N/m"],correcta:2,fb_ok:"✓ Correcto. k = mg/Δx = 0.5·9.8/0.05 = 4.9/0.05 = 98 N/m.",fb_mal:"✗ Incorrecto. k = mg/Δx = (0.5 kg)(9.8 m/s²)/(0.05 m) = 4.9/0.05 = 98 N/m."},
+  {texto:"En el MAS, la posición en función del tiempo se describe como:",opciones:["x(t) = A·t","x(t) = A·cos(ωt + φ)","x(t) = A·e^(−ωt)","x(t) = A·ω·t²"],correcta:1,fb_ok:"✓ Correcto. La solución del MAS es x(t) = A·cos(ωt + φ), donde A es amplitud, ω frecuencia angular y φ fase inicial.",fb_mal:"✗ Incorrecto. El MAS se describe con x(t) = A·cos(ωt + φ) o equivalentemente A·sin(ωt + φ)."},
+  {texto:"¿Qué relación existe entre la frecuencia angular ω, la frecuencia f y el período T?",opciones:["ω = f = 1/T","ω = 2πf = 2π/T","ω = f/2π","ω = T/(2π)"],correcta:1,fb_ok:"✓ Correcto. ω = 2πf = 2π/T. La frecuencia angular ω (rad/s) se relaciona con f (Hz) y T (s) así.",fb_mal:"✗ Incorrecto. La relación correcta es ω = 2πf = 2π/T."}
+];
+
+let estudiante = { nombre:'', codigo:'', grupo:'', correo:'' };
+let preguntasActuales = [];
+let intentoActual = 1;
+let notaFinal = 0;
+
+function mezclar(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+}
+
+function seleccionarPreguntas() {
+    const mezcladas = mezclar(BANCO_PREGUNTAS);
+    return mezcladas.slice(0, NUM_PREGUNTAS).map(p => ({
+        ...p,
+        opciones: mezclar(p.opciones.map((o, i) => ({ texto: o, esCorrecta: i === p.correcta })))
+    }));
+}
+
+function iniciarRegistro() {
+    const nombre = document.getElementById('reg-nombre').value.trim();
+    const codigo = document.getElementById('reg-codigo').value.trim();
+    const grupo  = document.getElementById('reg-grupo').value;
+    const correo = document.getElementById('reg-correo').value.trim();
+
+    let valido = true;
+    ['reg-nombre','reg-codigo','reg-grupo','reg-correo'].forEach(id => document.getElementById(id).classList.remove('error'));
+
+    if (!nombre) { document.getElementById('reg-nombre').classList.add('error'); valido = false; }
+    if (!codigo || !/^\d{4,}$/.test(codigo)) { document.getElementById('reg-codigo').classList.add('error'); valido = false; }
+    if (!grupo)  { document.getElementById('reg-grupo').classList.add('error'); valido = false; }
+    if (!correo || !correo.includes('@')) { document.getElementById('reg-correo').classList.add('error'); valido = false; }
+
+    if (!valido) { alert('⚠️ Por favor completa todos los campos correctamente.'); return; }
+
+    estudiante = { nombre, codigo, grupo, correo };
+    intentoActual = 1;
+    iniciarQuiz();
+}
+
+function iniciarQuiz() {
+    preguntasActuales = seleccionarPreguntas();
+    const badge = document.getElementById('badge-intento-wrap');
+    badge.innerHTML = intentoActual === 1
+        ? '<div class="badge-intento">📝 Primer intento — Nota máxima: 5.0</div>'
+        : '<div class="badge-intento segundo">⚠️ Segundo intento — Nota máxima: 4.0</div>';
+
+    const cont = document.getElementById('contenedor-preguntas');
+    cont.innerHTML = '';
+    preguntasActuales.forEach((p, idx) => {
+        let opcionesHTML = p.opciones.map((op, i) =>
+            `<label class="opcion"><input type="radio" name="q${idx}" value="${i}"> ${op.texto}</label>`
+        ).join('');
+        cont.innerHTML += `
+            <div class="pregunta" id="preg-${idx}">
+                <p class="pregunta-texto"><span class="pregunta-num">${idx+1}</span>${p.texto}</p>
+                ${opcionesHTML}
+                <div class="feedback" id="fb-${idx}"></div>
+            </div>`;
+    });
+
+    document.getElementById('btn-calificar').style.display = 'block';
+    document.getElementById('resultado-quiz').style.display = 'none';
+    document.getElementById('btn-continuar').style.display = 'none';
+    document.getElementById('btn-reintentar').style.display = 'none';
+    mostrarPantalla('pantalla-quiz');
+}
+
+function calificarQuiz() {
+    const sinResponder = [];
+    preguntasActuales.forEach((p, idx) => {
+        if (!document.querySelector(`input[name="q${idx}"]:checked`)) sinResponder.push(idx + 1);
+    });
+    if (sinResponder.length > 0) { alert(`⚠️ Faltan por responder las preguntas: ${sinResponder.join(', ')}`); return; }
+
+    let correctas = 0;
+    preguntasActuales.forEach((p, idx) => {
+        const selIdx = parseInt(document.querySelector(`input[name="q${idx}"]:checked`).value);
+        const todas = document.querySelectorAll(`input[name="q${idx}"]`);
+        const fb = document.getElementById(`fb-${idx}`);
+
+        todas.forEach(op => { op.disabled = true; op.closest('.opcion').classList.add('bloqueada'); });
+
+        const opcionSeleccionada = p.opciones[selIdx];
+        if (opcionSeleccionada.esCorrecta) {
+            correctas++;
+            todas[selIdx].closest('.opcion').classList.add('correcta');
+            fb.className = 'feedback ok';
+            fb.textContent = p.fb_ok;
+        } else {
+            todas[selIdx].closest('.opcion').classList.add('incorrecta');
+            fb.className = 'feedback mal';
+            fb.textContent = p.fb_mal;
+            p.opciones.forEach((op, i) => {
+                if (op.esCorrecta) todas[i].closest('.opcion').classList.add('resp-correcta');
+            });
+        }
+    });
+
+    const pct = Math.round((correctas / NUM_PREGUNTAS) * 100);
+    const aprobado = pct >= 60;
+    const notaBase = intentoActual === 1 ? 5.0 : 4.0;
+    notaFinal = ((correctas / NUM_PREGUNTAS) * notaBase).toFixed(1);
+
+    document.getElementById('btn-calificar').style.display = 'none';
+    const resDiv = document.getElementById('resultado-quiz');
+    resDiv.style.display = 'block';
+    resDiv.className = 'resultado-quiz ' + (aprobado ? 'aprobado' : 'reprobado');
+    document.getElementById('puntaje-txt').textContent = `${correctas} / ${NUM_PREGUNTAS} — ${pct}%`;
+    document.getElementById('nota-txt').textContent = `Nota: ${notaFinal} / ${notaBase}`;
+    document.getElementById('resultado-msg').textContent = aprobado
+        ? '🎉 ¡Felicitaciones! Has superado el quiz.'
+        : '❌ No alcanzaste el puntaje mínimo (60%).';
+    document.getElementById('resultado-sub').textContent = aprobado
+        ? 'Toca el botón para continuar a la práctica.'
+        : intentoActual === 1
+            ? `Obtuviste ${correctas} de ${NUM_PREGUNTAS}. Tienes un segundo intento (nota máx. 4.0).`
+            : `Obtuviste ${correctas} de ${NUM_PREGUNTAS}. No hay más intentos disponibles.`;
+
+    if (aprobado) {
+        document.getElementById('btn-continuar').style.display = 'block';
+        document.getElementById('paso1').classList.replace('activo', 'completo');
+        document.getElementById('circulo1').textContent = '✓';
+        enviarResultados(correctas, pct, true);
+    } else {
+        if (intentoActual === 1) document.getElementById('btn-reintentar').style.display = 'block';
+        enviarResultados(correctas, pct, false);
+    }
+}
+
+function segundoIntento() { intentoActual = 2; iniciarQuiz(); }
+
+function mostrarPantalla(id) {
+    document.querySelectorAll('.pantalla').forEach(p => p.classList.remove('activa'));
+    document.getElementById(id).classList.add('activa');
+    window.scrollTo(0, 0);
+}
+
+function desbloquear() {
+    document.getElementById('nota-final-display').textContent = `${notaFinal} / ${intentoActual === 1 ? '5.0' : '4.0'}`;
+    document.getElementById('paso2').classList.add('activo');
+    document.getElementById('paso3').classList.add('activo');
+    mostrarPantalla('pantalla-selector');
+}
+
+function abrirSeccion(cual) {
+    document.getElementById('pantalla-' + cual).classList.add('activa');
+    document.body.style.overflow = 'hidden';
+}
+
+function cerrarSeccion() {
+    document.querySelectorAll('.pantalla-contenido').forEach(p => p.classList.remove('activa'));
+    document.body.style.overflow = '';
+}
+
+async function enviarResultados(correctas, pct, aprobado) {
+    if (!POWER_AUTOMATE_URL || POWER_AUTOMATE_URL === 'PEGA_AQUI_TU_URL_DE_POWER_AUTOMATE') return;
+    document.getElementById('overlay-enviando').classList.add('activo');
+    const ahora = new Date();
+    const datos = {
+        nombre: estudiante.nombre, codigo: estudiante.codigo,
+        grupo: estudiante.grupo, correo: estudiante.correo,
+        practica: 'Práctica 02 — Física III Virtual', intento: intentoActual,
+        correctas, total: NUM_PREGUNTAS, porcentaje: pct,
+        nota: parseFloat(notaFinal), notaBase: intentoActual === 1 ? 5.0 : 4.0,
+        aprobado, fecha: ahora.toLocaleDateString('es-CO'), hora: ahora.toLocaleTimeString('es-CO')
+    };
+    try {
+        await fetch(POWER_AUTOMATE_URL, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(datos) });
+    } catch(e) { console.warn('No se pudo enviar:', e); }
+    finally { document.getElementById('overlay-enviando').classList.remove('activo'); }
+}
+</script>
+</body>
+</html>

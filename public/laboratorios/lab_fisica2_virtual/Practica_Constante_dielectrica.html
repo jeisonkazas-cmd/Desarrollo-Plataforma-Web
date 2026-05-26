@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guía — Simulador 3D Constante Dieléctrica</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>
+  MathJax = {
+    tex: { inlineMath:[['$','$'],['\\(','\\)']], displayMath:[['$$','$$']] },
+    options: { skipHtmlTags:['script','noscript','style','textarea','pre'] }
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+  :root {
+    --ink:#1a1a2e; --ink-soft:#3d3d5c; --ink-muted:#7a7a9a;
+    --paper:#faf8f3; --paper-alt:#f2ede3; --rule:#d4c9b0;
+    --accent:#1a5276; --accent2:#c0392b; --gold:#b8860b;
+    --green:#1e8449; --purple:#6c3483; --teal:#117a65;
+    --mono:'JetBrains Mono',monospace;
+    --serif:'Source Serif 4',Georgia,serif;
+    --display:'Playfair Display',Georgia,serif;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  body{background:#dde3e8;font-family:var(--serif);color:var(--ink);
+    font-size:17px;line-height:1.78;min-height:100vh;padding:30px 15px 90px;}
+  .documento{max-width:860px;margin:0 auto;background:var(--paper);
+    box-shadow:0 2px 4px rgba(0,0,0,.08),0 8px 32px rgba(0,0,0,.14),0 20px 60px rgba(0,0,0,.08);
+    position:relative;overflow-x:hidden;}
+  .documento::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;
+    background:linear-gradient(180deg,#1a5276 0%,#6c3483 35%,#b8860b 65%,#117a65 100%);}
+
+  /* HEADER */
+  .header{background:var(--ink);color:#fff;padding:38px 52px 32px 58px;position:relative;overflow:hidden;}
+  .header::after{content:'ε';font-family:var(--display);font-size:320px;font-weight:700;
+    color:rgba(255,255,255,.035);position:absolute;right:-20px;top:-70px;line-height:1;
+    pointer-events:none;user-select:none;}
+  .header-meta{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;gap:20px;flex-wrap:wrap;}
+  .badge-c{font-family:var(--mono);font-size:.72em;background:var(--accent);color:#fff;
+    padding:4px 11px;letter-spacing:.12em;text-transform:uppercase;}
+  .badge-t{font-family:var(--mono);font-size:.72em;color:rgba(255,255,255,.5);letter-spacing:.1em;
+    text-transform:uppercase;border:1px solid rgba(255,255,255,.15);padding:4px 11px;}
+  .header h1{font-family:var(--display);font-size:2.1em;font-weight:700;line-height:1.2;color:#fff;margin-bottom:8px;}
+  .header h1 em{font-style:italic;color:rgba(255,255,255,.65);font-size:.8em;}
+  .header-sub{font-size:.85em;color:rgba(255,255,255,.45);font-weight:300;letter-spacing:.04em;margin-top:4px;}
+  .hfields{display:grid;grid-template-columns:1fr 1fr;gap:14px 28px;
+    margin-top:26px;padding-top:22px;border-top:1px solid rgba(255,255,255,.12);}
+  .fi label{display:block;font-family:var(--mono);font-size:.68em;color:rgba(255,255,255,.4);
+    text-transform:uppercase;letter-spacing:.12em;margin-bottom:5px;}
+  .fi input{width:100%;background:rgba(255,255,255,.07);border:none;
+    border-bottom:1px solid rgba(255,255,255,.25);color:#fff;font-family:var(--serif);
+    font-size:.95em;padding:6px 0;outline:none;transition:border-color .2s;
+    -webkit-appearance:none;border-radius:0;}
+  .fi input:focus{border-bottom-color:var(--accent2);}
+  .fi input::placeholder{color:rgba(255,255,255,.2);}
+
+  /* BODY */
+  .body{padding:46px 52px 52px 58px;}
+  .sec{margin-bottom:48px;}
+  .stit{font-family:var(--display);font-size:1.2em;font-weight:600;color:var(--ink);
+    display:flex;align-items:center;gap:12px;margin-bottom:16px;padding-bottom:9px;border-bottom:2px solid var(--rule);}
+  .stit .num{font-family:var(--mono);font-size:.75em;color:var(--accent);
+    background:#e8f0f7;padding:3px 8px;letter-spacing:.05em;min-width:38px;text-align:center;}
+  .sub{font-family:var(--display);font-size:1.03em;font-weight:600;color:var(--accent);
+    margin:24px 0 11px;display:flex;align-items:center;gap:8px;}
+  .sub::before{content:'';width:14px;height:2px;background:var(--accent);display:inline-block;flex-shrink:0;}
+  p{margin-bottom:11px;color:var(--ink-soft);font-size:.97em;}
+  p:last-child{margin-bottom:0;}
+
+  .resum{background:var(--paper-alt);border-left:3px solid var(--accent);
+    padding:18px 22px;font-size:.93em;font-style:italic;color:var(--ink-soft);line-height:1.75;}
+
+  .ol{list-style:none;padding:0;}
+  .ol li{display:flex;gap:13px;align-items:flex-start;padding:9px 0;
+    border-bottom:1px dashed var(--rule);font-size:.96em;color:var(--ink-soft);}
+  .ol li:last-child{border-bottom:none;}
+  .ol li .n{font-family:var(--mono);font-size:.75em;color:#fff;background:var(--accent);
+    min-width:24px;height:24px;display:flex;align-items:center;justify-content:center;margin-top:2px;flex-shrink:0;}
+
+  .fbox{background:var(--ink);color:#fff;padding:20px 26px;margin:20px 0;position:relative;overflow:hidden;}
+  .fbox::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent2);}
+  .fbox .fl{font-family:var(--mono);font-size:.68em;color:rgba(255,255,255,.4);
+    text-transform:uppercase;letter-spacing:.12em;margin-bottom:12px;}
+  .fbox .fm{font-size:1.08em;text-align:center;padding:6px 0;}
+  .fbox .fn{font-family:var(--mono);font-size:.66em;color:rgba(255,255,255,.35);text-align:right;margin-top:8px;}
+
+  .tbl{width:100%;border-collapse:collapse;font-size:.9em;margin:14px 0;}
+  .tbl th{background:var(--ink);color:#fff;font-family:var(--mono);font-size:.72em;letter-spacing:.07em;
+    padding:10px 13px;text-align:center;font-weight:500;border:1px solid #444;}
+  .tbl td{padding:8px 11px;border:1px solid var(--rule);text-align:center;color:var(--ink-soft);vertical-align:middle;}
+  .tbl td.ic{padding:4px 5px;}
+  .tbl input[type=text]{width:100%;border:none;border-bottom:1px solid var(--rule);background:transparent;
+    font-family:var(--mono);font-size:.92em;color:var(--ink);padding:5px 4px;text-align:center;outline:none;
+    min-height:34px;-webkit-appearance:none;border-radius:0;}
+  .tbl input:focus{border-bottom-color:var(--accent);}
+  .tbl tr:nth-child(even) td{background:var(--paper-alt);}
+  .tbl .vg{color:var(--green);font-weight:700;font-family:var(--mono);}
+  .tbl .va{color:var(--accent);font-family:var(--mono);}
+  .tbl .vl{text-align:left;font-weight:600;color:var(--ink);}
+
+  .rbox{background:var(--paper-alt);border:1px solid var(--rule);padding:18px 22px;margin:14px 0;
+    display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  .rbox.c2{grid-template-columns:1fr 1fr;}
+  .rbox.c4{grid-template-columns:repeat(4,1fr);}
+  .rc label{font-family:var(--mono);font-size:.66em;color:var(--ink-muted);
+    text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:6px;}
+  .rc input{width:100%;border:none;border-bottom:2px solid var(--rule);background:transparent;
+    font-family:var(--mono);font-size:1.05em;color:var(--ink);padding:5px 0;
+    outline:none;transition:border-color .2s;text-align:center;
+    min-height:36px;-webkit-appearance:none;border-radius:0;}
+  .rc input:focus{border-bottom-color:var(--accent);}
+
+  .work{width:100%;min-height:120px;border:1px solid var(--rule);background:#fff;
+    font-family:var(--serif);font-size:.95em;color:var(--ink);padding:15px 18px;
+    resize:vertical;outline:none;line-height:1.85;transition:border-color .2s;display:block;
+    -webkit-appearance:none;border-radius:0;}
+  .work:focus{border-color:var(--accent);}
+  .work::placeholder{color:#bbb;font-style:italic;}
+  .albl{font-family:var(--mono);font-size:.7em;color:var(--ink-muted);text-transform:uppercase;
+    letter-spacing:.1em;margin-bottom:6px;margin-top:16px;display:block;}
+
+  .nota{background:#fef9e7;border-left:3px solid var(--gold);padding:12px 18px;
+    font-size:.88em;color:#7d6608;margin:14px 0;font-style:italic;}
+  .nota strong{font-style:normal;color:var(--gold);}
+  .ninfo{background:#eaf4fb;border-left:3px solid var(--accent);padding:12px 18px;
+    font-size:.88em;color:var(--accent);margin:14px 0;}
+  .ninfo strong{color:#0d3c5e;}
+  .nwarn{background:#fdf2f8;border-left:3px solid var(--purple);padding:12px 18px;
+    font-size:.88em;color:var(--purple);margin:14px 0;}
+
+  .ph{display:flex;align-items:flex-start;gap:14px;background:var(--ink);color:#fff;padding:15px 20px;margin-bottom:0;flex-wrap:wrap;}
+  .pb{font-family:var(--mono);font-size:.68em;padding:4px 9px;letter-spacing:.1em;white-space:nowrap;margin-top:3px;}
+  .pb.O{background:#117a65;}
+  .pb.A{background:#1a5276;}
+  .pb.B{background:#6c3483;}
+  .pbody{border:1px solid var(--rule);padding:22px;border-top:none;}
+
+  .divr{display:flex;align-items:center;gap:10px;margin:26px 0 11px;}
+  .divr::before,.divr::after{content:'';flex:1;height:1px;background:var(--rule);}
+  .divr span{font-family:var(--mono);font-size:.72em;color:var(--ink-muted);
+    letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;}
+
+  .slot{border:2px dashed var(--rule);padding:22px;text-align:center;cursor:pointer;
+    position:relative;margin:10px 0;transition:border-color .2s;background:#fff;}
+  .slot:hover{border-color:var(--accent);}
+  .slot input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+  .sico{display:block;font-size:2.2em;margin-bottom:7px;}
+  .slbl{display:block;font-size:.88em;color:var(--ink-muted);font-family:var(--mono);letter-spacing:.05em;}
+  .shnt{display:block;font-size:.78em;color:#bbb;margin-top:5px;font-style:italic;}
+  .sprev{display:none;max-width:100%;margin-top:12px;border:1px solid var(--rule);}
+
+  .cgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0;}
+  .ctipo{display:block;font-family:var(--mono);font-size:.7em;color:var(--accent);
+    text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;}
+  .cslot{border:1.5px dashed var(--rule);padding:16px;text-align:center;position:relative;background:#fff;transition:border-color .2s;}
+  .cslot:hover{border-color:var(--accent);}
+  .cslot input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+  .cico{display:block;font-size:1.7em;margin-bottom:5px;}
+  .cdesc{font-size:.81em;color:var(--ink-muted);font-style:italic;display:block;}
+  .cprev{display:none;max-width:100%;margin-top:8px;border:1px solid var(--rule);}
+
+  .gbox{border:1px solid var(--rule);background:#fff;margin:14px 0;overflow:hidden;}
+  .ghead{background:var(--ink);color:#fff;padding:9px 16px;font-family:var(--mono);
+    font-size:.7em;letter-spacing:.1em;text-transform:uppercase;
+    display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;}
+  .gcanv{display:block;width:100%;background:#fafafa;}
+  .gctrl{padding:10px 16px;border-top:1px solid var(--rule);display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+  .btnc{font-family:var(--mono);font-size:.74em;padding:7px 14px;border:1px solid var(--rule);
+    background:#fff;color:var(--ink-muted);cursor:pointer;transition:all .15s;letter-spacing:.04em;
+    touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+  .btnc:hover,.btnc:active{border-color:var(--accent);color:var(--accent);}
+  .btnc.on{border-color:var(--accent);background:#e8f0f7;color:var(--accent);font-weight:600;}
+  .ginfo{font-family:var(--mono);font-size:.74em;color:var(--ink-muted);}
+
+  .simbox{border:1px solid var(--rule);background:#fff;margin:14px 0;overflow:hidden;}
+  .simhead{background:#010e20;color:#88d8f0;padding:10px 16px;font-family:var(--mono);
+    font-size:.74em;letter-spacing:.12em;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;}
+  .stab{display:inline-block;background:rgba(58,138,170,.15);border:1px solid #3a8aaa;
+    color:#88d8f0;padding:3px 10px;font-family:var(--mono);font-size:.72em;letter-spacing:.08em;margin-right:4px;}
+  .stab.off{background:transparent;border-color:#0d2840;color:#2a6a8a;}
+  .simbody{padding:16px 20px;}
+  .simrow{display:flex;gap:10px;margin-bottom:11px;align-items:baseline;flex-wrap:wrap;}
+  .simk{font-family:var(--mono);font-size:.78em;background:var(--paper-alt);
+    border:1px solid var(--rule);padding:3px 9px;color:var(--ink);white-space:nowrap;}
+  .simd{font-size:.91em;color:var(--ink-soft);}
+
+  .igrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:14px 0;}
+  .icard{border:1px solid var(--rule);padding:14px 16px;background:#fff;}
+  .ic-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;}
+  .ic-nom{font-family:var(--mono);font-size:.82em;font-weight:600;color:var(--ink);}
+  .ic-cst{font-family:var(--mono);font-size:.73em;padding:3px 8px;background:var(--accent2);color:#fff;}
+  .ic-frm{font-size:.87em;color:var(--ink-soft);font-style:italic;line-height:1.55;}
+
+  .reto{background:var(--ink);color:#3af0c8;padding:18px 22px;margin:14px 0;
+    border-left:3px solid #3af0c8;font-family:var(--mono);}
+  .reto .rt{font-size:.9em;letter-spacing:.1em;color:#3af0c8;margin-bottom:9px;}
+  .reto .rb{font-size:.84em;color:#5ab0cc;line-height:2.0;}
+  .reto .rb b{color:#88d8f0;}
+
+  .ertbl{width:auto;border-collapse:collapse;font-size:.87em;margin:8px 0;}
+  .ertbl th{background:var(--ink-soft);color:#fff;padding:7px 16px;font-family:var(--mono);
+    font-size:.74em;letter-spacing:.06em;border:1px solid #555;}
+  .ertbl td{padding:6px 16px;border:1px solid var(--rule);color:var(--ink-soft);font-size:.9em;}
+  .ertbl .b{color:var(--green);font-weight:700;font-family:var(--mono);}
+  .ertbl .m{color:var(--gold);font-weight:700;font-family:var(--mono);}
+  .ertbl .r{color:var(--accent2);font-weight:700;font-family:var(--mono);}
+
+  .firma-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:32px;}
+  .firma-slot{border-top:1px solid var(--ink);padding-top:9px;font-family:var(--mono);
+    font-size:.72em;color:var(--ink-muted);text-transform:uppercase;letter-spacing:.1em;}
+
+  .btnimp{position:fixed;bottom:28px;right:28px;background:var(--accent);color:#fff;
+    border:none;padding:13px 24px;font-family:var(--mono);font-size:.84em;
+    letter-spacing:.08em;cursor:pointer;box-shadow:0 4px 16px rgba(26,82,118,.4);
+    transition:transform .15s,box-shadow .15s;z-index:100;border-radius:2px;
+    touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+  .btnimp:hover,.btnimp:active{transform:translateY(-2px);box-shadow:0 6px 22px rgba(26,82,118,.45);}
+
+  /* ── Tablet (≤900px) ── */
+  @media(max-width:900px){
+    body{font-size:16px;}
+    .header{padding:30px 36px 26px 40px;}
+    .body{padding:36px 36px 40px 40px;}
+    .rbox.c4{grid-template-columns:1fr 1fr;}
+  }
+  /* ── Mobile (≤680px) ── */
+  @media(max-width:680px){
+    body{padding:8px 0 80px;font-size:15px;}
+    .header{padding:22px 18px 20px 22px;}
+    .header::after{font-size:140px;}
+    .header h1{font-size:1.55em!important;}
+    .header-meta{flex-direction:column;gap:8px;}
+    .hfields{grid-template-columns:1fr!important;}
+    .body{padding:20px 16px 26px 20px;}
+    /* Prevent iOS zoom on input focus */
+    .fi input,.rc input,.tbl input[type=text],.work{font-size:16px!important;}
+    .tbl{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+    .ertbl{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+    .rbox,.rbox.c2,.rbox.c4{grid-template-columns:1fr 1fr!important;}
+    .firma-grid,.cgrid{grid-template-columns:1fr!important;}
+    .igrid{grid-template-columns:1fr!important;}
+    .ph{flex-direction:column;gap:8px;}
+    .pbody{padding:16px 14px;}
+    .ghead{font-size:.65em;}
+    .btnimp{bottom:16px;right:16px;padding:12px 18px;}
+    .simhead{flex-direction:column;align-items:flex-start;}
+  }
+  /* ── Mobile pequeño (≤400px) ── */
+  @media(max-width:400px){
+    body{font-size:14px;}
+    .header h1{font-size:1.35em!important;}
+    .rbox,.rbox.c2,.rbox.c4{grid-template-columns:1fr!important;}
+    .tbl th,.tbl td{padding:6px 7px;}
+  }
+  @media print{
+    body{background:#fff;padding:0;}
+    .documento{box-shadow:none;}
+    .btnimp,.gctrl{display:none;}
+  }
+
+  /* ── IMPRESIÓN: mostrar todo el contenido de respuestas ── */
+  @media print {
+    .print-value {
+      display: block !important;
+      white-space: pre-wrap !important;
+      word-break: break-word !important;
+      font-family: inherit !important;
+      font-size: inherit !important;
+      line-height: 1.75 !important;
+      color: #1a1a2e !important;
+      width: 100% !important;
+      padding: 2px 0 !important;
+      background: transparent !important;
+    }
+    textarea,
+    input[type="text"],
+    input[type="date"] {
+      display: none !important;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="documento">
+
+  <!-- ══════════ ENCABEZADO ══════════ -->
+  <div class="header">
+    <div class="header-meta">
+      <span class="badge-c" id="codigoPractica">PRÁCTICA FIS-DIEL3D-01</span>
+      <span class="badge-t">Laboratorio de Física · Electrostática · Dieléctricos</span>
+    </div>
+    <h1>Constante Dieléctrica<br><em>Simulador 3D — Capacitor de Placas Paralelas</em></h1>
+    <div class="header-sub">Permitividad relativa · ΔV vs d · Identificación de materiales · Reto del laboratorio</div>
+    <div class="hfields">
+      <div class="fi"><label>Nombre del estudiante</label><input type="text" placeholder="Escriba su nombre completo"></div>
+      <div class="fi"><label>Código estudiantil</label><input type="text" placeholder="Código"></div>
+      <div class="fi"><label>Grupo / Sección</label><input type="text" placeholder="Ej. Grupo B — Martes 8 am"></div>
+      <div class="fi"><label>Docente</label><input type="text" placeholder="Nombre del profesor/a"></div>
+      <div class="fi"><label>Fecha de realización</label><input type="date"></div>
+      <div class="fi"><label>Material identificado (Modo A)</label><input type="text" id="mat-hdr" placeholder="Se completa al finalizar el Modo A"></div>
+    </div>
+  </div>
+
+  <div class="body">
+
+    <!-- ══ 00. RESUMEN ══ -->
+    <div class="sec">
+      <h2 class="stit"><span class="num">00</span> Resumen</h2>
+      <div class="resum">
+        Esta práctica estudia la <strong>constante dieléctrica relativa</strong> $\varepsilon_r$ mediante el <em>Simulador 3D de Constante Dieléctrica</em> (capacitor de placas paralelas). La práctica se desarrolla en tres modos: el <strong>Modo Abierto</strong> de exploración cualitativa del campo, la polarización y las equipotenciales; el <strong>Modo A</strong> de identificación cuantitativa de un material desconocido a partir de una tabla de 10 pares $(\Delta V, d)$ con $\sigma$ fija, aplicando $\varepsilon_r = \sigma d / (\varepsilon_0 \Delta V)$; y el <strong>Modo B</strong> — un reto de 5 rondas donde se identifica materiales ocultos usando el menor número posible de instrumentos para maximizar el puntaje (máx. 500 pts).
+      </div>
+      <p style="margin-top:10px;"><strong>Palabras clave:</strong> Constante dieléctrica · permitividad relativa · polarización · condensador · campo eléctrico · linealización · $\Delta V$ vs $d$</p>
+    </div>
+
+    <!-- ══ 01. OBJETIVOS ══ -->
+    <div class="sec">
+      <h2 class="stit"><span class="num">01</span> Objetivos</h2>
+      <ul class="ol">
+        <li><span class="n">1</span>Explorar cualitativamente el efecto del dieléctrico sobre $E$, $D$, $P$ y las equipotenciales en el Modo Abierto.</li>
+        <li><span class="n">2</span>Aplicar $\varepsilon_r = \sigma d / (\varepsilon_0 \Delta V)$ a los 10 pares $(d, \Delta V)$ del Modo A para determinar $\varepsilon_r$ de un material desconocido fila a fila.</li>
+        <li><span class="n">3</span>Construir la gráfica $\Delta V$ vs $d$, verificar la linealidad por el origen y determinar $\varepsilon_r$ por regresión lineal comparando con el promedio de la tabla.</li>
+        <li><span class="n">4</span>Identificar el material desconocido comparando el $\varepsilon_r$ calculado con los valores tabulados; verificar en el simulador y calcular el error relativo.</li>
+        <li><span class="n">5</span>En el Modo B, identificar 5 materiales ocultos usando el menor número de instrumentos posibles, comprendiendo cuál medición es más discriminatoria.</li>
+      </ul>
+    </div>
+
+    <!-- ══ 02. MARCO TEÓRICO ══ -->
+    <div class="sec">
+      <h2 class="stit"><span class="num">02</span> Marco Teórico</h2>
+
+      <div class="sub">2.1 · Condensador de placas paralelas con dieléctrico</div>
+      <p>Para un condensador con separación $d$ y densidad de carga libre $\sigma$ fija, al insertar un dieléctrico de permitividad relativa $\varepsilon_r$ el campo y el voltaje se reducen:</p>
+      <div class="fbox">
+        <div class="fl">Ecuación 1 — Campo y voltaje en el condensador</div>
+        <div class="fm">$$E = \frac{\sigma}{\varepsilon_0\,\varepsilon_r} \qquad \Delta V = E\cdot d = \frac{\sigma\,d}{\varepsilon_0\,\varepsilon_r}$$</div>
+        <div class="fn">(1)</div>
+      </div>
+
+      <div class="sub">2.2 · Determinación de εᵣ — Método ΔV vs d (Modo A)</div>
+      <p>Con $\sigma = 1.0\;\mu\text{C/m}^2$ fija, despejando $\varepsilon_r$:</p>
+      <div class="fbox">
+        <div class="fl">Ecuación 2 — Fórmula de trabajo del Modo A</div>
+        <div class="fm">$$\varepsilon_r = \frac{\sigma\,d}{\varepsilon_0\,\Delta V} \approx \frac{1129.4 \times d_{[\text{cm}]}}{\Delta V_{[\text{V}]}}$$</div>
+        <div class="fn">(2)</div>
+      </div>
+      <p>Se calcula $\varepsilon_r$ para cada uno de los 10 pares $(d_i, \Delta V_i)$ y se promedia para identificar el material.</p>
+
+      <div class="sub">2.3 · Linealización ΔV vs d</div>
+      <p>Reescribiendo la Ec. (1): $\Delta V = m \cdot d$ con $m = \sigma / (\varepsilon_0\,\varepsilon_r)$. La gráfica $\Delta V$ vs $d$ es una <strong>recta por el origen</strong>:</p>
+      <div class="fbox">
+        <div class="fl">Ecuación 3 — εᵣ a partir de la pendiente de la gráfica</div>
+        <div class="fm">$$m = \frac{\sigma}{\varepsilon_0\,\varepsilon_r} \qquad \Rightarrow \qquad \varepsilon_r = \frac{\sigma}{\varepsilon_0\,m} = \frac{1.0\times10^{-6}}{8.854\times10^{-12}\cdot m_{[\text{V/m}]}}$$</div>
+        <div class="fn">(3)</div>
+      </div>
+
+      <div class="sub">2.4 · Instrumentos del Modo B y deducción de εᵣ</div>
+      <p>En el Modo B los parámetros fijos son $\sigma = 1.0\;\mu\text{C/m}^2$ y $d = 2.0\;\text{cm}$. Cada instrumento permite calcular $\varepsilon_r$ de forma independiente:</p>
+      <div class="igrid">
+        <div class="icard">
+          <div class="ic-top"><span class="ic-nom">📊 Campo E</span><span class="ic-cst">−20 pts</span></div>
+          <div class="ic-frm">Lee $E$ en kV/m<br>$\varepsilon_r = \sigma / (\varepsilon_0 E) \approx 112.9\,/\,E_{[\text{kV/m}]}$</div>
+        </div>
+        <div class="icard">
+          <div class="ic-top"><span class="ic-nom">🔋 Voltaje ΔV</span><span class="ic-cst">−15 pts</span></div>
+          <div class="ic-frm">Lee $\Delta V$ en V<br>$\varepsilon_r \approx 22.59\,/\,\Delta V_{[\text{V}]}$</div>
+        </div>
+        <div class="icard">
+          <div class="ic-top"><span class="ic-nom">💡 Capacitancia C/A</span><span class="ic-cst">−25 pts</span></div>
+          <div class="ic-frm">Lee $C/A$ en pF/m²<br>$\varepsilon_r = (C/A)\cdot d\,/\,\varepsilon_0 \approx (C/A)\,/\,442.7$</div>
+        </div>
+        <div class="icard">
+          <div class="ic-top"><span class="ic-nom">⚡ Energía u</span><span class="ic-cst">−10 pts</span></div>
+          <div class="ic-frm">Lee $u$ en mJ/m³<br>$\varepsilon_r \approx 56.47\,/\,u_{[\text{mJ/m}^3]}$</div>
+        </div>
+      </div>
+
+      <div class="sub">2.5 · Error relativo</div>
+      <div class="fbox">
+        <div class="fl">Ecuación 4 — Error relativo porcentual</div>
+        <div class="fm">$$\text{ER} = \frac{|\varepsilon_{r,\text{exp}} - \varepsilon_{r,\text{teo}}|}{\varepsilon_{r,\text{teo}}} \times 100\%$$</div>
+        <div class="fn">(4)</div>
+      </div>
+      <table class="ertbl">
+        <thead><tr><th>Rango ER</th><th>Interpretación</th></tr></thead>
+        <tbody>
+          <tr><td class="b">ER &lt; 1 %</td><td>Resultado muy exacto</td></tr>
+          <tr><td class="m">1 % ≤ ER &lt; 10 %</td><td>Resultado aceptable</td></tr>
+          <tr><td class="r">ER ≥ 10 %</td><td>Revisar procedimiento</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ══ 03. DESCRIPCIÓN DEL SIMULADOR ══ -->
+    <div class="sec">
+      <h2 class="stit"><span class="num">03</span> Descripción del Simulador</h2>
+      <p>Abra <strong>Simulador_Constante_Dielectrica.html</strong> en su navegador. La interfaz muestra el condensador 3D a la izquierda y el panel de control a la derecha con tres pestañas:</p>
+
+      <div class="simbox">
+        <div class="simhead">
+          <span>⚡ SIMULADOR 3D — CONSTANTE DIELÉCTRICA · CAPACITOR PLACAS PARALELAS</span>
+          <div><span class="stab">📐 Abierto</span><span class="stab off">🔬 Modo A</span><span class="stab off">⚔️ Modo B</span></div>
+        </div>
+        <div class="simbody">
+          <div class="simrow"><span class="simk">📐 Modo Abierto</span><span class="simd">Exploración libre. Elija material (9 opciones), ajuste σ o V y la separación d. Active/desactive capas: Equipotenciales, Campo E, Dipoles, Cargas σᵦ, Grilla, Ejes. Observe E, D, V, C/A, P, σᵦ, u en tiempo real. Barras de comparación vacío vs dieléctrico.</span></div>
+          <div class="simrow"><span class="simk">🔬 Modo A</span><span class="simd">Material desconocido fijo. Condiciones: σ = 1.0 μC/m², d varía (10 valores: 0.5 a 5.0 cm). Tabla automática de 10 filas con (d, ΔV, εᵣ calculado). El estudiante lee el εᵣ promedio, selecciona el material en el desplegable y verifica.</span></div>
+          <div class="simrow"><span class="simk">⚔️ Modo B</span><span class="simd">Reto 5 rondas. Material oculto (σ = 1.0 μC/m², d = 2.0 cm). Cuatro instrumentos con costo: 📊 E (−20 pts) · 🔋 ΔV (−15 pts) · 💡 C/A (−25 pts) · ⚡ u (−10 pts). Sin usar ninguno: 100 pts ★★★. Máximo: 500 pts en 5 rondas.</span></div>
+        </div>
+      </div>
+
+      <div class="ninfo"><strong>Controles 3D:</strong> Arrastra para rotar · Rueda del ratón para zoom · Botones 3D / Superior / Lateral / Frontal · ☀️/🌙 modo día/noche.</div>
+
+      <div class="sub">3.1 · Materiales disponibles (Modo A y Modo B)</div>
+      <table class="tbl">
+        <thead><tr><th>Ícono</th><th>Material</th><th>εᵣ teórico</th><th>Aplicación típica</th></tr></thead>
+        <tbody>
+          <tr><td>🔶</td><td class="vl">Polietileno</td><td class="va">2.25</td><td>Cables, embalajes, aislantes</td></tr>
+          <tr><td>🛢️</td><td class="vl">Aceite mineral</td><td class="va">2.50</td><td>Aislante en transformadores</td></tr>
+          <tr><td>⚫</td><td class="vl">Caucho / Goma</td><td class="va">4.00</td><td>Aislante en cables eléctricos</td></tr>
+          <tr><td>🔬</td><td class="vl">Vidrio Borosilicato</td><td class="va">4.70</td><td>Material de laboratorio, Pyrex®</td></tr>
+          <tr><td>🪨</td><td class="vl">Mica</td><td class="va">6.00</td><td>Condensadores de alta calidad</td></tr>
+          <tr><td>⚡</td><td class="vl">Vidrio / Cuarzo</td><td class="va">7.00</td><td>Sustratos de circuitos integrados</td></tr>
+          <tr><td>🌊</td><td class="vl">Agua Destilada</td><td class="va">80.0</td><td>Biología, química analítica</td></tr>
+          <tr><td>🔩</td><td class="vl">BaTiO₃ (Titanato de Ba)</td><td class="va">1200</td><td>Condensadores MLCC, ferroeléctricos</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ══ 04. MODO ABIERTO ══ -->
+    <div class="sec">
+      <h2 class="stit"><span class="num">04</span> Modo Abierto — Exploración Cualitativa</h2>
+
+      <div class="ph">
+        <div><span class="pb O">MODO ABIERTO</span></div>
+        <div>
+          <h4 style="font-family:var(--display);font-size:.95em;margin-bottom:4px;">Exploración visual del campo eléctrico y la polarización</h4>
+          <p style="font-size:.82em;color:rgba(255,255,255,.55);margin:0;">Use la pestaña <strong>📐 Abierto</strong>. Active y desactive capas de visualización. Compare cómo cambia el campo al variar el material.</p>
+        </div>
+      </div>
+      <div class="pbody">
+
+        <div class="nota"><strong>Instrucción:</strong> Fije σ = 1.0 μC/m² y d = 2.0 cm en modo <em>σ Fija</em>. Recorra al menos 4 materiales muy distintos (Vacío, Caucho, Vidrio, Agua, BaTiO₃). Para cada uno anote los valores del panel y tome capturas con las capas indicadas.</div>
+
+        <div class="sub">Valores del panel — Modo Abierto (σ = 1.0 μC/m², d = 2.0 cm)</div>
+        <table class="tbl">
+          <thead>
+            <tr><th>Material</th><th>εᵣ</th><th>E (kV/m)</th><th>ΔV (V)</th><th>P (μC/m²)</th><th>C/A (pF/m²)</th><th>Dipoles visibles</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="vl">🌌 Vacío/Aire</td><td class="va">1.0</td>
+              <td class="ic"><input type="text" placeholder="—"></td><td class="ic"><input type="text" placeholder="—"></td>
+              <td class="ic"><input type="text" placeholder="0"></td><td class="ic"><input type="text" placeholder="—"></td><td>No</td></tr>
+            <tr><td class="vl">⚫ Caucho</td><td class="va">4.0</td>
+              <td class="ic"><input type="text" placeholder="—"></td><td class="ic"><input type="text" placeholder="—"></td>
+              <td class="ic"><input type="text" placeholder="—"></td><td class="ic"><input type="text" placeholder="—"></td>
+              <td class="ic"><input type="text" placeholder="Sí / No"></td></tr>
+            <tr><td class="vl">⚡ Vidrio/Cuarzo</td><td class="va">7.0</td>
+              <td class="ic"><input type="text" placeholder="—"></td><td class="ic"><input type="text" placeholder="—"></td>
+              <td class="ic"><input type="text" placeholder="—"></td><td class="ic"><input type="text" placeholder="—"></td>
+              <td class="ic"><input type="text" placeholder="Sí / No"></td></tr>
+            <tr><td class="vl">🌊 Agua Destilada</td><td class="va">80</td>
+              <td class="ic"><input type="text" placeholder="—"></td><td class="ic"><input type="text" placeholder="—"></td>
+              <td class="ic"><input type="text" placeholder="—"></td><td class="ic"><input type="text" placeholder="—"></td>
+              <td class="ic"><input type="text" placeholder="Sí / No"></td></tr>
+            <tr><td class="vl">🔩 BaTiO₃</td><td class="va">1200</td>
+              <td class="ic"><input type="text" placeholder="—"></td><td class="ic"><input type="text" placeholder="—"></td>
+              <td class="ic"><input type="text" placeholder="—"></td><td class="ic"><input type="text" placeholder="—"></td>
+              <td class="ic"><input type="text" placeholder="Sí / No"></td></tr>
+          </tbody>
+        </table>
+
+        <div class="cgrid">
+          <div>
+            <span class="ctipo">🌌 Vacío — Campo E + Dipoles + Equipot.</span>
+            <div class="cslot">
+              <input type="file" accept="image/*" onchange="prevCap(this,'cO1')">
+              <span class="cico">🌌</span><span class="cdesc">Vacío (εᵣ = 1) · todas las capas activas</span>
+              <img id="cO1" class="cprev" alt="">
+            </div>
+          </div>
+          <div>
+            <span class="ctipo">🔩 BaTiO₃ — Campo E + Dipoles + Equipot.</span>
+            <div class="cslot">
+              <input type="file" accept="image/*" onchange="prevCap(this,'cO2')">
+              <span class="cico">🔩</span><span class="cdesc">BaTiO₃ (εᵣ = 1200) · contraste máximo</span>
+              <img id="cO2" class="cprev" alt="">
+            </div>
+          </div>
+        </div>
+
+        <span class="albl">Análisis cualitativo — Modo Abierto</span>
+        <textarea class="work" style="min-height:100px;"
+          placeholder="¿Cómo cambia la densidad de las líneas de campo E al aumentar εᵣ? ¿El vector D cambia cuando σ es fija? ¿Para qué material los dipoles son más pronunciados? ¿Las equipotenciales cambian de forma o espaciado al insertar el dieléctrico?"></textarea>
+      </div>
+    </div>
+
+    <!-- ══ 05. MODO A ══ -->
+    <div class="sec">
+      <h2 class="stit"><span class="num">05</span> Modo A — Identificación del Material Dieléctrico</h2>
+
+      <div class="ph">
+        <div><span class="pb A">MODO A</span></div>
+        <div>
+          <h4 style="font-family:var(--display);font-size:.95em;margin-bottom:4px;">Determinación de εᵣ mediante tabla ΔV vs d</h4>
+          <p style="font-size:.82em;color:rgba(255,255,255,.55);margin:0;">
+            Material desconocido fijo · σ = 1.0 μC/m² · d varía de 0.5 a 5.0 cm (10 valores).
+            La tabla del simulador entrega (d, ΔV, εᵣ calc.) para cada fila.</p>
+        </div>
+      </div>
+      <div class="pbody">
+
+        <div class="nota">
+          <strong>Procedimiento:</strong> Ir a la pestaña <strong>🔬 Modo A</strong> → clic en <em>"🎲 Nuevo Material Aleatorio"</em>. El simulador asigna un material oculto y muestra la tabla de 10 filas. Transcriba los valores d (cm), ΔV (V) y εᵣ calculado (columna del simulador). Luego calcule su propio εᵣ con la Ec. (2), grafique y analice.
+        </div>
+
+        <div class="sub">Tabla A — 10 pares (d, ΔV) entregados por el simulador</div>
+        <p style="font-size:.85em;color:var(--ink-muted);font-style:italic;">Los valores de d (cm) en verde ya están fijados (0.5, 1.0, …, 5.0 cm). Ingrese ΔV (V) y εᵣ del simulador. La última columna se calcula automáticamente con la Ec. (2).</p>
+
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>N°</th>
+              <th style="color:#8fd6a0;">d (cm)</th>
+              <th>ΔV (V) — del simulador</th>
+              <th>εᵣ calc. (simulador)</th>
+              <th>εᵣ = 1129.4 × d / ΔV</th>
+            </tr>
+          </thead>
+          <tbody id="bodyA"></tbody>
+        </table>
+
+        <div class="rbox c4">
+          <div class="rc"><label>εᵣ promedio (simulador)</label><input type="text" id="er-sim" placeholder="Promedio de col. 4"></div>
+          <div class="rc"><label>εᵣ promedio (propio)</label><input type="text" id="er-own" readonly style="color:var(--green);font-weight:600;"></div>
+          <div class="rc"><label>Material identificado</label><input type="text" id="mat-id" placeholder="Escriba el material" oninput="document.getElementById('mat-hdr').value=this.value" style="color:var(--accent);font-weight:600;"></div>
+          <div class="rc"><label>εᵣ teórico del material</label><input type="text" id="er-teo" placeholder="De la tabla §3.1" oninput="calcER()"></div>
+        </div>
+
+        <div class="divr"><span>Gráfica A — ΔV (V) vs d (cm)</span></div>
+        <div class="gbox">
+          <div class="ghead">
+            <span>ΔV (V) vs distancia d (cm) · recta por el origen · pendiente = σ/(ε₀·εᵣ)</span>
+            <span id="infoA" style="color:rgba(255,255,255,.6);font-size:.9em;">sin datos</span>
+          </div>
+          <canvas class="gcanv" id="grafA" height="300"></canvas>
+          <div class="gctrl">
+            <button class="btnc" id="btnRA" onclick="toggleA()">📈 Ajuste lineal (por origen)</button>
+            <button class="btnc" onclick="limpiarA()">🗑 Limpiar</button>
+            <button class="btnc" onclick="dibujarA()">🔄 Actualizar</button>
+            <span class="ginfo" id="eqA">Ingrese ΔV en la tabla para visualizar</span>
+          </div>
+        </div>
+
+        <div class="sub">Resultados cuantitativos — Modo A</div>
+        <div class="rbox c4">
+          <div class="rc"><label>Pendiente m (V/cm)</label><input type="text" id="aSlope" readonly style="color:var(--accent);"></div>
+          <div class="rc"><label>R² del ajuste</label><input type="text" id="aR2" readonly></div>
+          <div class="rc"><label>εᵣ por pendiente (Ec. 3)</label><input type="text" id="erSlope" readonly style="color:var(--green);font-weight:600;"></div>
+          <div class="rc"><label>ER (%) — Error relativo</label><input type="text" id="aER" readonly style="font-weight:700;"></div>
+        </div>
+
+        <span class="albl">Procedimiento de cálculo — Modo A (muestre al menos 2 filas como ejemplo y el cálculo de εᵣ promedio)</span>
+        <textarea class="work" style="min-height:210px;"
+          placeholder="Fila 1 — d = 0.5 cm, ΔV = ___ V:&#10;  εᵣ = 1129.4 × 0.5 / ___ = ___&#10;&#10;Fila 5 — d = 2.5 cm, ΔV = ___ V:&#10;  εᵣ = 1129.4 × 2.5 / ___ = ___&#10;&#10;Fila 10 — d = 5.0 cm, ΔV = ___ V:&#10;  εᵣ = 1129.4 × 5.0 / ___ = ___&#10;&#10;εᵣ promedio = (Σ εᵣᵢ) / 10 = ___&#10;&#10;De la Gráfica A — regresión lineal por el origen (Ec. 3):&#10;  Pendiente m = ___ V/cm = ___ V/m × 10⁻²&#10;  εᵣ = σ / (ε₀ · m) = 1.0×10⁻⁶ / (8.854×10⁻¹² × ___ ) = ___&#10;&#10;Material identificado: ___ (εᵣ teórico = ___)&#10;  ER = |εᵣ_exp − εᵣ_teo| / εᵣ_teo × 100% = ___%&#10;"></textarea>
+
+        <span class="albl">Captura del simulador — Modo A (tabla completa y verificación visible)</span>
+        <div class="slot">
+          <input type="file" accept="image/*" onchange="prevImg(this,'pA1')">
+          <span class="sico">📸</span>
+          <span class="slbl">Adjuntar captura del simulador — Modo A con la tabla y el resultado de la verificación</span>
+          <span class="shnt">PNG, JPG — deben verse la tabla de 10 valores y el feedback ✅ / ❌</span>
+          <img id="pA1" class="sprev" alt="">
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ 06. MODO B ══ -->
+    <div class="sec">
+      <h2 class="stit"><span class="num">06</span> Modo B — Reto del Laboratorio</h2>
+
+      <div class="ph">
+        <div><span class="pb B">MODO B</span></div>
+        <div>
+          <h4 style="font-family:var(--display);font-size:.95em;margin-bottom:4px;">5 rondas · Material oculto · 4 instrumentos · Usa menos para más puntos</h4>
+          <p style="font-size:.82em;color:rgba(255,255,255,.55);margin:0;">
+            ¿Puedes identificarlos sin ayuda? Parámetros fijos: σ = 1.0 μC/m² · d = 2.0 cm</p>
+        </div>
+      </div>
+      <div class="pbody">
+
+        <div class="reto">
+          <div class="rt">⚔️ SISTEMA DE PUNTUACIÓN — MODO B</div>
+          <div class="rb">
+            <b>Sin instrumentos</b> → 100 pts ★★★ &nbsp;·&nbsp; <b>1–2 instrumentos</b> → ~70 pts ★★<br>
+            <b>3–4 instrumentos</b> → ~40 pts ★ &nbsp;·&nbsp; <b>Respuesta errónea</b> → 0 pts ✗<br>
+            Máximo: <b>500 pts</b> (5 × 100) &nbsp;·&nbsp; Costos: E −20 · ΔV −15 · C/A −25 · u −10
+          </div>
+        </div>
+
+        <div class="nota"><strong>Estrategia:</strong> Antes de usar cualquier instrumento, observe la vista 3D — ¿cuántos dipoles hay?, ¿las líneas de campo son muy densas o escasas? Si necesita medir, use primero <strong>Voltaje ΔV (−15 pts)</strong>: calcule εᵣ ≈ 22.59 / ΔV y compare con la tabla de referencia abajo.</div>
+
+        <div class="nwarn"><strong>Valores de referencia memorizable (σ = 1.0 μC/m², d = 2.0 cm):</strong> Vacío → ΔV ≈ 22.6 V · Polietileno → 10.0 V · Caucho → 5.6 V · Mica → 3.8 V · Vidrio → 3.2 V · Agua → 0.28 V · BaTiO₃ → 0.019 V</div>
+
+        <div class="sub">Tabla de referencia rápida (σ = 1.0 μC/m², d = 2.0 cm)</div>
+        <table class="tbl" style="font-size:.82em;">
+          <thead><tr><th>Material</th><th>εᵣ</th><th>E (kV/m)</th><th>ΔV (V)</th><th>C/A (pF/m²)</th><th>u (mJ/m³)</th></tr></thead>
+          <tbody>
+            <tr><td class="vl">🔶 Polietileno</td><td class="va">2.25</td><td>50.2</td><td>1.005</td><td>995</td><td>25.2</td></tr>
+            <tr><td class="vl">🛢️ Aceite mineral</td><td class="va">2.50</td><td>45.2</td><td>0.904</td><td>1106</td><td>22.6</td></tr>
+            <tr><td class="vl">⚫ Caucho</td><td class="va">4.00</td><td>28.3</td><td>0.565</td><td>1770</td><td>14.1</td></tr>
+            <tr><td class="vl">🔬 Vidrio Borosilicato</td><td class="va">4.70</td><td>24.1</td><td>0.481</td><td>2079</td><td>12.0</td></tr>
+            <tr><td class="vl">🪨 Mica</td><td class="va">6.00</td><td>18.8</td><td>0.377</td><td>2655</td><td>9.42</td></tr>
+            <tr><td class="vl">⚡ Vidrio/Cuarzo</td><td class="va">7.00</td><td>16.2</td><td>0.323</td><td>3097</td><td>8.07</td></tr>
+            <tr><td class="vl">🌊 Agua Destilada</td><td class="va">80.0</td><td>1.41</td><td>0.028</td><td>35390</td><td>0.71</td></tr>
+            <tr><td class="vl">🔩 BaTiO₃</td><td class="va">1200</td><td>0.094</td><td>0.0019</td><td>530970</td><td>0.047</td></tr>
+          </tbody>
+        </table>
+
+        <div class="sub">Registro de las 5 rondas</div>
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>Ronda</th><th>Instrumento(s) usado(s)</th><th>Valor(es) leído(s)</th>
+              <th>εᵣ calculado</th><th>Material elegido</th>
+              <th>¿Correcto?</th><th>Pts ronda</th><th>★</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td style="font-family:var(--mono);font-weight:700;color:var(--accent);">1</td>
+              <td class="ic"><input type="text" id="b1i" placeholder="Ninguno / ΔV / E / …"></td>
+              <td class="ic"><input type="text" id="b1v" placeholder="—"></td>
+              <td class="ic"><input type="text" id="b1e" placeholder="—"></td>
+              <td class="ic"><input type="text" id="b1m" placeholder="Material"></td>
+              <td class="ic"><input type="text" id="b1o" placeholder="✅ / ❌"></td>
+              <td class="ic vg"><input type="text" id="b1p" placeholder="—" oninput="calcBTotal()"></td>
+              <td class="ic"><input type="text" id="b1s" placeholder="★★★"></td></tr>
+            <tr><td style="font-family:var(--mono);font-weight:700;color:var(--accent);">2</td>
+              <td class="ic"><input type="text" id="b2i" placeholder="Ninguno / ΔV / E / …"></td>
+              <td class="ic"><input type="text" id="b2v" placeholder="—"></td>
+              <td class="ic"><input type="text" id="b2e" placeholder="—"></td>
+              <td class="ic"><input type="text" id="b2m" placeholder="Material"></td>
+              <td class="ic"><input type="text" id="b2o" placeholder="✅ / ❌"></td>
+              <td class="ic vg"><input type="text" id="b2p" placeholder="—" oninput="calcBTotal()"></td>
+              <td class="ic"><input type="text" id="b2s" placeholder="★★★"></td></tr>
+            <tr><td style="font-family:var(--mono);font-weight:700;color:var(--accent);">3</td>
+              <td class="ic"><input type="text" id="b3i" placeholder="Ninguno / ΔV / E / …"></td>
+              <td class="ic"><input type="text" id="b3v" placeholder="—"></td>
+              <td class="ic"><input type="text" id="b3e" placeholder="—"></td>
+              <td class="ic"><input type="text" id="b3m" placeholder="Material"></td>
+              <td class="ic"><input type="text" id="b3o" placeholder="✅ / ❌"></td>
+              <td class="ic vg"><input type="text" id="b3p" placeholder="—" oninput="calcBTotal()"></td>
+              <td class="ic"><input type="text" id="b3s" placeholder="★★★"></td></tr>
+            <tr><td style="font-family:var(--mono);font-weight:700;color:var(--accent);">4</td>
+              <td class="ic"><input type="text" id="b4i" placeholder="Ninguno / ΔV / E / …"></td>
+              <td class="ic"><input type="text" id="b4v" placeholder="—"></td>
+              <td class="ic"><input type="text" id="b4e" placeholder="—"></td>
+              <td class="ic"><input type="text" id="b4m" placeholder="Material"></td>
+              <td class="ic"><input type="text" id="b4o" placeholder="✅ / ❌"></td>
+              <td class="ic vg"><input type="text" id="b4p" placeholder="—" oninput="calcBTotal()"></td>
+              <td class="ic"><input type="text" id="b4s" placeholder="★★★"></td></tr>
+            <tr><td style="font-family:var(--mono);font-weight:700;color:var(--accent);">5</td>
+              <td class="ic"><input type="text" id="b5i" placeholder="Ninguno / ΔV / E / …"></td>
+              <td class="ic"><input type="text" id="b5v" placeholder="—"></td>
+              <td class="ic"><input type="text" id="b5e" placeholder="—"></td>
+              <td class="ic"><input type="text" id="b5m" placeholder="Material"></td>
+              <td class="ic"><input type="text" id="b5o" placeholder="✅ / ❌"></td>
+              <td class="ic vg"><input type="text" id="b5p" placeholder="—" oninput="calcBTotal()"></td>
+              <td class="ic"><input type="text" id="b5s" placeholder="★★★"></td></tr>
+          </tbody>
+          <tfoot>
+            <tr style="background:var(--paper-alt);">
+              <td colspan="6" style="text-align:right;font-family:var(--mono);font-size:.8em;font-weight:700;color:var(--accent);padding:8px 10px;">PUNTAJE TOTAL</td>
+              <td class="vg" style="font-size:1.05em;padding:8px 10px;"><span id="bTotal">—</span> / 500</td>
+              <td style="padding:8px 10px;font-size:1.1em;"><span id="bMedal">—</span></td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <div class="rbox c4" style="margin-top:6px;">
+          <div class="rc"><label>Puntaje final (/ 500)</label><input type="text" id="rPts" readonly style="color:var(--green);font-weight:700;font-size:1.05em;"></div>
+          <div class="rc"><label>Medalla</label><input type="text" id="rMedal" readonly></div>
+          <div class="rc"><label>Título</label><input type="text" id="rTitulo" readonly></div>
+          <div class="rc"><label>Rondas correctas</label><input type="text" id="rCorr" placeholder="0 – 5"></div>
+        </div>
+
+        <span class="albl">Captura de los resultados finales — Modo B</span>
+        <div class="slot">
+          <input type="file" accept="image/*" onchange="prevImg(this,'pB1')">
+          <span class="sico">🏆</span>
+          <span class="slbl">Adjuntar captura de la pantalla final del Modo B (puntaje, medalla y resumen de rondas)</span>
+          <span class="shnt">Debe verse el puntaje total, la medalla, el título y el detalle de las 5 rondas</span>
+          <img id="pB1" class="sprev" alt="">
+        </div>
+
+        <span class="albl">Reflexión sobre la estrategia — ¿Cuál instrumento fue más eficiente? ¿Lograste identificar algún material sin usar ningún instrumento?</span>
+        <textarea class="work" style="min-height:100px;"
+          placeholder="Describa su estrategia: ¿Observó la vista 3D antes de medir? ¿Usó siempre el mismo instrumento o cambió de estrategia? ¿El Voltaje ΔV fue suficiente para identificar la mayoría de materiales? ¿Hubo algún par difícil de distinguir (εᵣ muy próximos)? ¿Cuál fue y por qué?"></textarea>
+      </div>
+    </div>
+
+    <!-- ══ 07. DISCUSIÓN ══ -->
+    <div class="sec">
+      <h2 class="stit"><span class="num">07</span> Discusión de Resultados</h2>
+
+      <span class="albl">7.1 · Modo Abierto — ¿Qué ocurre con E y las equipotenciales al aumentar εᵣ de 1 a 1200 con σ constante? ¿El vector D cambia? Justifique con la Ec. (1).</span>
+      <textarea class="work" placeholder="Escriba su análisis..."></textarea>
+
+      <span class="albl">7.2 · Modo A — ¿Los 10 valores de εᵣ calculados fila a fila resultaron constantes? ¿La gráfica ΔV vs d fue lineal y pasó por el origen? ¿La pendiente confirma el εᵣ del material? Compare el resultado del promedio y el de la regresión.</span>
+      <textarea class="work" placeholder="Escriba su análisis..."></textarea>
+
+      <span class="albl">7.3 · ¿Por qué la gráfica ΔV vs d pasa por el origen? ¿Qué significaría físicamente un intercepto no nulo?</span>
+      <textarea class="work" placeholder="Escriba su análisis..."></textarea>
+
+      <span class="albl">7.4 · Modo B — ¿Cuál de los 4 instrumentos fue más discriminatorio? ¿Qué par de materiales fue más difícil de distinguir y por qué? Compare sus εᵣ con la tabla de referencia.</span>
+      <textarea class="work" placeholder="Escriba su análisis..."></textarea>
+
+      <span class="albl">7.5 · ¿Por qué el agua tiene εᵣ = 80 siendo líquido mientras el vidrio (sólido) tiene εᵣ ≈ 7? Explique a nivel molecular el origen de la polarización en cada caso.</span>
+      <textarea class="work" placeholder="Escriba su análisis..."></textarea>
+    </div>
+
+    <!-- ══ 08. CONCLUSIONES ══ -->
+    <div class="sec">
+      <h2 class="stit"><span class="num">08</span> Conclusiones</h2>
+
+      <span class="albl">Conclusión 1 — Sobre el efecto del dieléctrico en E, D y P observado en el Modo Abierto</span>
+      <textarea class="work" style="min-height:90px;" placeholder="Redacte su primera conclusión..."></textarea>
+
+      <span class="albl">Conclusión 2 — Sobre el valor de εᵣ determinado en el Modo A: consistencia entre el promedio de la tabla, la regresión y el material identificado (incluya el ER obtenido)</span>
+      <textarea class="work" style="min-height:90px;" placeholder="Redacte su segunda conclusión..."></textarea>
+
+      <span class="albl">Conclusión 3 — Sobre la estrategia del Modo B: qué instrumento resultó más eficiente y qué aprendió sobre la constante dieléctrica como propiedad identificadora de materiales</span>
+      <textarea class="work" style="min-height:90px;" placeholder="Redacte su tercera conclusión..."></textarea>
+    </div>
+
+    <!-- ══ 09. REFERENCIAS ══ -->
+    <div class="sec">
+      <h2 class="stit"><span class="num">09</span> Referencias</h2>
+      <p style="font-size:.88em;line-height:2.2;">
+        [1] Sears, F. W., Zemansky, M. W. &amp; Young, H. D. <em>University Physics</em>. 14ª ed. Pearson, 2016. Cap. 24 — Capacitancia y dieléctricos.<br>
+        [2] Serway, R. A. &amp; Jewett, J. W. <em>Physics for Scientists and Engineers</em>. 10ª ed. Cengage, 2019. Cap. 26 — Condensadores y dieléctricos.<br>
+        [3] Halliday, D., Resnick, R. &amp; Krane, K. S. <em>Physics</em>. 5ª ed. Wiley, 2002. Cap. 27 — Condensadores y dieléctricos.<br>
+        [4] Griffiths, D. J. <em>Introduction to Electrodynamics</em>. 4ª ed. Cambridge University Press, 2017. Cap. 4 — Dieléctricos.
+      </p>
+    </div>
+
+    <!-- FIRMAS -->
+    <div class="sec" style="margin-bottom:0;">
+      <div class="firma-grid">
+        <div class="firma-slot">Firma del estudiante</div>
+        <div class="firma-slot">Vo. Bo. Docente</div>
+      </div>
+    </div>
+
+  </div><!-- /body -->
+</div><!-- /documento -->
+<button class="btnimp" onclick="window.print()">🖨 Imprimir / PDF</button>
+
+<script>
+// ═══════════════════════ INIT ═══════════════════════
+const DS = [0.5,1.0,1.5,2.0,2.5,3.0,3.5,4.0,4.5,5.0];
+const EPS0 = 8.854187817e-12, SIGMA = 1e-6;
+
+window.addEventListener('load', () => {
+  const now = new Date();
+  document.getElementById('codigoPractica').textContent =
+    `PRÁCTICA FIS-DIEL3D-01 · ${now.getFullYear()}-${now.getMonth()<6?'1':'2'}`;
+  document.querySelectorAll('input[type="date"]').forEach(i=>i.value=now.toISOString().split('T')[0]);
+  buildTablaA();
+  initGraf();
+});
+
+// ═══════════════════════ TABLA A ═══════════════════════
+function buildTablaA() {
+  document.getElementById('bodyA').innerHTML = DS.map((d,i)=>`
+    <tr>
+      <td style="font-family:var(--mono);color:var(--accent);font-weight:700;">${i+1}</td>
+      <td style="font-family:var(--mono);color:var(--green);font-weight:600;">${d.toFixed(1)}</td>
+      <td class="ic"><input type="text" id="aV${i}" placeholder="—" oninput="calcA()"></td>
+      <td class="ic"><input type="text" id="aS${i}" placeholder="—"></td>
+      <td class="ic" style="color:var(--accent);font-family:var(--mono);font-weight:600;">
+        <span id="aO${i}">—</span></td>
+    </tr>`).join('');
+}
+
+function calcA() {
+  let sum=0, n=0;
+  DS.forEach((d,i)=>{
+    const V = parseFloat(document.getElementById(`aV${i}`)?.value);
+    if (!isNaN(V) && V>0) {
+      const er = 1129.4*d/V;
+      document.getElementById(`aO${i}`).textContent = er.toFixed(3);
+      sum += er; n++;
+    } else {
+      document.getElementById(`aO${i}`).textContent = '—';
+    }
+  });
+  document.getElementById('er-own').value = n>0 ? (sum/n).toFixed(3) : '';
+  calcER();
+  dibujarA();
+}
+
+function calcER() {
+  const exp = parseFloat(document.getElementById('er-own').value);
+  const teo = parseFloat(document.getElementById('er-teo').value);
+  const el = document.getElementById('aER');
+  if (!isNaN(exp) && !isNaN(teo) && teo>0) {
+    const er = Math.abs(exp-teo)/teo*100;
+    el.value = er.toFixed(2)+' %';
+    el.style.color = er<1?'var(--green)':er<10?'var(--gold)':'var(--accent2)';
+  }
+}
+
+// ═══════════════════════ GRÁFICA A ═══════════════════════
+let stA = false;
+
+function initGraf() {
+  const cv=document.getElementById('grafA'); if(!cv)return;
+  const dpr=window.devicePixelRatio||1;
+  cv.width=(cv.offsetWidth||700)*dpr;
+  cv.height=300*dpr;
+  const ctx=cv.getContext('2d');
+  ctx.fillStyle='#fafafa'; ctx.fillRect(0,0,cv.width,cv.height);
+  ctx.fillStyle='#bbb'; ctx.font=(14*dpr)+'px JetBrains Mono,monospace';
+  ctx.textAlign='center';
+  ctx.fillText('Ingrese ΔV en la tabla para visualizar',cv.width/2,cv.height/2);
+}
+
+function getDatosA() {
+  return DS.map((d,i)=>{
+    const V=parseFloat(document.getElementById(`aV${i}`)?.value);
+    return (!isNaN(V)&&V>0)?{x:d,y:V}:null;
+  }).filter(Boolean);
+}
+
+function dibujarA() {
+  const datos=getDatosA();
+  const cv=document.getElementById('grafA'); if(!cv)return;
+  const dpr=window.devicePixelRatio||1;
+  cv.width=(cv.offsetWidth||700)*dpr;
+  cv.height=300*dpr;
+  const ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height;
+  const PAD={top:34*dpr,right:30*dpr,bottom:52*dpr,left:68*dpr};
+  const pw=W-PAD.left-PAD.right,ph=H-PAD.top-PAD.bottom;
+
+  ctx.fillStyle='#fafafa'; ctx.fillRect(0,0,W,H);
+
+  if(!datos.length){
+    ctx.fillStyle='#bbb'; ctx.font=(14*dpr)+'px JetBrains Mono,monospace';
+    ctx.textAlign='center';
+    ctx.fillText('Ingrese ΔV en la tabla para visualizar',W/2,H/2);
+    document.getElementById('infoA').textContent='sin datos';
+    document.getElementById('eqA').textContent='Ingrese datos en la tabla';
+    return;
+  }
+
+  const xVals=datos.map(d=>d.x),yVals=datos.map(d=>d.y);
+  const xMax=Math.max(...xVals)*1.12, yMax=Math.max(...yVals)*1.15;
+  const cx=x=>PAD.left+x/xMax*pw, cy=y=>PAD.top+ph-(y/yMax)*ph;
+
+  // Grid
+  ctx.strokeStyle='#e8e4dc'; ctx.lineWidth=dpr;
+  for(let i=0;i<=5;i++){
+    const yy=PAD.top+i*ph/5; ctx.beginPath(); ctx.moveTo(PAD.left,yy); ctx.lineTo(PAD.left+pw,yy); ctx.stroke();
+    const xx=PAD.left+i*pw/5; ctx.beginPath(); ctx.moveTo(xx,PAD.top); ctx.lineTo(xx,PAD.top+ph); ctx.stroke();
+  }
+  // Axes
+  ctx.strokeStyle='#888'; ctx.lineWidth=1.5*dpr; ctx.beginPath();
+  ctx.moveTo(PAD.left,PAD.top); ctx.lineTo(PAD.left,PAD.top+ph); ctx.lineTo(PAD.left+pw,PAD.top+ph); ctx.stroke();
+  // Labels
+  ctx.fillStyle='#3d3d5c'; ctx.font='bold '+(11*dpr)+'px JetBrains Mono,monospace';
+  ctx.textAlign='center'; ctx.fillText('d (cm)',PAD.left+pw/2,H-8*dpr);
+  ctx.save(); ctx.translate(14*dpr,PAD.top+ph/2); ctx.rotate(-Math.PI/2); ctx.fillText('ΔV (V)',0,0); ctx.restore();
+  // Ticks
+  ctx.fillStyle='#888'; ctx.font=(10*dpr)+'px JetBrains Mono,monospace';
+  for(let i=0;i<=5;i++){
+    const xv=i*xMax/5; ctx.textAlign='center'; ctx.fillText(xv.toFixed(1),cx(xv),PAD.top+ph+17*dpr);
+    const yv=i*yMax/5; ctx.textAlign='right'; ctx.fillText(yv.toFixed(3),PAD.left-5*dpr,cy(yv)+4*dpr);
+  }
+
+  // Regression through origin
+  if (stA && datos.length>=2) {
+    const Sxx=xVals.reduce((a,v)=>a+v*v,0);
+    const Sxy=xVals.reduce((a,v,i)=>a+v*yVals[i],0);
+    const slope=Sxy/Sxx; // V/cm
+    const yMean=yVals.reduce((a,b)=>a+b,0)/datos.length;
+    const ssTot=yVals.reduce((a,v)=>a+(v-yMean)**2,0);
+    const ssRes=yVals.reduce((a,v,i)=>a+(v-slope*xVals[i])**2,0);
+    const r2=ssTot>0?1-ssRes/ssTot:1;
+
+    ctx.strokeStyle='#1a5276'; ctx.lineWidth=2.5*dpr; ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(cx(0),cy(0)); ctx.lineTo(cx(xMax),cy(slope*xMax)); ctx.stroke();
+
+    // εr from slope: slope [V/cm] → [V/m] = slope*100
+    const er_s = SIGMA/(EPS0*(slope*100));
+    document.getElementById('aSlope').value = slope.toFixed(6)+' V/cm';
+    document.getElementById('aR2').value    = r2.toFixed(5);
+    document.getElementById('erSlope').value= er_s.toFixed(3);
+    document.getElementById('eqA').textContent =
+      `ΔV = ${slope.toFixed(4)}·d  |  R² = ${r2.toFixed(4)}  |  εᵣ = ${er_s.toFixed(2)}`;
+    calcER();
+  } else {
+    document.getElementById('eqA').textContent = datos.length+' punto(s) — active el ajuste lineal';
+  }
+
+  // Points
+  ctx.setLineDash([]);
+  datos.forEach(d=>{
+    ctx.fillStyle='#c0392b';
+    ctx.beginPath(); ctx.arc(cx(d.x),cy(d.y),5*dpr,0,Math.PI*2); ctx.fill();
+  });
+  document.getElementById('infoA').textContent = datos.length+' punto(s)';
+}
+
+function toggleA() {
+  stA=!stA;
+  document.getElementById('btnRA').classList.toggle('on',stA);
+  dibujarA();
+}
+function limpiarA() {
+  DS.forEach((_,i)=>{
+    const e=document.getElementById(`aV${i}`); if(e)e.value='';
+    document.getElementById(`aO${i}`).textContent='—';
+  });
+  ['er-own','aSlope','aR2','erSlope','aER'].forEach(id=>{
+    const e=document.getElementById(id); if(e){e.value='';e.style.color='';}
+  });
+  initGraf();
+}
+
+// ═══════════════════════ MODO B — PUNTAJE ═══════════════════════
+function calcBTotal() {
+  let total=0, valid=0;
+  for(let r=1;r<=5;r++){
+    const p=parseFloat(document.getElementById(`b${r}p`)?.value);
+    if(!isNaN(p)){total+=p;valid++;}
+  }
+  document.getElementById('bTotal').textContent = valid>0?total:'—';
+  document.getElementById('rPts').value = valid>0?total+'':'';
+  let medal='—', titulo='—';
+  if(valid===5){
+    if(total>=400){medal='🏆';titulo='EXPERTO EN DIELÉCTRICOS';}
+    else if(total>=300){medal='🥈';titulo='AVANZADO';}
+    else if(total>=200){medal='🥉';titulo='COMPETENTE';}
+    else if(total>=100){medal='📚';titulo='EN DESARROLLO';}
+    else{medal='🔬';titulo='PRINCIPIANTE';}
+    document.getElementById('bMedal').textContent=medal;
+    document.getElementById('rMedal').value=medal;
+    document.getElementById('rTitulo').value=titulo;
+  }
+}
+
+// ═══════════════════════ IMÁGENES ═══════════════════════
+function prevImg(input,id){
+  const f=input.files[0]; if(!f)return;
+  const r=new FileReader();
+  r.onload=e=>{const img=document.getElementById(id);if(img){img.src=e.target.result;img.style.display='block';}};
+  r.readAsDataURL(f);
+}
+function prevCap(input,id){prevImg(input,id);}
+
+window.addEventListener('resize',()=>{dibujarA();});
+</script>
+<script>
+/* ── Preparar impresión: volcar valores en divs visibles ── */
+(function () {
+  var snapshots = [];
+
+  function prepararImpresion() {
+    snapshots = [];
+    document.querySelectorAll(
+      'textarea, input[type="text"], input[type="date"]'
+    ).forEach(function (el) {
+      var div = document.createElement('div');
+      div.className = 'print-value';
+      div.textContent = el.value !== '' ? el.value : ' ';
+      /* Copiar estilos de tamaño/posición del campo original */
+      div.style.minHeight = (el.offsetHeight || 24) + 'px';
+      el.parentNode.insertBefore(div, el.nextSibling);
+      snapshots.push({ el: el, div: div });
+    });
+  }
+
+  function restaurar() {
+    snapshots.forEach(function (s) {
+      if (s.div.parentNode) s.div.parentNode.removeChild(s.div);
+    });
+    snapshots = [];
+  }
+
+  window.addEventListener('beforeprint', prepararImpresion);
+  window.addEventListener('afterprint',  restaurar);
+})();
+</script>
+</body>
+</html>

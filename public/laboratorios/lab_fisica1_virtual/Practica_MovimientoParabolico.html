@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Práctica de Laboratorio — Movimiento Parabólico</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>
+  MathJax = {
+    tex: { inlineMath: [['$','$'],['\\(','\\)']], displayMath: [['$$','$$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+  :root {
+    --ink:       #1a1a2e;
+    --ink-soft:  #3d3d5c;
+    --ink-muted: #7a7a9a;
+    --paper:     #faf8f3;
+    --paper-alt: #f2ede3;
+    --rule:      #d4c9b0;
+    --accent:    #1a5276;
+    --accent2:   #c0392b;
+    --gold:      #b8860b;
+    --green:     #1e8449;
+    --orange:    #d35400;
+    --purple:    #6c3483;
+    --mono:      'JetBrains Mono', monospace;
+    --serif:     'Source Serif 4', Georgia, serif;
+    --display:   'Playfair Display', Georgia, serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { background: #dde3e8; font-family: var(--serif); color: var(--ink); font-size: 15px; line-height: 1.75; min-height: 100vh; padding: 30px 15px 80px; }
+  .documento { max-width: 860px; margin: 0 auto; background: var(--paper); overflow-x: hidden; box-shadow: 0 2px 4px rgba(0,0,0,.08), 0 8px 32px rgba(0,0,0,.14), 0 20px 60px rgba(0,0,0,.08); position: relative; }
+  .documento::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: linear-gradient(180deg, var(--accent) 0%, var(--accent2) 50%, var(--gold) 100%); }
+
+  /* HEADER */
+  .header { background: var(--ink); color: #fff; padding: 36px 50px 30px 55px; position: relative; overflow: hidden; }
+  .header::after { content: 'θ'; font-family: var(--display); font-size: 300px; font-weight: 700; color: rgba(255,255,255,.04); position: absolute; right: -10px; top: -60px; line-height: 1; pointer-events: none; user-select: none; }
+  .header-meta { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; gap: 20px; }
+  .badge-codigo { font-family: var(--mono); font-size: .7em; background: var(--accent); color: #fff; padding: 3px 10px; letter-spacing: .12em; text-transform: uppercase; }
+  .badge-tipo { font-family: var(--mono); font-size: .7em; color: rgba(255,255,255,.5); letter-spacing: .1em; text-transform: uppercase; border: 1px solid rgba(255,255,255,.15); padding: 3px 10px; }
+  .header h1 { font-family: var(--display); font-size: 2.1em; font-weight: 700; line-height: 1.2; color: #fff; margin-bottom: 6px; }
+  .header h1 em { font-style: italic; color: rgba(255,255,255,.65); font-size: .82em; }
+  .header-sub { font-size: .82em; color: rgba(255,255,255,.45); font-weight: 300; letter-spacing: .04em; margin-top: 4px; }
+  .header-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 24px; margin-top: 24px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,.12); }
+  .field-item label { display: block; font-family: var(--mono); font-size: .65em; color: rgba(255,255,255,.4); text-transform: uppercase; letter-spacing: .12em; margin-bottom: 4px; }
+  .field-item input[type="text"], .field-item input[type="date"] { width: 100%; background: rgba(255,255,255,.07); border: none; border-bottom: 1px solid rgba(255,255,255,.25); color: #fff; font-family: var(--serif); font-size: .9em; padding: 4px 0; outline: none; transition: border-color .2s; }
+  .field-item input:focus { border-bottom-color: var(--accent2); }
+  .field-item input::placeholder { color: rgba(255,255,255,.2); }
+
+  /* BODY */
+  .body { padding: 44px 50px 50px 55px; }
+  .seccion { margin-bottom: 42px; }
+  .seccion-titulo { font-family: var(--display); font-size: 1.15em; font-weight: 600; color: var(--ink); display: flex; align-items: center; gap: 12px; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 2px solid var(--rule); }
+  .seccion-titulo .num { font-family: var(--mono); font-size: .75em; color: var(--accent); background: #e8f0f7; padding: 2px 7px; letter-spacing: .05em; min-width: 36px; text-align: center; }
+  .subseccion-titulo { font-family: var(--display); font-size: 1em; font-weight: 600; color: var(--accent); margin: 22px 0 10px; display: flex; align-items: center; gap: 8px; }
+  .subseccion-titulo::before { content: ''; width: 14px; height: 2px; background: var(--accent); display: inline-block; flex-shrink: 0; }
+  p { margin-bottom: 10px; color: var(--ink-soft); font-size: .95em; }
+  p:last-child { margin-bottom: 0; }
+
+  .resumen-box { background: var(--paper-alt); border-left: 3px solid var(--accent); padding: 16px 20px; font-size: .9em; font-style: italic; color: var(--ink-soft); line-height: 1.7; }
+  .objetivos-lista { list-style: none; padding: 0; }
+  .objetivos-lista li { display: flex; gap: 12px; align-items: flex-start; padding: 8px 0; border-bottom: 1px dashed var(--rule); font-size: .93em; color: var(--ink-soft); }
+  .objetivos-lista li:last-child { border-bottom: none; }
+  .objetivos-lista li .obj-num { font-family: var(--mono); font-size: .75em; color: #fff; background: var(--accent); min-width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; margin-top: 2px; flex-shrink: 0; }
+
+  .formula-box { background: var(--ink); color: #fff; padding: 18px 24px; margin: 18px 0; position: relative; overflow: hidden; }
+  .formula-box::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent2); }
+  .formula-box .formula-label { font-family: var(--mono); font-size: .65em; color: rgba(255,255,255,.4); text-transform: uppercase; letter-spacing: .12em; margin-bottom: 10px; }
+  .formula-main { font-size: 1.1em; text-align: center; padding: 6px 0; }
+  .formula-num { font-family: var(--mono); font-size: .65em; color: rgba(255,255,255,.35); text-align: right; margin-top: 6px; }
+
+  .tabla-resultados { width: 100%; border-collapse: collapse; font-size: .86em; margin: 14px 0; }
+  .tabla-resultados th { background: var(--ink); color: #fff; font-family: var(--mono); font-size: .68em; letter-spacing: .06em; padding: 9px 8px; text-align: center; font-weight: 500; border: 1px solid #444; }
+  .tabla-resultados td { padding: 7px 6px; border: 1px solid var(--rule); text-align: center; color: var(--ink-soft); vertical-align: middle; }
+  .tabla-resultados td.input-cell { padding: 3px 4px; }
+  .tabla-resultados input[type="text"] { width: 100%; border: none; border-bottom: 1px solid var(--rule); background: transparent; font-family: var(--mono); font-size: .88em; color: var(--ink); padding: 4px; text-align: center; outline: none; transition: border-color .2s; }
+  .tabla-resultados input:focus { border-bottom-color: var(--accent); }
+  .tabla-resultados tr:nth-child(even) td { background: var(--paper-alt); }
+  .tabla-resultados .row-label { font-family: var(--mono); font-size: .82em; font-weight: 500; color: var(--accent); }
+
+  .paso { display: flex; gap: 16px; margin-bottom: 20px; align-items: flex-start; }
+  .paso-num { font-family: var(--mono); font-size: .8em; background: var(--accent); color: #fff; min-width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+  .paso-content { flex: 1; }
+  .paso-content p { margin-bottom: 6px; }
+
+  .trabajo-area { width: 100%; min-height: 110px; border: 1px solid var(--rule); background: #fff; font-family: var(--serif); font-size: .9em; color: var(--ink); padding: 14px 16px; resize: vertical; outline: none; line-height: 1.8; transition: border-color .2s; display: block; }
+  .trabajo-area:focus { border-color: var(--accent); }
+  .trabajo-area::placeholder { color: #bbb; font-style: italic; }
+  .area-label { font-family: var(--mono); font-size: .68em; color: var(--ink-muted); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 5px; margin-top: 14px; display: block; }
+
+  .nota { background: #fef9e7; border-left: 3px solid var(--gold); padding: 10px 16px; font-size: .85em; color: #7d6608; margin: 14px 0; font-style: italic; }
+  .nota strong { font-style: normal; color: var(--gold); }
+  .nota-rojo { background: #fef0ef; border-left: 3px solid var(--accent2); padding: 10px 16px; font-size: .85em; color: #7b241c; margin: 14px 0; font-style: italic; }
+  .nota-rojo strong { font-style: normal; color: var(--accent2); }
+
+  .ejemplo-box { background: #f0f7f0; border-left: 3px solid var(--green); padding: 14px 18px; margin: 14px 0; font-size: .9em; }
+  .ejemplo-box .ej-label { font-family: var(--mono); font-size: .65em; color: var(--green); text-transform: uppercase; letter-spacing: .12em; margin-bottom: 8px; display: block; font-weight: 500; }
+
+  .result-box { background: var(--paper-alt); border: 1px solid var(--rule); padding: 16px 20px; margin: 14px 0; display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; }
+  .result-box.col2 { grid-template-columns: 1fr 1fr; }
+  .result-box.col4 { grid-template-columns: repeat(4,1fr); }
+  .result-box.col5 { grid-template-columns: repeat(5,1fr); }
+  .result-box.col6 { grid-template-columns: repeat(6,1fr); }
+  @media(max-width:640px){ .result-box,.result-box.col2,.result-box.col4,.result-box.col5,.result-box.col6{ grid-template-columns:1fr 1fr; } }
+  .res-campo label { font-family: var(--mono); font-size: .63em; color: var(--ink-muted); text-transform: uppercase; letter-spacing: .1em; display: block; margin-bottom: 5px; }
+  .res-campo input[type="text"] { width: 100%; border: none; border-bottom: 2px solid var(--rule); background: transparent; font-family: var(--mono); font-size: 1em; color: var(--ink); padding: 4px 0; outline: none; transition: border-color .2s; text-align: center; }
+  .res-campo input:focus { border-bottom-color: var(--accent); }
+
+  .rango-tabla { width: 100%; border-collapse: collapse; font-size: .85em; margin: 12px 0; }
+  .rango-tabla th { background: var(--ink); color: #fff; font-family: var(--mono); font-size: .68em; padding: 7px 12px; letter-spacing: .08em; text-align: center; }
+  .rango-tabla td { padding: 6px 12px; border: 1px solid var(--rule); text-align: center; font-size: .88em; }
+  .rango-tabla .bueno { color: var(--green); font-weight: 600; }
+  .rango-tabla .medio { color: var(--gold); font-weight: 600; }
+  .rango-tabla .malo  { color: var(--accent2); font-weight: 600; }
+
+  /* PARTES */
+  .parte-header { background: linear-gradient(135deg, #1a1a2e 0%, #2c3e50 100%); color: #fff; padding: 14px 20px; display: flex; align-items: center; gap: 14px; margin-bottom: 0; }
+  .parte-header.parteB { background: linear-gradient(135deg, #1a1a2e 0%, #1a3a2e 100%); }
+  .parte-header.parteC { background: linear-gradient(135deg, #1a1a2e 0%, #3d1a4a 100%); }
+  .parte-badge { font-family: var(--mono); font-size: .65em; color: #fff; padding: 3px 9px; letter-spacing: .12em; text-transform: uppercase; flex-shrink: 0; }
+  .parte-badge.A { background: var(--accent); }
+  .parte-badge.B { background: var(--green); }
+  .parte-badge.C { background: var(--purple); }
+  .parte-header h4 { font-family: var(--display); font-size: 1em; font-weight: 600; color: #fff; margin: 0; }
+  .parte-header p { font-size: .8em; color: rgba(255,255,255,.6); margin: 2px 0 0; }
+  .parte-body { border: 1px solid #2c3e50; border-top: none; padding: 20px; background: #f8fafc; margin-bottom: 24px; }
+  .parte-body.B { border-color: #1a3a2e; background: #f6faf8; }
+  .parte-body.C { border-color: #3d1a4a; background: #fdf6ff; }
+
+  /* RETO */
+  .reto-header { background: linear-gradient(135deg, #1a1a2e 0%, #7b1a1a 100%); color: #fff; padding: 16px 20px; display: flex; align-items: center; gap: 14px; }
+  .reto-badge { font-family: var(--mono); font-size: .65em; background: var(--accent2); color: #fff; padding: 3px 9px; letter-spacing: .12em; text-transform: uppercase; flex-shrink: 0; }
+  .reto-header h4 { font-family: var(--display); font-size: 1em; font-weight: 600; color: #fff; margin: 0; }
+  .reto-header p { font-size: .8em; color: rgba(255,255,255,.6); margin: 2px 0 0; }
+  .reto-body { border: 1px solid #7b1a1a; border-top: none; padding: 20px; background: #fff8f6; }
+
+  .grafica-box { border: 1px solid var(--rule); background: #fff; margin: 14px 0; overflow: hidden; }
+  .grafica-header { background: var(--ink); color: #fff; padding: 8px 16px; font-family: var(--mono); font-size: .68em; letter-spacing: .1em; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; }
+  .grafica-canvas { display: block; width: 100%; background: #fafafa; }
+  .grafica-controles { padding: 10px 16px; border-top: 1px solid var(--rule); display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .btn-ctrl { font-family: var(--mono); font-size: .7em; padding: 5px 12px; border: 1px solid var(--rule); background: var(--paper-alt); color: var(--ink-soft); cursor: pointer; transition: all .2s; letter-spacing: .05em; }
+  .btn-ctrl:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-ctrl.activo { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .grafica-info { font-family: var(--mono); font-size: .7em; color: var(--ink-muted); margin-left: auto; }
+
+  .adjunto-slot { border: 2px dashed var(--rule); background: var(--paper-alt); padding: 24px 16px; text-align: center; margin-top: 10px; position: relative; cursor: pointer; transition: border-color .2s, background .2s; }
+  .adjunto-slot:hover { border-color: var(--accent); background: #e8f0f7; }
+  .adjunto-slot input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+  .adjunto-slot .slot-icon { font-size: 1.8em; margin-bottom: 5px; display: block; }
+  .adjunto-slot .slot-label { font-family: var(--mono); font-size: .68em; color: var(--ink-muted); text-transform: uppercase; letter-spacing: .1em; display: block; }
+  .adjunto-slot .slot-hint { font-size: .78em; color: var(--ink-muted); margin-top: 3px; display: block; }
+  .adjunto-slot .preview-img { max-width: 100%; max-height: 220px; margin-top: 10px; border: 1px solid var(--rule); display: none; }
+
+  .divider { display: flex; align-items: center; gap: 12px; margin: 28px 0; opacity: .4; }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--rule); }
+  .divider span { font-family: var(--mono); font-size: .65em; color: var(--ink-muted); letter-spacing: .1em; text-transform: uppercase; }
+
+  .firma-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 30px; }
+  .firma-slot { text-align: center; padding-top: 50px; border-top: 1px solid var(--rule); font-family: var(--mono); font-size: .68em; color: var(--ink-muted); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* RETO C — botón y resultado */
+  .btn-reto { display: inline-block; background: var(--accent2); color: #fff; border: none; padding: 11px 28px; font-family: var(--mono); font-size: .78em; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; transition: all .2s; margin: 8px 0; }
+  .btn-reto:hover { background: #922b21; transform: translateY(-1px); }
+  .reto-resultado { display: none; margin-top: 14px; padding: 18px 20px; border: 2px solid var(--green); background: #f0faf2; }
+  .reto-resultado.fail { border-color: var(--accent2); background: #fff8f6; }
+  .reto-resultado h5 { font-family: var(--display); font-size: 1.1em; margin-bottom: 6px; }
+  .reto-resultado.ok h5 { color: var(--green); }
+  .reto-resultado.fail h5 { color: var(--accent2); }
+
+  .btn-imprimir { position: fixed; bottom: 24px; right: 24px; background: var(--accent); color: #fff; border: none; padding: 12px 22px; font-family: var(--mono); font-size: .75em; letter-spacing: .1em; text-transform: uppercase; cursor: pointer; box-shadow: 0 4px 16px rgba(26,82,118,.35); transition: transform .15s, box-shadow .15s; z-index: 100; }
+  .btn-imprimir:hover { transform: translateY(-2px); box-shadow: 0 6px 22px rgba(26,82,118,.45); }
+
+
+  /* ===== RESPONSIVE MOBILE ===== */
+  @media (max-width: 680px) {
+    body { padding: 10px 0 40px; }
+    .documento { border-radius: 0; }
+
+    /* Header */
+    .header { padding: 22px 18px 20px 22px; }
+    .header::after { font-size: 160px; }
+    .header h1 { font-size: 1.4em !important; }
+    .header-meta { flex-direction: column; gap: 8px; }
+    .header-fields { grid-template-columns: 1fr !important; gap: 10px 0; }
+
+    /* Body */
+    .body { padding: 22px 16px 28px 20px; }
+
+    /* Tablas — scroll horizontal */
+    .tabla-resultados,
+    .rango-tabla { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+    /* Result boxes — máx 2 columnas */
+    .result-box,
+    .result-box.col2,
+    .result-box.col4,
+    .result-box.col5,
+    .result-box.col6 { grid-template-columns: 1fr 1fr !important; }
+
+    /* Grids de firma */
+    .firma-grid { grid-template-columns: 1fr !important; gap: 20px; }
+
+    /* Pasos de procedimiento */
+    .paso { gap: 10px; }
+
+    /* Parte headers */
+    .parte-header,
+    .reto-header { padding: 12px 14px; gap: 10px; }
+    .parte-header h4,
+    .reto-header h4 { font-size: 0.9em; }
+    .parte-body,
+    .reto-body { padding: 14px; }
+
+    /* Controles de gráfica */
+    .grafica-controles { gap: 6px; flex-wrap: wrap; }
+    .btn-ctrl { font-size: 0.65em; padding: 4px 8px; }
+
+    /* Section titles */
+    .seccion-titulo { font-size: 1em; gap: 8px; }
+
+    /* Adjunto slot */
+    .adjunto-slot { padding: 16px 10px; }
+
+    /* Trabajo área */
+    .trabajo-area { min-height: 80px; }
+  }
+
+  @media (max-width: 420px) {
+    .header { padding: 18px 14px 16px 18px; }
+    .body { padding: 16px 12px 20px 14px; }
+    .result-box,
+    .result-box.col2,
+    .result-box.col4,
+    .result-box.col5,
+    .result-box.col6 { grid-template-columns: 1fr !important; }
+    .header h1 { font-size: 1.2em !important; }
+    .formula-main { font-size: 1em !important; }
+  }
+
+  @media print { body { background: #fff; padding: 0; } .documento { box-shadow: none; } .btn-imprimir, .grafica-controles, .btn-reto { display: none; } }
+</style>
+</head>
+<body>
+<div class="documento">
+
+<!-- ═══════════════ ENCABEZADO ═══════════════ -->
+<div class="header">
+  <div class="header-meta">
+    <span class="badge-codigo" id="codigoPractica">PRÁCTICA FIS-MP-03</span>
+    <span class="badge-tipo">Laboratorio de Física · Cinemática</span>
+  </div>
+  <h1>Movimiento Parabólico<br><em>Determinación de la velocidad inicial y análisis cinemático</em></h1>
+  <div class="header-sub">Parte A: $v_0$ por alcance máximo · Parte B: gráficas $x(t)$, $y(t)$ · Parte C: reto del aro</div>
+  <div class="header-fields">
+    <div class="field-item"><label>Nombre del estudiante</label><input type="text" placeholder="Escriba su nombre completo"></div>
+    <div class="field-item"><label>Código</label><input type="text" placeholder="Código estudiantil"></div>
+    <div class="field-item"><label>Grupo / Sección</label><input type="text" placeholder="Ej. Grupo B — Martes 8 am"></div>
+    <div class="field-item"><label>Docente</label><input type="text" placeholder="Nombre del profesor/a"></div>
+    <div class="field-item"><label>Fecha de realización</label><input type="date"></div>
+    <div class="field-item"><label>Gravedad del simulador (m/s²)</label><input type="text" id="gSimHeader" placeholder="Ej. 9.81"></div>
+  </div>
+</div>
+
+<div class="body">
+
+<!-- ═══════════════ 00. RESUMEN ═══════════════ -->
+<div class="seccion">
+  <h2 class="seccion-titulo"><span class="num">00</span> Resumen</h2>
+  <div class="resumen-box">
+    En esta práctica se estudia el <strong>movimiento parabólico</strong> mediante un simulador 3D.
+    La <strong>Parte A</strong> requiere encontrar experimentalmente el ángulo de alcance máximo
+    para determinar la velocidad inicial $v_0$ del proyectil con su respectiva incertidumbre;
+    la <strong>Parte B</strong> analiza un lanzamiento aleatorio registrando posiciones $(x, y)$
+    en función del tiempo, construyendo las gráficas $x$ vs. $t$ e $y$ vs. $t$, y determinando
+    los vectores de posición, velocidad y aceleración.
+    La <strong>Parte C</strong> es el reto: calcular la posición de un aro de diámetro $2d_{\text{esfera}}$
+    y predecir con qué parámetros el proyectil lo atraviesa.
+  </div>
+  <p style="margin-top:10px;"><strong>Palabras clave:</strong>
+    Movimiento parabólico · alcance máximo · velocidad inicial · incertidumbre · vectores cinemáticos · aro
+  </p>
+</div>
+
+<!-- ═══════════════ 01. OBJETIVOS ═══════════════ -->
+<div class="seccion">
+  <h2 class="seccion-titulo"><span class="num">01</span> Objetivos</h2>
+  <ul class="objetivos-lista">
+    <li><span class="obj-num">1</span>Identificar el ángulo de lanzamiento que maximiza el alcance horizontal y usarlo para calcular $v_0$ con su incertidumbre (Parte A).</li>
+    <li><span class="obj-num">2</span>Registrar datos de posición $(x_i, y_i, t_i)$ para un lanzamiento aleatorio y construir las gráficas $x$ vs. $t$ e $y$ vs. $t$ (Parte B).</li>
+    <li><span class="obj-num">3</span>Determinar los vectores de posición $\vec{r}$, velocidad $\vec{v}$ y aceleración $\vec{a}$ a partir de las gráficas y ecuaciones cinemáticas (Parte B).</li>
+    <li><span class="obj-num">4</span>Aplicar las ecuaciones del movimiento parabólico para localizar la posición del aro y verificar si el proyectil lo atraviesa (Parte C — Reto).</li>
+  </ul>
+</div>
+
+<!-- ═══════════════ 02. MARCO TEÓRICO ═══════════════ -->
+<div class="seccion">
+  <h2 class="seccion-titulo"><span class="num">02</span> Marco Teórico</h2>
+
+  <div class="subseccion-titulo">2.1 · Ecuaciones cinemáticas del movimiento parabólico</div>
+  <p>Un proyectil lanzado con velocidad inicial $v_0$ y ángulo $\theta$ respecto a la horizontal describe una trayectoria parabólica. Las ecuaciones de posición son:</p>
+  <div class="formula-box">
+    <div class="formula-label">Ecuaciones 1 y 2 — Posición</div>
+    <div class="formula-main">$$x(t) = v_0\cos\theta\cdot t \qquad y(t) = y_0 + v_0\sin\theta\cdot t - \tfrac{1}{2}g\,t^2$$</div>
+    <div class="formula-num">(1), (2)</div>
+  </div>
+
+  <div class="subseccion-titulo">2.2 · Alcance máximo y velocidad inicial</div>
+  <p>Para $y_0 = 0$, el alcance horizontal es $R = v_0^2\sin(2\theta)/g$. El alcance es máximo cuando $\theta = 45°$, lo que da:</p>
+  <div class="formula-box">
+    <div class="formula-label">Ecuación 3 — Velocidad inicial desde alcance máximo</div>
+    <div class="formula-main">$$R_{\max} = \frac{v_0^2}{g} \quad\Longrightarrow\quad v_0 = \sqrt{g\cdot R_{\max}}$$</div>
+    <div class="formula-num">(3)</div>
+  </div>
+
+  <div class="subseccion-titulo">2.3 · Incertidumbre de $v_0$</div>
+  <p>Aplicando propagación de incertidumbre a la Ec. (3):</p>
+  <div class="formula-box">
+    <div class="formula-label">Ecuación 4 — Propagación de incertidumbre</div>
+    <div class="formula-main">$$\frac{\Delta v_0}{v_0} = \frac{1}{2}\sqrt{\left(\frac{\Delta g}{g}\right)^2 + \left(\frac{\Delta R}{R}\right)^2} \quad\Longrightarrow\quad \Delta v_0 = v_0\cdot\frac{1}{2}\sqrt{\left(\frac{\Delta g}{g}\right)^2 + \left(\frac{\Delta R}{R_{\max}}\right)^2}$$</div>
+    <div class="formula-num">(4)</div>
+  </div>
+  <p>Donde $\Delta R$ es la apreciación del simulador para el alcance (resolución de la lectura) y $\Delta g$ es la incertidumbre de la gravedad usada (generalmente se toma como la última cifra significativa).</p>
+
+  <div class="ejemplo-box">
+    <span class="ej-label">📐 Ejemplo numérico — Incertidumbre de v₀</span>
+    <p style="margin:0 0 6px;"><strong>Datos del ejemplo:</strong> Se realizan varios lanzamientos y se obtiene un alcance máximo de $R_{\max} = 92.4\,\text{m}$ con $g = 9.81\,\text{m/s}^2$. La apreciación del simulador para la lectura del alcance es $\Delta R = 0.5\,\text{m}$ y se asume $\Delta g = 0.01\,\text{m/s}^2$.</p>
+    <p style="margin:0 0 4px;"><strong>Paso 1 — Calcular $v_0$:</strong></p>
+    <p style="margin:0 0 4px; font-family: var(--mono); font-size:.88em; background:#fff; padding:6px 10px; border:1px solid #ccc;">v₀ = √(g · R_max) = √(9.81 × 92.4) = √(906.44) ≈ 30.11 m/s</p>
+    <p style="margin:6px 0 4px;"><strong>Paso 2 — Calcular $\Delta v_0$:</strong></p>
+    <p style="margin:0 0 4px; font-family: var(--mono); font-size:.88em; background:#fff; padding:6px 10px; border:1px solid #ccc;">Δv₀/v₀ = ½ · √((0.01/9.81)² + (0.5/92.4)²)
+    = ½ · √((0.00102)² + (0.00541)²)
+    = ½ · √(0.00000104 + 0.0000293)
+    = ½ · √(0.0000303) = ½ · 0.00551 = 0.00275
+    Δv₀ = 30.11 × 0.00275 ≈ 0.083 m/s ≈ ± 0.08 m/s</p>
+    <p style="margin:6px 0 0;"><strong>Resultado:</strong> $v_0 = (30.11 \pm 0.08)\,\text{m/s}$</p>
+    <p style="margin:4px 0 0; font-size:.85em; color:var(--ink-muted);">Nota: el término dominante en la incertidumbre es $\Delta R / R$, la apreciación del alcance. A mayor número de lanzamientos, menor incertidumbre estadística.</p>
+  </div>
+
+  <div class="subseccion-titulo">2.4 · Vectores cinemáticos</div>
+  <p>En cualquier instante $t$ los vectores del movimiento son:</p>
+  <div class="formula-box">
+    <div class="formula-label">Ecuación 5 — Vectores de posición, velocidad y aceleración</div>
+    <div class="formula-main">$$\vec{r}(t) = x(t)\,\hat{i} + y(t)\,\hat{j} \qquad \vec{v}(t) = v_x\,\hat{i} + (v_{0y}-gt)\,\hat{j} \qquad \vec{a} = 0\,\hat{i} - g\,\hat{j}$$</div>
+    <div class="formula-num">(5)</div>
+  </div>
+  <p>Donde $v_x = v_0\cos\theta$ (constante) y $v_{0y} = v_0\sin\theta$. La gráfica $x$ vs. $t$ es <strong>lineal</strong> con pendiente $v_x$; la gráfica $y$ vs. $t$ es <strong>parabólica</strong> (cuadrática).</p>
+
+  <div class="subseccion-titulo">2.5 · Condición para pasar por el aro</div>
+  <p>El aro tiene diámetro $D_{\text{aro}} = 2\,d_{\text{esfera}}$, es decir radio $R_{\text{aro}} = d_{\text{esfera}}$. El proyectil pasa por el aro si en el instante en que $x = x_{\text{aro}}$ se cumple $|y(t) - y_{\text{aro}}| \leq R_{\text{aro}} - r_{\text{esfera}}$. Donde $r_\text{esfera} = d_\text{esfera}/2$.</p>
+</div>
+
+<!-- ═══════════════ 03. PROCEDIMIENTO ═══════════════ -->
+<div class="seccion">
+  <h2 class="seccion-titulo"><span class="num">03</span> Procedimiento Experimental</h2>
+  <div class="nota"><strong>Antes de comenzar:</strong> Abra el simulador 3D de movimiento parabólico. Anote la gravedad configurada y el diámetro de la esfera. Mantenga $y_0 = 0$ en todas las partes.</div>
+
+  <div class="paso">
+    <div class="paso-num">1</div>
+    <div class="paso-content"><p><strong>Parte A — Velocidad inicial.</strong> Con el simulador fije una $v_0$ tentativa y varíe el ángulo $\theta$ de $10°$ a $80°$ en pasos de $5°$. Para cada ángulo registre el alcance $R$ en la Tabla A. Identifique el ángulo que da el alcance máximo $R_{\max}$ (debe ser cercano a $45°$). Con ese valor calcule $v_0$ y $\Delta v_0$ según las Ec. (3) y (4).</p></div>
+  </div>
+  <div class="paso">
+    <div class="paso-num">2</div>
+    <div class="paso-content"><p><strong>Parte B — Lanzamiento aleatorio.</strong> El docente asignará (o el simulador generará) ángulo y velocidad al azar. Lance el proyectil y use el botón <em>Registro de Datos</em> del simulador para capturar al menos 8 pares $(t_i, x_i, y_i)$ en distintos instantes de vuelo. Ingrese esos datos en la Tabla B.</p></div>
+  </div>
+  <div class="paso">
+    <div class="paso-num">3</div>
+    <div class="paso-content"><p><strong>Gráficas Parte B.</strong> Con los datos de la Tabla B construya la gráfica $x$ vs. $t$ (Gráfica Bx) y la gráfica $y$ vs. $t$ (Gráfica By). Active el ajuste correspondiente (lineal para $x$; cuadrático para $y$) y extraiga $v_x$, $v_{0y}$ y $g_{\exp}$ de las pendientes.</p></div>
+  </div>
+  <div class="paso">
+    <div class="paso-num">4</div>
+    <div class="paso-content"><p><strong>Vectores Parte B.</strong> Usando los parámetros obtenidos en las gráficas, calcule $\vec{r}$, $\vec{v}$ y $\vec{a}$ para tres instantes: $t_1 =$ al inicio, $t_2 =$ en la altura máxima, $t_3 =$ al impacto.</p></div>
+  </div>
+  <div class="paso">
+    <div class="paso-num">5</div>
+    <div class="paso-content"><p><strong>Parte C — Reto del aro.</strong> Presione el botón <em>🎯 Activar Reto</em>. El simulador mostrará un aro en una posición $(x_{\text{aro}}, y_{\text{aro}})$ fija. Con los parámetros de su $v_0$ y $\theta$ calcule qué combinación permite que el proyectil pase por el aro. Luego verifique en el simulador.</p></div>
+  </div>
+</div>
+
+<!-- ═══════════════ 04. DATOS INSTRUMENTALES ═══════════════ -->
+<div class="seccion">
+  <h2 class="seccion-titulo"><span class="num">04</span> Parámetros del Simulador</h2>
+  <div class="result-box col4" style="margin-bottom:18px;">
+    <div class="res-campo"><label>Gravedad g (m/s²)</label><input type="text" id="gVal" placeholder="9.810" oninput="syncG()"></div>
+    <div class="res-campo"><label>Δg — incert. gravedad (m/s²)</label><input type="text" id="dGVal" placeholder="0.010"></div>
+    <div class="res-campo"><label>Diámetro esfera d (m)</label><input type="text" id="dEsfera" placeholder="0.000" oninput="calcRadios()"></div>
+    <div class="res-campo"><label>Radio esfera r = d/2 (m)</label><input type="text" id="rEsfera" placeholder="—" readonly style="color:var(--orange);"></div>
+    <div class="res-campo"><label>Diámetro aro = 2d (m)</label><input type="text" id="dAro" placeholder="—" readonly style="color:var(--purple);"></div>
+    <div class="res-campo"><label>Radio aro R_aro = d (m)</label><input type="text" id="rAro" placeholder="—" readonly style="color:var(--purple);"></div>
+    <div class="res-campo"><label>Apreciación alcance ΔR (m)</label><input type="text" id="dRval" placeholder="0.10"></div>
+    <div class="res-campo"><label>Resolución tiempo Δt (s)</label><input type="text" id="dTval" placeholder="0.001"></div>
+  </div>
+</div>
+
+<!-- ═══════════════ 05. PARTE A ═══════════════ -->
+<div class="seccion">
+  <h2 class="seccion-titulo"><span class="num">05</span> Parte A — Determinación de la Velocidad Inicial</h2>
+
+  <div class="parte-header">
+    <div><span class="parte-badge A">Parte A</span></div>
+    <div>
+      <h4>Encontrar el alcance máximo para determinar $v_0$</h4>
+      <p>Varía $\theta$ con la misma $v_0$ del simulador · El máximo alcance ocurre a $\theta \approx 45°$</p>
+    </div>
+  </div>
+  <div class="parte-body">
+    <div class="nota" style="margin-top:0;">
+      <strong>Instrucción:</strong> Mantenga fija la velocidad del simulador y varíe el ángulo. Registre cada alcance. Identifique $R_{\max}$ y el ángulo correspondiente. Con $R_{\max}$ y la gravedad, calcule $v_0 = \sqrt{g\,R_{\max}}$.
+    </div>
+
+    <div class="subseccion-titulo">Tabla A — Alcance vs. ángulo</div>
+    <p style="font-size:.85em;color:var(--ink-muted);font-style:italic;">Tabla A. Ángulo de lanzamiento $\theta$ (°), alcance $R$ (m). Marcar con ★ el ensayo de alcance máximo.</p>
+    <table class="tabla-resultados">
+      <thead>
+        <tr>
+          <th>Lanz.</th><th>$\theta$ (°)</th><th>$R$ (m)</th><th>¿Máximo?</th>
+          <th>$v_{0i} = \sqrt{g\,R}$ (m/s)</th>
+        </tr>
+      </thead>
+      <tbody id="bodyA"></tbody>
+    </table>
+
+    <span class="area-label">Identificación del alcance máximo</span>
+    <div class="result-box col4" style="margin-top:6px;">
+      <div class="res-campo"><label>Ángulo de R_max (°)</label><input type="text" id="thetaRmax" placeholder="θ ≈ 45°" oninput="calcV0()"></div>
+      <div class="res-campo"><label>R_max medido (m)</label><input type="text" id="Rmax" placeholder="0.000" oninput="calcV0()"></div>
+      <div class="res-campo"><label>v₀ = √(g·R_max) (m/s)</label><input type="text" id="v0calc" placeholder="—" readonly style="color:var(--green);font-weight:600;"></div>
+      <div class="res-campo"><label>Δv₀ (m/s) — Ec.(4)</label><input type="text" id="dv0calc" placeholder="—" readonly style="color:var(--orange);font-weight:600;"></div>
+    </div>
+    <div class="result-box col2" style="margin-top:4px;">
+      <div class="res-campo"><label>Resultado: v₀ = (v₀ ± Δv₀) m/s</label><input type="text" id="v0res" placeholder="(___  ±  ___) m/s" readonly style="color:var(--accent2);font-weight:600;font-size:1.05em;"></div>
+      <div class="res-campo"><label>IR = Δv₀/v₀ × 100 (%)</label><input type="text" id="irV0" placeholder="— %" readonly style="color:var(--accent);font-weight:600;"></div>
+    </div>
+
+    <span class="area-label">Procedimiento de cálculo — Parte A</span>
+    <textarea class="trabajo-area" style="min-height:200px;"
+      placeholder="Datos: g = ___ m/s²   Δg = ___ m/s²   R_max = ___ m   ΔR = ___ m&#10;&#10;Paso 1 — Velocidad inicial:&#10;  v₀ = √(g · R_max) = √(___ × ___) = √(___) = ___ m/s&#10;&#10;Paso 2 — Incertidumbre relativa de cada factor:&#10;  Δg/g = ___/___  = ___&#10;  ΔR/R = ___/___  = ___&#10;&#10;Paso 3 — Propagación (Ec. 4):&#10;  Δv₀/v₀ = ½ · √((Δg/g)² + (ΔR/R)²)&#10;          = ½ · √((___)² + (___)²)&#10;          = ½ · √(___)&#10;          = ½ · ___ = ___&#10;  Δv₀ = v₀ · (Δv₀/v₀) = ___ × ___ = ___ m/s&#10;&#10;Resultado: v₀ = (___ ± ___) m/s&#10;IR = Δv₀/v₀ × 100 = ___ %"></textarea>
+
+    <span class="area-label">Captura del simulador — Alcance máximo (Parte A)</span>
+    <div class="adjunto-slot">
+      <input type="file" accept="image/*" onchange="previsualizarImagen(this,'prevA')">
+      <span class="slot-icon">📸</span>
+      <span class="slot-label">Adjuntar captura del simulador — lanzamiento con R_max</span>
+      <span class="slot-hint">Deben verse: ángulo, alcance y gravedad del simulador · PNG, JPG</span>
+      <img id="prevA" class="preview-img" alt="">
+    </div>
+  </div><!-- fin parte-body A -->
+
+<!-- ═══════════════ 06. PARTE B ═══════════════ -->
+  <h2 class="seccion-titulo" style="margin-top:0;"><span class="num">06</span> Parte B — Análisis del Lanzamiento Aleatorio</h2>
+
+  <div class="parte-header parteB">
+    <div><span class="parte-badge B">Parte B</span></div>
+    <div>
+      <h4>Registro de posiciones — Gráficas $x(t)$ e $y(t)$ — Vectores cinemáticos</h4>
+      <p>Lanzamiento con $v_0$ y $\theta$ asignados por el docente o al azar · registrar mínimo 8 instantes</p>
+    </div>
+  </div>
+  <div class="parte-body B">
+    <div class="nota" style="margin-top:0;">
+      <strong>Instrucción:</strong> Use el botón <em>Registro de Datos</em> del simulador en distintos instantes del vuelo. Registre tiempo, posición $x$ y posición $y$. Con esos datos construya las gráficas y obtenga los vectores cinemáticos.
+    </div>
+
+    <div class="result-box col4" style="margin-bottom:14px;">
+      <div class="res-campo"><label>$v_0$ del lanzamiento B (m/s)</label><input type="text" id="v0B" placeholder="0.00"></div>
+      <div class="res-campo"><label>$\theta$ del lanzamiento B (°)</label><input type="text" id="thetaB" placeholder="0.0"></div>
+      <div class="res-campo"><label>$v_x = v_0\cos\theta$ (m/s) — teórico</label><input type="text" id="vxBteo" placeholder="—" readonly style="color:var(--accent);"></div>
+      <div class="res-campo"><label>$v_{0y} = v_0\sin\theta$ (m/s) — teórico</label><input type="text" id="vyBteo" placeholder="—" readonly style="color:var(--accent);"></div>
+    </div>
+
+    <div class="subseccion-titulo">Tabla B — Datos de posición vs. tiempo</div>
+    <p style="font-size:.85em;color:var(--ink-muted);font-style:italic;">Tabla B. Tiempo $t_i$ (s), posición $x_i$ (m) y posición $y_i$ (m) registrados del simulador.</p>
+    <table class="tabla-resultados">
+      <thead>
+        <tr>
+          <th>Punto</th><th>$t_i$ (s)</th><th>$x_i$ (m)</th><th>$y_i$ (m)</th>
+          <th>$x_{\text{teo}}$ (m)</th><th>$y_{\text{teo}}$ (m)</th>
+        </tr>
+      </thead>
+      <tbody id="bodyB"></tbody>
+    </table>
+
+    <!-- Gráfica Bx: x vs t -->
+    <div class="divider"><span>Gráfica Bx — x vs. t (Parte B)</span></div>
+    <p>La gráfica $x$ vs. $t$ debe ser <strong>lineal</strong> con pendiente $m = v_x$. Active el ajuste lineal.</p>
+    <div class="grafica-box">
+      <div class="grafica-header">
+        <span>Gráfica Bx · x (m) vs. t (s) — Movimiento horizontal uniforme</span>
+        <span id="pendBx" style="color:rgba(255,255,255,.6);font-size:.9em;">m = —</span>
+      </div>
+      <canvas class="grafica-canvas" id="graficaBx" height="280"></canvas>
+      <div class="grafica-controles">
+        <button class="btn-ctrl" id="btnRegBx" onclick="toggleRegBx()">📈 Ajuste lineal (x = v_x · t)</button>
+        <span class="grafica-info" id="eqBx">—</span>
+      </div>
+    </div>
+    <div class="result-box col4">
+      <div class="res-campo"><label>Pendiente $v_x$ experimental (m/s)</label><input type="text" id="vxExp" placeholder="0.000" oninput="calcVectores()"></div>
+      <div class="res-campo"><label>Intercepto $x_0$ (m)</label><input type="text" id="x0Exp" placeholder="≈ 0"></div>
+      <div class="res-campo"><label>$R^2$ ajuste lineal</label><input type="text" id="r2Bx" placeholder="0.0000"></div>
+      <div class="res-campo"><label>ER $v_x$ (%)</label><input type="text" id="erVx" placeholder="— %" readonly style="color:var(--accent2);"></div>
+    </div>
+
+    <!-- Gráfica By: y vs t -->
+    <div class="divider"><span>Gráfica By — y vs. t (Parte B)</span></div>
+    <p>La gráfica $y$ vs. $t$ es una <strong>parábola</strong>: $y = v_{0y}\,t - \tfrac{1}{2}g\,t^2$. El coeficiente del término $t^2$ permite obtener $g_{\exp}$.</p>
+    <div class="grafica-box">
+      <div class="grafica-header">
+        <span>Gráfica By · y (m) vs. t (s) — Movimiento vertical uniformemente acelerado</span>
+        <span id="pendBy" style="color:rgba(255,255,255,.6);font-size:.9em;">a = —</span>
+      </div>
+      <canvas class="grafica-canvas" id="graficaBy" height="280"></canvas>
+      <div class="grafica-controles">
+        <button class="btn-ctrl" id="btnRegBy" onclick="toggleRegBy()">📈 Ajuste cuadrático (y = v₀y·t − ½g·t²)</button>
+        <span class="grafica-info" id="eqBy">—</span>
+      </div>
+    </div>
+    <div class="result-box col5">
+      <div class="res-campo"><label>$v_{0y}$ experimental (m/s)</label><input type="text" id="v0yExp" placeholder="0.000" oninput="calcVectores()"></div>
+      <div class="res-campo"><label>$g_{\exp}$ de la gráfica (m/s²)</label><input type="text" id="gExpB" placeholder="0.000"></div>
+      <div class="res-campo"><label>$R^2$ ajuste cuadrático</label><input type="text" id="r2By" placeholder="0.0000"></div>
+      <div class="res-campo"><label>ER $v_{0y}$ (%)</label><input type="text" id="erVy" placeholder="— %" readonly style="color:var(--accent2);"></div>
+      <div class="res-campo"><label>ER $g$ (%)</label><input type="text" id="erGb" placeholder="— %" readonly style="color:var(--accent2);"></div>
+    </div>
+
+    <!-- Vectores cinemáticos -->
+    <div class="subseccion-titulo">Vectores cinemáticos — tres instantes clave</div>
+    <p>Complete la siguiente tabla calculando $\vec{r}$, $\vec{v}$ y $\vec{a}$ para los tres instantes indicados:</p>
+    <table class="tabla-resultados">
+      <thead>
+        <tr>
+          <th>Instante</th><th>$t$ (s)</th>
+          <th>$x$ (m)</th><th>$y$ (m)</th><th>$|\vec{r}|$ (m)</th>
+          <th>$v_x$ (m/s)</th><th>$v_y$ (m/s)</th><th>$|\vec{v}|$ (m/s)</th>
+          <th>$a_x$ (m/s²)</th><th>$a_y$ (m/s²)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="row-label">Inicio</td>
+          <td class="input-cell"><input type="text" id="tv1" placeholder="0" oninput="calcVectores()"></td>
+          <td class="input-cell"><input type="text" id="xv1" placeholder="—" readonly style="color:var(--accent);font-family:var(--mono);font-size:.85em;"></td>
+          <td class="input-cell"><input type="text" id="yv1" placeholder="—" readonly style="color:var(--accent);font-family:var(--mono);font-size:.85em;"></td>
+          <td class="input-cell"><input type="text" id="rv1" placeholder="—" readonly style="color:var(--green);font-family:var(--mono);font-size:.85em;"></td>
+          <td class="input-cell"><input type="text" id="vxv1" placeholder="—" readonly style="color:var(--orange);font-family:var(--mono);font-size:.85em;"></td>
+          <td class="input-cell"><input type="text" id="vyv1" placeholder="—" readonly style="color:var(--orange);font-family:var(--mono);font-size:.85em;"></td>
+          <td class="input-cell"><input type="text" id="magvv1" placeholder="—" readonly style="color:var(--orange);font-family:var(--mono);font-size:.85em;font-weight:600;"></td>
+          <td class="input-cell"><input type="text" id="axv1" placeholder="0" readonly style="font-family:var(--mono);font-size:.85em;color:var(--ink-muted);"></td>
+          <td class="input-cell"><input type="text" id="ayv1" placeholder="—" readonly style="color:var(--accent2);font-family:var(--mono);font-size:.85em;"></td>
+        </tr>
+        <tr>
+          <td class="row-label">H. Máxima</td>
+          <td class="input-cell"><input type="text" id="tv2" placeholder="t_hmax" oninput="calcVectores()"></td>
+          <td class="input-cell"><input type="text" id="xv2" placeholder="—" readonly style="color:var(--accent);font-family:var(--mono);font-size:.85em;"></td>
+          <td class="input-cell"><input type="text" id="yv2" placeholder="—" readonly style="color:var(--accent);font-family:var(--mono);font-size:.85em;"></td>
+          <td class="input-cell"><input type="text" id="rv2" placeholder="—" readonly style="color:var(--green);font-family:var(--mono);font-size:.85em;"></td>
+          <td class="input-cell"><input type="text" id="vxv2" placeholder="—" readonly style="color:var(--orange);font-family:var(--mono);font-size:.85em;"></td>
+          <td class="input-cell"><input type="text" id="vyv2" placeholder="0" readonly style="color:var(--orange);font-family:var(--mono);font-size:.85em;"></td>
+          <td class="input-cell"><input type="text" id="magvv2" placeholder="—" readonly style="color:var(--orange);font-family:var(--mono);font-size:.85em;font-weight:600;"></td>
+          <td class="input-cell"><input type="text" id="axv2" placeholder="0" readonly style="font-family:var(--mono);font-size:.85em;color:var(--ink-muted);"></td>
+          <td class="input-cell"><input type="text" id="ayv2" placeholder="—" readonly style="color:var(--accent2);font-family:var(--mono);font-size:.85em;"></td>
+        </tr>
+        <tr>
+          <td class="row-label">Impacto</td>
+          <td class="input-cell"><input type="text" id="tv3" placeholder="t_vuelo" oninput="calcVectores()"></td>
+          <td class="input-cell"><input type="text" id="xv3" placeholder="—" readonly style="color:var(--accent);font-family:var(--mono);font-size:.85em;"></td>
+          <td class="input-cell"><input type="text" id="yv3" placeholder="—" readonly style="color:var(--accent);font-family:var(--mono);font-size:.85em;"></td>
+          <td class="input-cell"><input type="text" id="rv3" placeholder="—" readonly style="color:var(--green);font-family:var(--mono);font-size:.85em;"></td>
+          <td class="input-cell"><input type="text" id="vxv3" placeholder="—" readonly style="color:var(--orange);font-family:var(--mono);font-size:.85em;"></td>
+          <td class="input-cell"><input type="text" id="vyv3" placeholder="—" readonly style="color:var(--orange);font-family:var(--mono);font-size:.85em;"></td>
+          <td class="input-cell"><input type="text" id="magvv3" placeholder="—" readonly style="color:var(--orange);font-family:var(--mono);font-size:.85em;font-weight:600;"></td>
+          <td class="input-cell"><input type="text" id="axv3" placeholder="0" readonly style="font-family:var(--mono);font-size:.85em;color:var(--ink-muted);"></td>
+          <td class="input-cell"><input type="text" id="ayv3" placeholder="—" readonly style="color:var(--accent2);font-family:var(--mono);font-size:.85em;"></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <span class="area-label">Procedimiento de cálculo — Vectores Parte B</span>
+    <textarea class="trabajo-area" style="min-height:240px;"
+      placeholder="Parámetros del lanzamiento B:  v₀ = ___ m/s   θ = ___ °&#10;  vx = v₀·cos(θ) = ___ m/s  (constante en todo el vuelo)&#10;  v₀y = v₀·sin(θ) = ___ m/s&#10;&#10;── Instante 1: t₁ = ___ s (inicio) ──&#10;  x₁ = vx · t₁ = ___ m&#10;  y₁ = v₀y·t₁ - ½·g·t₁² = ___ m&#10;  |r₁| = √(x₁²+y₁²) = ___ m&#10;  vy₁ = v₀y - g·t₁ = ___ m/s&#10;  |v₁| = √(vx²+vy₁²) = ___ m/s&#10;  a = (0, -g) = (0, ___) m/s²&#10;&#10;── Instante 2: t₂ = ___ s (altura máxima, vy = 0) ──&#10;  t_hmax = v₀y / g = ___ s&#10;  x₂ = ___ m  y₂ = ___ m  |r₂| = ___ m&#10;  vy₂ = 0  →  |v₂| = vx = ___ m/s&#10;&#10;── Instante 3: t₃ = ___ s (impacto, y = 0) ──&#10;  t_vuelo = 2·v₀y/g = ___ s&#10;  x₃ = vx·t₃ = ___ m   y₃ ≈ 0&#10;  vy₃ = v₀y - g·t₃ = ___ m/s (negativo)&#10;  |v₃| = √(vx²+vy₃²) = ___ m/s"></textarea>
+
+    <span class="area-label">Captura del simulador — Parte B</span>
+    <div class="adjunto-slot">
+      <input type="file" accept="image/*" onchange="previsualizarImagen(this,'prevB')">
+      <span class="slot-icon">📸</span>
+      <span class="slot-label">Adjuntar captura del simulador — Parte B con datos registrados</span>
+      <span class="slot-hint">Deben verse: ángulo, velocidad, tabla de datos y trayectoria · PNG, JPG</span>
+      <img id="prevB" class="preview-img" alt="">
+    </div>
+  </div><!-- fin parte-body B -->
+
+<!-- ═══════════════ 07. PARTE C — RETO DEL ARO ═══════════════ -->
+  <h2 class="seccion-titulo" style="margin-top:0;"><span class="num">07</span> Parte C — Reto del Aro</h2>
+
+  <div>
+    <div class="reto-header">
+      <div><span class="reto-badge">🎯 Parte C</span></div>
+      <div>
+        <h4>Calcular la posición del aro y hacer que el proyectil lo atraviese</h4>
+        <p>El aro tiene diámetro $D_{\text{aro}} = 2d_{\text{esfera}}$ · ingresa $x_{\text{aro}}$, $y_{\text{aro}}$ · calcula $\theta$ y $v_0$ correctos</p>
+      </div>
+    </div>
+    <div class="reto-body">
+      <div class="nota" style="margin-top:0;">
+        <strong>Instrucción:</strong> El botón <em>Activar Reto</em> del simulador coloca un aro en posición aleatoria.
+        Anota las coordenadas del aro ($x_{\text{aro}}$, $y_{\text{aro}}$). Usa la $v_0$ determinada en la Parte A y calcula el ángulo $\theta$ necesario para que el proyectil pase por el centro del aro. Luego configura el simulador y verifica. Si la esfera pasa por el interior del aro: <strong style="color:var(--green);">¡Prueba superada!</strong>
+      </div>
+
+      <div class="subseccion-titulo">Datos del aro</div>
+      <div class="result-box col4" style="margin-top:6px;">
+        <div class="res-campo"><label>$x_{\text{aro}}$ (m)</label><input type="text" id="xAro" placeholder="0.000" oninput="calcReto()"></div>
+        <div class="res-campo"><label>$y_{\text{aro}}$ (m)</label><input type="text" id="yAro" placeholder="0.000" oninput="calcReto()"></div>
+        <div class="res-campo"><label>$d_{\text{esfera}}$ (m) — leído de arriba</label><input type="text" id="dEsferaC" placeholder="—" readonly style="color:var(--orange);"></div>
+        <div class="res-campo"><label>$D_{\text{aro}} = 2d$ (m)</label><input type="text" id="dAroC" placeholder="—" readonly style="color:var(--purple);font-weight:600;"></div>
+      </div>
+
+      <div class="result-box col4">
+        <div class="res-campo"><label>$v_0$ usado (m/s) — de Parte A</label><input type="text" id="v0C" placeholder="0.00" oninput="calcReto()"></div>
+        <div class="res-campo"><label>$g$ (m/s²)</label><input type="text" id="gC" placeholder="9.810" oninput="calcReto()"></div>
+        <div class="res-campo"><label>$\theta$ calculado (°)</label><input type="text" id="thetaC" placeholder="—" readonly style="color:var(--green);font-weight:600;font-size:1.1em;"></div>
+        <div class="res-campo"><label>Tiempo de paso $t_{\text{aro}}$ (s)</label><input type="text" id="tAroC" placeholder="—" readonly style="color:var(--accent);"></div>
+      </div>
+      <div class="result-box col2">
+        <div class="res-campo"><label>$y$ proyectil en $x_{\text{aro}}$ (m)</label><input type="text" id="yProjC" placeholder="—" readonly style="color:var(--green);font-weight:600;"></div>
+        <div class="res-campo"><label>$|y_{\text{proy}} - y_{\text{aro}}|$ (m) — holgura</label><input type="text" id="holguraC" placeholder="—" readonly style="color:var(--accent2);font-weight:600;"></div>
+      </div>
+
+      <button class="btn-reto" onclick="verificarReto()">🎯 Verificar si el proyectil pasa por el aro</button>
+
+      <div class="reto-resultado" id="retoResultado">
+        <h5 id="retoTitulo">—</h5>
+        <p id="retoMsg">—</p>
+      </div>
+
+      <span class="area-label">Procedimiento de cálculo — Reto del aro</span>
+      <textarea class="trabajo-area" style="min-height:260px;"
+        placeholder="Datos del aro:  x_aro = ___ m    y_aro = ___ m&#10;  d_esfera = ___ m   →   D_aro = 2·d = ___ m   R_aro = ___ m&#10;  v₀ (de Parte A) = ___ m/s    g = ___ m/s²&#10;&#10;Estrategia: para que el proyectil pase por (x_aro, y_aro):&#10;  x_aro = v₀·cos(θ)·t   →   t = x_aro / (v₀·cos(θ))&#10;  y_aro = v₀·sin(θ)·t − ½·g·t²&#10;&#10;Sustituyendo t:&#10;  y_aro = x_aro·tan(θ) − g·x_aro² / (2·v₀²·cos²(θ))&#10;&#10;Usando la identidad 1/cos²θ = 1 + tan²θ, defino u = tan(θ):&#10;  g·x²/(2v₀²)·u² − x·u + (y + g·x²/(2v₀²)) = 0&#10;&#10;Resolviendo la ecuación cuadrática:&#10;  A = g·x_aro²/(2·v₀²)  = ___&#10;  B = -x_aro            = ___&#10;  C = y_aro + A         = ___&#10;  discriminante = B² - 4AC = ___&#10;  u₁ = (-B + √disc)/(2A) = ___  →  θ₁ = arctan(u₁) = ___°&#10;  u₂ = (-B − √disc)/(2A) = ___  →  θ₂ = arctan(u₂) = ___°&#10;&#10;Elijo θ = ___° (verificar que el proyectil no toque el suelo antes)&#10;&#10;Verificación:  t_aro = x_aro/(v₀·cos(θ)) = ___ s&#10;  y(t_aro) = ___ m&#10;  |y − y_aro| = ___ m&#10;  R_aro − r_esfera = ___ m&#10;  ¿Pasa? ___"></textarea>
+
+      <table class="rango-tabla" style="margin:14px 0;">
+        <thead><tr><th>Condición</th><th>Resultado</th></tr></thead>
+        <tbody>
+          <tr><td class="bueno">$|y_{\text{proy}} - y_{\text{aro}}| \leq R_{\text{aro}} - r_{\text{esfera}}$</td><td>✅ ¡Prueba superada! La esfera pasa por el aro</td></tr>
+          <tr><td class="malo">$|y_{\text{proy}} - y_{\text{aro}}| > R_{\text{aro}} - r_{\text{esfera}}$</td><td>❌ La esfera no pasa — revisar ángulo y repetir</td></tr>
+        </tbody>
+      </table>
+
+      <span class="area-label">Captura del simulador — Prueba superada o en intento</span>
+      <div class="adjunto-slot">
+        <input type="file" accept="image/*" onchange="previsualizarImagen(this,'prevC')">
+        <span class="slot-icon">🏆</span>
+        <span class="slot-label">Adjuntar captura del reto — proyectil atravesando el aro</span>
+        <span class="slot-hint">Debe verse: aro, trayectoria y el proyectil pasando · PNG, JPG</span>
+        <img id="prevC" class="preview-img" alt="">
+      </div>
+    </div>
+  </div>
+
+</div><!-- fin sección 07 -->
+
+<!-- ═══════════════ 08. DISCUSIÓN ═══════════════ -->
+<div class="seccion">
+  <h2 class="seccion-titulo"><span class="num">08</span> Discusión de Resultados</h2>
+  <div class="paso">
+    <div class="paso-num">D1</div>
+    <div class="paso-content"><p>¿El ángulo de alcance máximo fue exactamente 45° o hubo una desviación? ¿Qué causas experimentales explican esa diferencia?</p>
+    <textarea class="trabajo-area" style="min-height:80px;" placeholder="El ángulo de máximo alcance obtenido fue θ = ___°. La desviación respecto a 45° se debe a …"></textarea></div>
+  </div>
+  <div class="paso">
+    <div class="paso-num">D2</div>
+    <div class="paso-content"><p>Compare la $v_x$ obtenida por regresión en la Gráfica Bx con el valor teórico $v_0\cos\theta$. ¿Son coherentes? ¿Cómo afecta el ER al análisis?</p>
+    <textarea class="trabajo-area" style="min-height:80px;" placeholder="v_x experimental = ___ m/s  vs  v_x teórico = ___ m/s  →  ER = ___ %  …"></textarea></div>
+  </div>
+  <div class="paso">
+    <div class="paso-num">D3</div>
+    <div class="paso-content"><p>¿La gráfica $y$ vs. $t$ confirma la naturaleza parabólica del movimiento? ¿Qué indica el coeficiente $R^2$ del ajuste cuadrático?</p>
+    <textarea class="trabajo-area" style="min-height:80px;" placeholder="R² del ajuste cuadrático = ___. Un valor cercano a 1 indica …"></textarea></div>
+  </div>
+  <div class="paso">
+    <div class="paso-num">D4</div>
+    <div class="paso-content"><p>En el reto del aro, ¿cuántos intentos fueron necesarios? ¿Qué ajustes realizó? Relacione la incertidumbre de $v_0$ con el margen de error permitido por el tamaño del aro.</p>
+    <textarea class="trabajo-area" style="min-height:80px;" placeholder="Se realizaron ___ intentos. El margen del aro es R_aro − r_esfera = ___ m …"></textarea></div>
+  </div>
+</div>
+
+<!-- ═══════════════ 09. CONCLUSIONES ═══════════════ -->
+<div class="seccion">
+  <h2 class="seccion-titulo"><span class="num">09</span> Conclusiones</h2>
+  <textarea class="trabajo-area" style="min-height:180px;"
+    placeholder="1. Se determinó la velocidad inicial del proyectil como v₀ = (___ ± ___) m/s con IR = ___ %, lo que indica …&#10;&#10;2. Las gráficas x vs. t (lineal) e y vs. t (parabólica) confirmaron …&#10;&#10;3. Los vectores de velocidad y aceleración en los tres instantes mostraron que …&#10;&#10;4. En el reto del aro, el proyectil [pasó / no pasó] con θ = ___° y v₀ = ___ m/s, demostrando …"></textarea>
+
+  <div class="divider"><span>Firmas</span></div>
+  <div class="firma-grid">
+    <div class="firma-slot">Firma del estudiante</div>
+    <div class="firma-slot">Firma del docente</div>
+  </div>
+</div>
+
+</div><!-- fin body -->
+</div><!-- fin documento -->
+
+<button class="btn-imprimir" onclick="window.print()">🖨️ Imprimir / PDF</button>
+
+<script>
+'use strict';
+const N_A = 10, N_B = 10;
+const pNum = s => parseFloat(String(s).replace(',','.'));
+const fmt  = (n,d) => isNaN(n)||!isFinite(n) ? '—' : n.toFixed(d);
+
+// ── Build tablas ──────────────────────────────────
+function buildTablas(){
+  const IS = 'font-family:var(--mono);font-size:.85em;';
+  // Tabla A: θ, R, máximo?, v0i
+  const bA = document.getElementById('bodyA');
+  for(let i=1; i<=N_A; i++){
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="row-label">L${i}</td>
+      <td class="input-cell"><input type="text" id="thA_${i}" placeholder="${30+i*5 <= 80 ? 30+i*5 : '—'}" oninput="actualizarA()" style="${IS}"></td>
+      <td class="input-cell"><input type="text" id="rA_${i}" placeholder="0.00" oninput="actualizarA()" style="${IS}"></td>
+      <td class="input-cell"><input type="text" id="maxA_${i}" placeholder="No" style="${IS}text-align:center;"></td>
+      <td class="input-cell"><input type="text" id="v0iA_${i}" placeholder="—" readonly style="${IS}color:var(--green);"></td>`;
+    bA.appendChild(tr);
+  }
+  // Tabla B: t, x, y, x_teo, y_teo
+  const bB = document.getElementById('bodyB');
+  for(let i=1; i<=N_B; i++){
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="row-label">P${i}</td>
+      <td class="input-cell"><input type="text" id="tB_${i}" placeholder="0.000" oninput="actualizarB()" style="${IS}"></td>
+      <td class="input-cell"><input type="text" id="xB_${i}" placeholder="0.00" oninput="actualizarB()" style="${IS}"></td>
+      <td class="input-cell"><input type="text" id="yB_${i}" placeholder="0.00" oninput="actualizarB()" style="${IS}"></td>
+      <td class="input-cell"><input type="text" id="xtB_${i}" placeholder="—" readonly style="${IS}color:var(--accent);"></td>
+      <td class="input-cell"><input type="text" id="ytB_${i}" placeholder="—" readonly style="${IS}color:var(--accent);"></td>`;
+    bB.appendChild(tr);
+  }
+}
+
+// ── Sync g ─────────────────────────────────────────
+function syncG(){
+  const gv = document.getElementById('gVal').value;
+  document.getElementById('gC').value = gv;
+}
+
+// ── Radios ─────────────────────────────────────────
+function calcRadios(){
+  const d = pNum(document.getElementById('dEsfera').value);
+  if(d>0){
+    document.getElementById('rEsfera').value = fmt(d/2,4);
+    document.getElementById('dAro').value    = fmt(2*d,4);
+    document.getElementById('rAro').value    = fmt(d,4);
+    document.getElementById('dEsferaC').value= fmt(d,4);
+    document.getElementById('dAroC').value   = fmt(2*d,4);
+  }
+}
+
+// ── Parte A ────────────────────────────────────────
+const dataA = [];
+function actualizarA(){
+  dataA.length = 0;
+  const g = pNum(document.getElementById('gVal').value) || 9.81;
+  for(let i=1; i<=N_A; i++){
+    const R = pNum(document.getElementById(`rA_${i}`).value);
+    if(R > 0){
+      const v0i = Math.sqrt(g * R);
+      document.getElementById(`v0iA_${i}`).value = fmt(v0i, 3);
+      dataA.push(R);
+    } else {
+      const el = document.getElementById(`v0iA_${i}`); if(el) el.value='—';
+    }
+  }
+}
+
+function calcV0(){
+  const g   = pNum(document.getElementById('gVal').value)  || 9.81;
+  const dG  = pNum(document.getElementById('dGVal').value) || 0.01;
+  const R   = pNum(document.getElementById('Rmax').value);
+  const dR  = pNum(document.getElementById('dRval').value) || 0.1;
+  if(R > 0 && g > 0){
+    const v0  = Math.sqrt(g * R);
+    const dv0 = v0 * 0.5 * Math.sqrt((dG/g)**2 + (dR/R)**2);
+    const ir  = (dv0/v0*100);
+    document.getElementById('v0calc').value = fmt(v0,  4);
+    document.getElementById('dv0calc').value= '± '+fmt(dv0,4);
+    document.getElementById('v0res').value  = `(${fmt(v0,3)}  ±  ${fmt(dv0,3)}) m/s`;
+    document.getElementById('irV0').value   = fmt(ir,2)+' %';
+  }
+}
+
+// ── Parte B: teoricos ──────────────────────────────
+function actualizarBTeoricos(){
+  const v0   = pNum(document.getElementById('v0B').value);
+  const thDeg= pNum(document.getElementById('thetaB').value);
+  if(v0>0 && !isNaN(thDeg)){
+    const th = thDeg * Math.PI/180;
+    const vx = v0*Math.cos(th);
+    const v0y= v0*Math.sin(th);
+    document.getElementById('vxBteo').value = fmt(vx,3);
+    document.getElementById('vyBteo').value = fmt(v0y,3);
+  }
+}
+document.addEventListener('input', e=>{
+  if(e.target.id==='v0B'||e.target.id==='thetaB') actualizarBTeoricos();
+});
+
+// Datos Parte B
+const dataB = [];
+function actualizarB(){
+  dataB.length = 0;
+  const v0  = pNum(document.getElementById('v0B').value);
+  const thD = pNum(document.getElementById('thetaB').value);
+  const g   = pNum(document.getElementById('gVal').value) || 9.81;
+  const th  = thD * Math.PI/180;
+  const vx  = isNaN(v0)||isNaN(th) ? 0 : v0*Math.cos(th);
+  const v0y = isNaN(v0)||isNaN(th) ? 0 : v0*Math.sin(th);
+
+  for(let i=1; i<=N_B; i++){
+    const t = pNum(document.getElementById(`tB_${i}`).value);
+    const x = pNum(document.getElementById(`xB_${i}`).value);
+    const y = pNum(document.getElementById(`yB_${i}`).value);
+    if(!isNaN(t) && t>=0 && !isNaN(x) && !isNaN(y)){
+      // Teóricos
+      const xt = vx>0 ? vx*t : NaN;
+      const yt = (v0y!==0||vx!==0) ? v0y*t - 0.5*g*t*t : NaN;
+      document.getElementById(`xtB_${i}`).value = fmt(xt,3);
+      document.getElementById(`ytB_${i}`).value = fmt(yt,3);
+      dataB.push({t, x, y});
+    } else {
+      document.getElementById(`xtB_${i}`).value = '—';
+      document.getElementById(`ytB_${i}`).value = '—';
+    }
+  }
+  dibujarBx();
+  dibujarBy();
+}
+
+// ── Vectores ───────────────────────────────────────
+function calcVectores(){
+  const vx  = pNum(document.getElementById('vxExp').value)  || pNum(document.getElementById('vxBteo').value);
+  const v0y = pNum(document.getElementById('v0yExp').value) || pNum(document.getElementById('vyBteo').value);
+  const g   = pNum(document.getElementById('gVal').value) || 9.81;
+  // ER vx y v0y
+  const vxT = pNum(document.getElementById('vxBteo').value);
+  const vyT = pNum(document.getElementById('vyBteo').value);
+  if(vxT>0 && !isNaN(vx)) document.getElementById('erVx').value=fmt(Math.abs(vx-vxT)/vxT*100,2)+' %';
+  if(vyT>0 && !isNaN(v0y)) document.getElementById('erVy').value=fmt(Math.abs(v0y-vyT)/vyT*100,2)+' %';
+  const gExp = pNum(document.getElementById('gExpB').value)||g;
+  if(!isNaN(gExp) && gExp>0) document.getElementById('erGb').value=fmt(Math.abs(gExp-g)/g*100,2)+' %';
+
+  const ids = ['v1','v2','v3'];
+  ids.forEach(id=>{
+    const t = pNum(document.getElementById('t'+id).value);
+    if(isNaN(t)) return;
+    const x   = vx * t;
+    const y   = v0y*t - 0.5*g*t*t;
+    const r   = Math.sqrt(x*x + y*y);
+    const vy  = v0y - g*t;
+    const vmag= Math.sqrt(vx*vx + vy*vy);
+    document.getElementById('x'+id).value  = fmt(x,3);
+    document.getElementById('y'+id).value  = fmt(y,3);
+    document.getElementById('r'+id).value  = fmt(r,3);
+    document.getElementById('vx'+id).value = fmt(vx,3);
+    document.getElementById('vy'+id).value = fmt(vy,3);
+    document.getElementById('magv'+id).value=fmt(vmag,3);
+    document.getElementById('ax'+id).value = '0';
+    document.getElementById('ay'+id).value = fmt(-g,3);
+  });
+}
+
+// ── Gráficas Parte B ───────────────────────────────
+let regBx = false, regBy = false;
+function toggleRegBx(){ regBx=!regBx; document.getElementById('btnRegBx').classList.toggle('activo',regBx); dibujarBx(); }
+function toggleRegBy(){ regBy=!regBy; document.getElementById('btnRegBy').classList.toggle('activo',regBy); dibujarBy(); }
+
+function dibujarBx(){
+  const pts = dataB.filter(d=>d.t>=0);
+  const cvId='graficaBx', pendId='pendBx', eqId='eqBx';
+  const cv=document.getElementById(cvId); if(!cv) return;
+  const ctx=cv.getContext('2d');
+  cv.width=cv.offsetWidth*(window.devicePixelRatio||1)||760;
+  const PAD={top:30,right:30,bottom:48,left:64};
+  const W=cv.width, H=cv.height, pw=W-PAD.left-PAD.right, ph=H-PAD.top-PAD.bottom;
+  ctx.clearRect(0,0,W,H); ctx.fillStyle='#fafafa'; ctx.fillRect(0,0,W,H);
+  if(pts.length<2){
+    ctx.fillStyle='#bbb'; ctx.font="14px 'Source Serif 4',serif"; ctx.textAlign='center';
+    ctx.fillText('Complete la Tabla B para visualizar x vs. t', W/2, H/2); return;
+  }
+  const xV=pts.map(d=>d.t), yV=pts.map(d=>d.x);
+  const xMax=Math.max(...xV)*1.12||1, yMax=Math.max(...yV)*1.12||1;
+  const cx=x=>PAD.left+x/xMax*pw, cy=y=>PAD.top+ph-y/yMax*ph;
+  // Grid
+  ctx.strokeStyle='#e8e4dc'; ctx.lineWidth=1;
+  for(let i=0;i<=5;i++){
+    ctx.beginPath(); ctx.moveTo(PAD.left,PAD.top+i*ph/5); ctx.lineTo(PAD.left+pw,PAD.top+i*ph/5); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(PAD.left+i*pw/5,PAD.top); ctx.lineTo(PAD.left+i*pw/5,PAD.top+ph); ctx.stroke();
+  }
+  ctx.strokeStyle='#888'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(PAD.left,PAD.top); ctx.lineTo(PAD.left,PAD.top+ph); ctx.lineTo(PAD.left+pw,PAD.top+ph); ctx.stroke();
+  // Labels
+  ctx.fillStyle='#3d3d5c'; ctx.font="bold 11px 'JetBrains Mono',monospace"; ctx.textAlign='center';
+  ctx.fillText('t  (s)', PAD.left+pw/2, H-5);
+  ctx.save(); ctx.translate(14,PAD.top+ph/2); ctx.rotate(-Math.PI/2); ctx.fillText('x  (m)',0,0); ctx.restore();
+  ctx.fillStyle='#888'; ctx.font="10px 'JetBrains Mono',monospace";
+  for(let i=0;i<=5;i++){
+    const xv=xMax*i/5; ctx.textAlign='center'; ctx.fillText(xv.toFixed(2),cx(xv),PAD.top+ph+16);
+    const yv=yMax*i/5; ctx.textAlign='right';  ctx.fillText(yv.toFixed(2),PAD.left-4,cy(yv)+4);
+  }
+  // Regresion lineal
+  if(regBx && pts.length>=2){
+    const n=xV.length;
+    const sx=xV.reduce((a,b)=>a+b,0), sy=yV.reduce((a,b)=>a+b,0);
+    const sxy=xV.reduce((a,x,i)=>a+x*yV[i],0), sx2=xV.reduce((a,x)=>a+x*x,0);
+    const m=(n*sxy-sx*sy)/(n*sx2-sx*sx);
+    const b=(sy-m*sx)/n;
+    const yM=yV.reduce((a,b)=>a+b,0)/n;
+    const ssTot=yV.reduce((a,v)=>a+(v-yM)**2,0);
+    const ssRes=yV.reduce((a,v,i)=>a+(v-m*xV[i]-b)**2,0);
+    const r2=Math.max(0,1-ssRes/ssTot);
+    ctx.strokeStyle='#1a5276'; ctx.lineWidth=2.5; ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(cx(0),cy(b)); ctx.lineTo(cx(xMax),cy(m*xMax+b)); ctx.stroke();
+    document.getElementById(eqId).textContent=`x = ${m.toFixed(3)}·t + ${b.toFixed(2)}  |  vx = ${m.toFixed(3)} m/s  |  R² = ${r2.toFixed(4)}`;
+    document.getElementById(pendId).textContent=`vx = ${m.toFixed(3)} m/s`;
+    document.getElementById('vxExp').value = m.toFixed(4);
+    document.getElementById('r2Bx').value  = r2.toFixed(4);
+    calcVectores();
+  } else { document.getElementById(eqId).textContent='—'; document.getElementById(pendId).textContent='m = —'; }
+  // Puntos
+  const COLS=['#d35400','#1a5276','#1e8449','#8e44ad','#b8860b','#c0392b','#148f77','#784212'];
+  pts.forEach((p,i)=>{
+    ctx.fillStyle=COLS[i%COLS.length];
+    ctx.beginPath(); ctx.arc(cx(p.t),cy(p.x),5,0,Math.PI*2); ctx.fill();
+    ctx.font="bold 10px JetBrains Mono,monospace"; ctx.textAlign='left';
+    ctx.fillText('P'+(i+1),cx(p.t)+7,cy(p.x)-4);
+  });
+}
+
+function dibujarBy(){
+  const pts = dataB.filter(d=>d.t>=0);
+  const cv=document.getElementById('graficaBy'); if(!cv) return;
+  const ctx=cv.getContext('2d');
+  cv.width=cv.offsetWidth*(window.devicePixelRatio||1)||760;
+  const PAD={top:30,right:30,bottom:48,left:64};
+  const W=cv.width, H=cv.height, pw=W-PAD.left-PAD.right, ph=H-PAD.top-PAD.bottom;
+  ctx.clearRect(0,0,W,H); ctx.fillStyle='#fafafa'; ctx.fillRect(0,0,W,H);
+  if(pts.length<2){
+    ctx.fillStyle='#bbb'; ctx.font="14px 'Source Serif 4',serif"; ctx.textAlign='center';
+    ctx.fillText('Complete la Tabla B para visualizar y vs. t', W/2, H/2); return;
+  }
+  const xV=pts.map(d=>d.t), yV=pts.map(d=>d.y);
+  const xMax=Math.max(...xV)*1.12||1;
+  const yMin=Math.min(...yV,0), yMax=Math.max(...yV)*1.15||1;
+  const yRange = yMax - yMin || 1;
+  const cx=x=>PAD.left+x/xMax*pw;
+  const cy=y=>PAD.top+ph-(y-yMin)/yRange*ph;
+  // Grid
+  ctx.strokeStyle='#e8e4dc'; ctx.lineWidth=1;
+  for(let i=0;i<=5;i++){
+    ctx.beginPath(); ctx.moveTo(PAD.left,PAD.top+i*ph/5); ctx.lineTo(PAD.left+pw,PAD.top+i*ph/5); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(PAD.left+i*pw/5,PAD.top); ctx.lineTo(PAD.left+i*pw/5,PAD.top+ph); ctx.stroke();
+  }
+  ctx.strokeStyle='#888'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(PAD.left,PAD.top); ctx.lineTo(PAD.left,PAD.top+ph); ctx.lineTo(PAD.left+pw,PAD.top+ph); ctx.stroke();
+  // Labels
+  ctx.fillStyle='#3d3d5c'; ctx.font="bold 11px 'JetBrains Mono',monospace"; ctx.textAlign='center';
+  ctx.fillText('t  (s)', PAD.left+pw/2, H-5);
+  ctx.save(); ctx.translate(14,PAD.top+ph/2); ctx.rotate(-Math.PI/2); ctx.fillText('y  (m)',0,0); ctx.restore();
+  ctx.fillStyle='#888'; ctx.font="10px 'JetBrains Mono',monospace";
+  for(let i=0;i<=5;i++){
+    const xv=xMax*i/5; ctx.textAlign='center'; ctx.fillText(xv.toFixed(2),cx(xv),PAD.top+ph+16);
+    const yv=yMin+yRange*i/5; ctx.textAlign='right'; ctx.fillText(yv.toFixed(2),PAD.left-4,cy(yv)+4);
+  }
+  // Ajuste cuadratico (minimos cuadrados)
+  if(regBy && pts.length>=3){
+    // Ajuste y = a*t² + b*t + c
+    const n=xV.length;
+    const st=xV.reduce((a,b)=>a+b,0);
+    const st2=xV.reduce((a,t)=>a+t*t,0);
+    const st3=xV.reduce((a,t)=>a+t*t*t,0);
+    const st4=xV.reduce((a,t)=>a+t*t*t*t,0);
+    const sy=yV.reduce((a,b)=>a+b,0);
+    const sty=xV.reduce((a,t,i)=>a+t*yV[i],0);
+    const st2y=xV.reduce((a,t,i)=>a+t*t*yV[i],0);
+    // Sistema 3x3 → A=[a b c]
+    const M=[[st4,st3,st2],[st3,st2,st],[st2,st,n]];
+    const R=[st2y,sty,sy];
+    const sol=solve3(M,R);
+    if(sol){
+      const [qa,qb,qc]=sol;
+      const gFit=-2*qa;
+      const v0yFit=qb;
+      ctx.strokeStyle='#1e8449'; ctx.lineWidth=2.5; ctx.setLineDash([]);
+      ctx.beginPath();
+      const steps=100;
+      for(let s=0;s<=steps;s++){
+        const tt=xMax*s/steps;
+        const yy=qa*tt*tt+qb*tt+qc;
+        if(s===0) ctx.moveTo(cx(tt),cy(yy)); else ctx.lineTo(cx(tt),cy(yy));
+      }
+      ctx.stroke();
+      const yM=yV.reduce((a,b)=>a+b,0)/n;
+      const ssTot=yV.reduce((a,v)=>a+(v-yM)**2,0);
+      const ssRes=yV.reduce((a,v,i)=>a+(v-qa*xV[i]*xV[i]-qb*xV[i]-qc)**2,0);
+      const r2=Math.max(0,1-ssRes/ssTot);
+      document.getElementById('eqBy').textContent=`y = ${qa.toFixed(3)}t² + ${qb.toFixed(3)}t + ${qc.toFixed(2)}  |  g = ${gFit.toFixed(3)} m/s²  |  R² = ${r2.toFixed(4)}`;
+      document.getElementById('pendBy').textContent=`g = ${gFit.toFixed(3)} m/s²`;
+      document.getElementById('v0yExp').value = qb.toFixed(4);
+      document.getElementById('gExpB').value  = gFit.toFixed(4);
+      document.getElementById('r2By').value   = r2.toFixed(4);
+      const g=pNum(document.getElementById('gVal').value)||9.81;
+      document.getElementById('erGb').value=fmt(Math.abs(gFit-g)/g*100,2)+' %';
+      calcVectores();
+    }
+  } else { document.getElementById('eqBy').textContent='—'; document.getElementById('pendBy').textContent='a = —'; }
+  // Puntos
+  const COLS=['#d35400','#1a5276','#1e8449','#8e44ad','#b8860b','#c0392b','#148f77','#784212'];
+  pts.forEach((p,i)=>{
+    ctx.fillStyle=COLS[i%COLS.length];
+    ctx.beginPath(); ctx.arc(cx(p.t),cy(p.y),5,0,Math.PI*2); ctx.fill();
+    ctx.font="bold 10px JetBrains Mono,monospace"; ctx.textAlign='left';
+    ctx.fillText('P'+(i+1),cx(p.t)+7,cy(p.y)-4);
+  });
+}
+
+// Resolver sistema 3x3 (Cramer)
+function solve3(M,R){
+  const det=(m)=>m[0][0]*(m[1][1]*m[2][2]-m[1][2]*m[2][1])
+                -m[0][1]*(m[1][0]*m[2][2]-m[1][2]*m[2][0])
+                +m[0][2]*(m[1][0]*m[2][1]-m[1][1]*m[2][0]);
+  const D=det(M);
+  if(Math.abs(D)<1e-12) return null;
+  const sub=(j)=>M.map((row,i)=>row.map((v,k)=>k===j?R[i]:v));
+  return [det(sub(0))/D, det(sub(1))/D, det(sub(2))/D];
+}
+
+// ── Reto del aro ───────────────────────────────────
+function calcReto(){
+  const xAro= pNum(document.getElementById('xAro').value);
+  const yAro= pNum(document.getElementById('yAro').value);
+  const v0  = pNum(document.getElementById('v0C').value);
+  const g   = pNum(document.getElementById('gC').value)||9.81;
+  if(isNaN(xAro)||isNaN(yAro)||!(v0>0)||!(xAro>0)) return;
+
+  // Ec cuadrática en tan(θ)
+  // y_aro = x·tan(θ) - g·x²/(2v₀²)·(1+tan²θ)
+  // A·u² + B·u + C = 0  donde u = tan(θ)
+  const A = g*xAro*xAro/(2*v0*v0);
+  const B = -xAro;
+  const C = yAro + A;
+  const disc = B*B - 4*A*C;
+  if(disc < 0){
+    document.getElementById('thetaC').value = '⚠ No alcanzable';
+    document.getElementById('tAroC').value = '—';
+    document.getElementById('yProjC').value= '—';
+    document.getElementById('holguraC').value='—';
+    return;
+  }
+  const u1=(-B+Math.sqrt(disc))/(2*A);
+  const u2=(-B-Math.sqrt(disc))/(2*A);
+  // Elegir ángulo válido (entre 0° y 85°)
+  const th1=Math.atan(u1)*180/Math.PI;
+  const th2=Math.atan(u2)*180/Math.PI;
+  let thUse = NaN;
+  if(th1>0 && th1<85) thUse=th1;
+  else if(th2>0 && th2<85) thUse=th2;
+  if(isNaN(thUse)){
+    // ambos inválidos; usar el de menor ángulo para mostrar
+    thUse = (th2>0&&th2<90) ? th2 : th1;
+  }
+  const thRad=thUse*Math.PI/180;
+  const vx=v0*Math.cos(thRad);
+  const tAro=xAro/vx;
+  const v0y=v0*Math.sin(thRad);
+  const yProj=v0y*tAro-0.5*g*tAro*tAro;
+
+  document.getElementById('thetaC').value = fmt(thUse,2)+'°';
+  document.getElementById('tAroC').value  = fmt(tAro,4);
+  document.getElementById('yProjC').value = fmt(yProj,4);
+  document.getElementById('holguraC').value= fmt(Math.abs(yProj-yAro),4);
+}
+
+function verificarReto(){
+  const yProj = pNum(document.getElementById('yProjC').value);
+  const yAro  = pNum(document.getElementById('yAro').value);
+  const d     = pNum(document.getElementById('dEsfera').value)||0;
+  const rAro  = d;   // R_aro = d_esfera
+  const rEsf  = d/2; // r_esfera = d_esfera/2
+  const margen= rAro - rEsf;
+  const holgura=Math.abs(yProj-yAro);
+  const div=document.getElementById('retoResultado');
+  div.style.display='block';
+  if(holgura <= margen && margen>0){
+    div.className='reto-resultado ok';
+    document.getElementById('retoTitulo').textContent='🏆 ¡Prueba Superada!';
+    document.getElementById('retoMsg').textContent=`La esfera pasa por el interior del aro. Holgura = ${fmt(holgura,4)} m ≤ margen = ${fmt(margen,4)} m. Configura θ = ${document.getElementById('thetaC').value} en el simulador y verifica.`;
+  } else {
+    div.className='reto-resultado fail';
+    document.getElementById('retoTitulo').textContent='❌ El proyectil no pasa por el aro';
+    document.getElementById('retoMsg').textContent=`Holgura = ${fmt(holgura,4)} m > margen permitido = ${fmt(margen,4)} m. Revisa v₀, θ o las coordenadas del aro e intenta de nuevo.`;
+  }
+}
+
+// ── Imagen preview ─────────────────────────────────
+function previsualizarImagen(input,previewId){
+  const file=input.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{ const img=document.getElementById(previewId); if(img){img.src=e.target.result; img.style.display='block';} };
+  reader.readAsDataURL(file);
+}
+
+// ── Init ───────────────────────────────────────────
+window.addEventListener('load',()=>{
+  buildTablas();
+  dibujarBx();
+  dibujarBy();
+  const now=new Date(), sem=now.getMonth()<6?'1':'2';
+  document.getElementById('codigoPractica').textContent=`PRÁCTICA FIS-MP-03 · ${now.getFullYear()}-${sem}`;
+  document.querySelectorAll('input[type="date"]').forEach(i=>i.value=now.toISOString().split('T')[0]);
+  // conectar cambios de tablas
+  document.getElementById('gVal').addEventListener('input',()=>{ calcV0(); actualizarA(); });
+  document.getElementById('Rmax').addEventListener('input', calcV0);
+  document.getElementById('dRval').addEventListener('input', calcV0);
+  document.getElementById('dGVal').addEventListener('input', calcV0);
+  document.getElementById('dEsfera').addEventListener('input', calcRadios);
+  document.getElementById('v0C').addEventListener('input', calcReto);
+  document.getElementById('gC').addEventListener('input', calcReto);
+  document.getElementById('xAro').addEventListener('input', calcReto);
+  document.getElementById('yAro').addEventListener('input', calcReto);
+  for(let i=1;i<=N_A;i++) document.getElementById(`rA_${i}`).addEventListener('input',actualizarA);
+  for(let i=1;i<=N_B;i++){
+    document.getElementById(`tB_${i}`).addEventListener('input',actualizarB);
+    document.getElementById(`xB_${i}`).addEventListener('input',actualizarB);
+    document.getElementById(`yB_${i}`).addEventListener('input',actualizarB);
+  }
+  document.getElementById('vxExp').addEventListener('input', calcVectores);
+  document.getElementById('v0yExp').addEventListener('input',calcVectores);
+  document.getElementById('tv1').addEventListener('input',calcVectores);
+  document.getElementById('tv2').addEventListener('input',calcVectores);
+  document.getElementById('tv3').addEventListener('input',calcVectores);
+});
+
+window.addEventListener('resize',()=>{ dibujarBx(); dibujarBy(); });
+</script>
+</body>
+</html>

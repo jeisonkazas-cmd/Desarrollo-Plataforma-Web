@@ -1,0 +1,1308 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Práctica de Laboratorio — Péndulo Simple y Gravedad</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>
+  MathJax = {
+    tex: { inlineMath: [['$','$'],['\\(','\\)']], displayMath: [['$$','$$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+  :root {
+    --ink:       #1a1a2e;
+    --ink-soft:  #3d3d5c;
+    --ink-muted: #7a7a9a;
+    --paper:     #faf8f3;
+    --paper-alt: #f2ede3;
+    --rule:      #d4c9b0;
+    --accent:    #1a5276;
+    --accent2:   #c0392b;
+    --gold:      #b8860b;
+    --green:     #1e8449;
+    --mono:      'JetBrains Mono', monospace;
+    --serif:     'Source Serif 4', Georgia, serif;
+    --display:   'Playfair Display', Georgia, serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: #dde3e8;
+    font-family: var(--serif);
+    color: var(--ink);
+    font-size: 15px;
+    line-height: 1.75;
+    min-height: 100vh;
+    padding: 30px 15px 80px;
+  }
+  .documento {
+    max-width: 860px;
+    margin: 0 auto;
+    background: var(--paper);
+    box-shadow: 0 2px 4px rgba(0,0,0,.08), 0 8px 32px rgba(0,0,0,.14), 0 20px 60px rgba(0,0,0,.08);
+    position: relative;
+    overflow-x: hidden;
+  }
+  .documento::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0; width: 5px;
+    background: linear-gradient(180deg, var(--accent) 0%, var(--accent2) 50%, var(--gold) 100%);
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--ink);
+    color: #fff;
+    padding: 36px 50px 30px 55px;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::after {
+    content: 'g';
+    font-family: var(--display);
+    font-size: 300px;
+    font-weight: 700;
+    font-style: italic;
+    color: rgba(255,255,255,.04);
+    position: absolute;
+    right: -10px; top: -60px;
+    line-height: 1;
+    pointer-events: none;
+    user-select: none;
+  }
+  .header-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    gap: 20px;
+  }
+  .badge-codigo {
+    font-family: var(--mono);
+    font-size: .7em;
+    background: var(--accent);
+    color: #fff;
+    padding: 3px 10px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+  .badge-tipo {
+    font-family: var(--mono);
+    font-size: .7em;
+    color: rgba(255,255,255,.5);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    border: 1px solid rgba(255,255,255,.15);
+    padding: 3px 10px;
+  }
+  .header h1 {
+    font-family: var(--display);
+    font-size: 2.1em;
+    font-weight: 700;
+    line-height: 1.2;
+    color: #fff;
+    margin-bottom: 6px;
+  }
+  .header h1 em {
+    font-style: italic;
+    color: rgba(255,255,255,.65);
+    font-size: .82em;
+  }
+  .header-sub {
+    font-size: .82em;
+    color: rgba(255,255,255,.45);
+    font-weight: 300;
+    letter-spacing: .04em;
+    margin-top: 4px;
+  }
+  .header-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 24px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,.12);
+  }
+  .field-item label {
+    display: block;
+    font-family: var(--mono);
+    font-size: .65em;
+    color: rgba(255,255,255,.4);
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    margin-bottom: 4px;
+  }
+  .field-item input[type="text"],
+  .field-item input[type="date"] {
+    width: 100%;
+    background: rgba(255,255,255,.07);
+    border: none;
+    border-bottom: 1px solid rgba(255,255,255,.25);
+    color: #fff;
+    font-family: var(--serif);
+    font-size: .9em;
+    padding: 4px 0;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .field-item input:focus { border-bottom-color: var(--accent2); }
+  .field-item input::placeholder { color: rgba(255,255,255,.2); }
+
+  /* ── BODY ── */
+  .body { padding: 44px 50px 50px 55px; }
+  .seccion { margin-bottom: 42px; }
+  .seccion-titulo {
+    font-family: var(--display);
+    font-size: 1.15em;
+    font-weight: 600;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--rule);
+  }
+  .seccion-titulo .num {
+    font-family: var(--mono);
+    font-size: .75em;
+    color: var(--accent);
+    background: #e8f0f7;
+    padding: 2px 7px;
+    letter-spacing: .05em;
+    min-width: 36px;
+    text-align: center;
+  }
+  .subseccion-titulo {
+    font-family: var(--display);
+    font-size: 1em;
+    font-weight: 600;
+    color: var(--accent);
+    margin: 22px 0 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .subseccion-titulo::before {
+    content: '';
+    width: 14px; height: 2px;
+    background: var(--accent);
+    display: inline-block;
+    flex-shrink: 0;
+  }
+  p { margin-bottom: 10px; color: var(--ink-soft); font-size: .95em; }
+  p:last-child { margin-bottom: 0; }
+
+  /* ── RESUMEN ── */
+  .resumen-box {
+    background: var(--paper-alt);
+    border-left: 3px solid var(--accent);
+    padding: 16px 20px;
+    font-size: .9em;
+    font-style: italic;
+    color: var(--ink-soft);
+    line-height: 1.7;
+  }
+
+  /* ── OBJETIVOS ── */
+  .objetivos-lista { list-style: none; padding: 0; }
+  .objetivos-lista li {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 8px 0;
+    border-bottom: 1px dashed var(--rule);
+    font-size: .93em;
+    color: var(--ink-soft);
+  }
+  .objetivos-lista li:last-child { border-bottom: none; }
+  .objetivos-lista li .obj-num {
+    font-family: var(--mono);
+    font-size: .75em;
+    color: #fff;
+    background: var(--accent);
+    min-width: 22px; height: 22px;
+    display: flex; align-items: center; justify-content: center;
+    margin-top: 2px; flex-shrink: 0;
+  }
+
+  /* ── FÓRMULAS ── */
+  .formula-box {
+    background: var(--ink);
+    color: #fff;
+    padding: 18px 24px;
+    margin: 18px 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .formula-box::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0; width: 3px;
+    background: var(--accent2);
+  }
+  .formula-box .formula-label {
+    font-family: var(--mono);
+    font-size: .65em;
+    color: rgba(255,255,255,.4);
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    margin-bottom: 10px;
+  }
+  .formula-main { font-size: 1.2em; text-align: center; padding: 6px 0; }
+  .formula-num {
+    font-family: var(--mono);
+    font-size: .65em;
+    color: rgba(255,255,255,.35);
+    text-align: right;
+    margin-top: 6px;
+  }
+
+  /* ── TABLA DATOS ── */
+  .tabla-resultados {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .86em;
+    margin: 14px 0;
+  }
+  .tabla-resultados th {
+    background: var(--ink);
+    color: #fff;
+    font-family: var(--mono);
+    font-size: .7em;
+    letter-spacing: .07em;
+    padding: 9px 12px;
+    text-align: center;
+    font-weight: 500;
+    border: 1px solid #444;
+  }
+  .tabla-resultados td {
+    padding: 7px 10px;
+    border: 1px solid var(--rule);
+    text-align: center;
+    color: var(--ink-soft);
+    vertical-align: middle;
+  }
+  .tabla-resultados td.input-cell { padding: 3px 4px; }
+  .tabla-resultados input[type="text"] {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid var(--rule);
+    background: transparent;
+    font-family: var(--mono);
+    font-size: .88em;
+    color: var(--ink);
+    padding: 4px 4px;
+    text-align: center;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .tabla-resultados input:focus { border-bottom-color: var(--accent); }
+  .tabla-resultados tr:nth-child(even) td { background: var(--paper-alt); }
+  .tabla-resultados .row-label {
+    font-family: var(--mono);
+    font-size: .82em;
+    font-weight: 500;
+    color: var(--accent);
+  }
+
+  /* ── PASOS ── */
+  .paso { display: flex; gap: 16px; margin-bottom: 20px; align-items: flex-start; }
+  .paso-num {
+    font-family: var(--mono); font-size: .8em;
+    background: var(--accent); color: #fff;
+    min-width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 2px;
+  }
+  .paso-content { flex: 1; }
+  .paso-content p { margin-bottom: 6px; }
+
+  /* ── ÁREA DE TRABAJO ── */
+  .trabajo-area {
+    width: 100%; min-height: 110px;
+    border: 1px solid var(--rule);
+    background: #fff;
+    font-family: var(--serif);
+    font-size: .9em; color: var(--ink);
+    padding: 14px 16px; resize: vertical; outline: none;
+    line-height: 1.8; transition: border-color .2s; display: block;
+  }
+  .trabajo-area:focus { border-color: var(--accent); }
+  .trabajo-area::placeholder { color: #bbb; font-style: italic; }
+  .area-label {
+    font-family: var(--mono); font-size: .68em;
+    color: var(--ink-muted); text-transform: uppercase;
+    letter-spacing: .1em; margin-bottom: 5px; margin-top: 14px; display: block;
+  }
+
+  /* ── NOTA ── */
+  .nota {
+    background: #fef9e7;
+    border-left: 3px solid var(--gold);
+    padding: 10px 16px;
+    font-size: .85em; color: #7d6608;
+    margin: 14px 0; font-style: italic;
+  }
+  .nota strong { font-style: normal; color: var(--gold); }
+
+  /* ── CAJAS DE RESULTADO ── */
+  .result-box {
+    background: var(--paper-alt);
+    border: 1px solid var(--rule);
+    padding: 16px 20px; margin: 14px 0;
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  .result-box.col2 { grid-template-columns: 1fr 1fr; }
+  .result-box.col4 { grid-template-columns: repeat(4, 1fr); }
+  .result-box.col5 { grid-template-columns: repeat(5, 1fr); }
+  @media(max-width:600px) {
+    .result-box, .result-box.col2, .result-box.col4, .result-box.col5 { grid-template-columns: 1fr 1fr; }
+  }
+  .res-campo label {
+    font-family: var(--mono); font-size: .63em;
+    color: var(--ink-muted); text-transform: uppercase;
+    letter-spacing: .1em; display: block; margin-bottom: 5px;
+  }
+  .res-campo input[type="text"] {
+    width: 100%; border: none;
+    border-bottom: 2px solid var(--rule);
+    background: transparent; font-family: var(--mono);
+    font-size: 1em; color: var(--ink); padding: 4px 0;
+    outline: none; transition: border-color .2s; text-align: center;
+  }
+  .res-campo input:focus { border-bottom-color: var(--accent); }
+
+  /* ── RANGOS ── */
+  .rango-tabla {
+    width: 100%; border-collapse: collapse;
+    font-size: .85em; margin: 12px 0;
+  }
+  .rango-tabla th {
+    background: var(--ink); color: #fff;
+    font-family: var(--mono); font-size: .68em;
+    padding: 7px 12px; letter-spacing: .08em; text-align: center;
+  }
+  .rango-tabla td {
+    padding: 6px 12px; border: 1px solid var(--rule);
+    text-align: center; font-size: .88em;
+  }
+  .rango-tabla .bueno { color: var(--green); font-weight: 600; }
+  .rango-tabla .medio { color: var(--gold); font-weight: 600; }
+  .rango-tabla .malo  { color: var(--accent2); font-weight: 600; }
+
+  /* ── GRÁFICA ── */
+  .grafica-box { border: 1px solid var(--rule); background: #fff; margin: 14px 0; overflow: hidden; }
+  .grafica-header {
+    background: var(--ink); color: #fff;
+    padding: 8px 16px; font-family: var(--mono); font-size: .68em;
+    letter-spacing: .1em; text-transform: uppercase;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .grafica-canvas { display: block; width: 100%; background: #fafafa; }
+  .grafica-controles {
+    padding: 10px 16px; border-top: 1px solid var(--rule);
+    display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+  }
+  .btn-ctrl {
+    font-family: var(--mono); font-size: .7em; padding: 5px 12px;
+    border: 1px solid var(--rule); background: var(--paper-alt);
+    color: var(--ink-soft); cursor: pointer; transition: all .2s; letter-spacing: .05em;
+  }
+  .btn-ctrl:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-ctrl.activo { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .grafica-info { font-family: var(--mono); font-size: .75em; color: var(--ink-muted); flex: 1; text-align: right; }
+
+  /* ── DIVIDER ── */
+  .divider {
+    display: flex; align-items: center; gap: 12px;
+    margin: 28px 0 18px;
+    font-family: var(--mono); font-size: .68em;
+    color: var(--ink-muted); text-transform: uppercase; letter-spacing: .1em;
+  }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--rule); }
+
+  /* ── ADJUNTO ── */
+  .adjunto-slot {
+    border: 2px dashed var(--rule);
+    padding: 24px; text-align: center;
+    cursor: pointer; position: relative;
+    transition: border-color .2s; margin-top: 8px;
+  }
+  .adjunto-slot:hover { border-color: var(--accent); }
+  .adjunto-slot input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%;
+  }
+  .slot-icon { display: block; font-size: 1.8em; margin-bottom: 6px; }
+  .slot-label { display: block; font-family: var(--mono); font-size: .75em; color: var(--ink-soft); }
+  .slot-hint  { display: block; font-size: .72em; color: var(--ink-muted); margin-top: 4px; }
+  .preview-img { display: none; max-width: 100%; margin-top: 14px; border: 1px solid var(--rule); }
+
+  /* ── RETO ── */
+  .reto-header {
+    background: var(--ink); color: #fff;
+    padding: 16px 20px; display: flex; gap: 16px; align-items: flex-start;
+    margin-bottom: 0;
+  }
+  .reto-header h4 { font-family: var(--display); font-size: 1em; margin-bottom: 4px; }
+  .reto-header p  { font-size: .82em; color: rgba(255,255,255,.55); margin: 0; }
+  .reto-badge {
+    font-family: var(--mono); font-size: .65em;
+    background: var(--accent2); color: #fff;
+    padding: 3px 8px; letter-spacing: .1em; white-space: nowrap; margin-top: 3px;
+  }
+  .reto-body { border: 1px solid var(--rule); padding: 20px; border-top: none; }
+
+  /* ── EJEMPLO ── */
+  .ejemplo-box {
+    background: #f0f7f0; border-left: 3px solid var(--green);
+    padding: 14px 18px; margin: 14px 0; font-size: .9em;
+  }
+  .ejemplo-box .ej-label {
+    font-family: var(--mono); font-size: .65em; color: var(--green);
+    text-transform: uppercase; letter-spacing: .12em;
+    margin-bottom: 8px; display: block; font-weight: 500;
+  }
+
+  /* ── FIRMA ── */
+  .firma-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 30px; }
+  .firma-slot {
+    text-align: center; padding-top: 50px;
+    border-top: 1px solid var(--rule);
+    font-family: var(--mono); font-size: .68em;
+    color: var(--ink-muted); text-transform: uppercase; letter-spacing: .08em;
+  }
+
+  /* ── BTN IMPRIMIR ── */
+  .btn-imprimir {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--accent); color: #fff; border: none;
+    padding: 12px 22px; font-family: var(--mono);
+    font-size: .75em; letter-spacing: .1em; text-transform: uppercase;
+    cursor: pointer; box-shadow: 0 4px 16px rgba(26,82,118,.35);
+    transition: transform .15s, box-shadow .15s; z-index: 100;
+  }
+  .btn-imprimir:hover { transform: translateY(-2px); box-shadow: 0 6px 22px rgba(26,82,118,.45); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 680px) {
+    body { padding: 10px 0 40px; }
+    .documento { border-radius: 0; }
+    .header { padding: 22px 18px 20px 22px; }
+    .header::after { font-size: 160px; }
+    .header h1 { font-size: 1.4em !important; }
+    .header-meta { flex-direction: column; gap: 8px; }
+    .header-fields { grid-template-columns: 1fr !important; gap: 10px 0; }
+    .body { padding: 22px 16px 28px 20px; }
+    .tabla-resultados, .rango-tabla { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .result-box, .result-box.col2, .result-box.col4, .result-box.col5 { grid-template-columns: 1fr 1fr !important; }
+    .firma-grid { grid-template-columns: 1fr !important; gap: 20px; }
+    .paso { gap: 10px; }
+    .reto-header { padding: 12px 14px; gap: 10px; }
+    .reto-header h4 { font-size: 0.9em; }
+    .reto-body { padding: 14px; }
+    .grafica-controles { gap: 6px; flex-wrap: wrap; }
+    .btn-ctrl { font-size: .65em; padding: 4px 8px; }
+    .seccion-titulo { font-size: 1em; gap: 8px; }
+    .adjunto-slot { padding: 16px 10px; }
+    .trabajo-area { min-height: 80px; }
+  }
+  @media (max-width: 420px) {
+    .header { padding: 18px 14px 16px 18px; }
+    .body { padding: 16px 12px 20px 14px; }
+    .result-box, .result-box.col2, .result-box.col4, .result-box.col5 { grid-template-columns: 1fr !important; }
+    .header h1 { font-size: 1.2em !important; }
+    .formula-main { font-size: 1em !important; }
+  }
+  @media print {
+    body { background: #fff; padding: 0; }
+    .documento { box-shadow: none; }
+    .btn-imprimir, .grafica-controles { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="documento">
+
+  <!-- ══ ENCABEZADO ══ -->
+  <div class="header">
+    <div class="header-meta">
+      <span class="badge-codigo" id="codigoPractica">PRÁCTICA FIS-PEN-02</span>
+      <span class="badge-tipo">Laboratorio de Física · Simulador Digital</span>
+    </div>
+    <h1>Péndulo Simple<br><em>y determinación experimental de la gravedad g</em></h1>
+    <div class="header-sub">Simulador 3D · Serie de Taylor · Integración RK4 · Análisis gráfico T² vs L</div>
+    <div class="header-fields">
+      <div class="field-item">
+        <label>Nombre del estudiante</label>
+        <input type="text" placeholder="Escriba su nombre completo">
+      </div>
+      <div class="field-item">
+        <label>Código estudiantil</label>
+        <input type="text" placeholder="Código">
+      </div>
+      <div class="field-item">
+        <label>Grupo / Sección</label>
+        <input type="text" placeholder="Ej. Grupo A — Lunes 10 am">
+      </div>
+      <div class="field-item">
+        <label>Planeta asignado</label>
+        <input type="text" placeholder="Nombre del planeta en el simulador">
+      </div>
+      <div class="field-item">
+        <label>Fecha de realización</label>
+        <input type="date">
+      </div>
+      <div class="field-item">
+        <label>Docente</label>
+        <input type="text" placeholder="Nombre del profesor/a">
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ CUERPO ══ -->
+  <div class="body">
+
+    <!-- 00. RESUMEN -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">00</span> Resumen</h2>
+      <div class="resumen-box">
+        En esta práctica se utiliza un simulador digital de péndulo simple para determinar
+        experimentalmente la aceleración gravitacional $g$ de un planeta desconocido. El simulador
+        integra la ecuación exacta del péndulo con Runge–Kutta de 4° orden y un ángulo de suelta
+        de 15°, por lo que se aplica la <strong>corrección de Taylor–Legendre</strong> para obtener
+        resultados precisos. Se miden períodos para distintas longitudes y se construye la gráfica
+        $T^2$ vs. $L$; la pendiente de la recta revela el valor de $g$ experimental. En el
+        <em>Modo Reto</em>, la longitud del hilo es desconocida y el estudiante debe inferirla
+        a partir de las mediciones de período usando la fórmula inversa corregida.
+      </div>
+      <p style="margin-top:10px;"><strong>Palabras clave:</strong>
+        péndulo simple · gravedad · período · corrección de Taylor · RK4 · regresión lineal ·
+        incertidumbre · Modo Reto · análisis gráfico
+      </p>
+    </div>
+
+    <!-- 01. OBJETIVOS -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">01</span> Objetivos</h2>
+      <ul class="objetivos-lista">
+        <li><span class="obj-num">1</span>Medir el período del péndulo para distintas longitudes usando el cronómetro del simulador.</li>
+        <li><span class="obj-num">2</span>Aplicar la corrección de Taylor–Legendre al período medido para obtener una estimación más exacta de $g$.</li>
+        <li><span class="obj-num">3</span>Construir la gráfica $T^2$ vs. $L$ e identificar la pendiente como $4\pi^2/g$ para determinar $g$ experimentalmente.</li>
+        <li><span class="obj-num">4</span>Evaluar la calidad del resultado mediante la incertidumbre relativa (IR) y el error relativo porcentual (ER).</li>
+        <li><span class="obj-num">5</span>En el Modo Reto: inferir la longitud oculta del hilo aplicando la fórmula inversa del período con corrección de Taylor.</li>
+      </ul>
+    </div>
+
+    <!-- 02. MARCO TEÓRICO -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">02</span> Marco Teórico</h2>
+
+      <div class="subseccion-titulo">2.1 · El péndulo simple y el período</div>
+      <p>
+        Un péndulo simple consiste en una masa puntual suspendida de un hilo inextensible de longitud
+        $L$. Para ángulos pequeños la oscilación es aproximadamente armónica y el período
+        (tiempo de una oscilación completa) es:
+      </p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 1 — Período (aproximación ángulo pequeño)</div>
+        <div class="formula-main">$$T_0 = 2\pi\sqrt{\frac{L}{g}}$$</div>
+        <div class="formula-num">(1)</div>
+      </div>
+      <p>
+        Linealizando al graficar $T^2$ vs. $L$ se obtiene una recta de pendiente $m = 4\pi^2/g$:
+      </p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 2 — Linealización y cálculo de g</div>
+        <div class="formula-main">$$T^2 = \frac{4\pi^2}{g}\cdot L \qquad\Longrightarrow\qquad g = \frac{4\pi^2}{m}$$</div>
+        <div class="formula-num">(2)</div>
+      </div>
+
+      <div class="subseccion-titulo">2.2 · Corrección de Taylor–Legendre (θ₀ = 15°)</div>
+      <p>
+        Para ángulos no despreciables ($\theta_0 = 15°$ en el simulador), el período real es mayor que
+        $T_0$. La expansión en serie de la integral elíptica exacta da el <strong>factor de corrección</strong>
+        $C(\theta_0)$:
+      </p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 3 — Período exacto corregido</div>
+        <div class="formula-main">$$T_{\text{real}} = T_0\cdot C(\theta_0) = 2\pi\sqrt{\frac{L}{g}}\cdot C(\theta_0)$$</div>
+        <div class="formula-num">(3)</div>
+      </div>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 4 — Factor de corrección (4 términos)</div>
+        <div class="formula-main">$$C(\theta_0)=1+\frac{1}{4}\sin^2\!\frac{\theta_0}{2}+\frac{9}{64}\sin^4\!\frac{\theta_0}{2}+\frac{25}{256}\sin^6\!\frac{\theta_0}{2}$$</div>
+        <div class="formula-num">(4)</div>
+      </div>
+
+      <div class="ejemplo-box">
+        <span class="ej-label">Cálculo para θ₀ = 15° (valor del simulador)</span>
+        <p>
+          Con $s = \sin(7{,}5°) = 0{,}13053$:
+          $\;C = 1 + \tfrac{1}{4}(0{,}01704) + \tfrac{9}{64}(0{,}000290) + \tfrac{25}{256}(0{,}0000494) \approx 1{,}00429$
+        </p>
+        <p style="margin-top:6px;">
+          El período real es un <strong>0,43 % mayor</strong> que la fórmula de ángulo pequeño.
+          Para $\theta_0 = 15°$: $\;C^2 \approx 1{,}00860$.
+        </p>
+      </div>
+
+      <div class="subseccion-titulo">2.3 · Gravedad corregida g★</div>
+      <p>
+        Dado que el período medido incluye el factor $C$, para despejar $g$ exacto se aplica:
+      </p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 5 — Gravedad con corrección de Taylor (por fila)</div>
+        <div class="formula-main">$$g^{\star} = \frac{4\pi^2 L C^2}{T_{\text{real}}^2}$$</div>
+        <div class="formula-num">(5)</div>
+      </div>
+      <p>
+        Si se hace la regresión gráfica $T^2$ vs. $L$, la pendiente $m$ del ajuste permite calcular:
+      </p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 6 — Gravedad desde la pendiente de la gráfica</div>
+        <div class="formula-main">$$g^{\star} = \frac{4\pi^2 C^2}{m_{\text{gráfica}}}$$</div>
+        <div class="formula-num">(6)</div>
+      </div>
+
+      <div class="subseccion-titulo">2.4 · Longitud oculta en el Modo Reto</div>
+      <p>
+        Cuando la longitud $L$ es desconocida, se despeja de la Ec. (3):
+      </p>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 7 — Longitud del hilo a partir del período (Modo Reto)</div>
+        <div class="formula-main">$$L^{\star} = \frac{g\,\bar{T}^2}{4\pi^2 C^2}$$</div>
+        <div class="formula-num">(7)</div>
+      </div>
+      <div class="nota">
+        <strong>Nota:</strong> el simulador proporciona el valor de $g$ del planeta. La Ec. (7) con corrección
+        de Taylor es más exacta que la fórmula simple sin $C^2$. Use siempre $L^{\star}$ como resultado final.
+      </div>
+
+      <div class="subseccion-titulo">2.5 · Incertidumbre Relativa y Error Relativo</div>
+      <div class="formula-box">
+        <div class="formula-label">Ecuación 8 — IR y ER</div>
+        <div class="formula-main">$$\text{IR} = \frac{\Delta g^{\star}}{\bar{g}^{\star}} \times 100\% \qquad \text{ER} = \frac{|\bar{g}^{\star} - g_{\text{real}}|}{g_{\text{real}}} \times 100\%$$</div>
+        <div class="formula-num">(8)</div>
+      </div>
+      <table class="rango-tabla">
+        <thead><tr><th>Indicador</th><th>Rango</th><th>Interpretación</th></tr></thead>
+        <tbody>
+          <tr><td rowspan="3" style="font-family:var(--mono);font-size:.85em;">IR</td>
+            <td class="bueno">IR &lt; 1 %</td><td>Resultado muy preciso</td></tr>
+          <tr><td class="medio">1 % &lt; IR &lt; 10 %</td><td>Resultado preciso</td></tr>
+          <tr><td class="malo">IR &gt; 10 %</td><td>Resultado poco preciso</td></tr>
+          <tr><td rowspan="3" style="font-family:var(--mono);font-size:.85em;">ER</td>
+            <td class="bueno">ER &lt; 1 %</td><td>Resultado muy exacto</td></tr>
+          <tr><td class="medio">1 % &lt; ER &lt; 10 %</td><td>Resultado exacto</td></tr>
+          <tr><td class="malo">ER &gt; 10 %</td><td>Resultado poco exacto</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 03. PROCEDIMIENTO -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">03</span> Procedimiento Experimental</h2>
+      <p>Abra el simulador en el navegador. Al cargar se asigna automáticamente un <strong>planeta</strong> con gravedad desconocida. Anote el nombre en el encabezado de esta guía.</p>
+
+      <div class="paso">
+        <div class="paso-num">1</div>
+        <div class="paso-content">
+          <p><strong>Seleccione el Modo Abierto</strong> (pestaña 🔬). Verifique que el péndulo está en reposo inclinado a 15°. No oscila hasta que usted lo suelte.</p>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">2</div>
+        <div class="paso-content">
+          <p><strong>Configure la longitud</strong> con el deslizador. En el campo <em>Oscilaciones a medir</em> ingrese $n \geq 5$ para reducir el error de reacción humana.</p>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">3</div>
+        <div class="paso-content">
+          <p><strong>Mida el tiempo.</strong> Presione <em>🚀 Soltar Péndulo</em>. Cuando complete exactamente $n$ oscilaciones completas, presione <em>🛑 Detener y Registrar</em>. El simulador calcula y muestra $T = \Delta t / n$, $g_{\text{simple}}$ y $g^{\star}$ Taylor automáticamente.</p>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">4</div>
+        <div class="paso-content">
+          <p><strong>Repita para al menos 7 longitudes</strong> entre 0,10 m y 1,00 m. Transcriba los datos a la Tabla 1 de esta guía.</p>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">5</div>
+        <div class="paso-content">
+          <p><strong>Exporte los datos</strong> con el botón <em>📊 Exportar CSV</em> y adjunte el archivo a su informe digital.</p>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">6</div>
+        <div class="paso-content">
+          <p><strong>Análisis gráfico:</strong> con los datos de la Tabla 1, ingrese los pares $(L,\; T^2)$ en la Sección 5. La herramienta traza la regresión y calcula $g^{\star}$ con la Ec. (6).</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 04. REGISTRO MODO ABIERTO -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">04</span> Registro de Datos — Modo Abierto</h2>
+      <p>
+        Complete la Tabla 1 copiando los valores del simulador. Calcule $T^2$ para la gráfica
+        de la sección siguiente. Use el promedio de los valores de $g^{\star}$ Taylor para la
+        evaluación estadística.
+      </p>
+      <p style="margin:8px 0 4px; font-size:.85em; color:var(--ink-muted); font-style:italic;">
+        Tabla 1. Longitud, tiempo, período y gravedad para distintas configuraciones del péndulo.
+      </p>
+
+      <div style="overflow-x:auto; -webkit-overflow-scrolling:touch;">
+        <table class="tabla-resultados" style="min-width:620px;">
+          <thead>
+            <tr>
+              <th rowspan="2">#</th>
+              <th rowspan="2">L (m)</th>
+              <th rowspan="2">n osc.</th>
+              <th rowspan="2">Δt (s)</th>
+              <th rowspan="2">T = Δt/n (s)</th>
+              <th rowspan="2">T² (s²)</th>
+              <th colspan="2">Gravedad calculada</th>
+            </tr>
+            <tr>
+              <th>g simple (m/s²)</th>
+              <th>g★ Taylor (m/s²)</th>
+            </tr>
+          </thead>
+          <tbody id="bodyAbierto"></tbody>
+        </table>
+      </div>
+
+      <div class="divider"><span>resumen estadístico</span></div>
+      <p style="margin-bottom:10px;">
+        Con los valores de $g^{\star}$ Taylor de la columna anterior, calcule el promedio $\bar{g}^{\star}$
+        y la desviación estándar del valor medio:
+      </p>
+      <div class="result-box">
+        <div class="res-campo">
+          <label>ḡ★ promedio (m/s²)</label>
+          <input type="text" id="gProm" placeholder="0.000">
+        </div>
+        <div class="res-campo">
+          <label>Δg★ (desv. est. del medio)</label>
+          <input type="text" id="gInc" placeholder="± 0.000">
+        </div>
+        <div class="res-campo">
+          <label>Resultado: g★ ± Δg★</label>
+          <input type="text" id="gRes" placeholder="0.000 ± 0.000">
+        </div>
+      </div>
+      <div class="result-box col2" style="margin-top:4px;">
+        <div class="res-campo">
+          <label>IR = (Δg★ / ḡ★) × 100%</label>
+          <input type="text" id="gIR" placeholder="0.00 %">
+        </div>
+        <div class="res-campo">
+          <label>ER = |ḡ★ − g_real| / g_real × 100%</label>
+          <input type="text" id="gER" placeholder="0.00 %">
+        </div>
+      </div>
+      <div class="nota">
+        <strong>Recuerde:</strong> el valor de $g_{\text{real}}$ está visible en el panel superior del simulador.
+        Úselo solo para calcular el ER al final, no durante el experimento.
+      </div>
+
+      <span class="area-label">Cálculo del promedio, desviación estándar, IR y ER (muestre operaciones)</span>
+      <textarea class="trabajo-area" rows="6" placeholder="ḡ★ = (g₁ + g₂ + … + gₙ) / n = ___&#10;Desv. estándar del medio σ = √[ Σ(gᵢ − ḡ)² / n(n−1) ] = ___&#10;IR = Δg★ / ḡ★ × 100% = ___&#10;ER = |ḡ★ − g_real| / g_real × 100% = ___"></textarea>
+    </div>
+
+    <!-- 05. GRÁFICA T² vs L -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">05</span> Gráfica T² vs. L — Herramienta Interactiva</h2>
+      <p>
+        Ingrese los pares $(L, T^2)$ de la Tabla 1 en la Tabla 2. La gráfica se actualiza en
+        tiempo real. La pendiente $m$ de la regresión al origen da $g^{\star}$ con la Ec. (6).
+        También puede trazar su recta manualmente desactivando la regresión.
+      </p>
+
+      <p style="margin:8px 0 4px; font-size:.85em; color:var(--ink-muted); font-style:italic;">
+        Tabla 2. Valores para la gráfica T² vs. L.
+      </p>
+      <div style="overflow-x:auto;">
+        <table class="tabla-resultados" style="max-width:440px;">
+          <thead>
+            <tr><th>Punto</th><th>L (m)</th><th>T² (s²)</th></tr>
+          </thead>
+          <tbody id="bodyGrafica"></tbody>
+        </table>
+      </div>
+
+      <div class="grafica-box">
+        <div class="grafica-header">
+          <span>Gráfica: T² (s²) vs. L (m)</span>
+          <span id="pendienteLabel" style="color:rgba(255,255,255,.6);font-size:.9em;">pendiente m = —</span>
+        </div>
+        <canvas id="graficaCanvas" class="grafica-canvas" height="380"></canvas>
+        <div class="grafica-controles">
+          <button class="btn-ctrl activo" id="btnRegresion" onclick="toggleRegresion()">Regresión al origen</button>
+          <button class="btn-ctrl" onclick="limpiarRecta()">Limpiar recta manual</button>
+          <button class="btn-ctrl" onclick="exportarGrafica()">⬇ Exportar imagen</button>
+          <span class="grafica-info" id="graficaInfo"></span>
+        </div>
+      </div>
+
+      <div class="result-box col4">
+        <div class="res-campo">
+          <label>Pendiente m (s²/m)</label>
+          <input type="text" id="pendGraf" placeholder="0.0000" readonly>
+        </div>
+        <div class="res-campo">
+          <label>g simple = 4π²/m</label>
+          <input type="text" id="gSimpleGraf" placeholder="0.000" readonly>
+        </div>
+        <div class="res-campo">
+          <label>g★ Taylor = 4π²C²/m</label>
+          <input type="text" id="gTaylorGraf" placeholder="0.000" readonly>
+        </div>
+        <div class="res-campo">
+          <label>ER gráfica (vs. g_real)</label>
+          <input type="text" id="erGraf" placeholder="ver Sec.04">
+        </div>
+      </div>
+
+      <span class="area-label">Análisis de la gráfica — interprete la pendiente, compare con los valores de la Tabla 1 y discuta fuentes de desviación</span>
+      <textarea class="trabajo-area" rows="4" placeholder="La pendiente obtenida fue m = ___ s²/m, lo que da g★ = ___ m/s².&#10;Comparando con el promedio de la Tabla 1 (g★ = ___): diferencia = ___ %.&#10;Posibles fuentes de desviación: ..."></textarea>
+    </div>
+
+    <!-- 06. MODO RETO -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">06</span> Modo Reto — Longitud Oculta</h2>
+
+      <div class="reto-header">
+        <span class="reto-badge">⚠ RETO</span>
+        <div>
+          <h4>Determinar la longitud desconocida del hilo</h4>
+          <p>Cambie a la pestaña 🎯 Modo Reto. La longitud está oculta. Mida el período, calcule $L^{\star}$ con la Ec. (7) y verifique su respuesta en el simulador.</p>
+        </div>
+      </div>
+      <div class="reto-body">
+
+        <div class="paso">
+          <div class="paso-num">1</div>
+          <div class="paso-content">
+            <p>Fije el número de oscilaciones (recomendado $n \geq 10$) y realice varias mediciones independientes.</p>
+          </div>
+        </div>
+        <div class="paso">
+          <div class="paso-num">2</div>
+          <div class="paso-content">
+            <p>Presione <strong>📐 Calcular T̄</strong> en el simulador. Anote el período promedio $\bar{T}$ y el valor de $L^{\star}$ Taylor calculado.</p>
+          </div>
+        </div>
+        <div class="paso">
+          <div class="paso-num">3</div>
+          <div class="paso-content">
+            <p>Ingrese su respuesta y presione <strong>✔ Verificar</strong>. El simulador muestra el error porcentual respecto a la $L$ real.</p>
+          </div>
+        </div>
+
+        <p style="margin:14px 0 4px; font-size:.85em; color:var(--ink-muted); font-style:italic;">
+          Tabla 3. Mediciones de período en el Modo Reto.
+        </p>
+        <div style="overflow-x:auto;">
+          <table class="tabla-resultados" style="max-width:500px;">
+            <thead>
+              <tr><th>#</th><th>n osc.</th><th>Δt (s)</th><th>T = Δt/n (s)</th></tr>
+            </thead>
+            <tbody id="bodyReto"></tbody>
+          </table>
+        </div>
+
+        <div class="result-box col4" style="margin-top:14px;">
+          <div class="res-campo">
+            <label>T̄ promedio (s)</label>
+            <input type="text" placeholder="0.0000">
+          </div>
+          <div class="res-campo">
+            <label>L simple = gT̄²/(4π²) (m)</label>
+            <input type="text" placeholder="0.000">
+          </div>
+          <div class="res-campo">
+            <label>L★ Taylor = gT̄²/(4π²C²) (m)</label>
+            <input type="text" placeholder="0.000">
+          </div>
+          <div class="res-campo">
+            <label>Error vs. L real (%)</label>
+            <input type="text" placeholder="0.00 %">
+          </div>
+        </div>
+
+        <span class="area-label">Cálculo paso a paso de L★ Taylor — aplique la Ec. (7)</span>
+        <textarea class="trabajo-area" style="min-height:160px;"
+          placeholder="De la Ec. (7):&#10;  L★ = g · T̄² / (4π² · C²)&#10;&#10;Datos:&#10;  g = ___ m/s² (del simulador)&#10;  T̄ = ___ s&#10;  C² = 1.00860 (para θ₀ = 15°)&#10;&#10;Sustituyendo:&#10;  L★ = ___ × (___²) / (4π² × 1.00860)&#10;  L★ = ___ / ___&#10;  L★ = ___ m&#10;&#10;Comparación con L simple (sin C²):&#10;  L simple = ___ m&#10;  Diferencia = ___ %"></textarea>
+
+        <span class="area-label">Captura de pantalla — resultado del reto</span>
+        <div class="adjunto-slot">
+          <input type="file" accept="image/*" onchange="previsualizarImagen(this,'prevReto')">
+          <span class="slot-icon">🎯</span>
+          <span class="slot-label">Adjuntar captura de pantalla con el resultado del Reto</span>
+          <span class="slot-hint">Debe mostrarse el porcentaje de error obtenido · PNG, JPG</span>
+          <img id="prevReto" class="preview-img" alt="">
+        </div>
+
+      </div><!-- /reto-body -->
+    </div>
+
+    <!-- 07. DISCUSIÓN -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">07</span> Discusión de Resultados</h2>
+
+      <span class="area-label">7.1 · ¿Por qué la gráfica de $T$ vs. $L$ no es lineal pero $T^2$ vs. $L$ sí? Explique la linealización matemáticamente.</span>
+      <textarea class="trabajo-area" placeholder="Escriba su análisis aquí..."></textarea>
+
+      <span class="area-label">7.2 · Compare el valor de $g^{\star}$ obtenido por promedio de filas (Tabla 1) con el obtenido de la pendiente gráfica (Sección 5). ¿Coinciden? ¿Cuál considera más confiable y por qué?</span>
+      <textarea class="trabajo-area" placeholder="Escriba su análisis aquí..."></textarea>
+
+      <span class="area-label">7.3 · Analice los valores de IR y ER. ¿Qué tan significativa es la corrección de Taylor para θ₀ = 15°? ¿Qué ocurriría con $g^{\star}$ si se ignorara el factor $C^2$?</span>
+      <textarea class="trabajo-area" placeholder="Escriba su análisis aquí..."></textarea>
+
+      <span class="area-label">7.4 · ¿Qué ventaja tiene medir $n$ oscilaciones en lugar de una sola? Relacione su respuesta con el error de reacción humana y la incertidumbre del período $T$.</span>
+      <textarea class="trabajo-area" placeholder="Escriba su análisis aquí..."></textarea>
+
+      <span class="area-label">7.5 · En el Modo Reto compare $L_{\text{simple}}$ y $L^{\star}_{\text{Taylor}}$. ¿Cuál fue más cercano al valor real? Justifique por qué la corrección mejora la estimación.</span>
+      <textarea class="trabajo-area" placeholder="Escriba su análisis aquí..."></textarea>
+    </div>
+
+    <!-- 08. CONCLUSIONES -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">08</span> Conclusiones</h2>
+      <p>Redacte tres conclusiones concretas que respondan directamente a los objetivos planteados.</p>
+
+      <span class="area-label">Conclusión 1 — Sobre el valor de g★ obtenido y su comparación con el valor real del planeta</span>
+      <textarea class="trabajo-area" style="min-height:90px;" placeholder="Redacte su primera conclusión..."></textarea>
+
+      <span class="area-label">Conclusión 2 — Sobre la linealidad de T² vs. L y el análisis gráfico como método para determinar g</span>
+      <textarea class="trabajo-area" style="min-height:90px;" placeholder="Redacte su segunda conclusión..."></textarea>
+
+      <span class="area-label">Conclusión 3 — Sobre la calidad de los resultados (IR, ER), la corrección de Taylor y el Modo Reto</span>
+      <textarea class="trabajo-area" style="min-height:90px;" placeholder="Redacte su tercera conclusión..."></textarea>
+    </div>
+
+    <!-- 09. REFERENCIAS -->
+    <div class="seccion">
+      <h2 class="seccion-titulo"><span class="num">09</span> Referencias</h2>
+      <p style="font-size:.88em; line-height:2.1;">
+        [1] Serway, R. A. &amp; Jewett, J. W. <em>Physics for Scientists and Engineers</em>. 10ª ed. Cengage Learning, 2019. Cap. 15 — Movimiento Oscilatorio.<br>
+        [2] Sears, F. W., Zemansky, M. W. &amp; Young, H. D. <em>University Physics</em>. 14ª ed. Pearson, 2016. Cap. 14.<br>
+        [3] Tipler, P. A. &amp; Llewellyn, R. A. <em>Physics for Scientists and Engineers</em>. 6ª ed. W. H. Freeman, 2008. Cap. 14.<br>
+        [4] Press, W. H. et al. <em>Numerical Recipes: The Art of Scientific Computing</em>. 3ª ed. Cambridge University Press, 2007. — Integración Runge–Kutta.
+      </p>
+    </div>
+
+    <!-- FIRMAS -->
+    <div class="seccion" style="margin-bottom:0;">
+      <div class="firma-grid">
+        <div class="firma-slot">Firma del estudiante</div>
+        <div class="firma-slot">Vo. Bo. Docente</div>
+      </div>
+    </div>
+
+  </div><!-- /body -->
+</div><!-- /documento -->
+
+<button class="btn-imprimir" onclick="window.print()">🖨 Imprimir / PDF</button>
+
+<script>
+/* ══════════════════════════════════════════
+   CONSTANTES FÍSICAS
+══════════════════════════════════════════ */
+const THETA0   = 15 * Math.PI / 180;
+const C_FACTOR = (() => {
+  const s = Math.sin(THETA0/2), s2=s*s, s4=s2*s2, s6=s4*s2;
+  return 1 + 0.25*s2 + (9/64)*s4 + (25/256)*s6;
+})();
+const C2 = C_FACTOR * C_FACTOR;
+
+/* ══════════════════════════════════════════
+   TABLA MODO ABIERTO — 8 filas
+══════════════════════════════════════════ */
+const NROWS_A = 8;
+const datosA  = Array.from({length:NROWS_A}, () => ({L:'',n:'',dt:'',T:'',T2:'',gS:'',gT:''}));
+
+function buildTablaAbierto() {
+  const tb = document.getElementById('bodyAbierto');
+  for (let i = 0; i < NROWS_A; i++) {
+    const tr = tb.insertRow(-1);
+    tr.innerHTML = `
+      <td class="row-label">${i+1}</td>
+      <td class="input-cell"><input type="text" id="aL${i}"  placeholder="0.00"  oninput="onA(${i},'L',this.value)"></td>
+      <td class="input-cell"><input type="text" id="aN${i}"  placeholder="5"     oninput="onA(${i},'n',this.value)"></td>
+      <td class="input-cell"><input type="text" id="aDt${i}" placeholder="0.000" oninput="onA(${i},'dt',this.value)"></td>
+      <td class="input-cell"><input type="text" id="aT${i}"  placeholder="—" readonly style="color:var(--accent);font-weight:600;"></td>
+      <td class="input-cell"><input type="text" id="aT2${i}" placeholder="—" readonly style="color:var(--gold);font-weight:600;"></td>
+      <td class="input-cell"><input type="text" id="aGS${i}" placeholder="—" readonly></td>
+      <td class="input-cell"><input type="text" id="aGT${i}" placeholder="—" readonly style="color:var(--green);font-weight:600;"></td>`;
+  }
+}
+
+function pN(s) { return parseFloat((s||'').replace(',','.')); }
+function fmt(n, d) { return isNaN(n) ? '—' : n.toFixed(d); }
+
+function onA(i, campo, val) {
+  datosA[i][campo] = val;
+  const L  = pN(datosA[i].L);
+  const n  = pN(datosA[i].n) || 1;
+  const dt = pN(datosA[i].dt);
+  if (L > 0 && dt > 0) {
+    const T  = dt / n, T2 = T * T;
+    const gS = 4 * Math.PI**2 * L / T2;
+    const gT = gS * C2;
+    datosA[i].T=T; datosA[i].T2=T2; datosA[i].gS=gS; datosA[i].gT=gT;
+    document.getElementById('aT' +i).value = fmt(T,4);
+    document.getElementById('aT2'+i).value = fmt(T2,4);
+    document.getElementById('aGS'+i).value = fmt(gS,3);
+    document.getElementById('aGT'+i).value = fmt(gT,3);
+  } else {
+    datosA[i].T=datosA[i].T2=datosA[i].gS=datosA[i].gT='';
+    ['aT','aT2','aGS','aGT'].forEach(p => document.getElementById(p+i).value='—');
+  }
+  actualizarResumen();
+  sincGrafica();
+  dibujarGrafica();
+}
+
+function actualizarResumen() {
+  const vals = datosA.map(r=>r.gT).filter(v=>typeof v==='number'&&!isNaN(v));
+  if (!vals.length) return;
+  const n    = vals.length;
+  const prom = vals.reduce((a,b)=>a+b,0)/n;
+  const sig  = Math.sqrt(vals.reduce((s,v)=>s+(v-prom)**2,0)/(n*(n-1)));
+  const IR   = sig/prom*100;
+  document.getElementById('gProm').value = fmt(prom,3);
+  document.getElementById('gInc').value  = '± '+fmt(sig,3);
+  document.getElementById('gRes').value  = fmt(prom,3)+' ± '+fmt(sig,3);
+  document.getElementById('gIR').value   = fmt(IR,2)+' %';
+}
+
+/* ══════════════════════════════════════════
+   TABLA GRÁFICA — sincronizada con Tabla 1
+══════════════════════════════════════════ */
+const ptosGraf = Array.from({length:NROWS_A}, ()=>({L:'',T2:''}));
+
+function buildTablaGrafica() {
+  const tb = document.getElementById('bodyGrafica');
+  for (let i = 0; i < NROWS_A; i++) {
+    const tr = tb.insertRow(-1);
+    tr.innerHTML = `
+      <td class="row-label">P${i+1}</td>
+      <td class="input-cell"><input type="text" id="gL${i}"  placeholder="0.00"   oninput="onG(${i},'L',this.value)"></td>
+      <td class="input-cell"><input type="text" id="gT2${i}" placeholder="0.0000" oninput="onG(${i},'T2',this.value)"></td>`;
+  }
+}
+
+function sincGrafica() {
+  for (let i = 0; i < NROWS_A; i++) {
+    if (typeof datosA[i].L === 'string' && datosA[i].L !== '') {
+      document.getElementById('gL' +i).value = fmt(pN(datosA[i].L),2);
+      ptosGraf[i].L = datosA[i].L;
+    }
+    if (typeof datosA[i].T2 === 'number') {
+      document.getElementById('gT2'+i).value = fmt(datosA[i].T2,4);
+      ptosGraf[i].T2 = String(datosA[i].T2);
+    }
+  }
+}
+
+function onG(i, campo, val) {
+  ptosGraf[i][campo] = val;
+  dibujarGrafica();
+}
+
+function getPuntos() {
+  return ptosGraf
+    .map(p => ({ L: pN(p.L), T2: pN(p.T2) }))
+    .filter(p => !isNaN(p.L) && !isNaN(p.T2) && p.L > 0 && p.T2 > 0);
+}
+
+/* ══════════════════════════════════════════
+   GRÁFICA
+══════════════════════════════════════════ */
+const COLORS = ['#1a5276','#c0392b','#1e8449','#b8860b','#6c3483','#117a65','#7b241c','#0b5394'];
+let mostrarReg = true, rectaManual = null, dragging = false, dragStart = null;
+
+function toggleRegresion() {
+  mostrarReg = !mostrarReg;
+  document.getElementById('btnRegresion').classList.toggle('activo', mostrarReg);
+  dibujarGrafica();
+}
+function limpiarRecta()  { rectaManual = null; dibujarGrafica(); }
+function exportarGrafica() {
+  const a = document.createElement('a');
+  a.download = 'grafica_T2_L.png';
+  a.href = document.getElementById('graficaCanvas').toDataURL();
+  a.click();
+}
+function regOrigen(pts) {
+  const sXY = pts.reduce((s,p)=>s+p.L*p.T2,0);
+  const sX2 = pts.reduce((s,p)=>s+p.L*p.L,0);
+  return sX2 > 0 ? sXY/sX2 : null;
+}
+
+function dibujarGrafica() {
+  const cv = document.getElementById('graficaCanvas');
+  const ctx = cv.getContext('2d');
+  const W   = cv.offsetWidth || 760;
+  cv.width  = W * window.devicePixelRatio;
+  cv.height = 380 * window.devicePixelRatio;
+  cv.style.width = W+'px'; cv.style.height = '380px';
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  const w=W, h=380;
+  const PAD = {top:30, right:30, bottom:55, left:65};
+  const pw=w-PAD.left-PAD.right, ph=h-PAD.top-PAD.bottom;
+
+  ctx.fillStyle='#fafafa'; ctx.fillRect(0,0,w,h);
+  ctx.fillStyle='#f5f5f5'; ctx.fillRect(PAD.left,PAD.top,pw,ph);
+
+  const pts = getPuntos();
+  let xMax = pts.length>0 ? Math.max(...pts.map(p=>p.L))*1.2  : 1.1;
+  let yMax = pts.length>0 ? Math.max(...pts.map(p=>p.T2))*1.2 : 4;
+  xMax=Math.max(xMax,.2); yMax=Math.max(yMax,.5);
+
+  const toX = v => PAD.left + (v/xMax)*pw;
+  const toY = v => PAD.top  + ph - (v/yMax)*ph;
+
+  // grid
+  ctx.strokeStyle='#e8e4dc'; ctx.lineWidth=1;
+  for(let i=0;i<=6;i++){const x=toX(i*xMax/6); ctx.beginPath();ctx.moveTo(x,PAD.top);ctx.lineTo(x,PAD.top+ph);ctx.stroke();}
+  for(let i=0;i<=5;i++){const y=toY(i*yMax/5); ctx.beginPath();ctx.moveTo(PAD.left,y);ctx.lineTo(PAD.left+pw,y);ctx.stroke();}
+
+  // ejes
+  ctx.strokeStyle='#888'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(PAD.left,PAD.top); ctx.lineTo(PAD.left,PAD.top+ph); ctx.lineTo(PAD.left+pw,PAD.top+ph); ctx.stroke();
+
+  // etiquetas
+  ctx.fillStyle='#3d3d5c'; ctx.font=`bold 11px 'JetBrains Mono', monospace`;
+  ctx.textAlign='center';
+  ctx.fillText('Longitud  L  (m)', PAD.left+pw/2, h-4);
+  ctx.save(); ctx.translate(14,PAD.top+ph/2); ctx.rotate(-Math.PI/2);
+  ctx.fillText('Período²  T²  (s²)',0,0); ctx.restore();
+  ctx.fillStyle='#888'; ctx.font=`10px 'JetBrains Mono', monospace`;
+  for(let i=0;i<=6;i++){const v=i*xMax/6; ctx.textAlign='center'; ctx.fillText(v.toFixed(2),toX(v),PAD.top+ph+14);}
+  for(let i=0;i<=5;i++){const v=i*yMax/5; ctx.textAlign='right';  ctx.fillText(v.toFixed(2),PAD.left-4,toY(v)+4);}
+
+  // regresión
+  const m = pts.length>=2 ? regOrigen(pts) : null;
+  if (mostrarReg && m!==null) {
+    ctx.strokeStyle='#1a5276'; ctx.lineWidth=2.5; ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(toX(0),toY(0)); ctx.lineTo(toX(xMax),toY(m*xMax)); ctx.stroke();
+    const gS = 4*Math.PI**2/m, gT = gS*C2;
+    document.getElementById('pendGraf').value    = fmt(m,4);
+    document.getElementById('gSimpleGraf').value = fmt(gS,3);
+    document.getElementById('gTaylorGraf').value = fmt(gT,3);
+    document.getElementById('pendienteLabel').textContent = 'pendiente  m = '+fmt(m,4)+' s²/m';
+    document.getElementById('graficaInfo').textContent    = `n = ${pts.length} puntos · regresión al origen`;
+  }
+
+  // recta manual
+  if (rectaManual) {
+    ctx.strokeStyle='#c0392b'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(rectaManual.x1,rectaManual.y1); ctx.lineTo(rectaManual.x2,rectaManual.y2); ctx.stroke();
+    const dx=(rectaManual.x2-rectaManual.x1)/pw*xMax, dy=-(rectaManual.y2-rectaManual.y1)/ph*yMax;
+    if(dx!==0){
+      const mM=dy/dx;
+      document.getElementById('pendGraf').value    = fmt(mM,4)+' (manual)';
+      document.getElementById('gSimpleGraf').value = fmt(4*Math.PI**2/mM,3);
+      document.getElementById('gTaylorGraf').value = fmt(4*Math.PI**2*C2/mM,3);
+    }
+  }
+
+  // puntos
+  pts.forEach((p,i) => {
+    ctx.fillStyle = COLORS[i%COLORS.length];
+    ctx.beginPath(); ctx.arc(toX(p.L),toY(p.T2),5,0,Math.PI*2); ctx.fill();
+    ctx.font='bold 10px JetBrains Mono,monospace'; ctx.textAlign='left';
+    ctx.fillText('P'+(i+1), toX(p.L)+8, toY(p.T2)-5);
+  });
+
+  if(pts.length===0){
+    ctx.fillStyle='#bbb'; ctx.font=`14px 'Source Serif 4',serif`;
+    ctx.textAlign='center';
+    ctx.fillText('Ingrese datos en la Tabla 1 o en la Tabla 2 para ver los puntos', PAD.left+pw/2, PAD.top+ph/2);
+  }
+}
+
+// Interacción mouse / touch
+const canv = document.getElementById('graficaCanvas');
+canv.addEventListener('mousedown',e=>{
+  if(mostrarReg) return;
+  const r=canv.getBoundingClientRect(); dragging=true; dragStart={x:e.clientX-r.left,y:e.clientY-r.top};
+});
+canv.addEventListener('mousemove',e=>{
+  if(!dragging) return;
+  const r=canv.getBoundingClientRect();
+  rectaManual={x1:dragStart.x,y1:dragStart.y,x2:e.clientX-r.left,y2:e.clientY-r.top};
+  dibujarGrafica();
+});
+canv.addEventListener('mouseup',()=>{dragging=false;});
+canv.addEventListener('touchstart',e=>{
+  if(mostrarReg) return;
+  const r=canv.getBoundingClientRect(),t=e.touches[0];
+  dragging=true; dragStart={x:t.clientX-r.left,y:t.clientY-r.top};
+},{passive:true});
+canv.addEventListener('touchmove',e=>{
+  if(!dragging) return;
+  const r=canv.getBoundingClientRect(),t=e.touches[0];
+  rectaManual={x1:dragStart.x,y1:dragStart.y,x2:t.clientX-r.left,y2:t.clientY-r.top};
+  dibujarGrafica();
+},{passive:true});
+canv.addEventListener('touchend',()=>{dragging=false;});
+
+/* ══════════════════════════════════════════
+   TABLA MODO RETO — 6 filas manuales
+══════════════════════════════════════════ */
+function buildTablaReto() {
+  const tb = document.getElementById('bodyReto');
+  for (let i = 1; i <= 6; i++) {
+    tb.insertRow(-1).innerHTML = `
+      <td class="row-label">${i}</td>
+      <td class="input-cell"><input type="text" placeholder="n osc."></td>
+      <td class="input-cell"><input type="text" placeholder="0.000"></td>
+      <td class="input-cell"><input type="text" placeholder="0.0000" style="color:var(--accent);font-weight:600;"></td>`;
+  }
+}
+
+/* ══════════════════════════════════════════
+   ADJUNTO IMAGEN
+══════════════════════════════════════════ */
+function previsualizarImagen(input, previewId) {
+  const file = input.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = document.getElementById(previewId);
+    if (img) { img.src = e.target.result; img.style.display = 'block'; }
+  };
+  reader.readAsDataURL(file);
+}
+
+/* ══════════════════════════════════════════
+   INICIALIZACIÓN
+══════════════════════════════════════════ */
+window.addEventListener('load', () => {
+  buildTablaAbierto();
+  buildTablaGrafica();
+  buildTablaReto();
+  dibujarGrafica();
+  const now = new Date(), sem = now.getMonth()<6?'1':'2';
+  document.getElementById('codigoPractica').textContent =
+    `PRÁCTICA FIS-PEN-02 · ${now.getFullYear()}-${sem}`;
+  document.querySelectorAll('input[type="date"]').forEach(i=>i.value=now.toISOString().split('T')[0]);
+});
+window.addEventListener('resize', dibujarGrafica);
+</script>
+</body>
+</html>

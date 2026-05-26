@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investigación y Semilleros – GISCBA UNIAJC</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* ===== NAVBAR ===== */
+        .line li {
+            width: auto;
+            height: 50px;
+            transition: background-position-x 0.9s linear;
+        }
+        .line li a {
+            text-decoration: none;
+            transition: all 0.5s;
+        }
+        .line li:hover {
+            background: url("data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIGlkPSJMYXllcl8xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4PSIwcHgiIHk9IjBweCIgd2lkdGg9IjM5MHB4IiBoZWlnaHQ9IjUwcHgiIHZpZXdCb3g9IjAgMCAzOTAgNTAiIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgMCAwIDM5MCA1MCIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+PHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSIjRkZGRjAwIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLW1pdGVybGltaXQ9IjEwIiBkPSJNMCw0Ny41ODVjMCwwLDk3LjUsMCwxMzAsMCAxMy43NSwwLDI4Ljc0LTM4Ljc3OCw0Ni4xNjgtMTkuNDE2QzE5Mi42NjksNDYuNSwyNDMuNjAzLDQ3LjU4NSwyNjAsNDcuNTg1YzMxLjgyMSwwLDEzMCwwLDEzMCwwIi8+PC9zdmc+");
+            animation: line 0.90s forwards;
+        }
+        .line li:hover a { color: rgb(1, 1, 20); }
+        .line li:not(:last-child) { margin-right: 30px; }
+        @keyframes line {
+            0%   { background-position-x: 600px; }
+            100% { background-position-x: 130px; }
+        }
+
+        /* ===== HERO BANNER ===== */
+        .hero-banner {
+            background: linear-gradient(135deg, #093f7c 0%, #1565c0 60%, #0d47a1 100%);
+            padding: 55px 40px 45px 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-banner::before {
+            content: '';
+            position: absolute;
+            top: -40px; left: -40px;
+            width: 220px; height: 220px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 50%;
+        }
+        .hero-banner::after {
+            content: '';
+            position: absolute;
+            bottom: -60px; right: -30px;
+            width: 280px; height: 280px;
+            background: rgba(255,209,0,0.08);
+            border-radius: 50%;
+        }
+        .hero-banner h1 {
+            color: white;
+            font-size: 2.4rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            position: relative; z-index: 1;
+        }
+        .hero-banner p {
+            color: #cfe2ff;
+            font-size: 1.1rem;
+            max-width: 700px;
+            margin: 0 auto;
+            position: relative; z-index: 1;
+        }
+        .hero-banner .linea-amarilla {
+            width: 70px;
+            height: 4px;
+            background-color: #FFD100;
+            margin: 14px auto 0 auto;
+            border-radius: 2px;
+            position: relative; z-index: 1;
+        }
+
+        /* ===== CONTENIDO PRINCIPAL ===== */
+        .contenido-principal {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 45px 25px 60px 25px;
+        }
+
+        /* Secciones */
+        .seccion { margin-bottom: 45px; }
+        .seccion-titulo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+            border-left: 5px solid #FFD100;
+            padding-left: 14px;
+        }
+        .seccion-titulo h2 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #093f7c;
+            margin: 0;
+        }
+        .seccion p {
+            font-size: 1rem;
+            color: #333;
+            line-height: 1.8;
+            text-align: justify;
+        }
+
+        /* Reseña / timeline */
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+            border-left: 3px solid #e0e0e0;
+            margin-top: 10px;
+        }
+        .timeline-item {
+            position: relative;
+            margin-bottom: 28px;
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -38px;
+            top: 5px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #FFD100;
+            border: 3px solid #093f7c;
+        }
+        .timeline-item .año {
+            font-weight: 800;
+            color: #093f7c;
+            font-size: 1rem;
+            margin-bottom: 4px;
+        }
+        .timeline-item p {
+            font-size: 0.96rem;
+            color: #333;
+            line-height: 1.7;
+            text-align: justify;
+            margin: 0;
+        }
+
+        /* Logros */
+        .logros-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            margin-top: 10px;
+        }
+        .logro-item {
+            background: #093f7c;
+            color: white;
+            border-radius: 10px;
+            padding: 18px 15px;
+            text-align: center;
+            transition: transform 0.3s, background 0.3s;
+        }
+        .logro-item:hover {
+            transform: translateY(-4px);
+            background: #FFD100;
+            color: #093f7c;
+        }
+        .logro-item:hover p { color: #093f7c; }
+        .logro-item .emoji { font-size: 1.8rem; margin-bottom: 8px; }
+        .logro-item p { font-size: 0.88rem; margin: 0; color: white; text-align: center; line-height: 1.5; }
+
+        /* Líneas de investigación */
+        .lineas-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+            margin-top: 10px;
+        }
+        .linea-card {
+            background: #f5f8ff;
+            border-radius: 10px;
+            padding: 20px;
+            border-top: 4px solid #093f7c;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+        }
+        .linea-card h4 {
+            color: #093f7c;
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        .linea-card ul {
+            padding-left: 18px;
+            margin: 0;
+        }
+        .linea-card ul li {
+            font-size: 0.9rem;
+            color: #444;
+            line-height: 1.6;
+            margin-bottom: 5px;
+            text-align: justify;
+        }
+
+        /* Semilleros */
+        .semilleros-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 10px;
+        }
+        .semillero-card {
+            border: 2px solid #093f7c;
+            border-radius: 10px;
+            padding: 20px 15px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        .semillero-card:hover {
+            background: #093f7c;
+            color: white;
+        }
+        .semillero-card:hover h4,
+        .semillero-card:hover p { color: white; }
+        .semillero-card .emoji { font-size: 2rem; margin-bottom: 8px; }
+        .semillero-card h4 { color: #093f7c; font-size: 1rem; font-weight: 700; margin-bottom: 6px; }
+        .semillero-card p { font-size: 0.88rem; color: #555; margin: 0; line-height: 1.5; text-align: center; }
+
+        /* Objetivos lista */
+        .objetivos-lista {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .objetivos-lista li {
+            background: #f9f9f9;
+            border-radius: 8px;
+            padding: 13px 18px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            font-size: 0.96rem;
+            color: #333;
+            line-height: 1.7;
+            text-align: justify;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+        .objetivos-lista li .icono-obj { font-size: 1.2rem; flex-shrink: 0; margin-top: 2px; }
+
+        /* Retos */
+        .retos-lista {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .retos-lista li {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 0.96rem;
+            color: #333;
+            line-height: 1.7;
+            text-align: justify;
+        }
+        .retos-lista li::before {
+            content: "⚡";
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        /* Visión box */
+        .vision-box {
+            background: linear-gradient(135deg, #093f7c, #1565c0);
+            border-radius: 12px;
+            padding: 30px;
+            color: white;
+            text-align: justify;
+            line-height: 1.8;
+            font-size: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .vision-box::before {
+            content: '❝';
+            position: absolute;
+            top: -10px; left: 20px;
+            font-size: 6rem;
+            color: rgba(255,209,0,0.15);
+            line-height: 1;
+        }
+        .vision-box p { margin: 0; position: relative; z-index: 1; color: white; }
+        .vision-box .vision-titulo {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: #FFD100;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        /* Volver */
+        .btn-volver {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #093f7c;
+            font-weight: 600;
+            text-decoration: none;
+            margin-bottom: 30px;
+            font-size: 0.95rem;
+            transition: color 0.3s;
+        }
+        .btn-volver:hover { color: #FFD100; }
+
+        /* Footer */
+        .footer-simple {
+            background-color: #093f7c;
+            color: #cfe2ff;
+            text-align: center;
+            padding: 18px;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .lineas-grid, .semilleros-grid, .logros-grid { grid-template-columns: 1fr; }
+            .hero-banner h1 { font-size: 1.7rem; }
+        }
+
+        /* ===== RESPONSIVE COMPLEMENTARIO ===== */
+        @media (max-width: 768px) {
+            .navbar-brand img { width: 90px !important; height: 38px !important; }
+            .line li:not(:last-child) { margin-right: 0 !important; }
+            section, .container, .container-fluid { padding-left: 14px !important; padding-right: 14px !important; }
+        }
+        @media (max-width: 480px) {
+            h1 { font-size: 1.6rem !important; }
+            h2 { font-size: 1.3rem !important; }
+        }
+
+
+        /* ===== RESPONSIVE COMPLEMENTARIO ===== */
+        @media (max-width: 768px) {
+            .navbar-brand img { width: 90px !important; height: 38px !important; }
+            .line li:not(:last-child) { margin-right: 0 !important; }
+            .container, .container-fluid { padding-left: 14px !important; padding-right: 14px !important; }
+            section { padding-left: 14px; padding-right: 14px; }
+        }
+        @media (max-width: 480px) {
+            h1 { font-size: 1.6rem !important; }
+            h2 { font-size: 1.3rem !important; }
+        }
+
+        /* ===== BREADCRUMB ===== */
+        .breadcrumb-bar {
+            background: white;
+            padding: 12px 40px;
+            border-bottom: 1px solid #e8edf5;
+        }
+        .breadcrumb-bar a { color: #093f7c; text-decoration: none; font-size: 0.9rem; }
+        .breadcrumb-bar a:hover { color: #c0392b; }
+        .breadcrumb-bar span { color: #aaa; margin: 0 8px; font-size: 0.9rem; }
+        .breadcrumb-current { color: #555; font-size: 0.9rem; }
+        @media (max-width: 576px) {
+            .breadcrumb-bar { padding: 10px 15px; overflow-x: auto; white-space: nowrap; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg" style="background-color:rgb(9, 63, 124);">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="index.html">
+                <img src="resources/logo_camacho.png" alt="Logo" width="120" height="50" class="d-inline-block align-text">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse line" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" style="color:white;">
+                            Laboratorios de Física Presencial
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="laboratorio_fisica_presencial_1.html">Laboratorio de Física I Presencial</a></li>
+                            <li><a class="dropdown-item" href="laboratorio_fisica_presencial_2.html">Laboratorio de Física II Presencial</a></li>
+                            <li><a class="dropdown-item" href="laboratorio_fisica_presencial_3.html">Laboratorio de Física III Presencial</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" style="color:white;">
+                            Laboratorios de Física Virtual
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="laboratorio_fisica_virtual_1.html">Laboratorio de Física I Virtual</a></li>
+                            <li><a class="dropdown-item" href="laboratorio_fisica_virtual_2.html">Laboratorio de Física II Virtual</a></li>
+                            <li><a class="dropdown-item" href="laboratorio_fisica_virtual_3.html">Laboratorio de Física III Virtual</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" style="color:white;">
+                            Laboratorios de Física Remotos
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="laboratorio_fisica_remoto_1.html">Laboratorio de Física I Remoto</a></li>
+                            <li><a class="dropdown-item" href="laboratorio_fisica_remoto_2.html">Laboratorio de Física II Remoto</a></li>
+                            <li><a class="dropdown-item" href="laboratorio_fisica_remoto_3.html">Laboratorio de Física III Remoto</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" style="color:white;">
+                            Iniciar Sesión
+                            <img src="resources/is3.png" alt="Iniciar Sesión" width="30" height="24">
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- BREADCRUMB -->
+    <div class="breadcrumb-bar">
+        <a href="index.html">🏠 Inicio</a>
+        <span>›</span>
+        <span class="breadcrumb-current">Investigación y Semilleros</span>
+    </div>
+
+    <!-- HERO BANNER -->
+    <div class="hero-banner">
+        <h1>🧪 Investigación y Semilleros</h1>
+        <p>Grupo de Investigación y Simulación de las Ciencias Básicas Aplicadas — GISCBA</p>
+        <div class="linea-amarilla"></div>
+    </div>
+
+    <!-- CONTENIDO -->
+    <div class="contenido-principal">
+
+        <a href="index.html" class="btn-volver">← Volver al inicio</a>
+
+        <!-- INTRODUCCIÓN -->
+        <div class="seccion">
+            <div class="seccion-titulo">
+
+                <a class="navbar-brand" href="index.html">
+                     <img src="resources/GISCBA.png" alt="Logo" width="300" height="250" class="d-inline-block align-text">
+                     </a>
+
+                <h2>¿Qué es GISCBA?</h2>
+            </div>
+            <p>El Grupo de Investigación y Simulación de las Ciencias Básicas Aplicadas (GISCBA) fue creado entre los años 2015 y 2016 por un grupo de profesores del Departamento de Ciencias Básicas (DCB) de la Institución Universitaria Antonio José Camacho (UNIAJC). Su propósito es anidar proyectos de investigación relacionados con la simulación y modelación en las áreas de matemáticas, física y estadística, disciplinas fundamentales en la formación de cualquier profesional.</p>
+            <p>GISCBA nació con una visión multidisciplinar, articulando líneas de investigación en didáctica de las matemáticas y la física, física de materiales, modelamiento matemático e instrumentación científica. Su misión ha sido generar aportes desde las ciencias básicas al contexto regional, forjando una sinergia entre la docencia, la investigación y la proyección social.</p>
+        </div>
+
+        <!-- RESEÑA HISTÓRICA -->
+        <div class="seccion">
+            <div class="seccion-titulo">
+                <h2>Nuestra Historia</h2>
+            </div>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="año">2015 – 2016 · Fundación</div>
+                    <p>GISCBA es fundado por el Mg. Julián Andrés Ángel Jiménez junto a un equipo de profesores del DCB. Se establecen las primeras líneas de investigación y la misión de contribuir al desarrollo científico regional desde las ciencias básicas.</p>
+                </div>
+                <div class="timeline-item">
+                    <div class="año">2018 – 2022 · Consolidación</div>
+                    <p>El grupo participa activamente en eventos de investigación de la UNIAJC como el ECEI del Decanato de Investigaciones (DAI). Sus investigadores avanzan en formación posgradual —maestrías y doctorados— en áreas afines a las ciencias básicas y la educación, ganando reconocimiento a nivel local.</p>
+                </div>
+                <div class="timeline-item">
+                    <div class="año">2023 · Nueva dirección</div>
+                    <p>El Mg. Milton Fabián Castaño asume la dirección de GISCBA, impulsando la participación de los docentes del DCB en convocatorias internas y externas de investigación. En este periodo se suscribe el Semillero de Simulación y Modelación Matemática (SEMOSIMA) al grupo, fortaleciendo la investigación formativa con estudiantes.</p>
+                </div>
+                <div class="timeline-item">
+                    <div class="año">2025 · Plan estratégico 2025–2030</div>
+                    <p>GISCBA traza su hoja de ruta hacia 2030, con metas claras en categorización ante MinCiencias, alianzas internacionales, organización del Congreso Internacional de Ciencias Básicas Aplicadas y articulación de semilleros con los programas académicos de la institución.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- LOGROS -->
+        <div class="seccion">
+            <div class="seccion-titulo">
+                <h2>Logros Alcanzados</h2>
+            </div>
+            <div class="logros-grid">
+                <div class="logro-item">
+                    <div class="emoji">🏛️</div>
+                    <p>Reconocimiento institucional como grupo de investigación formal de la UNIAJC</p>
+                </div>
+                <div class="logro-item">
+                    <div class="emoji">📋</div>
+                    <p>Participación en convocatorias de investigación internas y de semilleros</p>
+                </div>
+                <div class="logro-item">
+                    <div class="emoji">🌍</div>
+                    <p>Difusión de resultados en eventos institucionales, regionales, nacionales e internacionales</p>
+                </div>
+                <div class="logro-item">
+                    <div class="emoji">👩‍🔬</div>
+                    <p>Promoción de la participación de docentes y estudiantes en procesos investigativos</p>
+                </div>
+                <div class="logro-item">
+                    <div class="emoji">🔗</div>
+                    <p>Alianzas interinstitucionales para el desarrollo de proyectos colaborativos</p>
+                </div>
+                <div class="logro-item">
+                    <div class="emoji">📊</div>
+                    <p>Categorización ante MinCiencias, posicionando al grupo en el ecosistema científico nacional</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- LÍNEAS DE INVESTIGACIÓN -->
+        <div class="seccion">
+            <div class="seccion-titulo">
+                <h2>Líneas de Investigación</h2>
+            </div>
+            <div class="lineas-grid">
+                <div class="linea-card">
+                    <h4>📐 Didáctica y Pedagogía de las Ciencias Básicas</h4>
+                    <ul>
+                        <li>Evaluación de estrategias didácticas emergentes con simulaciones y modelos</li>
+                        <li>Diseño de materiales educativos que integren simulación y modelado</li>
+                        <li>Investigación del impacto de la simulación en el aprendizaje universitario</li>
+                    </ul>
+                </div>
+                <div class="linea-card">
+                    <h4>📈 Análisis de Datos</h4>
+                    <ul>
+                        <li>Técnicas avanzadas para la interpretación de resultados de simulaciones</li>
+                        <li>Aprendizaje automático y minería de datos aplicados a ciencias básicas</li>
+                        <li>Herramientas para la gestión de grandes conjuntos de datos científicos</li>
+                    </ul>
+                </div>
+                <div class="linea-card">
+                    <h4>⚗️ Ciencia de Materiales</h4>
+                    <ul>
+                        <li>Modelos y simulaciones para la predicción de propiedades de materiales</li>
+                        <li>Diseño y optimización de materiales para aplicaciones específicas</li>
+                        <li>Bases de datos para la gestión de propiedades y comportamientos de materiales</li>
+                    </ul>
+                </div>
+                <div class="linea-card">
+                    <h4>🔬 Instrumentación Científica</h4>
+                    <ul>
+                        <li>Optimización del diseño y funcionamiento de instrumentos científicos</li>
+                        <li>Calibración y validación de instrumentos mediante simulación</li>
+                        <li>Protocolos para la gestión y análisis de datos instrumentales</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- SEMILLEROS -->
+        <div class="seccion">
+            <div class="seccion-titulo">
+                <h2>Semilleros de Investigación</h2>
+            </div>
+            <p>Los semilleros son el espacio donde estudiantes y docentes trabajan conjuntamente en proyectos de investigación formativa, conectando la teoría con la práctica experimental y computacional. Actualmente GISCBA cuenta con los siguientes semilleros activos:</p>
+            <div class="semilleros-grid">
+                <div class="semillero-card">
+                    
+                    <a class="navbar-brand" href="index.html">
+                     <img src="resources/semosima.png" alt="Logo" width="180" height="140" class="d-inline-block align-text">
+                    </a>
+
+                    <h4>SEMOSIMA</h4>
+                    <p>Semillero de Simulación y Modelación Matemática. Trabaja en proyectos de modelación de fenómenos con herramientas computacionales.</p>
+                </div>
+                <div class="semillero-card">
+
+                    <a class="navbar-brand" href="index.html">
+                     <img src="resources/space.png" alt="Logo" width="140" height="130" class="d-inline-block align-text">
+                     </a>
+
+                   
+                    <h4>SpaceU</h4>
+                    <p>Semillero orientado a la exploración de fenómenos del universo y la física aplicada desde una perspectiva interdisciplinar.</p>
+                </div>
+                <div class="semillero-card">
+
+                    <a class="navbar-brand" href="index.html">
+                    <img src="resources/appliscience.png" alt="Logo" width="180" height="150" class="d-inline-block align-text">
+                    </a>
+
+                    
+                    <h4>AppliScience</h4>
+                    <p>Semillero enfocado en la aplicación de las ciencias básicas a problemas del entorno, vinculando investigación con proyección social.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- RETOS -->
+        <div class="seccion">
+            <div class="seccion-titulo">
+                <h2>Retos 2025 – 2030</h2>
+            </div>
+            <ul class="retos-lista">
+                <li>Formar a investigadores en programas que permitan la modelación y simulación avanzada de fenómenos científicos.</li>
+                <li>Garantizar la infraestructura física y computacional necesaria para realizar simulaciones de alta complejidad.</li>
+                <li>Fomentar la colaboración interdisciplinar para abordar problemas desde múltiples perspectivas científicas.</li>
+                <li>Asegurar los recursos financieros para la continuidad y expansión de los proyectos de investigación.</li>
+                <li>Establecer relaciones interinstitucionales a nivel internacional para la financiación y desarrollo de proyectos conjuntos.</li>
+                <li>Organizar el Congreso Internacional de las Ciencias Básicas Aplicadas como evento referente en la región.</li>
+            </ul>
+        </div>
+
+        <!-- VISIÓN -->
+        <div class="seccion">
+            <div class="seccion-titulo">
+                <h2>Visión 2030</h2>
+            </div>
+            <div class="vision-box">
+                <span class="vision-titulo">GISCBA al 2030</span>
+                <p>Será reconocido como un grupo líder en investigación de ciencias básicas a nivel nacional e internacional, destacándose por la puesta en escena de proyectos innovadores con capacidad de establecer alianzas estratégicas para el fortalecimiento de la formación de investigadores y la generación de productos científicos de alta calidad. Desde su fundación en 2015, GISCBA se ha comprometido con el avance de las ciencias básicas a través de la investigación interdisciplinaria, la formación de nuevos investigadores y la colaboración internacional, contribuyendo al desarrollo científico y tecnológico de la educación superior.</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <div class="footer-simple">
+        © 2025 Institución Universitaria Antonio José Camacho — Departamento de Ciencias Básicas
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Práctica de Laboratorio — Ondas Estacionarias en Cuerda</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>
+  MathJax = {
+    tex: { inlineMath: [['$','$'],['\\(','\\)']], displayMath: [['$$','$$']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+  :root {
+    --ink:       #1a1a2e;
+    --ink-soft:  #3d3d5c;
+    --ink-muted: #7a7a9a;
+    --paper:     #faf8f3;
+    --paper-alt: #f2ede3;
+    --rule:      #d4c9b0;
+    --accent:    #1a5276;
+    --accent2:   #c0392b;
+    --gold:      #b8860b;
+    --green:     #1e8449;
+    --teal:      #0e6655;
+    --mono:      'JetBrains Mono', monospace;
+    --serif:     'Source Serif 4', Georgia, serif;
+    --display:   'Playfair Display', Georgia, serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: #cfd8e0;
+    font-family: var(--serif);
+    color: var(--ink);
+    font-size: 15px;
+    line-height: 1.75;
+    padding: 30px 15px 80px;
+  }
+  .documento {
+    max-width: 860px; margin: 0 auto;
+    background: var(--paper);
+    box-shadow: 0 2px 4px rgba(0,0,0,.08), 0 8px 32px rgba(0,0,0,.14), 0 20px 60px rgba(0,0,0,.08);
+    position: relative; overflow-x: hidden;
+  }
+  .documento::before {
+    content:''; position:absolute; left:0; top:0; bottom:0; width:5px;
+    background:linear-gradient(180deg,#1a5276 0%,#0e6655 30%,#c0392b 65%,#b8860b 100%);
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background:var(--ink); color:#fff;
+    padding:36px 50px 30px 55px; position:relative; overflow:hidden;
+  }
+  .header::after {
+    content:'ψ'; font-family:var(--display); font-size:270px; font-weight:700;
+    font-style:italic; color:rgba(255,255,255,.034);
+    position:absolute; right:-10px; top:-40px; line-height:1;
+    pointer-events:none; user-select:none;
+  }
+  .header-meta { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px; gap:20px; }
+  .badge-codigo { font-family:var(--mono); font-size:.7em; background:var(--teal); color:#fff; padding:3px 10px; letter-spacing:.12em; text-transform:uppercase; }
+  .badge-tipo   { font-family:var(--mono); font-size:.7em; color:rgba(255,255,255,.5); letter-spacing:.1em; text-transform:uppercase; border:1px solid rgba(255,255,255,.15); padding:3px 10px; }
+  .header h1 { font-family:var(--display); font-size:2.1em; font-weight:700; line-height:1.2; color:#fff; margin-bottom:6px; }
+  .header h1 em { font-style:italic; color:rgba(255,255,255,.6); font-size:.82em; }
+  .header-sub { font-size:.82em; color:rgba(255,255,255,.4); font-weight:300; letter-spacing:.04em; margin-top:4px; }
+  .header-fields { display:grid; grid-template-columns:1fr 1fr; gap:12px 24px; margin-top:24px; padding-top:20px; border-top:1px solid rgba(255,255,255,.12); }
+  .field-item label { display:block; font-family:var(--mono); font-size:.65em; color:rgba(255,255,255,.4); text-transform:uppercase; letter-spacing:.12em; margin-bottom:4px; }
+  .field-item input { width:100%; background:rgba(255,255,255,.07); border:none; border-bottom:1px solid rgba(255,255,255,.25); color:#fff; font-family:var(--serif); font-size:.9em; padding:4px 0; outline:none; transition:border-color .2s; }
+  .field-item input:focus { border-bottom-color:var(--teal); }
+  .field-item input::placeholder { color:rgba(255,255,255,.2); }
+
+  /* ── BODY ── */
+  .body { padding:44px 50px 50px 55px; }
+  .seccion { margin-bottom:42px; }
+  .seccion-titulo { font-family:var(--display); font-size:1.15em; font-weight:600; color:var(--ink); display:flex; align-items:center; gap:12px; margin-bottom:14px; padding-bottom:8px; border-bottom:2px solid var(--rule); }
+  .seccion-titulo .num { font-family:var(--mono); font-size:.75em; color:var(--teal); background:#e6f4f1; padding:2px 7px; letter-spacing:.05em; min-width:36px; text-align:center; }
+  .subsec { font-family:var(--display); font-size:1em; font-weight:600; color:var(--accent); margin:22px 0 10px; display:flex; align-items:center; gap:8px; }
+  .subsec::before { content:''; width:14px; height:2px; background:var(--accent); display:inline-block; flex-shrink:0; }
+  p { margin-bottom:10px; color:var(--ink-soft); font-size:.95em; }
+  p:last-child { margin-bottom:0; }
+
+  /* ── RESUMEN ── */
+  .resumen-box { background:var(--paper-alt); border-left:3px solid var(--teal); padding:16px 20px; font-size:.9em; font-style:italic; color:var(--ink-soft); line-height:1.7; }
+
+  /* ── OBJETIVOS ── */
+  .obj-list { list-style:none; padding:0; }
+  .obj-list li { display:flex; gap:12px; align-items:flex-start; padding:8px 0; border-bottom:1px dashed var(--rule); font-size:.93em; color:var(--ink-soft); }
+  .obj-list li:last-child { border:none; }
+  .obj-list li .on { font-family:var(--mono); font-size:.75em; color:#fff; background:var(--teal); min-width:22px; height:22px; display:flex; align-items:center; justify-content:center; margin-top:2px; flex-shrink:0; }
+
+  /* ── FORMULAS ── */
+  .formula-box { background:var(--ink); color:#fff; padding:18px 24px; margin:18px 0; position:relative; overflow:hidden; }
+  .formula-box::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--teal); }
+  .formula-box.red-accent::before { background:var(--accent2); }
+  .formula-box.gold-accent::before { background:var(--gold); }
+  .fl { font-family:var(--mono); font-size:.65em; color:rgba(255,255,255,.4); text-transform:uppercase; letter-spacing:.12em; margin-bottom:10px; }
+  .fm { font-size:1.2em; text-align:center; padding:6px 0; }
+  .fn { font-family:var(--mono); font-size:.65em; color:rgba(255,255,255,.35); text-align:right; margin-top:6px; }
+  .formula-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:16px 0; }
+
+  /* ── TABLA ── */
+  .t-res { width:100%; border-collapse:collapse; font-size:.86em; margin:14px 0; }
+  .t-res th { background:var(--ink); color:#fff; font-family:var(--mono); font-size:.7em; letter-spacing:.07em; padding:9px 10px; text-align:center; font-weight:500; border:1px solid #444; }
+  .t-res td { padding:6px 8px; border:1px solid var(--rule); text-align:center; color:var(--ink-soft); vertical-align:middle; }
+  .t-res td.ic { padding:3px 3px; }
+  .t-res input { width:100%; border:none; border-bottom:1px solid var(--rule); background:transparent; font-family:var(--mono); font-size:.88em; color:var(--ink); padding:3px; text-align:center; outline:none; transition:border-color .2s; }
+  .t-res input:focus { border-bottom-color:var(--teal); }
+  .t-res tr:nth-child(even) td { background:var(--paper-alt); }
+  .t-res .rl { font-family:var(--mono); font-size:.82em; font-weight:500; color:var(--teal); }
+  .t-res .calc { color:var(--accent); font-weight:600; }
+  .t-res .unc  { color:var(--accent2); font-family:var(--mono); font-size:.8em; }
+
+  /* ── PASOS ── */
+  .paso { display:flex; gap:16px; margin-bottom:20px; align-items:flex-start; }
+  .paso-num { font-family:var(--mono); font-size:.8em; background:var(--teal); color:#fff; min-width:28px; height:28px; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px; }
+  .paso-content { flex:1; }
+  .paso-content p { margin-bottom:6px; }
+
+  /* ── AREAS ── */
+  .ta { width:100%; min-height:110px; border:1px solid var(--rule); background:#fff; font-family:var(--serif); font-size:.9em; color:var(--ink); padding:14px 16px; resize:vertical; outline:none; line-height:1.8; transition:border-color .2s; display:block; }
+  .ta:focus { border-color:var(--teal); }
+  .ta::placeholder { color:#bbb; font-style:italic; }
+  .al { font-family:var(--mono); font-size:.68em; color:var(--ink-muted); text-transform:uppercase; letter-spacing:.1em; margin-bottom:5px; margin-top:14px; display:block; }
+
+  /* ── NOTA / EJEMPLO ── */
+  .nota { background:#fef9e7; border-left:3px solid var(--gold); padding:10px 16px; font-size:.85em; color:#7d6608; margin:14px 0; font-style:italic; }
+  .nota strong { font-style:normal; color:var(--gold); }
+  .ejemplo-box { background:#eaf4f0; border-left:3px solid var(--teal); padding:14px 18px; margin:14px 0; font-size:.9em; }
+  .ej-label { font-family:var(--mono); font-size:.65em; color:var(--teal); text-transform:uppercase; letter-spacing:.12em; margin-bottom:8px; display:block; font-weight:500; }
+
+  /* ── RESULT BOX ── */
+  .result-box { background:var(--paper-alt); border:1px solid var(--rule); padding:16px 20px; margin:14px 0; display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+  .result-box.c2 { grid-template-columns:1fr 1fr; }
+  .result-box.c4 { grid-template-columns:repeat(4,1fr); }
+  .result-box.c5 { grid-template-columns:repeat(5,1fr); }
+  @media(max-width:600px){ .result-box,.result-box.c2,.result-box.c4,.result-box.c5{ grid-template-columns:1fr 1fr; } }
+  .rc label { font-family:var(--mono); font-size:.63em; color:var(--ink-muted); text-transform:uppercase; letter-spacing:.1em; display:block; margin-bottom:5px; }
+  .rc input { width:100%; border:none; border-bottom:2px solid var(--rule); background:transparent; font-family:var(--mono); font-size:1em; color:var(--ink); padding:4px 0; outline:none; transition:border-color .2s; text-align:center; }
+  .rc input:focus { border-bottom-color:var(--teal); }
+
+  /* ── RANGO TABLA ── */
+  .rango { width:100%; border-collapse:collapse; font-size:.85em; margin:12px 0; }
+  .rango th { background:var(--ink); color:#fff; font-family:var(--mono); font-size:.68em; padding:7px 12px; letter-spacing:.08em; text-align:center; }
+  .rango td { padding:6px 12px; border:1px solid var(--rule); text-align:center; font-size:.88em; }
+  .bueno { color:var(--green); font-weight:600; }
+  .medio { color:var(--gold); font-weight:600; }
+  .malo  { color:var(--accent2); font-weight:600; }
+
+  /* ── GRÁFICA ── */
+  .grafica-box { border:1px solid var(--rule); background:#fff; margin:14px 0; overflow:hidden; }
+  .grafica-header { background:var(--ink); color:#fff; padding:8px 16px; font-family:var(--mono); font-size:.68em; letter-spacing:.1em; text-transform:uppercase; display:flex; justify-content:space-between; align-items:center; }
+  .grafica-canvas { display:block; width:100%; background:#fafafa; }
+  .grafica-ctrl { padding:10px 16px; border-top:1px solid var(--rule); display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  .btn-ctrl { font-family:var(--mono); font-size:.7em; padding:5px 12px; border:1px solid var(--rule); background:var(--paper-alt); color:var(--ink-soft); cursor:pointer; transition:all .2s; letter-spacing:.05em; }
+  .btn-ctrl:hover { border-color:var(--teal); color:var(--teal); }
+  .btn-ctrl.activo { background:var(--teal); color:#fff; border-color:var(--teal); }
+  .grafica-info { font-family:var(--mono); font-size:.75em; color:var(--ink-muted); flex:1; text-align:right; }
+
+  /* ── DIVIDER ── */
+  .divider { display:flex; align-items:center; gap:12px; margin:28px 0 18px; font-family:var(--mono); font-size:.68em; color:var(--ink-muted); text-transform:uppercase; letter-spacing:.1em; }
+  .divider::before,.divider::after { content:''; flex:1; height:1px; background:var(--rule); }
+
+  /* ── ADJUNTO ── */
+  .adjunto-slot { border:2px dashed var(--rule); padding:20px; text-align:center; cursor:pointer; position:relative; transition:border-color .2s; margin-top:8px; }
+  .adjunto-slot:hover { border-color:var(--teal); }
+  .adjunto-slot input[type="file"] { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; }
+  .slot-icon { display:block; font-size:1.8em; margin-bottom:6px; }
+  .slot-label { display:block; font-family:var(--mono); font-size:.75em; color:var(--ink-soft); }
+  .slot-hint  { display:block; font-size:.72em; color:var(--ink-muted); margin-top:4px; }
+  .preview-img { display:none; max-width:100%; margin-top:14px; border:1px solid var(--rule); }
+
+  /* ── RETO / CERRADO ── */
+  .reto-header { background:var(--ink); color:#fff; padding:16px 20px; display:flex; gap:16px; align-items:flex-start; margin-bottom:0; }
+  .reto-header h4 { font-family:var(--display); font-size:1em; margin-bottom:4px; }
+  .reto-header p  { font-size:.82em; color:rgba(255,255,255,.55); margin:0; }
+  .reto-badge { font-family:var(--mono); font-size:.65em; background:var(--accent2); color:#fff; padding:3px 8px; letter-spacing:.1em; white-space:nowrap; margin-top:3px; }
+  .cerrado-badge { font-family:var(--mono); font-size:.65em; background:var(--teal); color:#fff; padding:3px 8px; letter-spacing:.1em; white-space:nowrap; margin-top:3px; }
+  .reto-body { border:1px solid var(--rule); padding:20px; border-top:none; }
+
+  /* ── FIRMA ── */
+  .firma-grid { display:grid; grid-template-columns:1fr 1fr; gap:30px; margin-top:30px; }
+  .firma-slot { text-align:center; padding-top:50px; border-top:1px solid var(--rule); font-family:var(--mono); font-size:.68em; color:var(--ink-muted); text-transform:uppercase; letter-spacing:.08em; }
+
+  /* ── BTN IMPRIMIR ── */
+  .btn-imprimir { position:fixed; bottom:24px; right:24px; background:var(--teal); color:#fff; border:none; padding:12px 22px; font-family:var(--mono); font-size:.75em; letter-spacing:.1em; text-transform:uppercase; cursor:pointer; box-shadow:0 4px 16px rgba(14,102,85,.35); transition:transform .15s,box-shadow .15s; z-index:100; }
+  .btn-imprimir:hover { transform:translateY(-2px); box-shadow:0 6px 22px rgba(14,102,85,.45); }
+
+  /* ── RESPONSIVE ── */
+  @media(max-width:680px){
+    body { padding:10px 0 40px; }
+    .header { padding:22px 18px 20px 22px; }
+    .header h1 { font-size:1.4em !important; }
+    .header-meta { flex-direction:column; gap:8px; }
+    .header-fields { grid-template-columns:1fr !important; }
+    .body { padding:22px 16px 28px 20px; }
+    .t-res { display:block; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+    .formula-grid { grid-template-columns:1fr !important; }
+    .firma-grid { grid-template-columns:1fr !important; gap:20px; }
+  }
+  @media print {
+    body { background:#fff; padding:0; }
+    .documento { box-shadow:none; }
+    .btn-imprimir { display:none; }
+  }
+
+  /* ── UNCERTAINTY HIGHLIGHT ── */
+  .unc-bg { background:rgba(192,57,43,.05); border-left:2px solid var(--accent2); padding:10px 14px; margin:10px 0; }
+  .th-unc { background:#3d1c1c !important; color:#f9c5c5 !important; }
+  .td-unc { color:var(--accent2) !important; font-family:var(--mono); font-size:.78em; }
+</style>
+</head>
+<body>
+
+<div class="documento">
+
+<!-- ══ HEADER ══ -->
+<div class="header">
+  <div class="header-meta">
+    <span class="badge-codigo" id="codigoPractica">PRÁCTICA FIS-OND-03</span>
+    <span class="badge-tipo">Laboratorio de Física · Simulador Digital</span>
+  </div>
+  <h1>Ondas Estacionarias<br><em>en una cuerda tensada — armónicos y velocidad de fase</em></h1>
+  <div class="header-sub">Simulador 3D · Modo Abierto · Modo Reto · Masa oculta · Captura de evidencia</div>
+  <div class="header-fields">
+    <div class="field-item"><label>Nombre del estudiante</label><input type="text" placeholder="Escriba su nombre completo"></div>
+    <div class="field-item"><label>Código estudiantil</label><input type="text" placeholder="Código"></div>
+    <div class="field-item"><label>Grupo / Sección</label><input type="text" placeholder="Ej. Grupo B — Martes 2 pm"></div>
+    <div class="field-item"><label>Planeta Modo Abierto</label><input type="text" placeholder="Planeta al abrir el simulador"></div>
+    <div class="field-item"><label>Planeta Modo Reto</label><input type="text" placeholder="Planeta asignado en el Reto"></div>
+    <div class="field-item"><label>Fecha de realización</label><input type="date"></div>
+    <div class="field-item"><label>Docente</label><input type="text" placeholder="Nombre del profesor/a"></div>
+  </div>
+</div>
+
+<!-- ══ CUERPO ══ -->
+<div class="body">
+
+<!-- 00. RESUMEN -->
+<div class="seccion">
+  <h2 class="seccion-titulo"><span class="num">00</span> Resumen</h2>
+  <div class="resumen-box">
+    En esta práctica se utiliza un simulador digital de ondas estacionarias en una cuerda tensada
+    para determinar experimentalmente la <strong>velocidad de fase</strong> $v$, la
+    <strong>densidad lineal</strong> $\mu$ y la relación de armónicos $f_n = nf_1$.
+    El simulador opera en dos modos: <em>Modo Abierto</em> (exploración libre con frecuencia y masa visibles,
+    planeta aleatorio fijo) y <em>Modo Reto</em> (planeta diferente, masa tensor oculta, máximo
+    <strong>3 intentos</strong> para inferirla a partir de las frecuencias de resonancia medidas).
+    La captura de pantalla con los datos clave solo se habilita al aprobar el Reto (ER &lt; 15%).
+    La gráfica $v^2$ vs. $T$ permite extraer $\mu$ experimental y compararlo con el valor nominal.
+  </div>
+  <p style="margin-top:10px;"><strong>Palabras clave:</strong>
+    ondas estacionarias · armónicos · resonancia · velocidad de fase · densidad lineal ·
+    incertidumbre · modo abierto · modo reto · masa oculta
+  </p>
+</div>
+
+<!-- 01. OBJETIVOS -->
+<div class="seccion">
+  <h2 class="seccion-titulo"><span class="num">01</span> Objetivos</h2>
+  <ul class="obj-list">
+    <li><span class="on">1</span>Identificar visualmente los estados de resonancia (armónicos $n = 1,2,3,4,5$) en el Modo Abierto ajustando $f$ y $m$, y registrar cada medición.</li>
+    <li><span class="on">2</span>Medir la velocidad de fase $v = \sqrt{T/\mu}$ para distintas tensiones y construir la gráfica $v^2$ vs. $T$ para determinar $\mu$ experimental.</li>
+    <li><span class="on">3</span>Propagar la incertidumbre $\delta v$ desde $\delta f = 0.25$ Hz y $\delta m = 0.025$ kg, y reportar $\mu_\text{exp} \pm \delta\mu$ con su IR y ER.</li>
+    <li><span class="on">4</span>En el <strong>Modo Reto</strong>: con el planeta nuevo asignado y la masa oculta, registrar resonancias, calcular $m_\text{calc} = \mu v^2 / g$ en cada una, promediar y verificar en máximo 3 intentos.</li>
+    <li><span class="on">5</span>Adjuntar la captura de pantalla con el resultado aprobado del Reto como evidencia.</li>
+  </ul>
+</div>
+
+<!-- 02. MARCO TEÓRICO -->
+<div class="seccion">
+  <h2 class="seccion-titulo"><span class="num">02</span> Marco Teórico</h2>
+
+  <div class="subsec">2.1 · Onda estacionaria en una cuerda</div>
+  <p>Cuando dos ondas de igual amplitud y frecuencia viajan en sentidos opuestos, su superposición forma una <strong>onda estacionaria</strong>:</p>
+  <div class="formula-box">
+    <div class="fl">Ec. 1 — Onda estacionaria</div>
+    <div class="fm">$$y(x,t) = 2A\sin(kx)\cos(\omega t)$$</div>
+  </div>
+  <p>Los puntos de amplitud nula son <strong>nodos</strong>; los de amplitud máxima son <strong>antinodos</strong>. La distancia entre dos nodos consecutivos es $\lambda/2$.</p>
+
+  <div class="subsec">2.2 · Velocidad de fase y tensión</div>
+  <div class="formula-box">
+    <div class="fl">Ec. 2 — Velocidad de fase</div>
+    <div class="fm">$$v = \sqrt{\dfrac{T}{\mu}} = \sqrt{\dfrac{mg}{\mu}}$$</div>
+  </div>
+  <p>donde $T = mg$ es la tensión por la masa colgante. La cuerda tiene $\mu = 0.002$ kg/m y longitud $L = 2.500$ m.</p>
+
+  <div class="subsec">2.3 · Condición de resonancia — Armónicos</div>
+  <div class="formula-grid">
+    <div class="formula-box">
+      <div class="fl">Ec. 3 — Longitud de onda del armónico n</div>
+      <div class="fm">$$\lambda_n = \dfrac{2L}{n}$$</div>
+    </div>
+    <div class="formula-box">
+      <div class="fl">Ec. 4 — Frecuencia del armónico n</div>
+      <div class="fm">$$f_n = \dfrac{nv}{2L}$$</div>
+    </div>
+  </div>
+  <p>El armónico $n$ tiene $n$ antinodos. La frecuencia del $n$-ésimo armónico es $f_n = n \cdot f_1$.</p>
+
+  <div class="subsec">2.4 · Determinación de µ desde la gráfica</div>
+  <div class="formula-box">
+    <div class="fl">Ec. 5 — Densidad lineal experimental</div>
+    <div class="fm">$$v^2 = \frac{T}{\mu} \quad\Longrightarrow\quad \mu_\text{exp} = \frac{1}{m_g} \qquad \text{pendiente } m_g = \frac{\Delta(v^2)}{\Delta T}$$</div>
+  </div>
+
+  <div class="subsec">2.5 · Masa oculta desde frecuencias de resonancia (Modo Reto)</div>
+  <p>Con el planeta del Reto (gravedad $g_R$ conocida), para cada armónico $n$ encontrado a frecuencia $f_n$:</p>
+  <div class="formula-grid">
+    <div class="formula-box">
+      <div class="fl">Ec. 6 — Velocidad medida</div>
+      <div class="fm">$$v_n = f_n \cdot \frac{2L}{n}$$</div>
+    </div>
+    <div class="formula-box red-accent">
+      <div class="fl">Ec. 7 — Masa calculada</div>
+      <div class="fm">$$m_\text{calc} = \frac{\mu\, v_n^2}{g_R}$$</div>
+    </div>
+  </div>
+  <p>Al promediar varias $m_\text{calc}$ se obtiene la estimación $\bar{m}$. El error relativo porcentual es:</p>
+  <div class="formula-box">
+    <div class="fl">Ec. 8 — Error relativo del Reto</div>
+    <div class="fm">$$\text{ER}\% = \left|\frac{\bar{m} - m_\text{real}}{m_\text{real}}\right| \times 100$$</div>
+  </div>
+
+  <div class="subsec">2.6 · Propagación de incertidumbre</div>
+  <p>Incertidumbres instrumentales del simulador: $\delta f = 0.25$ Hz · $\delta m = 0.025$ kg.</p>
+  <div class="formula-grid">
+    <div class="formula-box">
+      <div class="fl">Ec. 9a — δv vía masa (Modo Abierto)</div>
+      <div class="fm">$$\delta v_m = \frac{v \cdot \delta m}{2m}$$</div>
+    </div>
+    <div class="formula-box gold-accent">
+      <div class="fl">Ec. 9b — δv vía frecuencia (Modo Reto)</div>
+      <div class="fm">$$\delta v_f = \frac{2L}{n}\cdot\delta f$$</div>
+    </div>
+  </div>
+  <div class="formula-box">
+    <div class="fl">Ec. 10 — Incertidumbre relativa en µ</div>
+    <div class="fm">$$\frac{\delta\mu}{\mu} = \sqrt{\left(\frac{\delta m}{m}\right)^2 + \left(\frac{2\,\delta v_m}{v}\right)^2}$$</div>
+  </div>
+  <div class="formula-box red-accent">
+    <div class="fl">Ec. 11 — Incertidumbre en m_calc (Modo Reto)</div>
+    <div class="fm">$$\frac{\delta m_\text{calc}}{m_\text{calc}} = \frac{2\,\delta v_f}{v_n} = \frac{4L\,\delta f}{n\, v_n}$$</div>
+  </div>
+
+  <table class="rango">
+    <thead><tr><th>ER%</th><th>Resultado Reto</th><th>Calidad Modo Abierto (µ)</th></tr></thead>
+    <tbody>
+      <tr><td>0 – 5%</td><td class="bueno">✅ Aprobado</td><td class="bueno">Excelente</td></tr>
+      <tr><td>5 – 15%</td><td class="medio">✓ Aceptable</td><td class="medio">Aceptable</td></tr>
+      <tr><td>&gt; 15%</td><td class="malo">✗ No aprobado</td><td class="malo">Revisar</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- 03. DESCRIPCIÓN DEL SIMULADOR -->
+<div class="seccion">
+  <h2 class="seccion-titulo"><span class="num">03</span> Descripción del Simulador</h2>
+
+  <div class="paso">
+    <div class="paso-num">A</div>
+    <div class="paso-content">
+      <p><strong>Pestaña 🔬 Modo Abierto:</strong> ambos deslizadores ($f$ y $m$) están activos. El encabezado muestra el planeta con su $g$, $\mu = 0.002$ kg/m y $L = 2.5$ m. Use el botón <strong>📏 Registrar Armónico</strong> para guardar cada medición en la tabla. Use <strong>📊 Exportar CSV</strong> para descargar los datos. Use <strong>📸 Capturar imagen</strong> para guardar una captura PNG del estado actual.</p>
+    </div>
+  </div>
+  <div class="paso">
+    <div class="paso-num">B</div>
+    <div class="paso-content">
+      <p><strong>Pestaña 🎯 Modo Reto:</strong> al entrar se asigna un <strong>planeta diferente</strong> con gravedad $g_R$ distinta. La masa tensor está <strong>oculta</strong>; el deslizador de masa está bloqueado. Ajuste la frecuencia para encontrar resonancias y presione <strong>📌 Registrar resonancia</strong>. El simulador calcula $v_n$ y $m_\text{calc}$ por cada armónico. Ingrese su estimación final y presione <strong>✔ Verificar</strong>. Dispone de <strong>3 intentos</strong>; si supera el Reto (ER &lt; 15%), aparece el botón <strong>📸 Capturar imagen</strong>. Use 🔀 Nueva masa para reiniciar con nueva masa y planeta.</p>
+    </div>
+  </div>
+  <div class="paso">
+    <div class="paso-num">C</div>
+    <div class="paso-content">
+      <p><strong>Resonancia:</strong> la cuerda forma nodos bien definidos cuando $n = 2L/\lambda$ es entero. Si el valor mostrado no es entero, ajuste más la frecuencia antes de registrar. El botón 📌 solo acepta resonancias claras (error &lt; 22% del entero más cercano).</p>
+    </div>
+  </div>
+
+  <div class="nota">
+    <strong>Importante:</strong> el planeta del Modo Abierto y el del Modo Reto son <em>distintos</em> (se sortean de forma independiente). Registre ambos en el encabezado antes de comenzar.
+  </div>
+</div>
+
+<!-- 04. PROCEDIMIENTO -->
+<div class="seccion">
+  <h2 class="seccion-titulo"><span class="num">04</span> Procedimiento</h2>
+
+  <div class="subsec">Parte A — Modo Abierto: Identificación de armónicos</div>
+  <div class="paso">
+    <div class="paso-num">1</div>
+    <div class="paso-content"><p>Abra el simulador. Registre el <strong>planeta del Modo Abierto</strong> y su $g$ en el encabezado de esta guía.</p></div>
+  </div>
+  <div class="paso">
+    <div class="paso-num">2</div>
+    <div class="paso-content"><p>Fije $m = 0.500$ kg. Ajuste el deslizador de frecuencia lentamente desde 1 Hz hasta encontrar $n = 1$ (un solo antiodo). Presione <strong>📏 Registrar Armónico</strong>. Complete la Tabla 1.</p></div>
+  </div>
+  <div class="paso">
+    <div class="paso-num">3</div>
+    <div class="paso-content"><p>Repita para $n = 2, 3, 4, 5$ aumentando la frecuencia. Capture una imagen por cada armónico (sección 08).</p></div>
+  </div>
+
+  <div class="subsec">Parte B — Modo Abierto: Variación de la tensión</div>
+  <div class="paso">
+    <div class="paso-num">4</div>
+    <div class="paso-content"><p>Para <strong>6 valores de masa</strong> entre 0.2 y 1.8 kg, encuentre la frecuencia de resonancia del <strong>tercer armónico</strong> ($n = 3$). Registre en la Tabla 2.</p></div>
+  </div>
+  <div class="paso">
+    <div class="paso-num">5</div>
+    <div class="paso-content"><p>Exporte CSV y complete la Tabla 3 para construir la gráfica $v^2$ vs. $T$ (Sección 07).</p></div>
+  </div>
+
+  <div class="subsec">Parte C — Modo Reto</div>
+  <div class="paso">
+    <div class="paso-num">6</div>
+    <div class="paso-content"><p>Cambie a la pestaña <strong>🎯 Reto</strong>. Anote el nuevo planeta y su $g_R$ en el encabezado. Ajuste la frecuencia para encontrar al menos <strong>4 resonancias distintas</strong> ($n = 1, 2, 3, 4$). Registre cada una con 📌. Complete la Tabla 4.</p></div>
+  </div>
+  <div class="paso">
+    <div class="paso-num">7</div>
+    <div class="paso-content"><p>Calcule el promedio $\bar{m}$ de los $m_\text{calc}$ registrados. Ingrese su estimación y presione ✔ Verificar. Recuerde: solo tiene <strong>3 intentos</strong>. Si aprueba, capture la imagen con 📸 y adjúntela en la Sección 09.</p></div>
+  </div>
+</div>
+
+<!-- 05. TABLA 1 — ARMÓNICOS -->
+<div class="seccion">
+  <h2 class="seccion-titulo"><span class="num">05</span> Tabla 1 — Armónicos (Modo Abierto, m = 0.500 kg)</h2>
+  <p>
+    Planeta: <input type="text" style="width:90px;border:none;border-bottom:1px solid var(--rule);font-family:var(--mono);font-size:.9em;text-align:center;" placeholder="nombre">&nbsp;&nbsp;
+    $g =$ <input type="text" style="width:52px;border:none;border-bottom:1px solid var(--rule);font-family:var(--mono);font-size:.9em;text-align:center;" placeholder="g" id="g-input"> m/s²&nbsp;&nbsp;
+    $m = 0.500$ kg &nbsp; $L = 2.500$ m &nbsp; $\mu = 0.002$ kg/m
+  </p>
+
+  <div style="overflow-x:auto;">
+  <table class="t-res" id="tabla1" style="min-width:660px;">
+    <thead>
+      <tr>
+        <th rowspan="2">n</th>
+        <th rowspan="2">f<sub>med</sub> (Hz)</th>
+        <th rowspan="2">f<sub>teórica</sub> (Hz)</th>
+        <th rowspan="2">v (m/s)</th>
+        <th rowspan="2">λ<sub>n</sub> (m)</th>
+        <th colspan="2" class="th-unc">Incertidumbre</th>
+        <th rowspan="2">ER%</th>
+      </tr>
+      <tr>
+        <th class="th-unc">δv<sub>m</sub> (m/s)</th>
+        <th class="th-unc">δv/v (%)</th>
+      </tr>
+    </thead>
+    <tbody id="bodyT1"></tbody>
+  </table>
+  </div>
+
+  <div class="unc-bg" style="margin-top:12px;">
+    <p style="margin:0;font-size:.88em;">
+      $\delta v_m = v \cdot \delta m/(2m) = v \times 0.025/(2\times0.500) = v \times 0.025$ &nbsp;|&nbsp;
+      $\delta v_f = (2L/n)\cdot\delta f = (5.000/n)\times0.25 = 1.250/n$ m/s
+    </p>
+  </div>
+
+  <span class="al">Cálculo para al menos un armónico (muestre operaciones)</span>
+  <textarea class="ta" style="min-height:90px;" placeholder="n=1: v = √(0.500×g/0.002) = ___ m/s  →  f₁_teo = v/(2L) = ___ Hz&#10;     δv_m = v×0.025 = ___ m/s  →  δv/v = ___ %&#10;     ER = |f_med − f_teo|/f_teo × 100 = ___ %"></textarea>
+</div>
+
+<!-- 06. TABLA 2 — TENSIÓN -->
+<div class="seccion">
+  <h2 class="seccion-titulo"><span class="num">06</span> Tabla 2 — v² vs. Tensión (n = 3, Modo Abierto)</h2>
+  <p>$\delta f = 0.25$ Hz, $\delta m = 0.025$ kg, $\lambda_3 = 2L/3 = 1.667$ m, $\delta v_f = 1.667\times0.25 = 0.417$ m/s.</p>
+
+  <div style="overflow-x:auto;">
+  <table class="t-res" id="tabla2" style="min-width:680px;">
+    <thead>
+      <tr>
+        <th rowspan="2">#</th>
+        <th rowspan="2">m (kg)</th>
+        <th rowspan="2">T = mg (N)</th>
+        <th rowspan="2">f₃ (Hz)</th>
+        <th rowspan="2">v (m/s)</th>
+        <th rowspan="2">v² (m²/s²)</th>
+        <th colspan="2" class="th-unc">Incertidumbre</th>
+      </tr>
+      <tr>
+        <th class="th-unc">δv<sub>m</sub> (m/s)</th>
+        <th class="th-unc">δµ/µ (%)</th>
+      </tr>
+    </thead>
+    <tbody id="bodyT2"></tbody>
+  </table>
+  </div>
+</div>
+
+<!-- 07. GRÁFICA -->
+<div class="seccion">
+  <h2 class="seccion-titulo"><span class="num">07</span> Gráfica v² vs. T — Determinación de µ</h2>
+  <p>Ingrese los pares $(T,\, v^2)$ de la Tabla 2 en la Tabla 3. La gráfica se actualiza en tiempo real.</p>
+
+  <p style="margin:8px 0 4px; font-size:.85em; color:var(--ink-muted); font-style:italic;">Tabla 3. Pares (T, v²) para la gráfica.</p>
+  <div style="overflow-x:auto;">
+    <table class="t-res" style="max-width:380px;">
+      <thead><tr><th>Punto</th><th>T (N)</th><th>v² (m²/s²)</th></tr></thead>
+      <tbody id="bodyGraf"></tbody>
+    </table>
+  </div>
+
+  <div class="grafica-box">
+    <div class="grafica-header">
+      <span>v² (m²/s²) vs. T (N)</span>
+      <span id="graf-info" class="grafica-info">Sin datos</span>
+    </div>
+    <canvas id="grafCanvas" class="grafica-canvas"></canvas>
+    <div class="grafica-ctrl">
+      <button class="btn-ctrl activo" id="btnReg" onclick="toggleReg()">Regresión al origen</button>
+      <button class="btn-ctrl" onclick="clearLine()">Limpiar recta manual</button>
+      <button class="btn-ctrl" onclick="exportGraf()">⬇ Exportar PNG</button>
+    </div>
+  </div>
+
+  <div class="result-box c4">
+    <div class="rc"><label>Pendiente m_g (m/kg)</label><input type="text" id="rPend" placeholder="—" readonly></div>
+    <div class="rc"><label>µ_exp = 1/m_g (kg/m)</label><input type="text" id="rMuExp" placeholder="—" readonly></div>
+    <div class="rc"><label>ER% vs. µ_nom=0.002</label><input type="text" id="rER" placeholder="—" readonly></div>
+    <div class="rc"><label>Calidad</label><input type="text" id="rCal" placeholder="—" readonly></div>
+  </div>
+
+  <div class="result-box c2">
+    <div class="rc"><label>δµ_exp promedio (kg/m)</label><input type="text" placeholder="calcule con Ec.10"></div>
+    <div class="rc"><label>µ_exp ± δµ (kg/m)</label><input type="text" placeholder="0.00000 ± 0.00000"></div>
+  </div>
+
+  <span class="al">Cálculo de δµ y resultado final (muestre operaciones)</span>
+  <textarea class="ta" style="min-height:110px;" placeholder="δµ/µ = √[(δm/m)² + (2δv_m/v)²]&#10;Fila 1: m=___ v=___ → δv_m=___ → δµ/µ=___ → δµ=___&#10;...&#10;Promedio δµ = ___  →  µ_exp = (___  ±  ___) kg/m&#10;IR = δµ/µ × 100 = ___%  |  ER = ___%"></textarea>
+</div>
+
+<!-- 08. CAPTURAS MODO ABIERTO -->
+<div class="seccion">
+  <h2 class="seccion-titulo"><span class="num">08</span> Capturas — Modo Abierto</h2>
+  <p>Use <strong>📸 Capturar imagen</strong> para documentar al menos 3 armónicos resonantes.</p>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+    <div>
+      <span class="al">n = 1 (fundamental)</span>
+      <div class="adjunto-slot"><input type="file" accept="image/*" onchange="prevImg(this,'p1')">
+        <span class="slot-icon">📷</span><span class="slot-label">Adjuntar PNG</span>
+        <span class="slot-hint">clic o arrastre</span><img id="p1" class="preview-img" alt=""></div>
+    </div>
+    <div>
+      <span class="al">n = 2</span>
+      <div class="adjunto-slot"><input type="file" accept="image/*" onchange="prevImg(this,'p2')">
+        <span class="slot-icon">📷</span><span class="slot-label">Adjuntar PNG</span>
+        <span class="slot-hint">clic o arrastre</span><img id="p2" class="preview-img" alt=""></div>
+    </div>
+    <div>
+      <span class="al">n = 3</span>
+      <div class="adjunto-slot"><input type="file" accept="image/*" onchange="prevImg(this,'p3')">
+        <span class="slot-icon">📷</span><span class="slot-label">Adjuntar PNG</span>
+        <span class="slot-hint">clic o arrastre</span><img id="p3" class="preview-img" alt=""></div>
+    </div>
+    <div>
+      <span class="al">n = 4 o 5</span>
+      <div class="adjunto-slot"><input type="file" accept="image/*" onchange="prevImg(this,'p4')">
+        <span class="slot-icon">📷</span><span class="slot-label">Adjuntar PNG</span>
+        <span class="slot-hint">clic o arrastre</span><img id="p4" class="preview-img" alt=""></div>
+    </div>
+  </div>
+</div>
+
+<!-- 09. MODO RETO -->
+<div class="seccion">
+  <h2 class="seccion-titulo"><span class="num">09</span> Modo Reto — Masa Tensor Oculta</h2>
+
+  <div class="reto-header">
+    <div>
+      <h4>🎯 Determina la masa oculta en máximo 3 intentos</h4>
+      <p>Planeta nuevo · Masa oculta · Captura disponible solo al aprobar (ER &lt; 15%)</p>
+    </div>
+    <div class="reto-badge">MODO RETO</div>
+  </div>
+  <div class="reto-body">
+
+    <p style="margin-bottom:14px;">
+      Registra el planeta del Reto:
+      <input type="text" style="width:90px;border:none;border-bottom:1px solid var(--rule);font-family:var(--mono);font-size:.9em;margin:0 6px;" placeholder="planeta">&nbsp;
+      $g_R =$ <input type="text" style="width:52px;border:none;border-bottom:1px solid var(--rule);font-family:var(--mono);font-size:.9em;" id="gR-input" placeholder="g_R"> m/s²
+    </p>
+
+    <div class="nota" style="margin-bottom:16px;">
+      <strong>Estrategia:</strong> ajusta $f$ hasta que la cuerda forme nodos claros (resonancia). Para cada armónico encontrado, presiona 📌. El simulador calcula $v_n = f_n \cdot 2L/n$ y $m_\text{calc} = \mu v_n^2 / g_R$. Promedia los $m_\text{calc}$ e ingresa tu estimación. Tienes <strong>3 intentos</strong>.
+    </div>
+
+    <!-- Tabla 4 — resonancias del reto -->
+    <p style="font-size:.85em;color:var(--ink-muted);font-style:italic;margin-bottom:6px;">Tabla 4. Resonancias registradas en el Modo Reto.</p>
+    <div style="overflow-x:auto;">
+    <table class="t-res" style="min-width:580px;">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>n</th>
+          <th>f<sub>n</sub> (Hz)</th>
+          <th>v<sub>n</sub> = f<sub>n</sub>·2L/n (m/s)</th>
+          <th>m<sub>calc</sub> = µv²/g<sub>R</sub> (kg)</th>
+          <th class="th-unc">δv<sub>f</sub> (m/s)</th>
+          <th class="th-unc">δm<sub>calc</sub> (kg)</th>
+        </tr>
+      </thead>
+      <tbody id="bodyReto"></tbody>
+    </table>
+    </div>
+
+    <div class="result-box" style="margin-top:14px;">
+      <div class="rc"><label>m̄_calc promedio (kg)</label><input type="text" placeholder="—"></div>
+      <div class="rc"><label>δm̄ = δm_calc / √N (kg)</label><input type="text" placeholder="—"></div>
+      <div class="rc"><label>Estimación ingresada (kg)</label><input type="text" placeholder="tu valor"></div>
+    </div>
+    <div class="result-box c2">
+      <div class="rc"><label>m_real (reveladp al verificar)</label><input type="text" placeholder="—"></div>
+      <div class="rc"><label>ER% obtenido</label><input type="text" placeholder="—"></div>
+    </div>
+    <div class="result-box c2">
+      <div class="rc"><label>Intentos usados (max. 3)</label><input type="text" placeholder="1 / 2 / 3"></div>
+      <div class="rc"><label>Resultado</label><input type="text" placeholder="✅ Aprobado / ✗ No aprobado"></div>
+    </div>
+
+    <span class="al">Cálculo paso a paso de m̄_calc y ER (muestre operaciones)</span>
+    <textarea class="ta" style="min-height:140px;" placeholder="Para cada armónico registrado en la Tabla 4:&#10;  n=1: f₁=___Hz → v₁ = f₁·2L/1 = ___m/s → m₁ = µv₁²/g_R = ___kg&#10;       δv_f = (2L/1)·0.25 = ___m/s → δm₁ = m₁·(2δv_f/v₁) = ___kg&#10;  n=2: f₂=___Hz → v₂=___m/s → m₂=___kg · δm₂=___kg&#10;  ...&#10;&#10;m̄ = (m₁+m₂+...)/N = ___kg&#10;δm̄ = δm_calc/√N = ___kg&#10;m_real (simulador) = ___kg → ER = ___% "></textarea>
+
+    <span class="al">Captura del simulador — solo disponible al aprobar el Reto (ER &lt; 15%)</span>
+    <div class="adjunto-slot">
+      <input type="file" accept="image/*" onchange="prevImg(this,'prevReto')">
+      <span class="slot-icon">🎯</span>
+      <span class="slot-label">Adjuntar captura PNG del Reto aprobado</span>
+      <span class="slot-hint">El botón 📸 aparece en el simulador solo al aprobar · PNG</span>
+      <img id="prevReto" class="preview-img" alt="">
+    </div>
+  </div>
+</div>
+
+<!-- 10. PREGUNTAS DE ANÁLISIS -->
+<div class="seccion">
+  <h2 class="seccion-titulo"><span class="num">10</span> Preguntas de Análisis</h2>
+
+  <div class="paso">
+    <div class="paso-num">Q1</div>
+    <div class="paso-content">
+      <p>Usando la Ec. 9a, si se duplica la masa $m$, ¿en qué factor cambia $v$ y en qué factor cambia $\delta v_m / v$? ¿Mejora o empeora la incertidumbre relativa al aumentar la masa?</p>
+      <span class="al">Respuesta</span>
+      <textarea class="ta" placeholder="v ∝ √m → v se multiplica por ___. δv_m/v = δm/(2m), por tanto al duplicar m → δv_m/v se..."></textarea>
+    </div>
+  </div>
+
+  <div class="paso">
+    <div class="paso-num">Q2</div>
+    <div class="paso-content">
+      <p>¿Por qué el Modo Reto asigna un planeta diferente al del Modo Abierto? ¿Cómo afecta la gravedad $g_R$ al espectro de frecuencias resonantes y a la estrategia para identificar $m_\text{oculta}$?</p>
+      <span class="al">Respuesta</span>
+      <textarea class="ta" placeholder="Un planeta diferente implica g_R distinta, lo cual cambia T = m·g_R y por tanto v = √(T/µ) y las frecuencias f_n = nv/(2L). Para identificar m se necesita..."></textarea>
+    </div>
+  </div>
+
+  <div class="paso">
+    <div class="paso-num">Q3</div>
+    <div class="paso-content">
+      <p>¿Por qué promediar varios $m_\text{calc}$ de diferentes armónicos reduce la incertidumbre final $\delta\bar{m}$ en comparación con usar solo uno? Relacione con la Ec. 11.</p>
+      <span class="al">Respuesta</span>
+      <textarea class="ta" placeholder="δm̄ = δm_calc/√N → al tener N mediciones independientes la incertidumbre del promedio cae como 1/√N porque..."></textarea>
+    </div>
+  </div>
+
+  <div class="paso">
+    <div class="paso-num">Q4</div>
+    <div class="paso-content">
+      <p>Si en el Modo Reto se identifica erróneamente $n = 2$ cuando en realidad era $n = 3$, ¿cómo afecta ese error a $v_n$ y a $m_\text{calc}$? ¿El valor calculado quedará por encima o por debajo del real?</p>
+      <span class="al">Respuesta</span>
+      <textarea class="ta" placeholder="v_n = f_n·2L/n. Si se usa n=2 en lugar de n=3, v_n = f·2L/2 = ___ (mayor/menor). Entonces m_calc = µv²/g resulta..."></textarea>
+    </div>
+  </div>
+</div>
+
+<!-- 11. CONCLUSIONES -->
+<div class="seccion">
+  <h2 class="seccion-titulo"><span class="num">11</span> Conclusiones</h2>
+
+  <span class="al">Conclusión 1 — Sobre µ_exp obtenido y comparación con µ_nominal = 0.002 kg/m</span>
+  <textarea class="ta" style="min-height:90px;" placeholder="µ_exp = ___ ± ___ kg/m · ER = ___% · IR = ___% · Calidad: ___"></textarea>
+
+  <span class="al">Conclusión 2 — Sobre la relación f_n = n·f₁ verificada con los datos de la Tabla 1</span>
+  <textarea class="ta" style="min-height:90px;" placeholder="f₂/f₁ = ___ (teórico: 2.00) · f₃/f₁ = ___ (teórico: 3.00) · ..."></textarea>
+
+  <span class="al">Conclusión 3 — Sobre el Modo Reto: masa estimada, intentos usados y rol de la incertidumbre</span>
+  <textarea class="ta" style="min-height:90px;" placeholder="m̄ = ___ ± ___ kg · m_real = ___ kg · ER = ___% · Intentos usados: ___ de 3 · La incertidumbre se redujo al promediar N = ___ armónicos..."></textarea>
+</div>
+
+<!-- 12. REFERENCIAS -->
+<div class="seccion">
+  <h2 class="seccion-titulo"><span class="num">12</span> Referencias</h2>
+  <p style="font-size:.88em;line-height:2.1;">
+    [1] Serway, R. A. &amp; Jewett, J. W. <em>Physics for Scientists and Engineers</em>. 10ª ed. Cengage, 2019. Cap. 16 — Wave Motion.<br>
+    [2] Young, H. D. &amp; Freedman, R. A. <em>University Physics</em>. 15ª ed. Pearson, 2020. Cap. 15 — Mechanical Waves.<br>
+    [3] Taylor, J. R. <em>An Introduction to Error Analysis</em>. 2ª ed. University Science Books, 1997. Cap. 3 — Propagation of Uncertainties.
+  </p>
+</div>
+
+<!-- FIRMAS -->
+<div class="seccion" style="margin-bottom:0;">
+  <div class="firma-grid">
+    <div class="firma-slot">Firma del estudiante</div>
+    <div class="firma-slot">Vo. Bo. Docente</div>
+  </div>
+</div>
+
+</div><!-- /body -->
+</div><!-- /documento -->
+
+<button class="btn-imprimir" onclick="window.print()">🖨 Imprimir / PDF</button>
+
+<script>
+const mu=0.002, L=2.5, df=0.25, dm=0.025;
+const NROWS1=5, NROWS2=6, NGRAF=6, NROWSR=6;
+function pN(s){ return parseFloat((s||'').replace(',','.')); }
+function fmt(n,d){ return isNaN(n)?'—':n.toFixed(d); }
+
+/* ── TABLA 1 ── */
+const d1=Array.from({length:NROWS1},()=>({n:0,fMed:NaN}));
+function buildT1(){
+  const tb=document.getElementById('bodyT1');
+  for(let i=0;i<NROWS1;i++){
+    d1[i].n=i+1;
+    const tr=tb.insertRow(-1);
+    tr.innerHTML=`
+      <td class="rl">${i+1}</td>
+      <td class="ic"><input type="text" id="t1f${i}" placeholder="0.00" oninput="calcT1(${i},this.value)"></td>
+      <td class="ic"><input type="text" id="t1ft${i}" readonly style="color:var(--accent);font-weight:600;"></td>
+      <td class="ic"><input type="text" id="t1v${i}"  readonly style="color:var(--teal);font-weight:600;"></td>
+      <td class="ic"><input type="text" id="t1l${i}"  readonly></td>
+      <td class="ic unc"><input type="text" id="t1dvm${i}" readonly style="color:var(--accent2);"></td>
+      <td class="ic unc"><input type="text" id="t1dvp${i}" readonly style="color:var(--accent2);"></td>
+      <td class="ic"><input type="text" id="t1er${i}" readonly></td>`;
+  }
+}
+function getG(){ return pN(document.getElementById('g-input').value)||9.81; }
+function calcT1(i,val){
+  d1[i].fMed=pN(val);
+  const g=getG(),n=i+1,m=0.5;
+  const v=Math.sqrt(m*g/mu), fT=n*v/(2*L), lam=(2*L)/n;
+  const dvm=v*dm/(2*m), dvp=(dvm/v)*100;
+  const fM=d1[i].fMed, er=isNaN(fM)?NaN:Math.abs((fM-fT)/fT)*100;
+  document.getElementById('t1ft'+i).value=fmt(fT,3);
+  document.getElementById('t1v'+i).value =fmt(v,3);
+  document.getElementById('t1l'+i).value =fmt(lam,4);
+  document.getElementById('t1dvm'+i).value='±'+fmt(dvm,4);
+  document.getElementById('t1dvp'+i).value=fmt(dvp,2)+'%';
+  document.getElementById('t1er'+i).value=fmt(er,2)+'%';
+}
+
+/* ── TABLA 2 ── */
+const d2=Array.from({length:NROWS2},()=>({m:NaN,f3:NaN,T:NaN,v:NaN,v2:NaN}));
+function buildT2(){
+  const tb=document.getElementById('bodyT2');
+  for(let i=0;i<NROWS2;i++){
+    const tr=tb.insertRow(-1);
+    tr.innerHTML=`
+      <td class="rl">${i+1}</td>
+      <td class="ic"><input type="text" id="t2m${i}" placeholder="0.000" oninput="calcT2(${i},'m',this.value)"></td>
+      <td class="ic"><input type="text" id="t2T${i}" readonly style="color:var(--accent);"></td>
+      <td class="ic"><input type="text" id="t2f${i}" placeholder="0.00" oninput="calcT2(${i},'f3',this.value)"></td>
+      <td class="ic"><input type="text" id="t2v${i}" readonly style="color:var(--teal);font-weight:600;"></td>
+      <td class="ic"><input type="text" id="t2v2${i}" readonly style="color:var(--gold);font-weight:600;"></td>
+      <td class="ic unc"><input type="text" id="t2dvm${i}" readonly style="color:var(--accent2);"></td>
+      <td class="ic unc"><input type="text" id="t2dmu${i}" readonly style="color:var(--accent2);"></td>`;
+  }
+}
+function calcT2(i,campo,val){
+  if(campo==='m') d2[i].m=pN(val); else d2[i].f3=pN(val);
+  const g=getG(),n=3,lam3=(2*L)/n,mV=d2[i].m,f3V=d2[i].f3;
+  if(!isNaN(mV)&&mV>0){ d2[i].T=mV*g; document.getElementById('t2T'+i).value=fmt(d2[i].T,4); }
+  if(!isNaN(f3V)&&f3V>0){
+    const v=f3V*lam3,v2=v*v; d2[i].v=v; d2[i].v2=v2;
+    document.getElementById('t2v'+i).value=fmt(v,4);
+    document.getElementById('t2v2'+i).value=fmt(v2,3);
+    if(!isNaN(mV)&&mV>0){
+      const dvm=v*dm/(2*mV);
+      const dmu=Math.sqrt((dm/mV)**2+(2*dvm/v)**2)*100;
+      document.getElementById('t2dvm'+i).value='±'+fmt(dvm,4);
+      document.getElementById('t2dmu'+i).value=fmt(dmu,2)+'%';
+    }
+  }
+  sincGraf(); dibujarGraf();
+}
+
+/* ── TABLA GRÁFICA ── */
+const gPts=Array.from({length:NGRAF},()=>({T:NaN,v2:NaN}));
+function buildTablaGraf(){
+  const tb=document.getElementById('bodyGraf');
+  for(let i=0;i<NGRAF;i++){
+    const tr=tb.insertRow(-1);
+    tr.innerHTML=`<td class="rl">P${i+1}</td>
+      <td class="ic"><input type="text" id="gT${i}" placeholder="0.00" oninput="onGP(${i},'T',this.value)"></td>
+      <td class="ic"><input type="text" id="gV${i}" placeholder="0.00" oninput="onGP(${i},'v2',this.value)"></td>`;
+  }
+}
+function sincGraf(){
+  for(let i=0;i<NGRAF;i++){
+    if(!isNaN(d2[i].T)&&d2[i].T>0){ document.getElementById('gT'+i).value=fmt(d2[i].T,4); gPts[i].T=d2[i].T; }
+    if(!isNaN(d2[i].v2)&&d2[i].v2>0){ document.getElementById('gV'+i).value=fmt(d2[i].v2,2); gPts[i].v2=d2[i].v2; }
+  }
+}
+function onGP(i,k,v){ gPts[i][k]=pN(v); dibujarGraf(); }
+function getGPts(){ return gPts.filter(p=>!isNaN(p.T)&&!isNaN(p.v2)&&p.T>0&&p.v2>0); }
+
+/* ── TABLA RETO ── */
+function buildTablaReto(){
+  const tb=document.getElementById('bodyReto');
+  for(let i=1;i<=NROWSR;i++){
+    tb.insertRow(-1).innerHTML=`
+      <td class="rl">${i}</td>
+      <td class="ic"><input type="text" placeholder="n"></td>
+      <td class="ic"><input type="text" placeholder="0.00"></td>
+      <td class="ic"><input type="text" placeholder="—" style="color:var(--teal);font-weight:600;"></td>
+      <td class="ic"><input type="text" placeholder="—" style="color:var(--accent);font-weight:600;"></td>
+      <td class="ic unc"><input type="text" placeholder="—" style="color:var(--gold);"></td>
+      <td class="ic unc"><input type="text" placeholder="—" style="color:var(--accent2);"></td>`;
+  }
+}
+
+/* ── GRÁFICA ── */
+let showReg=true, manualLine=null, drag=false, dragPt=null;
+const COLS=['#1a5276','#c0392b','#0e6655','#b8860b','#6c3483','#117a65'];
+function toggleReg(){ showReg=!showReg; document.getElementById('btnReg').classList.toggle('activo',showReg); dibujarGraf(); }
+function clearLine(){ manualLine=null; dibujarGraf(); }
+function exportGraf(){ const a=document.createElement('a'); a.download='grafica_v2_T.png'; a.href=document.getElementById('grafCanvas').toDataURL(); a.click(); }
+function regOrigen(pts){ const sxy=pts.reduce((s,p)=>s+p.T*p.v2,0),sx2=pts.reduce((s,p)=>s+p.T*p.T,0); return sx2>0?sxy/sx2:null; }
+
+function dibujarGraf(){
+  const cv=document.getElementById('grafCanvas');
+  const ctx=cv.getContext('2d');
+  const W=cv.offsetWidth||760, H=360;
+  cv.width=W*devicePixelRatio; cv.height=H*devicePixelRatio;
+  cv.style.width=W+'px'; cv.style.height=H+'px';
+  ctx.scale(devicePixelRatio,devicePixelRatio);
+  const P={t:30,r:30,b:55,l:75}, pw=W-P.l-P.r, ph=H-P.t-P.b;
+  ctx.fillStyle='#fafafa'; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#f5f5f5'; ctx.fillRect(P.l,P.t,pw,ph);
+  const pts=getGPts();
+  let xMax=pts.length>0?Math.max(...pts.map(p=>p.T))*1.25:20;
+  let yMax=pts.length>0?Math.max(...pts.map(p=>p.v2))*1.25:5000;
+  xMax=Math.max(xMax,1); yMax=Math.max(yMax,100);
+  const tx=v=>P.l+(v/xMax)*pw, ty=v=>P.t+ph-(v/yMax)*ph;
+  ctx.strokeStyle='#e8e4dc'; ctx.lineWidth=1;
+  for(let i=0;i<=6;i++){const x=tx(i*xMax/6);ctx.beginPath();ctx.moveTo(x,P.t);ctx.lineTo(x,P.t+ph);ctx.stroke();}
+  for(let i=0;i<=5;i++){const y=ty(i*yMax/5);ctx.beginPath();ctx.moveTo(P.l,y);ctx.lineTo(P.l+pw,y);ctx.stroke();}
+  ctx.strokeStyle='#888'; ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(P.l,P.t);ctx.lineTo(P.l,P.t+ph);ctx.lineTo(P.l+pw,P.t+ph);ctx.stroke();
+  ctx.fillStyle='#3d3d5c'; ctx.font=`bold 11px 'JetBrains Mono',monospace`;
+  ctx.textAlign='center'; ctx.fillText('Tensión  T  (N)',P.l+pw/2,H-4);
+  ctx.save(); ctx.translate(16,P.t+ph/2); ctx.rotate(-Math.PI/2);
+  ctx.fillText('Velocidad²  v²  (m²/s²)',0,0); ctx.restore();
+  ctx.fillStyle='#888'; ctx.font=`10px 'JetBrains Mono',monospace`;
+  for(let i=0;i<=6;i++){const v=i*xMax/6;ctx.textAlign='center';ctx.fillText(v.toFixed(1),tx(v),P.t+ph+14);}
+  for(let i=0;i<=5;i++){const v=i*yMax/5;ctx.textAlign='right';ctx.fillText(v.toFixed(0),P.l-6,ty(v)+4);}
+  const mg=pts.length>=2?regOrigen(pts):null;
+  if(showReg&&mg!==null){
+    ctx.strokeStyle='#0e6655'; ctx.lineWidth=2.5; ctx.setLineDash([]);
+    ctx.beginPath();ctx.moveTo(tx(0),ty(0));ctx.lineTo(tx(xMax),ty(mg*xMax));ctx.stroke();
+    const muE=1/mg, er=Math.abs((muE-0.002)/0.002)*100;
+    document.getElementById('rPend').value=fmt(mg,2);
+    document.getElementById('rMuExp').value=fmt(muE,6);
+    document.getElementById('rER').value=fmt(er,2)+'%';
+    document.getElementById('rCal').value=er<5?'Excelente':er<15?'Aceptable':'Revisar';
+    document.getElementById('graf-info').textContent=`n=${pts.length} pts · m_g=${fmt(mg,2)} · µ_exp=${fmt(muE,6)} kg/m`;
+  }
+  if(manualLine){
+    ctx.strokeStyle='#c0392b'; ctx.lineWidth=2; ctx.setLineDash([6,3]);
+    ctx.beginPath();ctx.moveTo(manualLine.x1,manualLine.y1);ctx.lineTo(manualLine.x2,manualLine.y2);ctx.stroke();
+    ctx.setLineDash([]);
+    const dx=(manualLine.x2-manualLine.x1)/pw*xMax,dy=-(manualLine.y2-manualLine.y1)/ph*yMax;
+    if(dx>0){const mm=dy/dx;document.getElementById('rPend').value=fmt(mm,2)+' (manual)';document.getElementById('rMuExp').value=fmt(1/mm,6);}
+  }
+  pts.forEach((p,i)=>{
+    ctx.fillStyle=COLS[i%COLS.length]; ctx.setLineDash([]);
+    ctx.beginPath();ctx.arc(tx(p.T),ty(p.v2),5,0,Math.PI*2);ctx.fill();
+    ctx.font='bold 10px JetBrains Mono,monospace';ctx.textAlign='left';
+    ctx.fillText('P'+(i+1),tx(p.T)+8,ty(p.v2)-5);
+  });
+  if(pts.length===0){
+    ctx.fillStyle='#bbb';ctx.font=`13px 'Source Serif 4',serif`;ctx.textAlign='center';
+    ctx.fillText('Ingrese datos en la Tabla 2 o Tabla 3 para ver los puntos',P.l+pw/2,P.t+ph/2);
+  }
+}
+const canv=document.getElementById('grafCanvas');
+canv.addEventListener('mousedown',e=>{if(showReg)return;const r=canv.getBoundingClientRect();drag=true;dragPt={x:e.clientX-r.left,y:e.clientY-r.top};});
+canv.addEventListener('mousemove',e=>{if(!drag)return;const r=canv.getBoundingClientRect();manualLine={x1:dragPt.x,y1:dragPt.y,x2:e.clientX-r.left,y2:e.clientY-r.top};dibujarGraf();});
+canv.addEventListener('mouseup',()=>drag=false);
+
+/* ── IMAGEN PREVIEW ── */
+function prevImg(input,id){
+  const f=input.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=e=>{const img=document.getElementById(id);if(img){img.src=e.target.result;img.style.display='block';}};
+  r.readAsDataURL(f);
+}
+
+/* ── INIT ── */
+window.addEventListener('load',()=>{
+  buildT1(); buildT2(); buildTablaGraf(); buildTablaReto();
+  dibujarGraf();
+  const now=new Date(), sem=now.getMonth()<6?'1':'2';
+  document.getElementById('codigoPractica').textContent=`PRÁCTICA FIS-OND-03 · ${now.getFullYear()}-${sem}`;
+  document.querySelectorAll('input[type="date"]').forEach(i=>i.value=now.toISOString().split('T')[0]);
+  document.getElementById('g-input').addEventListener('input',()=>{
+    for(let i=0;i<NROWS1;i++) calcT1(i,document.getElementById('t1f'+i)?.value||'');
+    for(let i=0;i<NROWS2;i++){
+      calcT2(i,'m',document.getElementById('t2m'+i)?.value||'');
+      calcT2(i,'f3',document.getElementById('t2f'+i)?.value||'');
+    }
+    sincGraf(); dibujarGraf();
+  });
+});
+window.addEventListener('resize',dibujarGraf);
+</script>
+
+</body>
+</html>
