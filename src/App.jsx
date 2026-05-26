@@ -11,17 +11,17 @@ import DashboardAdmin from './pages/Admin/DashboardAdmin.jsx';
 import GestionUsuarios from './pages/Admin/Usuarios/GestionUsuarios.jsx';
 import GestionContenido from './pages/Admin/Contenido/GestionContenido.jsx';
 import AdminReportes from './pages/Admin/Reportes/AdminReportes.jsx';
-import DashboardEstudiante from './pages/Estudiante/DashboardEstudiante.jsx';
-import PracticasGrupoEstudiante from './pages/Estudiante/PracticasGrupo.jsx';
-import SimulacionEstudiante from './pages/Estudiante/Simulacion.jsx';
-import ForoEstudiante from './pages/Estudiante/Foro.jsx';
-import TeacherDashboard from './pages/Docente/TeacherDashboard.jsx';
-import Foro from './pages/Docente/Practicas/Foro.jsx';
-import TeacherGrupos from './pages/Docente/Practicas/Grupos.jsx';
-import PracticasGrupo from './pages/Docente/Practicas/PracticasGrupo.jsx';
-import PracticaEstudiantes from './pages/Docente/Practicas/EstudiantesPractica.jsx';
-import InformeEstudiante from './pages/Docente/Practicas/InformeEstudiante.jsx';
-import CrearPractica from './pages/Docente/Practicas/CrearPractica.jsx';
+import DashboardEstudiante from './pages/estudiante/DashboardEstudiante.jsx';
+import PracticasGrupoEstudiante from './pages/estudiante/PracticasGrupo.jsx';
+import SimulacionEstudiante from './pages/estudiante/Simulacion.jsx';
+import ForoEstudiante from './pages/estudiante/Foro.jsx';
+import TeacherDashboard from './pages/docente/TeacherDashboard.jsx';
+import Foro from './pages/docente/Practicas/Foro.jsx';
+import TeacherGrupos from './pages/docente/Practicas/Grupos.jsx';
+import PracticasGrupo from './pages/docente/Practicas/PracticasGrupo.jsx';
+import PracticaEstudiantes from './pages/docente/Practicas/EstudiantesPractica.jsx';
+import InformeEstudiante from './pages/docente/Practicas/InformeEstudiante.jsx';
+import CrearPractica from './pages/docente/Practicas/CrearPractica.jsx';
 
 function AppContent() {
   return (
