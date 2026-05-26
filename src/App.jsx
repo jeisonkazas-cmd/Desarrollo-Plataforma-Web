@@ -11,17 +11,17 @@ import DashboardAdmin from './pages/Admin/DashboardAdmin';
 import GestionUsuarios from './pages/Admin/Usuarios/GestionUsuarios';
 import GestionContenido from './pages/Admin/Contenido/GestionContenido';
 import AdminReportes from './pages/Admin/Reportes/AdminReportes';
-import DashboardEstudiante from './pages/Estudiante/DashboardEstudiante';
-import PracticasGrupoEstudiante from './pages/Estudiante/PracticasGrupo';
-import SimulacionEstudiante from './pages/Estudiante/Simulacion';
-import ForoEstudiante from './pages/Estudiante/Foro';
-import TeacherDashboard from './pages/Docente/TeacherDashboard';
-import Foro from './pages/Docente/Practicas/Foro';
-import TeacherGrupos from './pages/Docente/Practicas/Grupos';
-import PracticasGrupo from './pages/Docente/Practicas/PracticasGrupo';
-import PracticaEstudiantes from './pages/Docente/Practicas/EstudiantesPractica';
-import InformeEstudiante from './pages/Docente/Practicas/InformeEstudiante';
-import CrearPractica from './pages/Docente/Practicas/CrearPractica';
+import DashboardEstudiante from './pages/estudiante/DashboardEstudiante';
+import PracticasGrupoEstudiante from './pages/estudiante/PracticasGrupo';
+import SimulacionEstudiante from './pages/estudiante/Simulacion';
+import ForoEstudiante from './pages/estudiante/Foro';
+import TeacherDashboard from './pages/docente/TeacherDashboard';
+import Foro from './pages/docente/Practicas/Foro';
+import TeacherGrupos from './pages/docente/Practicas/Grupos';
+import PracticasGrupo from './pages/docente/Practicas/PracticasGrupo';
+import PracticaEstudiantes from './pages/docente/Practicas/EstudiantesPractica';
+import InformeEstudiante from './pages/docente/Practicas/InformeEstudiante';
+import CrearPractica from './pages/docente/Practicas/CrearPractica';
 
 function AppContent() {
   return (
