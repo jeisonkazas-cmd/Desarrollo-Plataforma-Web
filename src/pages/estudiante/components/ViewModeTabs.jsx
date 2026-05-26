@@ -2,9 +2,9 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 const VIEW_MODES = [
-  { id: 'sim', icon: '🔬', label: 'Solo simulación' },
-  { id: 'split', icon: '⊞', label: 'Simulación + Informe' },
-  { id: 'report', icon: '📋', label: 'Solo informe' },
+  { id: 'sim', icon: '[SIM]', label: 'Solo simulación' },
+  { id: 'split', icon: '[]', label: 'Simulación + Informe' },
+  { id: 'report', icon: '[REP]', label: 'Solo informe' },
 ];
 
 /**
