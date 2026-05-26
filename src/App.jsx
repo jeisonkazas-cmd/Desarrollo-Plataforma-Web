@@ -1,5 +1,5 @@
 import './App.css';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import ScrollToTop from './components/ScrollToTop';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
@@ -62,7 +62,11 @@ function AppContent() {
 }
 
 function App() {
-  return <AppContent />;
+  return (
+    <BrowserRouter>
+      <AppContent />
+    </BrowserRouter>
+  );
 }
 
 export default App;
