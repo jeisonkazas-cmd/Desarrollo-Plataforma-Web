@@ -113,7 +113,7 @@ export default function PracticasGrupo() {
           <div className="student-sidebar-card">
             <h3>Resumen del grupo</h3>
             <div className="student-summary-item">
-              <span className="student-summary-icon pending">●</span>
+              <span className="student-summary-icon pending">📋</span>
               <div>
                 <p>Pendientes</p>
                 <strong>{resumen.pendientes}</strong>

@@ -1,15 +1,14 @@
-import React, { useState } from "react";
-import "../styles/login.css";
+import React, { useState } from 'react';
+import '../styles/login.css';
 
 export default function Login() {
   const [loading, setLoading] = useState(false);
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState('');
 
   const handleLogin = () => {
     setLoading(true);
-    const url = `http://localhost:3000/auth/login?login_hint=${encodeURIComponent(
-      email
-    )}`;
+    const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000';
+    const url = `${apiUrl}/auth/login?login_hint=${encodeURIComponent(email)}`;
     window.location.href = url;
   };
 
@@ -34,7 +33,7 @@ export default function Login() {
           onClick={handleLogin}
           disabled={loading || !email}
         >
-          {loading ? "Redirigiendo..." : "Iniciar sesión"}
+          {loading ? 'Redirigiendo...' : 'Iniciar sesión'}
         </button>
       </div>
 

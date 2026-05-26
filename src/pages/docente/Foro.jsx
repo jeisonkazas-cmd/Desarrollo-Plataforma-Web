@@ -1,89 +1,64 @@
-import { ArrowLeft } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import "../../styles/docente.css";
+import React, { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import DocenteLayout from './components/DocenteLayout';
+import { ArrowLeftIcon, IconButton } from './components/icons';
+import { getMockPosts } from '../../mock/docenteMock';
 
-function Foro() {
-  const navigate = useNavigate();
-
-  const posts = [
-    {
-      id: 1,
-      practica: "Práctica 1: \"XXXXXXX\"",
-      autor: "Sleydier Díaz",
-      tiempo: "Hace 2 h",
-      respuestas: 3,
-      texto:
-        "¿Alguien sabe cómo calcular la constante de tiempo? Tengo varias dudas y no he podido resolverlo.",
-    },
-    {
-      id: 2,
-      practica: "Práctica 2: \"XXXXXXX\"",
-      autor: "Jeyson Arenas",
-      tiempo: "Hace un momento",
-      respuestas: 0,
-      texto:
-        "Subo mi gráfica, ¿pueden revisarla? No estoy completamente seguro de cómo debe quedar.",
-    },
-  ];
-
-  return (
-    <div className="docente-container">
-      {/* HEADER */}
-      <header className="docente-header">
-        <div className="docente-header-left">
-          <button
-            onClick={() => navigate(-1)}
-            className="docente-header-button"
-            aria-label="Volver"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <h1 className="docente-header-title">Foro / Chat</h1>
-        </div>
-      </header>
-
-      {/* MAIN */}
-      <main className="docente-main">
-        <div className="docente-welcome">
-          <h2 className="docente-welcome-title">Foro del Laboratorio de Física</h2>
-          <p className="docente-welcome-subtitle">
-            Comparte tus dudas, resultados y aportes con tus compañeros.
-          </p>
-        </div>
-
-        <div className="docente-foro-list">
-          {posts.map((post) => (
-            <div
-              key={post.id}
-              className="docente-foro-item"
-            >
-              <div className="docente-foro-header">
-                <span className="docente-foro-practica">{post.practica}</span>
-              </div>
-              <p className="docente-foro-text">{post.texto}</p>
-              <div className="docente-foro-footer">
-                <span className="docente-foro-meta">{post.autor}</span>
-                <span className="docente-foro-meta">·</span>
-                <span className="docente-foro-meta">{post.tiempo}</span>
-                <span className="docente-foro-meta">·</span>
-                <span className="docente-foro-meta">{post.respuestas} respuestas</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </main>
-
-      {/* FOOTER */}
-      <footer className="docente-footer">
-        <div className="docente-footer-content">
-          <img src="/UNIAJC.png" alt="Logo UNIAJC" className="docente-footer-logo" />
-          <p className="docente-footer-text">
-            © 2025 Plataforma Docente. Todos los derechos reservados.
-          </p>
-        </div>
-      </footer>
-    </div>
-  );
+function initials(name) {
+  const parts = String(name || '')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  const first = parts[0]?.[0] || '';
+  const second = parts.length > 1 ? parts[parts.length - 1]?.[0] : '';
+  return `${first}${second}`.toUpperCase();
 }
 
-export default Foro;
+export default function Foro() {
+  const navigate = useNavigate();
+  const posts = useMemo(() => getMockPosts(), []);
+
+  return (
+    <DocenteLayout
+      title="Foro / Chat"
+      left={(
+        <IconButton label="Volver" onClick={() => navigate(-1)}>
+          <ArrowLeftIcon />
+        </IconButton>
+      )}
+    >
+      <div className="docente-welcome">
+        <h2 className="docente-welcome-title">Foro del Laboratorio de Física</h2>
+        <p className="docente-welcome-subtitle">
+          Comparte dudas, resultados y aportes con tus compañeros.
+        </p>
+      </div>
+
+      <div className="docente-foro-list">
+        {posts.map((post) => (
+          <article key={post.id} className="docente-foro-item">
+            <header className="docente-foro-header">
+              <div className="docente-foro-author" aria-label="Autor">
+                <div className="docente-avatar" aria-hidden="true">
+                  {initials(post.autor)}
+                </div>
+                <div className="docente-foro-author-text">
+                  <div className="docente-foro-author-name">{post.autor}</div>
+                  <div className="docente-foro-author-meta">{post.tiempo}</div>
+                </div>
+              </div>
+
+              <div className="docente-foro-right" aria-label="Contexto">
+                <span className="docente-pill docente-pill-practica">{post.practica}</span>
+                <span className="docente-badge" aria-label="Respuestas">
+                  {post.respuestas} resp.
+                </span>
+              </div>
+            </header>
+            <p className="docente-foro-text">{post.texto}</p>
+          </article>
+        ))}
+      </div>
+    </DocenteLayout>
+  );
+}
