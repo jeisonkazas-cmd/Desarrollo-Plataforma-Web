@@ -79,6 +79,11 @@ export default function GestionUsuarios() {
       return;
     }
 
+    if (formData.rol === 'sin_rol') {
+      alert('Debes asignar un rol válido antes de guardar.');
+      return;
+    }
+
     if (!selectedUser) return;
 
     try {
@@ -87,7 +92,7 @@ export default function GestionUsuarios() {
       setShowModal(false);
     } catch (err) {
       console.error('Error guardando usuario:', err);
-      alert('No se pudo guardar el usuario.');
+      alert(err?.message || 'No se pudo guardar el usuario.');
     }
   };
 
@@ -375,6 +380,7 @@ export default function GestionUsuarios() {
                   value={formData.rol}
                   onChange={(e) => setFormData({ ...formData, rol: e.target.value })}
                 >
+                  <option value="sin_rol">Sin rol</option>
                   <option value="estudiante">Estudiante</option>
                   <option value="docente">Docente</option>
                   <option value="admin">Administrador</option>

@@ -1,24 +1,28 @@
 import { supabase } from '../../../services/supabaseClient';
 
 function normalizeRoleToUi(roleNombre) {
-  if (!roleNombre) return null;
+  if (!roleNombre) return 'sin_rol';
+
   const normalized = String(roleNombre).toLowerCase();
+
   if (normalized === 'administrador') return 'admin';
   if (normalized === 'docente') return 'docente';
   if (normalized === 'estudiante') return 'estudiante';
-  return normalized;
+
+  return 'sin_rol';
 }
 
 function uiRoleToDb(roleUi) {
-  if (!roleUi) return null;
+  if (!roleUi || roleUi === 'sin_rol') return null;
+
   if (roleUi === 'admin') return 'Administrador';
   if (roleUi === 'docente') return 'Docente';
   if (roleUi === 'estudiante') return 'Estudiante';
-  return roleUi;
+
+  return null;
 }
 
 async function selectUsuariosPreferColumns() {
-  // Algunas instancias tienen `created_at`; otras no. Intentamos con fallback.
   const baseSelect = `
     usuario_id,
     entra_oid,
@@ -30,7 +34,7 @@ async function selectUsuariosPreferColumns() {
     )
   `;
 
-  const withCreatedAt = `${baseSelect}, created_at`;
+  const withCreatedAt = `${baseSelect}, fecha_creacion`;
 
   const firstTry = await supabase
     .from('usuarios')
@@ -39,16 +43,15 @@ async function selectUsuariosPreferColumns() {
 
   if (!firstTry.error) return firstTry;
 
-  const fallback = await supabase
+  return supabase
     .from('usuarios')
     .select(baseSelect)
     .order('usuario_id', { ascending: true });
-
-  return fallback;
 }
 
 export async function fetchUsuariosAdmin() {
   const { data, error } = await selectUsuariosPreferColumns();
+
   if (error) throw error;
 
   return (data ?? []).map((row) => {
@@ -60,9 +63,9 @@ export async function fetchUsuariosAdmin() {
       entraOid: row.entra_oid ?? null,
       nombre: row.nombre_completo ?? '',
       email: row.correo ?? '',
-      rol: rol ?? 'sin_rol',
+      rol,
       estado: row.estado ?? 'pendiente',
-      fechaRegistro: row.created_at ?? null,
+      fechaRegistro: row.fecha_creacion ?? null,
       ultimoAcceso: null,
       grupo: null,
     };
@@ -72,28 +75,32 @@ export async function fetchUsuariosAdmin() {
 export async function fetchAdminStats() {
   const usuarios = await fetchUsuariosAdmin();
 
-  const totalUsuarios = usuarios.length;
-  const estudiantesActivos = usuarios.filter(
-    (u) => u.rol === 'estudiante' && u.estado === 'activo'
-  ).length;
-  const docentesActivos = usuarios.filter(
-    (u) => u.rol === 'docente' && u.estado === 'activo'
-  ).length;
-  const administradores = usuarios.filter((u) => u.rol === 'admin').length;
-
   return {
-    totalUsuarios,
-    estudiantesActivos,
-    docentesActivos,
-    administradores,
+    totalUsuarios: usuarios.length,
+    estudiantesActivos: usuarios.filter(
+      (u) => u.rol === 'estudiante' && u.estado === 'activo'
+    ).length,
+    docentesActivos: usuarios.filter(
+      (u) => u.rol === 'docente' && u.estado === 'activo'
+    ).length,
+    administradores: usuarios.filter((u) => u.rol === 'admin').length,
   };
 }
 
 export async function updateUsuarioAdmin(usuarioId, patch) {
   const usuarioUpdate = {};
-  if (typeof patch.nombre === 'string') usuarioUpdate.nombre_completo = patch.nombre;
-  if (typeof patch.email === 'string') usuarioUpdate.correo = patch.email;
-  if (typeof patch.estado === 'string') usuarioUpdate.estado = patch.estado;
+
+  if (typeof patch.nombre === 'string') {
+    usuarioUpdate.nombre_completo = patch.nombre;
+  }
+
+  if (typeof patch.email === 'string') {
+    usuarioUpdate.correo = patch.email;
+  }
+
+  if (typeof patch.estado === 'string') {
+    usuarioUpdate.estado = patch.estado;
+  }
 
   if (Object.keys(usuarioUpdate).length > 0) {
     const { error: updateError } = await supabase
@@ -104,9 +111,12 @@ export async function updateUsuarioAdmin(usuarioId, patch) {
     if (updateError) throw updateError;
   }
 
-  if (patch.rol) {
+  if (patch.rol && patch.rol !== 'sin_rol') {
     const rolNombre = uiRoleToDb(patch.rol);
-    if (!rolNombre) return;
+
+    if (!rolNombre) {
+      throw new Error('Rol inválido.');
+    }
 
     const { data: rolRow, error: rolError } = await supabase
       .from('roles')
@@ -115,6 +125,7 @@ export async function updateUsuarioAdmin(usuarioId, patch) {
       .maybeSingle();
 
     if (rolError) throw rolError;
+
     if (!rolRow?.rol_id) {
       throw new Error(`Rol no encontrado en BD: ${rolNombre}`);
     }
@@ -128,14 +139,20 @@ export async function updateUsuarioAdmin(usuarioId, patch) {
 
     const { error: insertError } = await supabase
       .from('usuarios_roles')
-      .insert({ usuario_id: usuarioId, rol_id: rolRow.rol_id });
+      .insert({
+        usuario_id: usuarioId,
+        rol_id: rolRow.rol_id,
+      });
 
     if (insertError) throw insertError;
   }
 }
 
 export async function deleteUsuarioAdmin(usuarioId) {
-  // Nota: puede fallar si hay FK; en ese caso conviene suspender en vez de borrar.
-  const { error } = await supabase.from('usuarios').delete().eq('usuario_id', usuarioId);
+  const { error } = await supabase
+    .from('usuarios')
+    .delete()
+    .eq('usuario_id', usuarioId);
+
   if (error) throw error;
 }
