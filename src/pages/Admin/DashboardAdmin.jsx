@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminLayout from './components/AdminLayout';
 import { UsersIcon, BookIcon, BarChartIcon } from './components/AdminIcons';
-import { fetchAdminStats } from './services/adminApiService';
+import { supabase } from '../../services/supabaseClient';
 import '../../styles/admin.css';
 
 export default function DashboardAdmin() {
@@ -23,14 +23,42 @@ export default function DashboardAdmin() {
       try {
         setStatsError('');
         setLoadingStats(true);
-        const realStats = await fetchAdminStats();
+
+        const { count: totalUsuarios } = await supabase
+          .from('usuarios')
+          .select('*', { count: 'exact', head: true });
+
+        const { count: estudiantesActivos } = await supabase
+          .from('usuarios')
+          .select('usuarios_roles!inner(roles!inner(nombre))', { count: 'exact', head: true })
+          .eq('estado', 'activo')
+          .eq('usuarios_roles.roles.nombre', 'Estudiante');
+
+        const { count: docentesActivos } = await supabase
+          .from('usuarios')
+          .select('usuarios_roles!inner(roles!inner(nombre))', { count: 'exact', head: true })
+          .eq('estado', 'activo')
+          .eq('usuarios_roles.roles.nombre', 'Docente');
+
+        const { count: administradores } = await supabase
+          .from('usuarios')
+          .select('usuarios_roles!inner(roles!inner(nombre))', { count: 'exact', head: true })
+          .eq('usuarios_roles.roles.nombre', 'Administrador');
+
+        setStats({
+          totalUsuarios: totalUsuarios ?? 0,
+          estudiantesActivos: estudiantesActivos ?? 0,
+          docentesActivos: docentesActivos ?? 0,
+          administradores: administradores ?? 0,
+        });
+
         if (!alive) return;
         setStats(realStats);
       } catch (err) {
         console.error('Error cargando stats admin:', err);
         if (!alive) return;
         if (err?.status === 401) {
-          navigate('/login', { replace: true });
+          setStatsError('No se pudieron cargar las estadísticas porque el backend no recibió la autenticación.');
           return;
         }
         if (err?.status === 403) {
