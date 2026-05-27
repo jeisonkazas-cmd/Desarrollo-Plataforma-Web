@@ -38,12 +38,13 @@ export default function Login() {
     setError('');
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'azure',
-      options: {
-        redirectTo: `${window.location.origin}/`,
-      },
-    });
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: 'azure',
+    options: {
+      redirectTo: `${window.location.origin}/`,
+      scopes: 'openid profile email User.Read',
+    },
+  });
 
     if (error) {
       setLoading(false);
