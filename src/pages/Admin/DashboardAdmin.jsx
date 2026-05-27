@@ -1,11 +1,55 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminLayout from './components/AdminLayout';
 import { UsersIcon, BookIcon, BarChartIcon } from './components/AdminIcons';
+import { fetchAdminStats } from './services/adminApiService';
 import '../../styles/admin.css';
 
 export default function DashboardAdmin() {
   const navigate = useNavigate();
+  const [loadingStats, setLoadingStats] = useState(true);
+  const [statsError, setStatsError] = useState('');
+  const [stats, setStats] = useState({
+    totalUsuarios: 0,
+    estudiantesActivos: 0,
+    docentesActivos: 0,
+    administradores: 0,
+  });
+
+  useEffect(() => {
+    let alive = true;
+
+    const guardAndLoad = async () => {
+      try {
+        setStatsError('');
+        setLoadingStats(true);
+        const realStats = await fetchAdminStats();
+        if (!alive) return;
+        setStats(realStats);
+      } catch (err) {
+        console.error('Error cargando stats admin:', err);
+        if (!alive) return;
+        if (err?.status === 401) {
+          navigate('/login', { replace: true });
+          return;
+        }
+        if (err?.status === 403) {
+          navigate('/pendiente', { replace: true });
+          return;
+        }
+
+        setStatsError('No se pudieron cargar las estadísticas.');
+      } finally {
+        if (!alive) return;
+        setLoadingStats(false);
+      }
+    };
+
+    guardAndLoad();
+    return () => {
+      alive = false;
+    };
+  }, [navigate]);
 
   return (
     <AdminLayout
@@ -82,33 +126,38 @@ export default function DashboardAdmin() {
 
       <section className="admin-dashboard-quick-stats">
         <h2>Estadísticas rápidas</h2>
+        {statsError && (
+          <p style={{ marginTop: 8, color: '#b00020' }} role="alert">
+            {statsError}
+          </p>
+        )}
         <div className="admin-quick-stat-grid">
           <div className="admin-quick-stat">
             <div className="admin-quick-stat-icon">👥</div>
             <div>
               <p>Total usuarios</p>
-              <strong>12,842</strong>
+              <strong>{loadingStats ? '—' : stats.totalUsuarios}</strong>
             </div>
           </div>
           <div className="admin-quick-stat">
             <div className="admin-quick-stat-icon">🎓</div>
             <div>
               <p>Estudiantes activos</p>
-              <strong>9,511</strong>
+              <strong>{loadingStats ? '—' : stats.estudiantesActivos}</strong>
             </div>
           </div>
           <div className="admin-quick-stat">
             <div className="admin-quick-stat-icon">👨‍🏫</div>
             <div>
               <p>Docentes activos</p>
-              <strong>2,730</strong>
+              <strong>{loadingStats ? '—' : stats.docentesActivos}</strong>
             </div>
           </div>
           <div className="admin-quick-stat">
             <div className="admin-quick-stat-icon">⚙️</div>
             <div>
               <p>Administradores</p>
-              <strong>601</strong>
+              <strong>{loadingStats ? '—' : stats.administradores}</strong>
             </div>
           </div>
         </div>

@@ -1,13 +1,15 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../components/AdminLayout';
 import { ArrowLeftIcon, UsersIcon, PencilIcon, TrashIcon, EyeIcon, PlusIcon } from '../components/AdminIcons';
-import { getMockUsuarios, crearUsuario } from '../services/adminService';
+import { deleteUsuarioAdmin, fetchUsuariosAdmin, updateUsuarioAdmin } from '../services/adminApiService';
 import '../../../styles/admin.css';
 
 export default function GestionUsuarios() {
   const navigate = useNavigate();
-  const [usuarios, setUsuarios] = useState(getMockUsuarios());
+  const [usuarios, setUsuarios] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [filterRol, setFilterRol] = useState('todos');
   const [filterEstado, setFilterEstado] = useState('todos');
@@ -19,6 +21,33 @@ export default function GestionUsuarios() {
     rol: 'estudiante',
     estado: 'activo',
   });
+
+  const loadUsuarios = async () => {
+    try {
+      setError('');
+      setLoading(true);
+      const rows = await fetchUsuariosAdmin();
+      setUsuarios(rows);
+    } catch (err) {
+      console.error('Error cargando usuarios:', err);
+      if (err?.status === 401) {
+        navigate('/login', { replace: true });
+        return;
+      }
+      if (err?.status === 403) {
+        navigate('/pendiente', { replace: true });
+        return;
+      }
+      setError('No se pudieron cargar los usuarios.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadUsuarios();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navigate]);
 
   const filteredUsuarios = useMemo(() => {
     return usuarios.filter((user) => {
@@ -32,43 +61,57 @@ export default function GestionUsuarios() {
     });
   }, [usuarios, search, filterRol, filterEstado]);
 
-  const handleOpenModal = (user = null) => {
-    if (user) {
-      setSelectedUser(user);
-      setFormData(user);
-    } else {
-      setSelectedUser(null);
-      setFormData({ nombre: '', email: '', rol: 'estudiante', estado: 'activo' });
-    }
+  const handleOpenModal = (user) => {
+    if (!user) return;
+    setSelectedUser(user);
+    setFormData({
+      nombre: user.nombre ?? '',
+      email: user.email ?? '',
+      rol: user.rol ?? 'estudiante',
+      estado: user.estado ?? 'pendiente',
+    });
     setShowModal(true);
   };
 
-  const handleSaveUser = () => {
+  const handleSaveUser = async () => {
     if (!formData.nombre || !formData.email) {
       alert('Por favor completa todos los campos');
       return;
     }
 
-    if (selectedUser) {
-      setUsuarios(usuarios.map((u) => (u.id === selectedUser.id ? { ...u, ...formData } : u)));
-    } else {
-      setUsuarios([...usuarios, crearUsuario(formData)]);
-    }
+    if (!selectedUser) return;
 
-    setShowModal(false);
+    try {
+      await updateUsuarioAdmin(selectedUser.id, formData);
+      await loadUsuarios();
+      setShowModal(false);
+    } catch (err) {
+      console.error('Error guardando usuario:', err);
+      alert('No se pudo guardar el usuario.');
+    }
   };
 
-  const handleDeleteUser = (id) => {
+  const handleDeleteUser = async (id) => {
     if (window.confirm('¿Estás seguro de que deseas eliminar este usuario?')) {
-      setUsuarios(usuarios.filter((u) => u.id !== id));
+      try {
+        await deleteUsuarioAdmin(id);
+        await loadUsuarios();
+      } catch (err) {
+        console.error('Error eliminando usuario:', err);
+        alert('No se pudo eliminar el usuario.');
+      }
     }
   };
 
-  const handleToggleEstado = (id, estadoActual) => {
+  const handleToggleEstado = async (id, estadoActual) => {
     const nuevoEstado = estadoActual === 'activo' ? 'suspendido' : 'activo';
-    setUsuarios(
-      usuarios.map((u) => (u.id === id ? { ...u, estado: nuevoEstado } : u))
-    );
+    try {
+      await updateUsuarioAdmin(id, { estado: nuevoEstado });
+      await loadUsuarios();
+    } catch (err) {
+      console.error('Error actualizando estado:', err);
+      alert('No se pudo cambiar el estado del usuario.');
+    }
   };
 
   const resumen = {
@@ -126,10 +169,11 @@ export default function GestionUsuarios() {
         <button
           type="button"
           className="admin-btn-primary"
-          onClick={() => handleOpenModal()}
+          onClick={loadUsuarios}
+          disabled={loading}
         >
           <PlusIcon size={18} />
-          Crear usuario
+          Actualizar lista
         </button>
       </div>
 
@@ -212,7 +256,19 @@ export default function GestionUsuarios() {
             </tr>
           </thead>
           <tbody>
-            {filteredUsuarios.length > 0 ? (
+            {loading ? (
+              <tr>
+                <td colSpan="6" className="admin-table-empty">
+                  Cargando usuarios…
+                </td>
+              </tr>
+            ) : error ? (
+              <tr>
+                <td colSpan="6" className="admin-table-empty">
+                  {error}
+                </td>
+              </tr>
+            ) : filteredUsuarios.length > 0 ? (
               filteredUsuarios.map((usuario) => (
                 <tr key={usuario.id}>
                   <td className="admin-table-name">{usuario.nombre}</td>
@@ -276,7 +332,7 @@ export default function GestionUsuarios() {
         <div className="admin-modal-overlay" onClick={() => setShowModal(false)}>
           <div className="admin-modal" onClick={(e) => e.stopPropagation()}>
             <div className="admin-modal-header">
-              <h2>{selectedUser ? 'Editar usuario' : 'Crear nuevo usuario'}</h2>
+              <h2>Editar usuario</h2>
               <button
                 type="button"
                 className="admin-modal-close"
@@ -342,7 +398,7 @@ export default function GestionUsuarios() {
                 className="admin-btn-primary"
                 onClick={handleSaveUser}
               >
-                {selectedUser ? 'Guardar cambios' : 'Crear usuario'}
+                Guardar cambios
               </button>
             </div>
           </div>
