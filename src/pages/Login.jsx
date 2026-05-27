@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import '../styles/login.css';
 import { supabase } from '../services/supabaseClient';
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { getOrCreateUserProfile } from '../services/authService';
 
 function IconArrow() {
@@ -34,8 +33,10 @@ function IconSupport() {
 }
 
 export default function Login() {
-
   const navigate = useNavigate();
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const checkSession = async () => {
@@ -48,28 +49,29 @@ export default function Login() {
         return;
       }
 
-      if (rol === 'Administrador') navigate('/dashboard/admin', { replace: true });
-      else if (rol === 'Docente') navigate('/dashboard/docente', { replace: true });
-      else if (rol === 'Estudiante') navigate('/dashboard/estudiante', { replace: true });
+      if (rol === 'Administrador') {
+        navigate('/dashboard/admin', { replace: true });
+      } else if (rol === 'Docente') {
+        navigate('/dashboard/docente', { replace: true });
+      } else if (rol === 'Estudiante') {
+        navigate('/dashboard/estudiante', { replace: true });
+      }
     };
 
     checkSession();
   }, [navigate]);
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
   const handleMicrosoftLogin = async () => {
     setError('');
     setLoading(true);
 
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: 'azure',
-    options: {
-      redirectTo: `${window.location.origin}/`,
-      scopes: 'openid profile email User.Read',
-    },
-  });
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'azure',
+      options: {
+        redirectTo: `${window.location.origin}/`,
+        scopes: 'openid profile email User.Read',
+      },
+    });
 
     if (error) {
       setLoading(false);
@@ -119,7 +121,7 @@ export default function Login() {
             <header className="lp-form-header">
               <h1 className="lp-form-title">Bienvenido</h1>
               <p className="lp-form-subtitle">
-                Inicia sesión con tu cuenta Microsoft institucional
+                Inicia sesión con tu cuenta Microsoft
               </p>
             </header>
 
