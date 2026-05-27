@@ -1,13 +1,22 @@
 import React, { useId, useMemo, useRef, useState } from 'react';
 import '../styles/login.css';
+import { supabase } from '../services/supabaseClient';
 
 function IconEmail() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M4 7.5C4 6.12 5.12 5 6.5 5h11C18.88 5 20 6.12 20 7.5v9c0 1.38-1.12 2.5-2.5 2.5h-11C5.12 19 4 17.88 4 16.5v-9Z"
-        stroke="currentColor" strokeWidth="1.7" />
-      <path d="M6.5 7.5 12 11.5l5.5-4"
-        stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M4 7.5C4 6.12 5.12 5 6.5 5h11C18.88 5 20 6.12 20 7.5v9c0 1.38-1.12 2.5-2.5 2.5h-11C5.12 19 4 17.88 4 16.5v-9Z"
+        stroke="currentColor"
+        strokeWidth="1.7"
+      />
+      <path
+        d="M6.5 7.5 12 11.5l5.5-4"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
@@ -15,8 +24,13 @@ function IconEmail() {
 function IconArrow() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M5 12h14M13 6l6 6-6 6"
-        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M5 12h14M13 6l6 6-6 6"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
@@ -25,8 +39,12 @@ function IconSupport() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.7" />
-      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01"
-        stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+      <path
+        d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
@@ -50,7 +68,7 @@ export default function Login() {
     [emailTrimmed, isValidEmail]
   );
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
@@ -67,9 +85,22 @@ export default function Login() {
     }
 
     setLoading(true);
-    const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000';
-    const loginUrl = `${apiUrl}/auth/login?login_hint=${encodeURIComponent(emailTrimmed)}`;
-    window.location.href = loginUrl;
+
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'azure',
+      options: {
+        redirectTo: `${window.location.origin}/`,
+        queryParams: {
+          login_hint: emailTrimmed,
+        },
+      },
+    });
+
+    if (error) {
+      setLoading(false);
+      setError('No se pudo iniciar sesión con Azure.');
+      console.error(error);
+    }
   };
 
   const describedBy = error ? `${helpId} ${errorId}` : helpId;
@@ -79,7 +110,6 @@ export default function Login() {
       <div className="lp-bg" aria-hidden="true" />
 
       <main className="lp-shell" aria-label="Inicio de sesión">
-
         <div className="lp-left" aria-hidden="true">
           <div className="lp-left-overlay" />
 
@@ -103,7 +133,6 @@ export default function Login() {
         </div>
 
         <div className="lp-right">
-
           <div className="lp-mobile-logo">
             <img
               src="/imagenes/logo_camacho.png"
@@ -120,13 +149,16 @@ export default function Login() {
             </header>
 
             <form onSubmit={handleSubmit} noValidate>
-
               <div className="lp-field">
                 <label className="lp-label" htmlFor={emailId}>
                   Correo electrónico
                 </label>
+
                 <div className="lp-input-wrap">
-                  <span className="lp-input-icon"><IconEmail /></span>
+                  <span className="lp-input-icon">
+                    <IconEmail />
+                  </span>
+
                   <input
                     ref={emailRef}
                     id={emailId}
@@ -139,7 +171,6 @@ export default function Login() {
                       setEmail(e.target.value);
                       if (error) setError('');
                     }}
-                    onBlur={() => {}}
                     required
                     aria-invalid={!!error}
                     aria-describedby={describedBy}
@@ -147,13 +178,16 @@ export default function Login() {
                     autoFocus
                   />
                 </div>
+
                 <p className="lp-hint" id={helpId}>
-                  Usaremos tu correo para autenticarte con Azure AD
+                  Usaremos tu correo para autenticarte con Microsoft Entra ID
                 </p>
               </div>
 
               {error && (
-                <p className="lp-error" id={errorId} role="alert">{error}</p>
+                <p className="lp-error" id={errorId} role="alert">
+                  {error}
+                </p>
               )}
 
               <button
@@ -169,12 +203,11 @@ export default function Login() {
                   </>
                 ) : (
                   <>
-                    <span>Continuar con Azure AD</span>
+                    <span>Continuar con Microsoft</span>
                     <IconArrow />
                   </>
                 )}
               </button>
-
             </form>
 
             <div className="lp-footer">
@@ -183,11 +216,8 @@ export default function Login() {
                 ¿Necesitas ayuda? Contacta al soporte académico
               </p>
             </div>
-
           </div>
-
         </div>
-
       </main>
     </div>
   );
