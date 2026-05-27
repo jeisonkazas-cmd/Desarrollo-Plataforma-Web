@@ -1,5 +1,6 @@
 import './App.css';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import ScrollToTop from './components/ScrollToTop';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
@@ -22,8 +23,52 @@ import PracticasGrupo from './pages/docente/Practicas/PracticasGrupo';
 import PracticaEstudiantes from './pages/docente/Practicas/EstudiantesPractica';
 import InformeEstudiante from './pages/docente/Practicas/InformeEstudiante';
 import CrearPractica from './pages/docente/Practicas/CrearPractica';
+import { getOrCreateUserProfile } from './services/authService';
+
+function PendienteAprobacion() {
+  return (
+    <div style={{ padding: '80px 20px', textAlign: 'center' }}>
+      <h1>Cuenta pendiente de aprobación</h1>
+      <p>Tu cuenta ya fue registrada. Un administrador debe asignarte un rol.</p>
+    </div>
+  );
+}
 
 function AppContent() {
+  const navigate = useNavigate();
+  const [checkingAuth, setCheckingAuth] = useState(true);
+
+  useEffect(() => {
+    const verificarSesion = async () => {
+      const { user, perfil, rol } = await getOrCreateUserProfile();
+
+      if (!user) {
+        setCheckingAuth(false);
+        return;
+      }
+
+      if (!perfil || perfil.estado !== 'activo' || !rol) {
+        navigate('/pendiente', { replace: true });
+        setCheckingAuth(false);
+        return;
+      }
+
+      if (window.location.pathname === '/' || window.location.pathname === '/login') {
+        if (rol === 'Administrador') navigate('/dashboard/admin', { replace: true });
+        else if (rol === 'Docente') navigate('/dashboard/docente', { replace: true });
+        else if (rol === 'Estudiante') navigate('/dashboard/estudiante', { replace: true });
+      }
+
+      setCheckingAuth(false);
+    };
+
+    verificarSesion();
+  }, [navigate]);
+
+  if (checkingAuth) {
+    return <div style={{ padding: 40 }}>Cargando...</div>;
+  }
+
   return (
     <>
       <ScrollToTop />
@@ -34,6 +79,7 @@ function AppContent() {
         <Route path="/quienes-somos" element={<QuienesSomos />} />
         <Route path="/investigacion" element={<Investigacion />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/pendiente" element={<PendienteAprobacion />} />
 
         <Route path="/dashboard/admin" element={<DashboardAdmin />} />
         <Route path="/admin/usuarios" element={<GestionUsuarios />} />
