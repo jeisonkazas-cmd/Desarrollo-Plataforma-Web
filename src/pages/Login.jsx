@@ -1,25 +1,6 @@
-import React, { useId, useMemo, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import '../styles/login.css';
 import { supabase } from '../services/supabaseClient';
-
-function IconEmail() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d="M4 7.5C4 6.12 5.12 5 6.5 5h11C18.88 5 20 6.12 20 7.5v9c0 1.38-1.12 2.5-2.5 2.5h-11C5.12 19 4 17.88 4 16.5v-9Z"
-        stroke="currentColor"
-        strokeWidth="1.7"
-      />
-      <path
-        d="M6.5 7.5 12 11.5l5.5-4"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
 
 function IconArrow() {
   return (
@@ -50,60 +31,26 @@ function IconSupport() {
 }
 
 export default function Login() {
-  const emailId = useId();
-  const helpId = useId();
-  const errorId = useId();
-
-  const emailRef = useRef(null);
-
-  const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const emailTrimmed = email.trim();
-  const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrimmed);
-
-  const canSubmit = useMemo(
-    () => Boolean(emailTrimmed) && isValidEmail,
-    [emailTrimmed, isValidEmail]
-  );
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleMicrosoftLogin = async () => {
     setError('');
-
-    if (!emailTrimmed) {
-      setError('Por favor ingresa tu correo electrónico.');
-      emailRef.current?.focus();
-      return;
-    }
-
-    if (!isValidEmail) {
-      setError('Por favor ingresa un correo electrónico válido.');
-      emailRef.current?.focus();
-      return;
-    }
-
     setLoading(true);
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'azure',
       options: {
         redirectTo: `${window.location.origin}/`,
-        queryParams: {
-          login_hint: emailTrimmed,
-        },
       },
     });
 
     if (error) {
       setLoading(false);
-      setError('No se pudo iniciar sesión con Azure.');
+      setError('No se pudo iniciar sesión con Microsoft.');
       console.error(error);
     }
   };
-
-  const describedBy = error ? `${helpId} ${errorId}` : helpId;
 
   return (
     <div className="lp-root">
@@ -145,70 +92,36 @@ export default function Login() {
           <div className="lp-form-wrap">
             <header className="lp-form-header">
               <h1 className="lp-form-title">Bienvenido</h1>
-              <p className="lp-form-subtitle">Ingresa con tu correo institucional</p>
+              <p className="lp-form-subtitle">
+                Inicia sesión con tu cuenta Microsoft institucional
+              </p>
             </header>
 
-            <form onSubmit={handleSubmit} noValidate>
-              <div className="lp-field">
-                <label className="lp-label" htmlFor={emailId}>
-                  Correo electrónico
-                </label>
+            {error && (
+              <p className="lp-error" role="alert">
+                {error}
+              </p>
+            )}
 
-                <div className="lp-input-wrap">
-                  <span className="lp-input-icon">
-                    <IconEmail />
-                  </span>
-
-                  <input
-                    ref={emailRef}
-                    id={emailId}
-                    name="email"
-                    type="email"
-                    className={`lp-input${error ? ' is-invalid' : ''}`}
-                    placeholder="tu.correo@uniajc.edu.co"
-                    value={email}
-                    onChange={(e) => {
-                      setEmail(e.target.value);
-                      if (error) setError('');
-                    }}
-                    required
-                    aria-invalid={!!error}
-                    aria-describedby={describedBy}
-                    disabled={loading}
-                    autoFocus
-                  />
-                </div>
-
-                <p className="lp-hint" id={helpId}>
-                  Usaremos tu correo para autenticarte con Microsoft Entra ID
-                </p>
-              </div>
-
-              {error && (
-                <p className="lp-error" id={errorId} role="alert">
-                  {error}
-                </p>
+            <button
+              className="lp-submit"
+              type="button"
+              onClick={handleMicrosoftLogin}
+              disabled={loading}
+              aria-busy={loading}
+            >
+              {loading ? (
+                <>
+                  <span className="lp-spinner" aria-hidden="true" />
+                  Redirigiendo…
+                </>
+              ) : (
+                <>
+                  <span>Continuar con Microsoft</span>
+                  <IconArrow />
+                </>
               )}
-
-              <button
-                className="lp-submit"
-                type="submit"
-                disabled={loading || !canSubmit}
-                aria-busy={loading}
-              >
-                {loading ? (
-                  <>
-                    <span className="lp-spinner" aria-hidden="true" />
-                    Redirigiendo…
-                  </>
-                ) : (
-                  <>
-                    <span>Continuar con Microsoft</span>
-                    <IconArrow />
-                  </>
-                )}
-              </button>
-            </form>
+            </button>
 
             <div className="lp-footer">
               <p className="lp-footer-text">
