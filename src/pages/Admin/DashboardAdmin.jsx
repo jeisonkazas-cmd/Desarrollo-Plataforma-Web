@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminLayout from './components/AdminLayout';
 import { UsersIcon, BookIcon, BarChartIcon } from './components/AdminIcons';
-import { supabase } from '../../services/supabaseClient';
+import { fetchAdminStats } from './services/adminSupabaseService';
 import '../../styles/admin.css';
 
 export default function DashboardAdmin() {
@@ -21,37 +21,7 @@ export default function DashboardAdmin() {
 
     const guardAndLoad = async () => {
       try {
-        setStatsError('');
-        setLoadingStats(true);
-
-        const { count: totalUsuarios } = await supabase
-          .from('usuarios')
-          .select('*', { count: 'exact', head: true });
-
-        const { count: estudiantesActivos } = await supabase
-          .from('usuarios')
-          .select('usuarios_roles!inner(roles!inner(nombre))', { count: 'exact', head: true })
-          .eq('estado', 'activo')
-          .eq('usuarios_roles.roles.nombre', 'Estudiante');
-
-        const { count: docentesActivos } = await supabase
-          .from('usuarios')
-          .select('usuarios_roles!inner(roles!inner(nombre))', { count: 'exact', head: true })
-          .eq('estado', 'activo')
-          .eq('usuarios_roles.roles.nombre', 'Docente');
-
-        const { count: administradores } = await supabase
-          .from('usuarios')
-          .select('usuarios_roles!inner(roles!inner(nombre))', { count: 'exact', head: true })
-          .eq('usuarios_roles.roles.nombre', 'Administrador');
-
-        setStats({
-          totalUsuarios: totalUsuarios ?? 0,
-          estudiantesActivos: estudiantesActivos ?? 0,
-          docentesActivos: docentesActivos ?? 0,
-          administradores: administradores ?? 0,
-        });
-
+        const realStats = await fetchAdminStats();
         if (!alive) return;
         setStats(realStats);
       } catch (err) {

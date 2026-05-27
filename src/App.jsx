@@ -1,6 +1,6 @@
 import './App.css';
 import { useEffect, useState } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import ScrollToTop from './components/ScrollToTop';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
@@ -34,70 +34,225 @@ function PendienteAprobacion() {
   );
 }
 
-function AppContent() {
-  const navigate = useNavigate();
-  const [checkingAuth, setCheckingAuth] = useState(true);
+function ProtectedRoute({ children, allowedRoles }) {
+  const location = useLocation();
+  const [state, setState] = useState({
+    loading: true,
+    user: null,
+    perfil: null,
+    rol: null,
+  });
 
   useEffect(() => {
-    const verificarSesion = async () => {
-      const { user, perfil, rol } = await getOrCreateUserProfile();
-
-      if (!user) {
-        setCheckingAuth(false);
-        return;
-      }
-
-      if (!perfil || perfil.estado !== 'activo' || !rol) {
-        navigate('/pendiente', { replace: true });
-        setCheckingAuth(false);
-        return;
-      }
-
-      if (window.location.pathname === '/' || window.location.pathname === '/login') {
-        if (rol === 'Administrador') navigate('/dashboard/admin', { replace: true });
-        else if (rol === 'Docente') navigate('/dashboard/docente', { replace: true });
-        else if (rol === 'Estudiante') navigate('/dashboard/estudiante', { replace: true });
-      }
-
-      setCheckingAuth(false);
+    const check = async () => {
+      const auth = await getOrCreateUserProfile();
+      setState({
+        loading: false,
+        user: auth.user,
+        perfil: auth.perfil,
+        rol: auth.rol,
+      });
     };
 
-    verificarSesion();
-  }, [navigate]);
+    check();
+  }, []);
 
-  if (checkingAuth) {
+  if (state.loading) {
     return <div style={{ padding: 40 }}>Cargando...</div>;
   }
 
+  if (!state.user) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  if (!state.perfil || state.perfil.estado !== 'activo' || !state.rol) {
+    return <Navigate to="/pendiente" replace />;
+  }
+
+  if (allowedRoles && !allowedRoles.includes(state.rol)) {
+    if (state.rol === 'Administrador') return <Navigate to="/dashboard/admin" replace />;
+    if (state.rol === 'Docente') return <Navigate to="/dashboard/docente" replace />;
+    if (state.rol === 'Estudiante') return <Navigate to="/dashboard/estudiante" replace />;
+    return <Navigate to="/pendiente" replace />;
+  }
+
+  return children;
+}
+
+function RoleRedirect() {
+  const [state, setState] = useState({
+    loading: true,
+    user: null,
+    perfil: null,
+    rol: null,
+  });
+
+  useEffect(() => {
+    const check = async () => {
+      const auth = await getOrCreateUserProfile();
+      setState({
+        loading: false,
+        user: auth.user,
+        perfil: auth.perfil,
+        rol: auth.rol,
+      });
+    };
+
+    check();
+  }, []);
+
+  if (state.loading) {
+    return <div style={{ padding: 40 }}>Cargando...</div>;
+  }
+
+  if (!state.user) return <Home />;
+
+  if (!state.perfil || state.perfil.estado !== 'activo' || !state.rol) {
+    return <Navigate to="/pendiente" replace />;
+  }
+
+  if (state.rol === 'Administrador') return <Navigate to="/dashboard/admin" replace />;
+  if (state.rol === 'Docente') return <Navigate to="/dashboard/docente" replace />;
+  if (state.rol === 'Estudiante') return <Navigate to="/dashboard/estudiante" replace />;
+
+  return <Navigate to="/pendiente" replace />;
+}
+
+function AppContent() {
   return (
     <>
       <ScrollToTop />
       <Navbar />
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<RoleRedirect />} />
         <Route path="/simulaciones" element={<Simulaciones />} />
         <Route path="/quienes-somos" element={<QuienesSomos />} />
         <Route path="/investigacion" element={<Investigacion />} />
         <Route path="/login" element={<Login />} />
         <Route path="/pendiente" element={<PendienteAprobacion />} />
 
-        <Route path="/dashboard/admin" element={<DashboardAdmin />} />
-        <Route path="/admin/usuarios" element={<GestionUsuarios />} />
-        <Route path="/admin/contenido" element={<GestionContenido />} />
-        <Route path="/admin/reportes" element={<AdminReportes />} />
+        <Route
+          path="/dashboard/admin"
+          element={
+            <ProtectedRoute allowedRoles={['Administrador']}>
+              <DashboardAdmin />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/usuarios"
+          element={
+            <ProtectedRoute allowedRoles={['Administrador']}>
+              <GestionUsuarios />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/contenido"
+          element={
+            <ProtectedRoute allowedRoles={['Administrador']}>
+              <GestionContenido />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/reportes"
+          element={
+            <ProtectedRoute allowedRoles={['Administrador']}>
+              <AdminReportes />
+            </ProtectedRoute>
+          }
+        />
 
-        <Route path="/dashboard/estudiante" element={<DashboardEstudiante />} />
-        <Route path="/estudiante/grupos/:grupoId/practicas" element={<PracticasGrupoEstudiante />} />
-        <Route path="/estudiante/practicas/:practicaId" element={<SimulacionEstudiante />} />
-        <Route path="/estudiante/practicas/:practicaId/foro/:grupoId" element={<ForoEstudiante />} />
+        <Route
+          path="/dashboard/estudiante"
+          element={
+            <ProtectedRoute allowedRoles={['Estudiante']}>
+              <DashboardEstudiante />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/estudiante/grupos/:grupoId/practicas"
+          element={
+            <ProtectedRoute allowedRoles={['Estudiante']}>
+              <PracticasGrupoEstudiante />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/estudiante/practicas/:practicaId"
+          element={
+            <ProtectedRoute allowedRoles={['Estudiante']}>
+              <SimulacionEstudiante />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/estudiante/practicas/:practicaId/foro/:grupoId"
+          element={
+            <ProtectedRoute allowedRoles={['Estudiante']}>
+              <ForoEstudiante />
+            </ProtectedRoute>
+          }
+        />
 
-        <Route path="/dashboard/docente" element={<TeacherDashboard />} />
-        <Route path="/docente/grupos" element={<TeacherGrupos />} />
-        <Route path="/docente/grupo/:grupoId/practicas" element={<PracticasGrupo />} />
-        <Route path="/docente/grupo/:grupoId/practica/:practicaId" element={<PracticaEstudiantes />} />
-        <Route path="/docente/grupo/:grupoId/practica/:practicaId/foro" element={<Foro />} />
-        <Route path="/docente/grupo/:grupoId/practica/:practicaId/informe/:informeId" element={<InformeEstudiante />} />
-        <Route path="/docente/practicas/crear" element={<CrearPractica />} />
+        <Route
+          path="/dashboard/docente"
+          element={
+            <ProtectedRoute allowedRoles={['Docente']}>
+              <TeacherDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/docente/grupos"
+          element={
+            <ProtectedRoute allowedRoles={['Docente']}>
+              <TeacherGrupos />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/docente/grupo/:grupoId/practicas"
+          element={
+            <ProtectedRoute allowedRoles={['Docente']}>
+              <PracticasGrupo />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/docente/grupo/:grupoId/practica/:practicaId"
+          element={
+            <ProtectedRoute allowedRoles={['Docente']}>
+              <PracticaEstudiantes />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/docente/grupo/:grupoId/practica/:practicaId/foro"
+          element={
+            <ProtectedRoute allowedRoles={['Docente']}>
+              <Foro />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/docente/grupo/:grupoId/practica/:practicaId/informe/:informeId"
+          element={
+            <ProtectedRoute allowedRoles={['Docente']}>
+              <InformeEstudiante />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/docente/practicas/crear"
+          element={
+            <ProtectedRoute allowedRoles={['Docente']}>
+              <CrearPractica />
+            </ProtectedRoute>
+          }
+        />
 
         <Route path="/estudiante" element={<Navigate to="/dashboard/estudiante" replace />} />
         <Route path="/docente" element={<Navigate to="/dashboard/docente" replace />} />

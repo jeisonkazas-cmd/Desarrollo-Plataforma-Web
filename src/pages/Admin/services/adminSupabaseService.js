@@ -60,7 +60,7 @@ export async function fetchUsuariosAdmin() {
       entraOid: row.entra_oid ?? null,
       nombre: row.nombre_completo ?? '',
       email: row.correo ?? '',
-      rol: rol ?? 'estudiante',
+      rol: rol ?? 'sin_rol',
       estado: row.estado ?? 'pendiente',
       fechaRegistro: row.created_at ?? null,
       ultimoAcceso: null,

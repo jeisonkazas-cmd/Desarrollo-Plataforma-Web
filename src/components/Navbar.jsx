@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { supabase } from '../services/supabaseClient';
 
 function Navbar() {
   const [openMenu, setOpenMenu] = useState(null);
@@ -8,6 +9,12 @@ function Navbar() {
   const profileRef = useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    setProfileOpen(false);
+    await supabase.auth.signOut();
+    navigate('/login', { replace: true });
+  };
 
   const isAuthenticated = useMemo(
     () => ['/docente', '/admin', '/estudiante'].some((p) => location.pathname.startsWith(p)),
@@ -225,7 +232,7 @@ function Navbar() {
                     type="button"
                     className="wl-profile-item wl-profile-logout"
                     role="menuitem"
-                    onClick={() => { setProfileOpen(false); navigate('/login'); }}
+                    onClick={handleLogout}
                   >
                     Cerrar sesión
                   </button>

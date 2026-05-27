@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import '../styles/login.css';
 import { supabase } from '../services/supabaseClient';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { getOrCreateUserProfile } from '../services/authService';
 
 function IconArrow() {
   return (
@@ -31,6 +34,28 @@ function IconSupport() {
 }
 
 export default function Login() {
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const { user, perfil, rol } = await getOrCreateUserProfile();
+
+      if (!user) return;
+
+      if (!perfil || perfil.estado !== 'activo' || !rol) {
+        navigate('/pendiente', { replace: true });
+        return;
+      }
+
+      if (rol === 'Administrador') navigate('/dashboard/admin', { replace: true });
+      else if (rol === 'Docente') navigate('/dashboard/docente', { replace: true });
+      else if (rol === 'Estudiante') navigate('/dashboard/estudiante', { replace: true });
+    };
+
+    checkSession();
+  }, [navigate]);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 

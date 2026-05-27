@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../components/AdminLayout';
 import { ArrowLeftIcon, UsersIcon, PencilIcon, TrashIcon, EyeIcon, PlusIcon } from '../components/AdminIcons';
-import { deleteUsuarioAdmin, fetchUsuariosAdmin, updateUsuarioAdmin } from '../services/adminApiService';
+import { deleteUsuarioAdmin, fetchUsuariosAdmin, updateUsuarioAdmin } from '../services/adminSupabaseService';
 import '../../../styles/admin.css';
 
 export default function GestionUsuarios() {
@@ -31,7 +31,7 @@ export default function GestionUsuarios() {
     } catch (err) {
       console.error('Error cargando usuarios:', err);
       if (err?.status === 401) {
-        navigate('/login', { replace: true });
+        setError('No se pudo validar la sesión.');
         return;
       }
       if (err?.status === 403) {
@@ -229,6 +229,7 @@ export default function GestionUsuarios() {
             <option value="estudiante">Estudiantes</option>
             <option value="docente">Docentes</option>
             <option value="admin">Administradores</option>
+            <option value="sin_rol">Sin rol</option>
           </select>
 
           <select
@@ -239,6 +240,7 @@ export default function GestionUsuarios() {
             <option value="todos">Todos los estados</option>
             <option value="activo">Activos</option>
             <option value="suspendido">Suspendidos</option>
+            <option value="pendiente">Pendientes</option>
           </select>
         </div>
       </div>
@@ -275,8 +277,14 @@ export default function GestionUsuarios() {
                   <td>{usuario.email}</td>
                   <td>
                     <span className={`admin-badge admin-badge-${usuario.rol}`}>
-                      {usuario.rol === 'estudiante' ? '🎓' : usuario.rol === 'docente' ? '👨‍🏫' : '⚙️'}{' '}
-                      {usuario.rol}
+                      {usuario.rol === 'estudiante'
+                        ? '🎓'
+                        : usuario.rol === 'docente'
+                        ? '👨‍🏫'
+                        : usuario.rol === 'admin'
+                        ? '⚙️'
+                        : '⏳'}{' '}
+                      {usuario.rol === 'sin_rol' ? 'Sin rol' : usuario.rol}
                     </span>
                   </td>
                   <td>
@@ -381,6 +389,7 @@ export default function GestionUsuarios() {
                 >
                   <option value="activo">Activo</option>
                   <option value="suspendido">Suspendido</option>
+                  <option value="pendiente">Pendientes</option>
                 </select>
               </div>
             </div>
