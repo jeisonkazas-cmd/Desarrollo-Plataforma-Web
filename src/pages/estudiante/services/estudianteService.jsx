@@ -1,262 +1,375 @@
-const GRUPOS = [
-  {
-    id: '1',
-    nombre: 'Física I - 3303A',
-    semester: '2024-I',
-    docente: 'Dr. Juan Pérez',
-    horario: 'Lun/Mié 10:00-12:00',
-    salon: 'L-301',
-    activo: true,
-  },
-  {
-    id: '2',
-    nombre: 'Química General - 2204B',
-    semester: '2024-I',
-    docente: 'Dra. María López',
-    horario: 'Mar/Jue 14:00-16:00',
-    salon: 'L-205',
-    activo: true,
-  },
-  {
-    id: '3',
-    nombre: 'Álgebra Lineal - 1502C',
-    semester: '2024-I',
-    docente: 'Dr. Carlos Ruiz',
-    horario: 'Lun/Mié 08:00-10:00',
-    salon: 'Aula 401',
-    activo: true,
-  },
-  {
-    id: '4',
-    nombre: 'Programación I - 3401D',
-    semester: '2023-II',
-    docente: 'Ing. Ana García',
-    horario: 'Mar/Jue 16:00-18:00',
-    salon: 'Lab Comp 1',
-    activo: false,
-  },
-];
+import { supabase } from '../../../services/supabaseClient';
 
-const PRACTICAS = [
-  // Física I - Virtual
-  {
-    id: '1',
-    grupoId: '1',
-    titulo: 'Caída Libre',
-    descripcion: 'Estudio experimental de la caída libre de objetos bajo la influencia de la gravedad.',
-    htmlUrl: '/laboratorios/lab_fisica1_virtual/Simulador_CaidaLibre.html',
-    informeUrl: '/laboratorios/lab_fisica1_virtual/Practica_CaidaLibre.html',
-    tipo: 'virtual',
-    estado: 'pendiente',
-    fechaEntrega: '2024-05-15',
-    fechaCalificacion: null,
-    calificacion: null,
-    instrucciones: 'Realiza mínimo 5 mediciones. Captura pantallas y genera gráficos.',
-  },
-  {
-    id: '2',
-    grupoId: '1',
-    titulo: 'Ley de Hooke',
-    descripcion: 'Análisis de la elasticidad y la relación entre fuerza y deformación.',
-    htmlUrl: '/laboratorios/lab_fisica1_virtual/Simulador_LeyDeHooke.html',
-    informeUrl: '/laboratorios/lab_fisica1_virtual/Practica_LeyDeHooke.html',
-    tipo: 'virtual',
-    estado: 'entregado',
-    fechaEntrega: '2024-05-08',
-    fechaCalificacion: '2024-05-10',
-    calificacion: 4.2,
-    instrucciones: 'Mide constantes de resortes distintos. Compara resultados.',
-  },
-  {
-    id: '3',
-    grupoId: '1',
-    titulo: 'Leyes de Newton - Plano Inclinado',
-    descripcion: 'Verificación experimental de las tres leyes de Newton con movimiento en plano inclinado.',
-    htmlUrl: '/laboratorios/lab_fisica1_virtual/Simulador_Leyes_de_Newton_Plano.html',
-    informeUrl: '/laboratorios/lab_fisica1_virtual/Practica_Leyes_de_Newto_Plano.html',
-    tipo: 'virtual',
-    estado: 'calificado',
-    fechaEntrega: '2024-05-01',
-    fechaCalificacion: '2024-05-05',
-    calificacion: 4.5,
-    instrucciones: 'Varía ángulos y masas. Determina aceleración teórica vs experimental.',
-  },
-  {
-    id: '4',
-    grupoId: '1',
-    titulo: 'Movimiento Parabólico',
-    descripcion: 'Análisis del movimiento de proyectiles en dos dimensiones.',
-    htmlUrl: '/laboratorios/lab_fisica1_virtual/Simulador_parabolico_3D.html',
-    informeUrl: '/laboratorios/lab_fisica1_virtual/Practica_MovimientoParabolico.html',
-    tipo: 'virtual',
-    estado: 'pendiente',
-    fechaEntrega: '2024-05-22',
-    fechaCalificacion: null,
-    calificacion: null,
-    instrucciones: 'Prueba con distintos ángulos. Calcula alcance máximo y altura máxima.',
-  },
-  {
-    id: '5',
-    grupoId: '1',
-    titulo: 'Cinemática (MUR-MUA)',
-    descripcion: 'Movimiento rectilíneo uniforme y uniformemente acelerado.',
-    htmlUrl: '/laboratorios/lab_fisica1_virtual/Simulador_MUR-MUA.html',
-    informeUrl: '/laboratorios/lab_fisica1_virtual/Practica_MUR-MUA.html',
-    tipo: 'virtual',
-    estado: 'entregado',
-    fechaEntrega: '2024-04-30',
-    fechaCalificacion: '2024-05-02',
-    calificacion: 3.8,
-    instrucciones: 'Grafica posición vs tiempo. Identifica tipo de movimiento.',
-  },
-  // Física I - Presencial
-  {
-    id: '6',
-    grupoId: '1',
-    titulo: 'Mediciones e Incertidumbres (Presencial)',
-    descripcion: 'Técnicas de medición y análisis de errores experimentales.',
-    htmlUrl: '/laboratorios/lab_fisica1_presencial/Practica_Mediciones_Incertidumbres_P.html',
-    informeUrl: '/laboratorios/lab_fisica1_presencial/Practica_Mediciones_Incertidumbres_P.html',
-    tipo: 'presencial',
-    estado: 'calificado',
-    fechaEntrega: '2024-04-25',
-    fechaCalificacion: '2024-04-28',
-    calificacion: 4.0,
-    instrucciones: 'Realiza 10 mediciones. Calcula promedio, desviación estándar e incertidumbre.',
-  },
-  {
-    id: '7',
-    grupoId: '1',
-    titulo: 'Colisiones (Presencial)',
-    descripcion: 'Estudio de colisiones elásticas e inelásticas.',
-    htmlUrl: '/laboratorios/lab_fisica1_presencial/Practica_Colisiones_P.html',
-    informeUrl: '/laboratorios/lab_fisica1_presencial/Practica_Colisiones_P.html',
-    tipo: 'presencial',
-    estado: 'pendiente',
-    fechaEntrega: '2024-05-20',
-    fechaCalificacion: null,
-    calificacion: null,
-    instrucciones: 'Usa carriles de aire. Compara momentum antes y después.',
-  },
-  // Química
-  {
-    id: '8',
-    grupoId: '2',
-    titulo: 'Reacciones Ácido-Base',
-    descripcion: 'Neutralización y cálculo de equivalentes.',
-    htmlUrl: null,
-    informeUrl: null,
-    tipo: 'presencial',
-    estado: 'pendiente',
-    fechaEntrega: '2024-05-18',
-    fechaCalificacion: null,
-    calificacion: null,
-    instrucciones: 'Titulación de ácido con base conocida.',
-  },
-];
+function formatDate(value) {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toISOString().slice(0, 10);
+}
 
-const FOROS = {
-  '1': [ // Caída Libre
-    {
-      id: 'f1',
-      autor: 'Dr. Juan Pérez',
-      rol: 'profesor',
-      contenido: 'En esta práctica deben cuidar que el objeto caiga desde la misma altura. ¿Alguien tiene dudas?',
-      timestamp: '2024-05-10 14:30',
-      visitas: 23,
-      respuestas: 2,
-    },
-    {
-      id: 'f2',
-      autor: 'Carlos González',
-      rol: 'estudiante',
-      contenido: 'Profesor, ¿los resultados deben incluir incertidumbre? ¿O solo el promedio?',
-      timestamp: '2024-05-10 16:45',
-      visitas: 15,
-      respuestas: 1,
-    },
-    {
-      id: 'f3',
-      autor: 'Dr. Juan Pérez',
-      rol: 'profesor',
-      contenido: '@Carlos: Deben incluir incertidumbre con intervalo de confianza del 95%.',
-      timestamp: '2024-05-10 17:20',
-      visitas: 12,
-      respuestas: 0,
-    },
-  ],
-  '2': [ // Ley de Hooke
-    {
-      id: 'f4',
-      autor: 'Sofía Martínez',
-      rol: 'estudiante',
-      contenido: '¿Cómo determino la constante de resorte K con el simulador?',
-      timestamp: '2024-05-08 10:15',
-      visitas: 8,
-      respuestas: 3,
-    },
-    {
-      id: 'f5',
-      autor: 'Dr. Juan Pérez',
-      rol: 'profesor',
-      contenido: '@Sofía: Usa F=kx y mide fuerza vs desplazamiento. La pendiente es K.',
-      timestamp: '2024-05-08 11:30',
-      visitas: 12,
-      respuestas: 0,
-    },
-  ],
-};
+function formatDateTime(value) {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+  return date.toLocaleString('es-CO', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+function getPracticeFallbackImage(practicaId) {
+  const images = [
+    '/imagenes/CAIDA_LIBRE.png',
+    '/imagenes/CAMPO_MAGNETICO.png',
+    '/imagenes/REPRESENTACION_VECTORIAL.png',
+    '/imagenes/MUR.png',
+    '/imagenes/PROYECTILES.png',
+    '/imagenes/ONDA_ESTACIONARIA.png',
+  ];
+  const index = Number(practicaId) % images.length;
+  return images[index] || '/imagenes/is3.png';
+}
+
+function parseSimulationConfig(value) {
+  if (!value) return {};
+
+  try {
+    return typeof value === 'string' ? JSON.parse(value) : value;
+  } catch {
+    return {};
+  }
+}
+
+async function getCurrentProfile() {
+  const {
+    data: { session },
+    error: sessionError,
+  } = await supabase.auth.getSession();
+
+  if (sessionError) throw sessionError;
+  if (!session?.user) throw new Error('No hay una sesión activa.');
+
+  const { data, error } = await supabase
+    .from('usuarios')
+    .select('usuario_id, entra_oid, correo, nombre_completo, estado')
+    .eq('entra_oid', session.user.id)
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!data) throw new Error('No se encontró el perfil del estudiante.');
+
+  return data;
+}
+
+async function getInformeByPractica(practicaId, estudianteId) {
+  const { data, error } = await supabase
+    .from('informes')
+    .select('informe_id, estado, archivo_url, archivo_nombre, fecha_entrega')
+    .eq('practica_id', Number(practicaId))
+    .eq('estudiante_id', estudianteId)
+    .order('fecha_entrega', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data;
+}
+
+async function getRetroalimentacion(informeId) {
+  if (!informeId) return null;
+
+  const { data, error } = await supabase
+    .from('retroalimentaciones')
+    .select('calificacion, comentario, fecha_retroalimentacion')
+    .eq('informe_id', informeId)
+    .order('fecha_retroalimentacion', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data;
+}
+
+async function getSimulacionByPractica(practicaId) {
+  const { data, error } = await supabase
+    .from('simulaciones')
+    .select('simulacion_id, titulo, descripcion, url_recurso, configuracion_json')
+    .eq('practica_id', Number(practicaId))
+    .limit(1)
+    .maybeSingle();
+
+  if (error) return null;
+  return data;
+}
+
+function mapEstado(informe, retroalimentacion, practica) {
+  if (retroalimentacion?.calificacion !== null && retroalimentacion?.calificacion !== undefined) {
+    return 'calificado';
+  }
+
+  if (informe) return informe.estado || 'entregado';
+  if (practica?.estado === 'cerrada') return 'pendiente';
+  return 'pendiente';
+}
+
+async function mapPractica(practica, estudianteId) {
+  const [informe, simulacion] = await Promise.all([
+    getInformeByPractica(practica.practica_id, estudianteId),
+    getSimulacionByPractica(practica.practica_id),
+  ]);
+  const retroalimentacion = await getRetroalimentacion(informe?.informe_id);
+  const estado = mapEstado(informe, retroalimentacion, practica);
+  const simulationConfig = parseSimulationConfig(simulacion?.configuracion_json);
+  const guiaUrl =
+    simulationConfig.guiaUrl ||
+    simulationConfig.informeUrl ||
+    simulationConfig.plantillaUrl ||
+    null;
+
+  return {
+    id: String(practica.practica_id),
+    grupoId: String(practica.grupo_id),
+    titulo: practica.titulo || 'Práctica',
+    descripcion: practica.descripcion || '',
+    htmlUrl: simulacion?.url_recurso || simulationConfig.simuladorUrl || null,
+    informeUrl: guiaUrl,
+    informeEntregadoUrl: informe?.archivo_url || null,
+    tipo: simulacion?.url_recurso ? 'virtual' : 'presencial',
+    estado,
+    fechaEntrega: formatDate(practica.fecha_entrega),
+    fecha: formatDate(practica.fecha_entrega),
+    fechaCalificacion: formatDate(retroalimentacion?.fecha_retroalimentacion),
+    calificacion: retroalimentacion?.calificacion ?? null,
+    puntaje: retroalimentacion?.calificacion ?? undefined,
+    instrucciones: practica.instrucciones || practica.objetivos || practica.descripcion || '',
+    objetivos: practica.objetivos || '',
+    image: getPracticeFallbackImage(practica.practica_id),
+    informeId: informe?.informe_id ? String(informe.informe_id) : null,
+    archivoNombre: informe?.archivo_nombre || null,
+    retroalimentacion: retroalimentacion?.comentario || '',
+    simulacion,
+  };
+}
+
+export async function getGrupos() {
+  const profile = await getCurrentProfile();
+
+  const { data: links, error: linksError } = await supabase
+    .from('grupos_estudiantes')
+    .select('grupo_id, estado, fecha_inscripcion')
+    .eq('usuario_id', profile.usuario_id);
+
+  if (linksError) throw linksError;
+
+  const grupoIds = (links ?? []).map((link) => link.grupo_id);
+  if (grupoIds.length === 0) return [];
+
+  const { data: grupos, error: gruposError } = await supabase
+    .from('grupos')
+    .select('grupo_id, nombre, descripcion, estado, fecha_creacion')
+    .in('grupo_id', grupoIds)
+    .order('nombre', { ascending: true });
+
+  if (gruposError) throw gruposError;
+
+  const linkByGroup = new Map((links ?? []).map((link) => [link.grupo_id, link]));
+
+  return (grupos ?? []).map((grupo) => {
+    const link = linkByGroup.get(grupo.grupo_id);
+
+    return {
+      id: String(grupo.grupo_id),
+      nombre: grupo.nombre || `Grupo ${grupo.grupo_id}`,
+      semester: grupo.descripcion || 'Periodo actual',
+      docente: '',
+      horario: '',
+      salon: '',
+      activo: (link?.estado || grupo.estado || 'activo') === 'activo',
+      descripcion: grupo.descripcion || '',
+    };
+  });
+}
+
+export async function getGrupoDetalle(grupoId) {
+  const grupos = await getGrupos();
+  return grupos.find((grupo) => grupo.id === String(grupoId)) || null;
+}
+
+export async function getPerfilEstudiante() {
+  const profile = await getCurrentProfile();
+
+  return {
+    id: String(profile.usuario_id),
+    nombre: profile.nombre_completo || 'Estudiante',
+    correo: profile.correo || '',
+    primerNombre: (profile.nombre_completo || 'Estudiante').split(' ')[0],
+  };
+}
 
 export async function getPracticasByGrupo(grupoId) {
-  await new Promise(resolve => setTimeout(resolve, 300));
+  const profile = await getCurrentProfile();
 
-  return PRACTICAS.filter(p => p.grupoId === grupoId);
+  const { data, error } = await supabase
+    .from('practicas')
+    .select('practica_id, grupo_id, titulo, descripcion, objetivos, instrucciones, fecha_publicacion, fecha_entrega, estado')
+    .eq('grupo_id', Number(grupoId))
+    .order('fecha_entrega', { ascending: true, nullsFirst: false });
+
+  if (error) throw error;
+
+  return Promise.all((data ?? []).map((practica) => mapPractica(practica, profile.usuario_id)));
 }
 
 export async function getPracticaDetalle(practicaId) {
-  await new Promise(resolve => setTimeout(resolve, 200));
+  const profile = await getCurrentProfile();
 
-  const practica = PRACTICAS.find(p => p.id === practicaId);
-  return practica || null;
+  const { data, error } = await supabase
+    .from('practicas')
+    .select('practica_id, grupo_id, titulo, descripcion, objetivos, instrucciones, fecha_publicacion, fecha_entrega, estado')
+    .eq('practica_id', Number(practicaId))
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!data) return null;
+
+  return mapPractica(data, profile.usuario_id);
+}
+
+async function getOrCreateForo(practicaId) {
+  const { data: existing, error: existingError } = await supabase
+    .from('foros')
+    .select('foro_id, practica_id, titulo, descripcion, estado')
+    .eq('practica_id', Number(practicaId))
+    .maybeSingle();
+
+  if (existingError) throw existingError;
+  if (existing) return existing;
+
+  const practica = await getPracticaDetalle(practicaId);
+  const { data, error } = await supabase
+    .from('foros')
+    .insert({
+      practica_id: Number(practicaId),
+      titulo: practica?.titulo ? `Foro - ${practica.titulo}` : 'Foro de práctica',
+      descripcion: 'Espacio de discusión de la práctica',
+      estado: 'activo',
+    })
+    .select('foro_id, practica_id, titulo, descripcion, estado')
+    .single();
+
+  if (error) throw error;
+  return data;
 }
 
 export async function getForoPractica(practicaId) {
-  await new Promise(resolve => setTimeout(resolve, 250));
+  const foro = await getOrCreateForo(practicaId);
 
-  return FOROS[practicaId] || [];
-}
+  const { data: mensajes, error } = await supabase
+    .from('mensajes_foro')
+    .select('mensaje_id, foro_id, autor_id, mensaje_padre_id, contenido, fecha_creacion')
+    .eq('foro_id', foro.foro_id)
+    .order('fecha_creacion', { ascending: false });
 
-export async function subirInforme(practicaId, file) {
-  await new Promise(resolve => setTimeout(resolve, 500));
+  if (error) throw error;
 
-  return { success: true, mensaje: 'Informe subido correctamente' };
+  const autorIds = [...new Set((mensajes ?? []).map((mensaje) => mensaje.autor_id).filter(Boolean))];
+  const { data: autores, error: autoresError } = autorIds.length > 0
+    ? await supabase
+        .from('usuarios')
+        .select('usuario_id, nombre_completo, usuarios_roles(roles(nombre))')
+        .in('usuario_id', autorIds)
+    : { data: [], error: null };
+
+  if (autoresError) throw autoresError;
+
+  const autorById = new Map((autores ?? []).map((autor) => [autor.usuario_id, autor]));
+
+  return (mensajes ?? []).map((mensaje) => {
+    const autor = autorById.get(mensaje.autor_id);
+    const rol = autor?.usuarios_roles?.[0]?.roles?.nombre === 'Docente' ? 'profesor' : 'estudiante';
+
+    return {
+      id: String(mensaje.mensaje_id),
+      autor: autor?.nombre_completo || 'Usuario',
+      autorAvatar: null,
+      rol,
+      contenido: mensaje.contenido,
+      timestamp: formatDateTime(mensaje.fecha_creacion),
+      visitas: 0,
+      respuestas: 0,
+      mensajePadreId: mensaje.mensaje_padre_id ? String(mensaje.mensaje_padre_id) : null,
+    };
+  });
 }
 
 export async function publicarPostForo(practicaId, contenido) {
-  await new Promise(resolve => setTimeout(resolve, 400));
+  const profile = await getCurrentProfile();
+  const foro = await getOrCreateForo(practicaId);
 
-  const nuevoPost = {
-    id: `f${Date.now()}`,
-    autor: 'Tu Nombre',
-    rol: 'estudiante',
-    contenido: contenido,
-    timestamp: new Date().toLocaleString('es-ES'),
-    visitas: 0,
-    respuestas: 0,
-  };
+  const { error } = await supabase.from('mensajes_foro').insert({
+    foro_id: foro.foro_id,
+    autor_id: profile.usuario_id,
+    contenido: contenido.trim(),
+  });
 
-  if (!FOROS[practicaId]) FOROS[practicaId] = [];
-  FOROS[practicaId].push(nuevoPost);
+  if (error) throw error;
 
   return { success: true, mensaje: 'Post publicado' };
 }
 
-export async function getGrupos() {
-  await new Promise(resolve => setTimeout(resolve, 200));
-  return GRUPOS;
-}
+export async function subirInforme(practicaId, file) {
+  const profile = await getCurrentProfile();
+  let archivoUrl = null;
+  let archivoNombre = file?.name || null;
 
-export async function getGrupoDetalle(grupoId) {
-  await new Promise(resolve => setTimeout(resolve, 150));
-  return GRUPOS.find(g => g.id === grupoId) || null;
+  if (file) {
+    const safeName = file.name.replace(/\s+/g, '_');
+    const storagePath = `${profile.usuario_id}/${practicaId}/${Date.now()}_${safeName}`;
+    const { error: uploadError } = await supabase.storage
+      .from('informes')
+      .upload(storagePath, file, { upsert: true });
+
+    if (uploadError) {
+      throw new Error(
+        'No se pudo subir el archivo. Verifica que exista el bucket "informes" en Supabase.'
+      );
+    }
+
+    const { data: publicUrlData } = supabase.storage
+      .from('informes')
+      .getPublicUrl(storagePath);
+
+    archivoUrl = publicUrlData?.publicUrl || storagePath;
+  }
+
+  const existing = await getInformeByPractica(practicaId, profile.usuario_id);
+
+  if (existing?.informe_id) {
+    const { error } = await supabase
+      .from('informes')
+      .update({
+        archivo_url: archivoUrl,
+        archivo_nombre: archivoNombre,
+        estado: 'entregado',
+        fecha_actualizacion: new Date().toISOString(),
+      })
+      .eq('informe_id', existing.informe_id);
+
+    if (error) throw error;
+  } else {
+    const { error } = await supabase.from('informes').insert({
+      practica_id: Number(practicaId),
+      estudiante_id: profile.usuario_id,
+      archivo_url: archivoUrl,
+      archivo_nombre: archivoNombre,
+      estado: 'entregado',
+    });
+
+    if (error) throw error;
+  }
+
+  return { success: true, mensaje: 'Informe subido correctamente' };
 }

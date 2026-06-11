@@ -1,23 +1,70 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../components/AdminLayout';
 import { ArrowLeftIcon, BarChartIcon } from '../components/AdminIcons';
-import { getMockReportes } from '../services/adminService';
+import { fetchReportesAdmin } from '../services/adminSupabaseService';
 import '../../../styles/admin.css';
+
+const emptyReportes = {
+  resumen: {
+    totalUsuarios: 0,
+    estudiantesActivos: 0,
+    docentesActivos: 0,
+    administradores: 0,
+  },
+  accesoPorRol: [],
+  actividadPorSemana: [],
+  practicasPopulares: [],
+  estadisticasActividad: {
+    semanaMasActiva: { semana: 'S1', accesos: 0 },
+    promedioSemanal: 0,
+    totalActividad: 0,
+    ultimaActualizacion: '',
+  },
+};
 
 export default function AdminReportes() {
   const navigate = useNavigate();
-  const reportes = useMemo(() => getMockReportes(), []);
+  const [reportes, setReportes] = useState(emptyReportes);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadReportes() {
+      try {
+        setLoading(true);
+        setError('');
+        const data = await fetchReportesAdmin();
+        if (mounted) setReportes(data);
+      } catch (err) {
+        if (mounted) {
+          setError(err?.message || 'No se pudieron cargar los reportes.');
+          setReportes(emptyReportes);
+        }
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    }
+
+    loadReportes();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const resumen = reportes.resumen;
 
   const SimpleBarChart = ({ data, label }) => {
-    const max = Math.max(...data.map((d) => d.accesos));
+    const max = Math.max(...data.map((item) => item.accesos), 1);
+
     return (
       <div className="admin-chart">
         <h3>{label}</h3>
         <div className="admin-chart-bars">
-          {data.map((item, idx) => (
+          {data.length > 0 ? data.map((item, idx) => (
             <div key={idx} className="admin-chart-bar-group">
               <div
                 className="admin-chart-bar"
@@ -28,7 +75,9 @@ export default function AdminReportes() {
               <label>{item.semana || item.rol}</label>
               <span className="admin-chart-value">{item.accesos}</span>
             </div>
-          ))}
+          )) : (
+            <div className="admin-table-empty">Sin datos para graficar</div>
+          )}
         </div>
       </div>
     );
@@ -76,41 +125,40 @@ export default function AdminReportes() {
             <BarChartIcon />
             <h1>Reportes del Sistema</h1>
           </div>
-          <p>Estadísticas y métricas de uso de la plataforma</p>
+          <p>Estadisticas y metricas de uso de la plataforma</p>
         </div>
         <button
           type="button"
           className="admin-btn-primary"
           onClick={() => window.print()}
         >
-          📥 Descargar reporte
+          Descargar reporte
         </button>
       </div>
 
+      {error && <div className="admin-table-empty">{error}</div>}
+      {loading && <div className="admin-table-empty">Cargando reportes...</div>}
+
       <div className="admin-stats-grid">
         <div className="admin-stat-card">
-          <div className="admin-stat-icon">👥</div>
           <div className="admin-stat-content">
             <p className="admin-stat-label">Total usuarios</p>
             <p className="admin-stat-value">{resumen.totalUsuarios.toLocaleString()}</p>
           </div>
         </div>
         <div className="admin-stat-card">
-          <div className="admin-stat-icon">🎓</div>
           <div className="admin-stat-content">
             <p className="admin-stat-label">Estudiantes activos</p>
             <p className="admin-stat-value">{resumen.estudiantesActivos.toLocaleString()}</p>
           </div>
         </div>
         <div className="admin-stat-card">
-          <div className="admin-stat-icon">👨‍🏫</div>
           <div className="admin-stat-content">
             <p className="admin-stat-label">Docentes activos</p>
             <p className="admin-stat-value">{resumen.docentesActivos}</p>
           </div>
         </div>
         <div className="admin-stat-card">
-          <div className="admin-stat-icon">⚙️</div>
           <div className="admin-stat-content">
             <p className="admin-stat-label">Administradores</p>
             <p className="admin-stat-value">{resumen.administradores}</p>
@@ -120,77 +168,85 @@ export default function AdminReportes() {
 
       <div className="admin-charts-section">
         <div className="admin-chart-wrapper">
-          <SimpleBarChart data={reportes.accesoPorRol} label="Accesos por rol" />
+          <SimpleBarChart data={reportes.accesoPorRol} label="Usuarios por rol" />
         </div>
 
         <div className="admin-chart-wrapper">
-          <SimpleBarChart data={reportes.actividadPorSemana} label="Actividad semanal (últimas 7 semanas)" />
+          <SimpleBarChart data={reportes.actividadPorSemana} label="Entregas por semana (ultimas 7 semanas)" />
         </div>
       </div>
 
       <div className="admin-report-section">
-        <h2>Prácticas más populares</h2>
+        <h2>Practicas mas activas</h2>
         <div className="admin-table-container">
           <table className="admin-table">
             <thead>
               <tr>
-                <th>Práctica</th>
-                <th>Realizadas</th>
-                <th>Completadas</th>
-                <th>Tasa de compleción</th>
+                <th>Practica</th>
+                <th>Entregas</th>
+                <th>Calificadas</th>
+                <th>Tasa de revision</th>
                 <th>Progreso</th>
               </tr>
             </thead>
             <tbody>
-              {reportes.practicasPopulares.map((practica, idx) => (
-                <tr key={idx}>
-                  <td className="admin-table-name">{practica.titulo}</td>
-                  <td className="admin-table-number">{practica.realizadas}</td>
-                  <td className="admin-table-number">{practica.completadas}</td>
-                  <td className="admin-table-number">{practica.porcentaje}%</td>
-                  <td>
-                    <div className="admin-progress-bar">
-                      <div
-                        className="admin-progress-fill"
-                        style={{ width: `${practica.porcentaje}%` }}
-                      />
-                    </div>
+              {reportes.practicasPopulares.length > 0 ? (
+                reportes.practicasPopulares.map((practica, idx) => (
+                  <tr key={idx}>
+                    <td className="admin-table-name">{practica.titulo}</td>
+                    <td className="admin-table-number">{practica.realizadas}</td>
+                    <td className="admin-table-number">{practica.completadas}</td>
+                    <td className="admin-table-number">{practica.porcentaje}%</td>
+                    <td>
+                      <div className="admin-progress-bar">
+                        <div
+                          className="admin-progress-fill"
+                          style={{ width: `${practica.porcentaje}%` }}
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="5" className="admin-table-empty">
+                    Aun no hay informes entregados.
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
       </div>
 
       <div className="admin-info-section">
-        <h2>Información adicional</h2>
+        <h2>Informacion adicional</h2>
         <div className="admin-info-grid">
           <div className="admin-info-card">
-            <h3>Acceso por rol</h3>
+            <h3>Usuarios por rol</h3>
             <ul>
               {reportes.accesoPorRol.map((item, idx) => (
                 <li key={idx}>
-                  <strong>{item.rol}:</strong> {item.accesos.toLocaleString()} accesos ({item.porcentaje}%)
+                  <strong>{item.rol}:</strong> {item.accesos.toLocaleString()} usuarios ({item.porcentaje}%)
                 </li>
               ))}
             </ul>
           </div>
 
           <div className="admin-info-card">
-            <h3>Estadísticas de actividad</h3>
+            <h3>Estadisticas de actividad</h3>
             <ul>
               <li>
-                <strong>Semana con más actividad:</strong> Semana 6 (7,100 accesos)
+                <strong>Semana con mas entregas:</strong> {reportes.estadisticasActividad.semanaMasActiva.semana} ({reportes.estadisticasActividad.semanaMasActiva.accesos})
               </li>
               <li>
-                <strong>Promedio de usuarios activos/semana:</strong> 1,544
+                <strong>Promedio de entregas/semana:</strong> {reportes.estadisticasActividad.promedioSemanal}
               </li>
               <li>
-                <strong>Total de accesos registrados:</strong> {reportes.actividadPorSemana.reduce((sum, s) => sum + s.accesos, 0).toLocaleString()}
+                <strong>Total de entregas registradas:</strong> {reportes.estadisticasActividad.totalActividad.toLocaleString()}
               </li>
               <li>
-                <strong>Última actualización:</strong> 28 de abril de 2026
+                <strong>Ultima actualizacion:</strong> {reportes.estadisticasActividad.ultimaActualizacion || 'Sin datos'}
               </li>
             </ul>
           </div>

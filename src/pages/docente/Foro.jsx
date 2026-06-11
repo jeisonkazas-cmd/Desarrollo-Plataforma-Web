@@ -1,8 +1,8 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DocenteLayout from './components/DocenteLayout';
 import { ArrowLeftIcon, IconButton } from './components/icons';
-import { getMockPosts } from '../../mock/docenteMock';
+import { fetchDocenteForoReciente } from './services/docenteService';
 
 function initials(name) {
   const parts = String(name || '')
@@ -16,7 +16,35 @@ function initials(name) {
 
 export default function Foro() {
   const navigate = useNavigate();
-  const posts = useMemo(() => getMockPosts(), []);
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadPosts() {
+      try {
+        setLoading(true);
+        setError('');
+        const data = await fetchDocenteForoReciente();
+        if (mounted) setPosts(data);
+      } catch (err) {
+        if (mounted) {
+          setError(err?.message || 'No se pudo cargar el foro.');
+          setPosts([]);
+        }
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    }
+
+    loadPosts();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   return (
     <DocenteLayout
@@ -35,27 +63,45 @@ export default function Foro() {
       </div>
 
       <div className="docente-foro-list">
-        {posts.map((post) => (
+        {loading && (
+          <article className="docente-foro-item">
+            <p className="docente-foro-text">Cargando mensajes del foro...</p>
+          </article>
+        )}
+
+        {!loading && error && (
+          <article className="docente-foro-item">
+            <p className="docente-foro-text">{error}</p>
+          </article>
+        )}
+
+        {!loading && !error && posts.length === 0 && (
+          <article className="docente-foro-item">
+            <p className="docente-foro-text">Aun no hay mensajes en los foros de tus practicas.</p>
+          </article>
+        )}
+
+        {!loading && !error && posts.map((post) => (
           <article key={post.id} className="docente-foro-item">
             <header className="docente-foro-header">
               <div className="docente-foro-author" aria-label="Autor">
                 <div className="docente-avatar" aria-hidden="true">
-                  {initials(post.autor)}
+                  {initials(post.autorNombre)}
                 </div>
                 <div className="docente-foro-author-text">
-                  <div className="docente-foro-author-name">{post.autor}</div>
-                  <div className="docente-foro-author-meta">{post.tiempo}</div>
+                  <div className="docente-foro-author-name">{post.autorNombre}</div>
+                  <div className="docente-foro-author-meta">{post.tiempoPublicacion}</div>
                 </div>
               </div>
 
               <div className="docente-foro-right" aria-label="Contexto">
                 <span className="docente-pill docente-pill-practica">{post.practica}</span>
                 <span className="docente-badge" aria-label="Respuestas">
-                  {post.respuestas} resp.
+                  {post.respuestas || 0} resp.
                 </span>
               </div>
             </header>
-            <p className="docente-foro-text">{post.texto}</p>
+            <p className="docente-foro-text">{post.preview || post.contenido}</p>
           </article>
         ))}
       </div>

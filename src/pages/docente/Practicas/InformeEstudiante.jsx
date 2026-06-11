@@ -1,10 +1,15 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import DocenteLayout from '../components/DocenteLayout';
 import { ArrowLeftIcon } from '../components/icons';
 import '../../../styles/settings-panel.css';
 import '../../../styles/docente.css';
-import { getMockGrupos, getMockPracticasByGrupo, getMockInformeDetalle } from '../../../mock/docenteMock';
+import {
+  fetchDocenteGrupo,
+  fetchInformeDetalle,
+  fetchPracticaDetalle,
+  saveInformeGrade,
+} from '../services/docenteService';
 
 const NOTA_MIN = 0.0;
 const NOTA_MAX = 5.0;
@@ -13,23 +18,15 @@ export default function InformeEstudiante() {
   const navigate = useNavigate();
   const { grupoId, practicaId, informeId } = useParams();
 
-  const grupo = useMemo(() => {
-    const grupos = getMockGrupos();
-    return grupos.find((g) => g.id === grupoId) || { nombre: 'Grupo', codigo: '' };
-  }, [grupoId]);
-
-  const practica = useMemo(() => {
-    const practicas = getMockPracticasByGrupo(grupoId);
-    return practicas.find((p) => p.id === practicaId) || { titulo: 'Práctica' };
-  }, [grupoId, practicaId]);
-
-  const informe = useMemo(() => {
-    return getMockInformeDetalle(informeId);
-  }, [informeId]);
+  const [grupo, setGrupo] = useState({ nombre: 'Grupo', codigo: '' });
+  const [practica, setPractica] = useState({ titulo: 'Práctica' });
+  const [informe, setInforme] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
 
   const [form, setForm] = useState({
-    nota: informe.nota ? String(informe.nota) : '',
-    feedback: informe.feedback || '',
+    nota: '',
+    feedback: '',
   });
 
   const [formError, setFormError] = useState('');
@@ -54,8 +51,43 @@ export default function InformeEstudiante() {
     setForm((prev) => ({ ...prev, feedback: value }));
   };
 
+  useEffect(() => {
+    let alive = true;
+
+    const load = async () => {
+      try {
+        setLoading(true);
+        setLoadError('');
+        const [grupoData, practicaData, informeData] = await Promise.all([
+          fetchDocenteGrupo(grupoId),
+          fetchPracticaDetalle(grupoId, practicaId),
+          fetchInformeDetalle(informeId),
+        ]);
+
+        if (!alive) return;
+        setGrupo(grupoData || { nombre: 'Grupo', codigo: `Grupo ${grupoId}` });
+        setPractica(practicaData || { titulo: 'Práctica' });
+        setInforme(informeData);
+        setForm({
+          nota: informeData?.nota ? String(informeData.nota) : '',
+          feedback: informeData?.feedback || '',
+        });
+      } catch (err) {
+        if (alive) setLoadError(err.message || 'No se pudo cargar el informe.');
+      } finally {
+        if (alive) setLoading(false);
+      }
+    };
+
+    load();
+
+    return () => {
+      alive = false;
+    };
+  }, [grupoId, practicaId, informeId]);
+
   const handleDownload = () => {
-    if (informe.archivoUrl) {
+    if (informe?.archivoUrl) {
       window.open(informe.archivoUrl, '_blank');
     }
   };
@@ -64,7 +96,7 @@ export default function InformeEstudiante() {
     navigate(`/docente/grupo/${grupoId}/practica/${practicaId}`);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!isNotaValid()) {
       setFormError(
         `La nota debe estar entre ${NOTA_MIN} y ${NOTA_MAX}`
@@ -72,15 +104,40 @@ export default function InformeEstudiante() {
       return;
     }
 
-    setIsSaving(true);
-    setTimeout(() => {
+    try {
+      setIsSaving(true);
+      await saveInformeGrade(informeId, form.nota, form.feedback);
+      navigate(`/docente/grupo/${grupoId}/practica/${practicaId}`);
+    } catch (err) {
+      setFormError(err.message || 'No se pudo guardar la calificación.');
+    } finally {
       setIsSaving(false);
-    }, 500);
+    }
   };
+
+  if (loading) {
+    return (
+      <DocenteLayout footerText="© 2026 Universidad - Sistema de Gestión de Prácticas Académicas. Todos los derechos reservados.">
+        <div className="docente-practicas-grupo-empty">
+          <p>Cargando informe...</p>
+        </div>
+      </DocenteLayout>
+    );
+  }
+
+  if (loadError || !informe) {
+    return (
+      <DocenteLayout footerText="© 2026 Universidad - Sistema de Gestión de Prácticas Académicas. Todos los derechos reservados.">
+        <div className="docente-practicas-grupo-empty">
+          <p>{loadError || 'No se encontró el informe.'}</p>
+        </div>
+      </DocenteLayout>
+    );
+  }
 
   return (
     <DocenteLayout
-      footerText="© 2026 Universidad - Sistema de Gestión de Prácticas Académicas. Todos los derechos reservados."
+      footerText="Â© 2026 Universidad - Sistema de GestiÃ³n de PrÃ¡cticas AcadÃ©micas. Todos los derechos reservados."
       topBand={
         <div className="docente-nav-band">
           <div className="docente-nav-band-inner">
@@ -188,7 +245,7 @@ export default function InformeEstudiante() {
           </div>
           <div className="docente-informe-estudiante-header-right">
             <span className="docente-informe-estudiante-facultad-badge">
-              🎓 {informe.facultad}
+              ðŸŽ“ {informe.facultad}
             </span>
           </div>
         </div>
@@ -199,14 +256,14 @@ export default function InformeEstudiante() {
           <section className="docente-informe-card-section">
             <div className="docente-informe-card-section-header">
               <div className="docente-informe-card-section-icon-wrapper">
-                <div className="docente-informe-card-section-icon">📄</div>
+                <div className="docente-informe-card-section-icon">ðŸ“„</div>
               </div>
               <div>
                 <h2 className="docente-informe-card-section-title">
                   Informe entregado
                 </h2>
                 <p className="docente-informe-card-section-subtitle">
-                  Documento final de evaluación académica (.pdf)
+                  Documento final de evaluaciÃ³n acadÃ©mica (.pdf)
                 </p>
               </div>
             </div>
@@ -217,7 +274,7 @@ export default function InformeEstudiante() {
               onClick={handleDownload}
               aria-label="Descargar archivo"
             >
-              <span>📥</span>
+              <span>ðŸ“¥</span>
               Descargar archivo
             </button>
 
@@ -230,7 +287,7 @@ export default function InformeEstudiante() {
                 />
               ) : (
                 <>
-                  <span className="docente-informe-preview-icon">👁️</span>
+                  <span className="docente-informe-preview-icon">ðŸ‘ï¸</span>
                   <span className="docente-informe-preview-text">
                     Vista previa no disponible para este formato
                   </span>
@@ -239,18 +296,18 @@ export default function InformeEstudiante() {
             </div>
           </section>
 
-          {/* Card 2: Calificación */}
+          {/* Card 2: CalificaciÃ³n */}
           <section className="docente-informe-card-section">
             <div className="docente-informe-card-section-header-divider">
               <div className="docente-informe-card-section-icon-wrapper orange">
-                <div className="docente-informe-card-section-icon">⭐</div>
+                <div className="docente-informe-card-section-icon">â­</div>
               </div>
               <div>
                 <h2 className="docente-informe-card-section-title">
-                  Calificación
+                  CalificaciÃ³n
                 </h2>
                 <p className="docente-informe-card-section-subtitle">
-                  Ingrese la nota numérica final
+                  Ingrese la nota numÃ©rica final
                 </p>
               </div>
             </div>
@@ -285,31 +342,31 @@ export default function InformeEstudiante() {
 
               <div className="docente-informe-range-container">
                 <div className="docente-informe-range-header">
-                  <span className="docente-informe-range-info-icon">ℹ️</span>
+                  <span className="docente-informe-range-info-icon">â„¹ï¸</span>
                   <span className="docente-informe-range-label">
                     RANGO PERMITIDO
                   </span>
                 </div>
                 <div className="docente-informe-range-display">
-                  <span className="docente-informe-range-min">0.0 (Mínimo)</span>
+                  <span className="docente-informe-range-min">0.0 (MÃ­nimo)</span>
                   <div className="docente-informe-range-bar">
                     <div className="docente-informe-range-bar-fill" />
                   </div>
-                  <span className="docente-informe-range-max">5.0 (Máximo)</span>
+                  <span className="docente-informe-range-max">5.0 (MÃ¡ximo)</span>
                 </div>
               </div>
             </div>
           </section>
 
-          {/* Card 3: Retroalimentación */}
+          {/* Card 3: RetroalimentaciÃ³n */}
           <section className="docente-informe-card-section">
             <div className="docente-informe-card-section-header-divider">
               <div className="docente-informe-card-section-icon-wrapper emerald">
-                <div className="docente-informe-card-section-icon">💬</div>
+                <div className="docente-informe-card-section-icon">ðŸ’¬</div>
               </div>
               <div>
                 <h2 className="docente-informe-card-section-title">
-                  Retroalimentación
+                  RetroalimentaciÃ³n
                 </h2>
                 <p className="docente-informe-card-section-subtitle">
                   Comentarios para el desarrollo del estudiante
@@ -328,10 +385,10 @@ export default function InformeEstudiante() {
                 id="feedback"
                 value={form.feedback}
                 onChange={handleFeedbackChange}
-                placeholder="Escribe comentarios constructivos para el estudiante sobre su desempeño en este informe..."
+                placeholder="Escribe comentarios constructivos para el estudiante sobre su desempeÃ±o en este informe..."
                 className="docente-informe-textarea"
                 rows="6"
-                aria-label="Comentarios de retroalimentación"
+                aria-label="Comentarios de retroalimentaciÃ³n"
               />
               <div className="docente-informe-char-counter">
                 {form.feedback.length} / 500 caracteres
@@ -356,11 +413,12 @@ export default function InformeEstudiante() {
             onClick={handleSave}
             disabled={isSaveDisabled || isSaving}
           >
-            <span>💾</span>
-            {isSaving ? 'Guardando...' : 'Guardar calificación'}
+            <span>ðŸ’¾</span>
+            {isSaving ? 'Guardando...' : 'Guardar calificaciÃ³n'}
           </button>
         </footer>
       </div>
     </DocenteLayout>
   );
 }
+

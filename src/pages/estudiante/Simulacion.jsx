@@ -26,7 +26,7 @@ function Simulacion() {
     setViewMode,
     setSplitPct,
     resetSplit,
-  } = useSplitViewMode('sim', 55);
+  } = useSplitViewMode('split', 55);
 
   const { goBackToGroup, goToForum } = useSimulacionNavigation(practica, practicaId);
 

@@ -1,26 +1,53 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import DocenteLayout from '../components/DocenteLayout';
 import { ArrowLeftIcon } from '../components/icons';
 import '../../../styles/settings-panel.css';
 import '../../../styles/docente.css';
-import { getMockGrupos, getMockPracticasByGrupo } from '../../../mock/docenteMock';
+import { fetchDocenteGrupo, fetchPracticasByGrupo } from '../services/docenteService';
 
 export default function PracticasGrupo() {
   const navigate = useNavigate();
   const { grupoId } = useParams();
   const [filterStatus, setFilterStatus] = useState('todas');
+  const [grupo, setGrupo] = useState({ nombre: 'Grupo', codigo: '' });
+  const [practicas, setPracticas] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  const grupo = useMemo(() => {
-    const grupos = getMockGrupos();
-    return grupos.find((g) => g.id === grupoId) || { nombre: 'Grupo', codigo: '' };
+  useEffect(() => {
+    let alive = true;
+
+    const load = async () => {
+      try {
+        setLoading(true);
+        setError('');
+        const [grupoData, practicasData] = await Promise.all([
+          fetchDocenteGrupo(grupoId),
+          fetchPracticasByGrupo(grupoId),
+        ]);
+
+        if (!alive) return;
+        setGrupo(grupoData || { nombre: 'Grupo', codigo: `Grupo ${grupoId}` });
+        setPracticas(practicasData);
+      } catch (err) {
+        if (alive) setError(err.message || 'No se pudieron cargar las prácticas.');
+      } finally {
+        if (alive) setLoading(false);
+      }
+    };
+
+    load();
+
+    return () => {
+      alive = false;
+    };
   }, [grupoId]);
-
-  const practicas = useMemo(() => getMockPracticasByGrupo(grupoId), [grupoId]);
 
   const filteredPracticas = useMemo(() => {
     if (filterStatus === 'todas') return practicas;
-    return practicas.filter((p) => p.estado === filterStatus);
+    if (filterStatus === 'activas') return practicas.filter((p) => p.estado === 'activa');
+    return practicas.filter((p) => p.estado === 'cerrada');
   }, [practicas, filterStatus]);
 
   const counts = useMemo(() => {
@@ -168,7 +195,16 @@ export default function PracticasGrupo() {
 
         {/* Practices Grid */}
         <div className="docente-practicas-grupo-grid">
-          {filteredPracticas.length > 0 ? (
+          {error && (
+            <div className="docente-practicas-grupo-empty">
+              <p>{error}</p>
+            </div>
+          )}
+          {loading ? (
+            <div className="docente-practicas-grupo-empty">
+              <p>Cargando prácticas...</p>
+            </div>
+          ) : filteredPracticas.length > 0 ? (
             filteredPracticas.map((practica) => (
               <div
                 key={practica.id}

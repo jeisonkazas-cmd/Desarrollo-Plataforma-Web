@@ -1,15 +1,40 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DocenteLayout from '../components/DocenteLayout';
 import { ArrowLeftIcon } from '../components/icons';
 import '../../../styles/settings-panel.css';
 import '../../../styles/docente.css';
-import { getMockGrupos } from '../../../mock/docenteMock';
+import { fetchDocenteGrupos } from '../services/docenteService';
 
 export default function Grupos() {
   const navigate = useNavigate();
-  const grupos = useMemo(() => getMockGrupos(), []);
+  const [grupos, setGrupos] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    let alive = true;
+
+    const load = async () => {
+      try {
+        setLoading(true);
+        setError('');
+        const data = await fetchDocenteGrupos();
+        if (alive) setGrupos(data);
+      } catch (err) {
+        if (alive) setError(err.message || 'No se pudieron cargar los grupos.');
+      } finally {
+        if (alive) setLoading(false);
+      }
+    };
+
+    load();
+
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   const filteredGrupos = useMemo(() => {
     if (!searchTerm.trim()) return grupos;
@@ -135,8 +160,15 @@ export default function Grupos() {
         </div>
 
         {/* Groups Grid */}
+        {error && <p className="docente-form-error">{error}</p>}
+
         <div className="docente-grupos-grid">
-          {filteredGrupos.map((grupo) => (
+          {loading ? (
+            <div className="docente-practicas-grupo-empty">
+              <p>Cargando grupos...</p>
+            </div>
+          ) : filteredGrupos.length > 0 ? (
+            filteredGrupos.map((grupo) => (
             <button
               key={grupo.id}
               type="button"
@@ -178,7 +210,12 @@ export default function Grupos() {
                 <span className="docente-grupo-card-chevron">→</span>
               </div>
             </button>
-          ))}
+            ))
+          ) : (
+            <div className="docente-practicas-grupo-empty">
+              <p>No tienes grupos asignados todavía.</p>
+            </div>
+          )}
 
           {/* Add New Group Card */}
           <button

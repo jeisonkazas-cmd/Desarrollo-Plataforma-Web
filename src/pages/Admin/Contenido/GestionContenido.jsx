@@ -1,13 +1,22 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../components/AdminLayout';
 import { ArrowLeftIcon, BookIcon, TrashIcon, PlusIcon } from '../components/AdminIcons';
-import { getMockContenido, subirContenido } from '../services/adminService';
+import {
+  createContenidoAdmin,
+  deleteContenidoAdmin,
+  fetchContenidoAdmin,
+  fetchPracticasCatalogoAdmin,
+} from '../services/adminSupabaseService';
 import '../../../styles/admin.css';
 
 export default function GestionContenido() {
   const navigate = useNavigate();
-  const [contenidos, setContenidos] = useState(getMockContenido());
+  const [contenidos, setContenidos] = useState([]);
+  const [practicas, setPracticas] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [filterTipo, setFilterTipo] = useState('todos');
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -15,40 +24,79 @@ export default function GestionContenido() {
     titulo: '',
     tipo: 'simulacion',
     url: '',
+    practicaId: '',
   });
 
+  async function loadContenido() {
+    try {
+      setLoading(true);
+      setError('');
+      const [contenidoData, practicasData] = await Promise.all([
+        fetchContenidoAdmin(),
+        fetchPracticasCatalogoAdmin(),
+      ]);
+      setContenidos(contenidoData);
+      setPracticas(practicasData);
+    } catch (err) {
+      setError(err?.message || 'No se pudo cargar el contenido.');
+      setContenidos([]);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    loadContenido();
+  }, []);
+
   const filteredContenidos = useMemo(() => {
-    return contenidos.filter((c) => {
+    return contenidos.filter((contenido) => {
       const matchSearch =
         search.length === 0 ||
-        c.titulo.toLowerCase().includes(search.toLowerCase());
-      const matchTipo = filterTipo === 'todos' || c.tipo === filterTipo;
+        contenido.titulo.toLowerCase().includes(search.toLowerCase());
+      const matchTipo = filterTipo === 'todos' || contenido.tipo === filterTipo;
       return matchSearch && matchTipo;
     });
   }, [contenidos, search, filterTipo]);
 
-  const handleSaveContenido = () => {
-    if (!formData.titulo || !formData.url) {
+  const handleSaveContenido = async () => {
+    if (!formData.titulo || !formData.url || !formData.practicaId) {
       alert('Por favor completa todos los campos');
       return;
     }
 
-    setContenidos([...contenidos, subirContenido(formData)]);
-    setShowUploadModal(false);
-    setFormData({ titulo: '', tipo: 'simulacion', url: '' });
+    try {
+      setSaving(true);
+      const nextContenido = await createContenidoAdmin({
+        ...formData,
+        practicaId: Number(formData.practicaId),
+      });
+      setContenidos(nextContenido);
+      setShowUploadModal(false);
+      setFormData({ titulo: '', tipo: 'simulacion', url: '', practicaId: '' });
+    } catch (err) {
+      alert(err?.message || 'No se pudo guardar el contenido');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleDeleteContenido = (id) => {
-    if (window.confirm('¿Estás seguro de que deseas eliminar este contenido?')) {
-      setContenidos(contenidos.filter((c) => c.id !== id));
+  const handleDeleteContenido = async (contenido) => {
+    if (!window.confirm('Estas seguro de que deseas eliminar este contenido?')) return;
+
+    try {
+      await deleteContenidoAdmin(contenido);
+      await loadContenido();
+    } catch (err) {
+      alert(err?.message || 'No se pudo eliminar el contenido');
     }
   };
 
   const resumen = {
     total: contenidos.length,
-    simulaciones: contenidos.filter((c) => c.tipo === 'simulacion').length,
-    recursos: contenidos.filter((c) => c.tipo === 'recurso').length,
-    descargarTotal: contenidos.reduce((sum, c) => sum + c.descargas, 0),
+    simulaciones: contenidos.filter((contenido) => contenido.tipo === 'simulacion').length,
+    recursos: contenidos.filter((contenido) => contenido.tipo === 'recurso').length,
+    descargarTotal: contenidos.reduce((sum, contenido) => sum + contenido.descargas, 0),
   };
 
   return (
@@ -82,7 +130,7 @@ export default function GestionContenido() {
               Dashboard Administrador
             </button>
             <span style={{ margin: '0 4px', opacity: 0.4 }}>&rsaquo;</span>
-            <span className="admin-breadcrumb-current">Gestión de Contenido</span>
+            <span className="admin-breadcrumb-current">Gestion de Contenido</span>
           </div>
         </div>
       }
@@ -91,7 +139,7 @@ export default function GestionContenido() {
         <div className="admin-header-content">
           <div className="admin-header-title">
             <BookIcon />
-            <h1>Gestión de Contenido</h1>
+            <h1>Gestion de Contenido</h1>
           </div>
           <p>Administra laboratorios, simulaciones y recursos educativos</p>
         </div>
@@ -107,28 +155,24 @@ export default function GestionContenido() {
 
       <div className="admin-stats-grid">
         <div className="admin-stat-card">
-          <div className="admin-stat-icon">📚</div>
           <div className="admin-stat-content">
             <p className="admin-stat-label">Total contenidos</p>
             <p className="admin-stat-value">{resumen.total}</p>
           </div>
         </div>
         <div className="admin-stat-card">
-          <div className="admin-stat-icon">🔬</div>
           <div className="admin-stat-content">
             <p className="admin-stat-label">Simulaciones</p>
             <p className="admin-stat-value">{resumen.simulaciones}</p>
           </div>
         </div>
         <div className="admin-stat-card">
-          <div className="admin-stat-icon">📄</div>
           <div className="admin-stat-content">
             <p className="admin-stat-label">Recursos</p>
             <p className="admin-stat-value">{resumen.recursos}</p>
           </div>
         </div>
         <div className="admin-stat-card">
-          <div className="admin-stat-icon">📊</div>
           <div className="admin-stat-content">
             <p className="admin-stat-label">Descargas totales</p>
             <p className="admin-stat-value">{resumen.descargarTotal}</p>
@@ -138,18 +182,18 @@ export default function GestionContenido() {
 
       <div className="admin-filters-section">
         <div className="admin-search-box">
-          <span>🔎</span>
+          <span>Buscar</span>
           <input
             type="text"
             placeholder="Buscar contenido"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(event) => setSearch(event.target.value)}
           />
         </div>
 
         <select
           value={filterTipo}
-          onChange={(e) => setFilterTipo(e.target.value)}
+          onChange={(event) => setFilterTipo(event.target.value)}
           className="admin-filter-select"
         >
           <option value="todos">Todos los tipos</option>
@@ -159,25 +203,32 @@ export default function GestionContenido() {
       </div>
 
       <div className="admin-table-container">
+        {error && <div className="admin-table-empty">{error}</div>}
         <table className="admin-table">
           <thead>
             <tr>
-              <th>Título</th>
+              <th>Titulo</th>
               <th>Tipo</th>
-              <th>Fecha creación</th>
+              <th>Fecha creacion</th>
               <th>Descargas</th>
               <th>Estado</th>
               <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
-            {filteredContenidos.length > 0 ? (
+            {loading ? (
+              <tr>
+                <td colSpan="6" className="admin-table-empty">
+                  Cargando contenido...
+                </td>
+              </tr>
+            ) : filteredContenidos.length > 0 ? (
               filteredContenidos.map((contenido) => (
                 <tr key={contenido.id}>
                   <td className="admin-table-name">{contenido.titulo}</td>
                   <td>
                     <span className={`admin-badge admin-badge-${contenido.tipo}`}>
-                      {contenido.tipo === 'simulacion' ? '🔬' : '📄'} {contenido.tipo}
+                      {contenido.tipo}
                     </span>
                   </td>
                   <td>
@@ -186,14 +237,14 @@ export default function GestionContenido() {
                   <td className="admin-table-number">{contenido.descargas}</td>
                   <td>
                     <span className="admin-badge admin-badge-activo">
-                      ✓ {contenido.estado}
+                      {contenido.estado}
                     </span>
                   </td>
                   <td className="admin-table-actions">
                     <button
                       type="button"
                       className="admin-btn-icon admin-btn-delete"
-                      onClick={() => handleDeleteContenido(contenido.id)}
+                      onClick={() => handleDeleteContenido(contenido)}
                       title="Eliminar"
                     >
                       <TrashIcon size={16} />
@@ -204,7 +255,7 @@ export default function GestionContenido() {
             ) : (
               <tr>
                 <td colSpan="6" className="admin-table-empty">
-                  No se encontró contenido
+                  No se encontro contenido
                 </td>
               </tr>
             )}
@@ -214,7 +265,7 @@ export default function GestionContenido() {
 
       {showUploadModal && (
         <div className="admin-modal-overlay" onClick={() => setShowUploadModal(false)}>
-          <div className="admin-modal" onClick={(e) => e.stopPropagation()}>
+          <div className="admin-modal" onClick={(event) => event.stopPropagation()}>
             <div className="admin-modal-header">
               <h2>Subir nuevo contenido</h2>
               <button
@@ -222,18 +273,33 @@ export default function GestionContenido() {
                 className="admin-modal-close"
                 onClick={() => setShowUploadModal(false)}
               >
-                ✕
+                x
               </button>
             </div>
 
             <div className="admin-modal-body">
               <div className="admin-form-group">
-                <label>Título</label>
+                <label>Practica asociada</label>
+                <select
+                  value={formData.practicaId}
+                  onChange={(event) => setFormData({ ...formData, practicaId: event.target.value })}
+                >
+                  <option value="">Selecciona una practica</option>
+                  {practicas.map((practica) => (
+                    <option key={practica.id} value={practica.id}>
+                      {practica.titulo}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="admin-form-group">
+                <label>Titulo</label>
                 <input
                   type="text"
                   value={formData.titulo}
-                  onChange={(e) => setFormData({ ...formData, titulo: e.target.value })}
-                  placeholder="Ej: Caída Libre"
+                  onChange={(event) => setFormData({ ...formData, titulo: event.target.value })}
+                  placeholder="Ej: Caida Libre"
                 />
               </div>
 
@@ -241,9 +307,9 @@ export default function GestionContenido() {
                 <label>Tipo</label>
                 <select
                   value={formData.tipo}
-                  onChange={(e) => setFormData({ ...formData, tipo: e.target.value })}
+                  onChange={(event) => setFormData({ ...formData, tipo: event.target.value })}
                 >
-                  <option value="simulacion">Simulación</option>
+                  <option value="simulacion">Simulacion</option>
                   <option value="recurso">Recurso</option>
                 </select>
               </div>
@@ -253,7 +319,7 @@ export default function GestionContenido() {
                 <input
                   type="text"
                   value={formData.url}
-                  onChange={(e) => setFormData({ ...formData, url: e.target.value })}
+                  onChange={(event) => setFormData({ ...formData, url: event.target.value })}
                   placeholder="Ej: /laboratorios/caida_libre.html"
                 />
               </div>
@@ -271,8 +337,9 @@ export default function GestionContenido() {
                 type="button"
                 className="admin-btn-primary"
                 onClick={handleSaveContenido}
+                disabled={saving}
               >
-                Subir contenido
+                {saving ? 'Guardando...' : 'Subir contenido'}
               </button>
             </div>
           </div>

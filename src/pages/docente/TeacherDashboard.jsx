@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DocenteLayout from './components/DocenteLayout';
 import { ArrowLeftIcon } from './components/icons';
 import '../../styles/docente.css';
+import { fetchDocenteDashboard } from './services/docenteService';
 const summaryCards = [
   {
     id: 1,
@@ -153,6 +154,99 @@ const recentGrades = [
 
 export default function TeacherDashboard() {
   const navigate = useNavigate();
+  const [dashboard, setDashboard] = useState({
+    grupos: [],
+    practicas: [],
+    informes: [],
+    stats: {
+      grupos: 0,
+      practicas: 0,
+      pendientes: 0,
+      calificados: 0,
+    },
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    let alive = true;
+
+    const load = async () => {
+      try {
+        setLoading(true);
+        setError('');
+        const data = await fetchDocenteDashboard();
+        if (alive) setDashboard(data);
+      } catch (err) {
+        if (alive) setError(err.message || 'No se pudo cargar el panel docente.');
+      } finally {
+        if (alive) setLoading(false);
+      }
+    };
+
+    load();
+
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const dashboardCards = useMemo(() => [
+    {
+      ...summaryCards[0],
+      value: dashboard.stats.grupos,
+    },
+    {
+      ...summaryCards[1],
+      value: dashboard.stats.practicas,
+    },
+    {
+      ...summaryCards[2],
+      value: dashboard.stats.pendientes,
+    },
+    {
+      ...summaryCards[3],
+      value: dashboard.stats.calificados,
+    },
+  ], [dashboard.stats]);
+
+  const dashboardPendingReports = useMemo(() => {
+    return dashboard.informes
+      .filter((informe) => informe.estado !== 'calificado')
+      .slice(0, 5)
+      .map((informe) => {
+        const practica = dashboard.practicas.find((p) => p.id === informe.practicaId);
+        const grupo = dashboard.grupos.find((g) => g.id === practica?.grupoId);
+
+        return {
+          id: informe.id,
+          student: informe.estudianteNombre,
+          email: informe.estudianteEmail,
+          group: grupo?.nombre || 'Grupo',
+          practice: practica?.titulo || 'Práctica',
+          date: informe.fechaEntrega,
+          status: informe.estado === 'pendiente' ? 'Pendiente' : 'Entregado',
+          route: practica && grupo
+            ? `/docente/grupo/${grupo.id}/practica/${practica.id}/informe/${informe.id}`
+            : '/docente/grupos',
+        };
+      });
+  }, [dashboard]);
+
+  const dashboardRecentGrades = useMemo(() => {
+    return dashboard.informes
+      .filter((informe) => informe.estado === 'calificado')
+      .slice(0, 3)
+      .map((informe) => {
+        const practica = dashboard.practicas.find((p) => p.id === informe.practicaId);
+        return {
+          id: informe.id,
+          student: informe.estudianteNombre,
+          practice: practica?.titulo || 'Práctica',
+          grade: informe.nota ?? '-',
+        };
+      });
+  }, [dashboard]);
 
   const handleReminder = () => {
     window.alert('Recordatorio enviado al grupo seleccionado (demo).');
@@ -204,8 +298,11 @@ export default function TeacherDashboard() {
             </div>
           </section>
 
+          {error && <p className="docente-form-error">{error}</p>}
+          {loading && <p>Cargando información docente...</p>}
+
           <section className="docente-kpi-grid" aria-label="Indicadores principales">
-            {summaryCards.map((card) => (
+              {dashboardCards.map((card) => (
               <article key={card.id} className="docente-kpi-card">
                 <div className="docente-kpi-top">
                   <p className="docente-kpi-label">{card.label}</p>
@@ -239,7 +336,7 @@ export default function TeacherDashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {pendingReports.map((report) => (
+                    {(loading ? [] : dashboardPendingReports).map((report) => (
                       <tr key={report.id}>
                         <td>
                           <div className="docente-student-cell">
@@ -262,13 +359,18 @@ export default function TeacherDashboard() {
                           <button
                             type="button"
                             className="docente-grade-btn"
-                            onClick={() => navigate('/docente/grupos')}
+                            onClick={() => navigate(report.route)}
                           >
                             Calificar
                           </button>
                         </td>
                       </tr>
                     ))}
+                    {!loading && dashboardPendingReports.length === 0 && (
+                      <tr>
+                        <td colSpan="6">No hay informes pendientes por calificar.</td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -303,7 +405,7 @@ export default function TeacherDashboard() {
               <section className="docente-recent-card">
                 <h3>Actividad reciente</h3>
                 <ul>
-                  {recentGrades.map((activity) => (
+                  {(loading ? [] : dashboardRecentGrades).map((activity) => (
                     <li key={activity.id}>
                       <div>
                         <p className="docente-recent-student">{activity.student}</p>
@@ -312,6 +414,14 @@ export default function TeacherDashboard() {
                       <span className="docente-recent-grade">{activity.grade}</span>
                     </li>
                   ))}
+                  {!loading && dashboardRecentGrades.length === 0 && (
+                    <li>
+                      <div>
+                        <p className="docente-recent-student">Sin calificaciones recientes</p>
+                        <p className="docente-recent-practice">Aún no hay actividad para mostrar.</p>
+                      </div>
+                    </li>
+                  )}
                 </ul>
               </section>
             </aside>

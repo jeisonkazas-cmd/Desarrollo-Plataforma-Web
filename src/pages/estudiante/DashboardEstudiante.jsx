@@ -1,9 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getGrupos, getPracticasByGrupo } from './services/estudianteService';
+import { getGrupos, getPerfilEstudiante, getPracticasByGrupo } from './services/estudianteService';
 import '../../styles/estudiante-dashboard.css';
-
-const studentName = 'Carlos';
 
 const imageMap = {
   '1': '/imagenes/CAIDA_LIBRE.png',
@@ -15,15 +13,20 @@ const imageMap = {
 export default function DashboardEstudiante() {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
-  const [semester, setSemester] = useState('2024-I');
+  const [semester, setSemester] = useState('todos');
   const [onlyActive, setOnlyActive] = useState(true);
   const [grupos, setGrupos] = useState([]);
   const [practicas, setPracticas] = useState([]);
+  const [perfil, setPerfil] = useState({ nombre: 'Estudiante', primerNombre: 'Estudiante' });
 
   useEffect(() => {
     const cargarDatos = async () => {
       try {
-        const gruposData = await getGrupos();
+        const [perfilData, gruposData] = await Promise.all([
+          getPerfilEstudiante(),
+          getGrupos(),
+        ]);
+        setPerfil(perfilData);
         setGrupos(gruposData);
         
         // Cargar prácticas de todos los grupos
@@ -122,12 +125,12 @@ export default function DashboardEstudiante() {
               Laboratorios
             </button>
           </nav>
-          <div className="student-shell-user">Carlos Méndez</div>
+          <div className="student-shell-user">{perfil.nombre}</div>
         </div>
 
         <header className="student-dashboard-header">
           <div>
-            <h1>Bienvenido, {studentName}</h1>
+            <h1>Bienvenido, {perfil.primerNombre}</h1>
             <p>Accede a tus grupos y prácticas asignadas</p>
           </div>
         </header>
@@ -151,10 +154,10 @@ export default function DashboardEstudiante() {
             onChange={(event) => setSemester(event.target.value)}
             aria-label="Filtrar por semestre"
           >
+            <option value="todos">Todos</option>
             <option value="2024-I">Semestre: 2024-I</option>
             <option value="2024-II">Semestre: 2024-II</option>
             <option value="2023-II">Semestre: 2023-II</option>
-            <option value="todos">Todos</option>
           </select>
 
           <label className="student-active-toggle" htmlFor="only-active">

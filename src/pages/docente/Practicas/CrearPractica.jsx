@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DocenteLayout from '../components/DocenteLayout';
 import { ArrowLeftIcon } from '../components/icons';
 import '../../../styles/settings-panel.css';
 import '../../../styles/docente.css';
+import { createPracticaForGrupo, fetchDocenteGrupos, uploadPracticaGuide } from '../services/docenteService';
 
 function SimulationSelector({ selected, onSelect }) {
   return (
@@ -58,12 +59,39 @@ export default function CrearPractica() {
     title: '',
     duration: '',
     difficulty: 'intro',
+    simulationUrl: '',
+    guideUrl: '',
     objective: '',
     description: '',
     pdf: null,
   });
   const [selectedSimulation, setSelectedSimulation] = useState(null);
   const [pdfFile, setPdfFile] = useState(null);
+  const [grupos, setGrupos] = useState([]);
+  const [grupoId, setGrupoId] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [formError, setFormError] = useState('');
+
+  useEffect(() => {
+    let alive = true;
+
+    const load = async () => {
+      try {
+        const data = await fetchDocenteGrupos();
+        if (!alive) return;
+        setGrupos(data);
+        setGrupoId(data[0]?.id || '');
+      } catch (err) {
+        if (alive) setFormError(err.message || 'No se pudieron cargar los grupos.');
+      }
+    };
+
+    load();
+
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -110,8 +138,43 @@ export default function CrearPractica() {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setFormError('');
+
+    if (!grupoId) {
+      setFormError('Selecciona un grupo para asignar la práctica.');
+      return;
+    }
+
+    if (!formData.title.trim()) {
+      setFormError('El título de la práctica es obligatorio.');
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      const uploadedGuide = pdfFile ? await uploadPracticaGuide(pdfFile) : null;
+      await createPracticaForGrupo(grupoId, {
+        titulo: formData.title.trim(),
+        descripcion: formData.description.trim(),
+        objetivos: formData.objective.trim(),
+        instrucciones: selectedSimulation
+          ? `Simulación: ${selectedSimulation.name}. ${selectedSimulation.description}`
+          : '',
+        simuladorUrl: formData.simulationUrl.trim(),
+        simulacionTitulo: selectedSimulation?.name || formData.title.trim(),
+        simulacionDescripcion: selectedSimulation?.description || '',
+        guiaUrl: uploadedGuide?.url || formData.guideUrl.trim() || null,
+        guiaNombre: uploadedGuide?.nombre || pdfFile?.name || null,
+        fecha_entrega: formData.duration ? null : null,
+      });
+      navigate(`/docente/grupo/${grupoId}/practicas`);
+    } catch (err) {
+      setFormError(err.message || 'No se pudo guardar la práctica.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleCancel = () => {
@@ -180,6 +243,30 @@ export default function CrearPractica() {
         {/* Form Card */}
         <div className="docente-create-practice-card">
           <form className="docente-create-practice-form" onSubmit={handleSubmit}>
+            {formError && <p className="docente-form-error">{formError}</p>}
+
+            <div className="docente-form-group">
+              <label htmlFor="practice-group" className="docente-form-label">
+                Grupo asignado
+              </label>
+              <select
+                id="practice-group"
+                value={grupoId}
+                onChange={(e) => setGrupoId(e.target.value)}
+                className="docente-form-select"
+              >
+                {grupos.length === 0 ? (
+                  <option value="">Sin grupos asignados</option>
+                ) : (
+                  grupos.map((grupo) => (
+                    <option key={grupo.id} value={grupo.id}>
+                      {grupo.nombre}
+                    </option>
+                  ))
+                )}
+              </select>
+            </div>
+
             {/* Title Input */}
             <div className="docente-form-group">
               <label htmlFor="practice-title" className="docente-form-label">
@@ -200,6 +287,37 @@ export default function CrearPractica() {
             <div className="docente-form-group">
               <label className="docente-form-label">Simulación interactiva</label>
               <SimulationSelector selected={selectedSimulation} onSelect={setSelectedSimulation} />
+            </div>
+
+
+            <div className="docente-form-group">
+              <label htmlFor="simulation-url" className="docente-form-label">
+                URL del simulador
+              </label>
+              <input
+                id="simulation-url"
+                name="simulationUrl"
+                type="text"
+                placeholder="/laboratorios/lab_fisica1_virtual/Simulador_CaidaLibre.html"
+                value={formData.simulationUrl}
+                onChange={handleInputChange}
+                className="docente-form-input"
+              />
+            </div>
+
+            <div className="docente-form-group">
+              <label htmlFor="guide-url" className="docente-form-label">
+                URL de la gu?a o plantilla de informe
+              </label>
+              <input
+                id="guide-url"
+                name="guideUrl"
+                type="text"
+                placeholder="/laboratorios/lab_fisica1_virtual/Practica_CaidaLibre.html"
+                value={formData.guideUrl}
+                onChange={handleInputChange}
+                className="docente-form-input"
+              />
             </div>
 
             {/* Duration & Difficulty Row */}
@@ -308,7 +426,7 @@ export default function CrearPractica() {
               >
                 Cancelar
               </button>
-              <button type="submit" className="docente-form-btn docente-form-btn-primary">
+              <button type="submit" className="docente-form-btn docente-form-btn-primary" disabled={isSaving}>
                 <span>💾</span>
                 Guardar práctica
               </button>

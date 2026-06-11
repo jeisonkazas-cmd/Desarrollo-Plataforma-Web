@@ -1,93 +1,97 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import DocenteLayout from '../components/DocenteLayout';
 import { ArrowLeftIcon } from '../components/icons';
 import '../../../styles/settings-panel.css';
 import '../../../styles/docente.css';
-import { getMockGrupos, getMockPracticasByGrupo, getMockHilosForo, getMockTeacher } from '../../../mock/docenteMock';
+import {
+  fetchDocenteGrupo,
+  fetchForoPractica,
+  fetchPracticaDetalle,
+  publicarMensajeForo,
+} from '../services/docenteService';
 
 const HILOS_POR_PAGINA = 5;
+
+function getAutorInitials(nombre) {
+  return String(nombre || 'Usuario')
+    .split(' ')
+    .filter(Boolean)
+    .map((word) => word[0]?.toUpperCase())
+    .join('')
+    .substring(0, 2);
+}
 
 export default function Foro() {
   const navigate = useNavigate();
   const { grupoId, practicaId } = useParams();
-
-  const grupo = useMemo(() => {
-    const grupos = getMockGrupos();
-    return grupos.find((g) => g.id === grupoId) || { nombre: 'Grupo', codigo: '' };
-  }, [grupoId]);
-
-  const practica = useMemo(() => {
-    const practicas = getMockPracticasByGrupo(grupoId);
-    return practicas.find((p) => p.id === practicaId) || { titulo: 'Práctica' };
-  }, [grupoId, practicaId]);
-
-  const teacher = useMemo(() => getMockTeacher(), []);
-
-  const hilosOriginales = useMemo(() => getMockHilosForo(practicaId), [practicaId]);
-
-  const [hilos, setHilos] = useState(hilosOriginales);
+  const [grupo, setGrupo] = useState({ nombre: 'Grupo', codigo: '' });
+  const [practica, setPractica] = useState({ titulo: 'Práctica' });
+  const [hilos, setHilos] = useState([]);
   const [nuevoHilo, setNuevoHilo] = useState('');
   const [errorHilo, setErrorHilo] = useState('');
   const [ordenamiento, setOrdenamiento] = useState('recientes');
   const [paginaActual, setPaginaActual] = useState(1);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let alive = true;
+
+    const load = async () => {
+      try {
+        setLoading(true);
+        setErrorHilo('');
+        const [grupoData, practicaData, hilosData] = await Promise.all([
+          fetchDocenteGrupo(grupoId),
+          fetchPracticaDetalle(grupoId, practicaId),
+          fetchForoPractica(practicaId),
+        ]);
+
+        if (!alive) return;
+        setGrupo(grupoData || { nombre: 'Grupo', codigo: `Grupo ${grupoId}` });
+        setPractica(practicaData || { titulo: 'Práctica' });
+        setHilos(hilosData);
+      } catch (err) {
+        if (alive) setErrorHilo(err.message || 'No se pudo cargar el foro.');
+      } finally {
+        if (alive) setLoading(false);
+      }
+    };
+
+    load();
+
+    return () => {
+      alive = false;
+    };
+  }, [grupoId, practicaId]);
 
   const hilosOrdenados = useMemo(() => {
-    if (ordenamiento === 'recientes') {
-      return [...hilos];
-    } else if (ordenamiento === 'populares') {
+    if (ordenamiento === 'populares') {
       return [...hilos].sort((a, b) => b.respuestas - a.respuestas);
     }
     return [...hilos];
   }, [hilos, ordenamiento]);
 
-  const totalPages = Math.ceil(hilosOrdenados.length / HILOS_POR_PAGINA);
+  const totalPages = Math.max(1, Math.ceil(hilosOrdenados.length / HILOS_POR_PAGINA));
   const startIdx = (paginaActual - 1) * HILOS_POR_PAGINA;
   const hilosPaginados = hilosOrdenados.slice(startIdx, startIdx + HILOS_POR_PAGINA);
 
-  const handlePublicar = () => {
+  const handlePublicar = async () => {
     if (!nuevoHilo.trim()) {
       setErrorHilo('Por favor escribe algo antes de publicar');
       return;
     }
 
-    setErrorHilo('');
-    const hilo = {
-      id: String(Math.random()),
-      practicaId,
-      autorNombre: teacher.nombre,
-      autorAvatar: null,
-      autorRol: 'docente',
-      titulo: nuevoHilo.split('\n')[0].substring(0, 100) || 'Sin título',
-      preview: nuevoHilo.substring(0, 150),
-      respuestas: 0,
-      vistas: 0,
-      tiempoPublicacion: 'ahora',
-    };
-
-    setHilos([hilo, ...hilos]);
-    setNuevoHilo('');
-    setPaginaActual(1);
-  };
-
-  const handleAttach = () => {
-  };
-
-  const handleImage = () => {
-  };
-
-  const handleBold = () => {
-  };
-
-  const handleVerDiscusion = (hiloId) => {
-  };
-
-  const getAutorInitials = (nombre) => {
-    return nombre
-      .split(' ')
-      .map((word) => word[0].toUpperCase())
-      .join('')
-      .substring(0, 2);
+    try {
+      setErrorHilo('');
+      await publicarMensajeForo(practicaId, nuevoHilo);
+      const data = await fetchForoPractica(practicaId);
+      setHilos(data);
+      setNuevoHilo('');
+      setPaginaActual(1);
+    } catch (err) {
+      setErrorHilo(err.message || 'No se pudo publicar el mensaje.');
+    }
   };
 
   return (
@@ -109,14 +113,7 @@ export default function Foro() {
                 type="button"
                 className="docente-breadcrumb"
                 onClick={() => navigate('/docente')}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: 0,
-                  font: 'inherit',
-                  color: 'inherit',
-                }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, font: 'inherit', color: 'inherit' }}
               >
                 Dashboard Docente
               </button>
@@ -125,14 +122,7 @@ export default function Foro() {
                 type="button"
                 className="docente-breadcrumb"
                 onClick={() => navigate('/docente/grupos')}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: 0,
-                  font: 'inherit',
-                  color: 'inherit',
-                }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, font: 'inherit', color: 'inherit' }}
               >
                 Grupos
               </button>
@@ -141,14 +131,7 @@ export default function Foro() {
                 type="button"
                 className="docente-breadcrumb"
                 onClick={() => navigate(`/docente/grupo/${grupoId}/practicas`)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: 0,
-                  font: 'inherit',
-                  color: 'inherit',
-                }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, font: 'inherit', color: 'inherit' }}
               >
                 {grupo.nombre} - {grupo.codigo}
               </button>
@@ -157,14 +140,7 @@ export default function Foro() {
                 type="button"
                 className="docente-breadcrumb"
                 onClick={() => navigate(`/docente/grupo/${grupoId}/practica/${practicaId}`)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: 0,
-                  font: 'inherit',
-                  color: 'inherit',
-                }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, font: 'inherit', color: 'inherit' }}
               >
                 {practica.titulo}
               </button>
@@ -176,11 +152,10 @@ export default function Foro() {
       }
     >
       <div className="docente-foro-container">
-        {/* Header */}
         <div className="docente-foro-header">
           <div>
-            <h1 className="docente-foro-title">Foro – {practica.titulo}</h1>
-            <p className="docente-foro-subtitle">{grupo.nombre} – Grupo {grupo.codigo}</p>
+            <h1 className="docente-foro-title">Foro - {practica.titulo}</h1>
+            <p className="docente-foro-subtitle">{grupo.nombre} - {grupo.codigo}</p>
           </div>
           <button
             type="button"
@@ -193,20 +168,9 @@ export default function Foro() {
           </button>
         </div>
 
-        {/* Nueva publicación */}
         <div className="docente-foro-create-post">
           <div className="docente-foro-avatar">
-            {teacher.avatar ? (
-              <img
-                src={teacher.avatar}
-                alt="Tu foto de perfil"
-                className="docente-foro-avatar-img"
-              />
-            ) : (
-              <span className="docente-foro-avatar-initials">
-                {getAutorInitials(teacher.nombre)}
-              </span>
-            )}
+            <span className="docente-foro-avatar-initials">DO</span>
           </div>
           <div className="docente-foro-create-content">
             <textarea
@@ -220,35 +184,7 @@ export default function Foro() {
               aria-label="Crear nuevo hilo"
             />
             <div className="docente-foro-create-footer">
-              <div className="docente-foro-tools">
-                <button
-                  type="button"
-                  className="docente-foro-tool-btn"
-                  onClick={handleAttach}
-                  title="Adjuntar archivo"
-                  aria-label="Adjuntar archivo"
-                >
-                  📎
-                </button>
-                <button
-                  type="button"
-                  className="docente-foro-tool-btn"
-                  onClick={handleImage}
-                  title="Insertar imagen"
-                  aria-label="Insertar imagen"
-                >
-                  🖼️
-                </button>
-                <button
-                  type="button"
-                  className="docente-foro-tool-btn"
-                  onClick={handleBold}
-                  title="Formato de texto"
-                  aria-label="Formato de texto"
-                >
-                  𝐁
-                </button>
-              </div>
+              <div className="docente-foro-tools" />
               <button
                 type="button"
                 className="docente-foro-publish-btn"
@@ -259,13 +195,10 @@ export default function Foro() {
                 Publicar
               </button>
             </div>
-            {errorHilo && (
-              <p className="docente-foro-error">{errorHilo}</p>
-            )}
+            {errorHilo && <p className="docente-foro-error">{errorHilo}</p>}
           </div>
         </div>
 
-        {/* Discusiones recientes */}
         <div className="docente-foro-section-header">
           <h3 className="docente-foro-section-title">Discusiones recientes</h3>
           <div className="docente-foro-sort-control">
@@ -285,81 +218,41 @@ export default function Foro() {
           </div>
         </div>
 
-        {/* Lista de hilos */}
-        {hilosPaginados.length > 0 ? (
+        {loading ? (
+          <div className="docente-foro-empty-state">
+            <p>Cargando foro...</p>
+          </div>
+        ) : hilosPaginados.length > 0 ? (
           <div className="docente-foro-threads-list">
             {hilosPaginados.map((hilo) => (
-              <div
-                key={hilo.id}
-                className="docente-foro-thread-card"
-              >
+              <div key={hilo.id} className="docente-foro-thread-card">
                 <div className="docente-foro-thread-header">
-                  {/* Avatar */}
                   <div className="docente-foro-thread-avatar">
-                    {hilo.autorRol === 'docente' ? (
-                      <div className="docente-foro-avatar-docente">
-                        👨‍🏫
-                      </div>
-                    ) : hilo.autorAvatar ? (
-                      <img
-                        src={hilo.autorAvatar}
-                        alt={hilo.autorNombre}
-                        className="docente-foro-avatar-img"
-                      />
-                    ) : (
-                      <span className="docente-foro-avatar-initials">
-                        {getAutorInitials(hilo.autorNombre)}
-                      </span>
-                    )}
+                    <span className="docente-foro-avatar-initials">
+                      {getAutorInitials(hilo.autorNombre)}
+                    </span>
                   </div>
 
-                  {/* Content */}
                   <div className="docente-foro-thread-info">
                     <div className="docente-foro-thread-author-info">
-                      <span className="docente-foro-author-name">
-                        {hilo.autorNombre}
-                      </span>
+                      <span className="docente-foro-author-name">{hilo.autorNombre}</span>
                       <span className={`docente-foro-role-badge docente-foro-role-${hilo.autorRol}`}>
-                        {hilo.autorRol.charAt(0).toUpperCase() + hilo.autorRol.slice(1)}
+                        {hilo.autorRol === 'docente' ? 'Docente' : 'Estudiante'}
                       </span>
                       <span className="docente-foro-separator">•</span>
-                      <span className="docente-foro-timestamp">
-                        {hilo.tiempoPublicacion}
-                      </span>
+                      <span className="docente-foro-timestamp">{hilo.tiempoPublicacion}</span>
                     </div>
 
-                    <h4 className="docente-foro-thread-title">
-                      {hilo.titulo}
-                    </h4>
-
-                    <p className="docente-foro-thread-preview">
-                      {hilo.preview}
-                    </p>
+                    <h4 className="docente-foro-thread-title">{hilo.titulo}</h4>
+                    <p className="docente-foro-thread-preview">{hilo.preview}</p>
 
                     <div className="docente-foro-thread-footer">
                       <div className="docente-foro-thread-stats">
                         <div className="docente-foro-stat">
                           <span className="docente-foro-stat-icon">💬</span>
-                          <span className="docente-foro-stat-value">
-                            {hilo.respuestas} respuestas
-                          </span>
-                        </div>
-                        <div className="docente-foro-stat">
-                          <span className="docente-foro-stat-icon">👁️</span>
-                          <span className="docente-foro-stat-value">
-                            {hilo.vistas} vistas
-                          </span>
+                          <span className="docente-foro-stat-value">{hilo.respuestas} respuestas</span>
                         </div>
                       </div>
-                      <button
-                        type="button"
-                        className="docente-foro-see-discussion-btn"
-                        onClick={() => handleVerDiscusion(hilo.id)}
-                        aria-label={`Ver discusión: ${hilo.titulo}`}
-                      >
-                        Ver discusión
-                        <span>→</span>
-                      </button>
                     </div>
                   </div>
                 </div>
@@ -370,13 +263,10 @@ export default function Foro() {
           <div className="docente-foro-empty-state">
             <div className="docente-foro-empty-icon">💬</div>
             <h3 className="docente-foro-empty-title">Sin publicaciones aún</h3>
-            <p className="docente-foro-empty-subtitle">
-              Sé el primero en publicar algo para el grupo.
-            </p>
+            <p className="docente-foro-empty-subtitle">Sé el primero en publicar algo para el grupo.</p>
           </div>
         )}
 
-        {/* Paginación */}
         {totalPages > 1 && (
           <div className="docente-foro-pagination">
             <button
@@ -392,9 +282,7 @@ export default function Foro() {
               <button
                 key={idx + 1}
                 type="button"
-                className={`docente-foro-pagination-btn ${
-                  paginaActual === idx + 1 ? 'active' : ''
-                }`}
+                className={`docente-foro-pagination-btn ${paginaActual === idx + 1 ? 'active' : ''}`}
                 onClick={() => setPaginaActual(idx + 1)}
               >
                 {idx + 1}
