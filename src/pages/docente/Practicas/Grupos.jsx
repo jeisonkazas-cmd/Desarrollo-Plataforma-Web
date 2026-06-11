@@ -4,14 +4,38 @@ import DocenteLayout from '../components/DocenteLayout';
 import { ArrowLeftIcon } from '../components/icons';
 import '../../../styles/settings-panel.css';
 import '../../../styles/docente.css';
-import { fetchDocenteGrupos } from '../services/docenteService';
+import { createDocenteGrupo, fetchDocenteGrupos } from '../services/docenteService';
+
+const initialGroupForm = {
+  nombre: '',
+  descripcion: '',
+  estudiantes: '',
+};
 
 export default function Grupos() {
   const navigate = useNavigate();
   const [grupos, setGrupos] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [formError, setFormError] = useState('');
+  const [notice, setNotice] = useState('');
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [groupForm, setGroupForm] = useState(initialGroupForm);
+
+  const loadGrupos = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      const data = await fetchDocenteGrupos();
+      setGrupos(data);
+    } catch (err) {
+      setError(err.message || 'No se pudieron cargar los grupos.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     let alive = true;
@@ -55,9 +79,74 @@ export default function Grupos() {
   };
 
   const handleCreateGroup = () => {
+    setFormError('');
+    setNotice('');
+    setGroupForm(initialGroupForm);
+    setShowCreateModal(true);
+  };
+
+  const handleCloseCreateModal = () => {
+    if (saving) return;
+    setShowCreateModal(false);
+    setFormError('');
+    setGroupForm(initialGroupForm);
+  };
+
+  const handleSaveGroup = async (event) => {
+    event.preventDefault();
+    setFormError('');
+    setNotice('');
+
+    if (!groupForm.nombre.trim()) {
+      setFormError('Escribe el nombre del grupo.');
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const result = await createDocenteGrupo(groupForm);
+      await loadGrupos();
+      setShowCreateModal(false);
+      setGroupForm(initialGroupForm);
+
+      if (result.estudiantesNoEncontrados.length > 0) {
+        setNotice(
+          `Grupo creado. No encontré estos correos como usuarios: ${result.estudiantesNoEncontrados.join(', ')}`
+        );
+      } else {
+        setNotice(
+          result.estudiantesAgregados > 0
+            ? `Grupo creado con ${result.estudiantesAgregados} estudiantes.`
+            : 'Grupo creado correctamente.'
+        );
+      }
+    } catch (err) {
+      setFormError(err.message || 'No se pudo crear el grupo.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleExportReport = () => {
+    const header = ['Grupo', 'Codigo', 'Periodo', 'Estado', 'Estudiantes', 'Practicas'];
+    const rows = grupos.map((grupo) => [
+      grupo.nombre,
+      grupo.codigo,
+      grupo.semestre,
+      grupo.estado,
+      grupo.estudiantes,
+      grupo.practicasCreadas,
+    ]);
+    const csv = [header, ...rows]
+      .map((row) => row.map((cell) => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(','))
+      .join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `reporte-grupos-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   const handleNewPractice = () => {
@@ -161,6 +250,7 @@ export default function Grupos() {
 
         {/* Groups Grid */}
         {error && <p className="docente-form-error">{error}</p>}
+        {notice && <p className="docente-form-success">{notice}</p>}
 
         <div className="docente-grupos-grid">
           {loading ? (
@@ -229,6 +319,91 @@ export default function Grupos() {
             <p className="docente-grupo-card-new-subtitle">Nuevo curso</p>
           </button>
         </div>
+
+        {showCreateModal && (
+          <div className="docente-modal-overlay" onClick={handleCloseCreateModal}>
+            <div className="docente-modal" onClick={(event) => event.stopPropagation()}>
+              <div className="docente-modal-header">
+                <div>
+                  <h2>Crear grupo</h2>
+                  <p>Registra el grupo y asígnalo a tu perfil docente.</p>
+                </div>
+                <button
+                  type="button"
+                  className="docente-modal-close"
+                  onClick={handleCloseCreateModal}
+                  aria-label="Cerrar"
+                >
+                  x
+                </button>
+              </div>
+
+              <form className="docente-modal-body" onSubmit={handleSaveGroup}>
+                {formError && <p className="docente-form-error">{formError}</p>}
+
+                <div className="docente-form-group">
+                  <label htmlFor="group-name" className="docente-form-label">
+                    Nombre del grupo
+                  </label>
+                  <input
+                    id="group-name"
+                    type="text"
+                    value={groupForm.nombre}
+                    onChange={(event) => setGroupForm({ ...groupForm, nombre: event.target.value })}
+                    className="docente-form-input"
+                    placeholder="Ej. Física I - Grupo 03"
+                  />
+                </div>
+
+                <div className="docente-form-group">
+                  <label htmlFor="group-period" className="docente-form-label">
+                    Periodo o descripción
+                  </label>
+                  <input
+                    id="group-period"
+                    type="text"
+                    value={groupForm.descripcion}
+                    onChange={(event) => setGroupForm({ ...groupForm, descripcion: event.target.value })}
+                    className="docente-form-input"
+                    placeholder="Ej. 2026-1 · Martes 8 am"
+                  />
+                </div>
+
+                <div className="docente-form-group">
+                  <label htmlFor="group-students" className="docente-form-label">
+                    Estudiantes por correo
+                  </label>
+                  <textarea
+                    id="group-students"
+                    value={groupForm.estudiantes}
+                    onChange={(event) => setGroupForm({ ...groupForm, estudiantes: event.target.value })}
+                    className="docente-form-textarea"
+                    placeholder="correo1@institucion.edu.co&#10;correo2@institucion.edu.co"
+                    rows={5}
+                  />
+                </div>
+
+                <div className="docente-modal-footer">
+                  <button
+                    type="button"
+                    className="docente-form-btn docente-form-btn-secondary"
+                    onClick={handleCloseCreateModal}
+                    disabled={saving}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="docente-form-btn docente-form-btn-primary"
+                    disabled={saving}
+                  >
+                    {saving ? 'Creando...' : 'Crear grupo'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
 
         {/* Bottom Summary Banner */}
         <div className="docente-grupos-summary">
