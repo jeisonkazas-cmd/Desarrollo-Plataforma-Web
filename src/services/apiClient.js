@@ -2,24 +2,47 @@ import { supabase } from './supabaseClient';
 
 const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/$/, '');
 
-async function getAuthHeaders() {
+async function getAccessToken() {
   const {
     data: { session },
     error,
   } = await supabase.auth.getSession();
 
   if (error) throw error;
-  if (!session?.access_token) throw new Error('No hay una sesión activa.');
+  if (session?.access_token) return session.access_token;
 
-  return {
-    Authorization: `Bearer ${session.access_token}`,
-  };
+  const {
+    data: { session: refreshedSession },
+    error: refreshError,
+  } = await supabase.auth.refreshSession();
+
+  if (refreshError) throw refreshError;
+  if (!refreshedSession?.access_token) throw new Error('No hay una sesión activa.');
+
+  return refreshedSession.access_token;
 }
 
-export async function apiRequest(path, options = {}) {
+async function getAuthHeaders() {
+  const token = await getAccessToken();
+  return { Authorization: `Bearer ${token}` };
+}
+
+async function parseResponse(response) {
+  const text = await response.text();
+  if (!text) return null;
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { message: text };
+  }
+}
+
+async function performRequest(path, options = {}) {
   const headers = await getAuthHeaders();
   const isFormData = options.body instanceof FormData;
-  const response = await fetch(`${API_URL}${path}`, {
+
+  return fetch(`${API_URL}${path}`, {
     ...options,
     headers: {
       ...headers,
@@ -27,20 +50,22 @@ export async function apiRequest(path, options = {}) {
       ...(options.headers || {}),
     },
   });
+}
 
-  const text = await response.text();
-  let data = null;
+export async function apiRequest(path, options = {}) {
+  let response = await performRequest(path, options);
 
-  if (text) {
-    try {
-      data = JSON.parse(text);
-    } catch {
-      data = { message: text };
-    }
+  if (response.status === 401) {
+    await supabase.auth.refreshSession();
+    response = await performRequest(path, options);
   }
 
+  const data = await parseResponse(response);
+
   if (!response.ok) {
-    throw new Error(data?.error || data?.message || 'Error de comunicación con el backend.');
+    const error = new Error(data?.error || data?.message || 'Error de comunicación con el backend.');
+    error.status = response.status;
+    throw error;
   }
 
   return data;
