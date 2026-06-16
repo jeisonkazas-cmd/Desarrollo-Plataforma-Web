@@ -63,8 +63,9 @@ export async function apiRequest(path, options = {}) {
   const data = await parseResponse(response);
 
   if (!response.ok) {
-    const error = new Error(data?.error || data?.message || 'Error de comunicación con el backend.');
+    const error = new Error(data?.message || data?.error || 'Error de comunicación con el backend.');
     error.status = response.status;
+    error.code = data?.code;
     throw error;
   }
 

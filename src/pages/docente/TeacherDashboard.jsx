@@ -178,7 +178,14 @@ export default function TeacherDashboard() {
         const data = await fetchDocenteDashboard();
         if (alive) setDashboard(data);
       } catch (err) {
-        if (alive) setError(err.message || 'No se pudo cargar el panel docente.');
+        if (alive) {
+          const message = err?.status === 401
+            ? 'No se pudo validar tu sesión con el backend.'
+            : err?.status === 403
+              ? 'Tu usuario no tiene permisos de docente activo en el backend.'
+              : 'No se pudieron cargar tus grupos desde el backend.';
+          setError(message);
+        }
       } finally {
         if (alive) setLoading(false);
       }
