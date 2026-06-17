@@ -4533,6 +4533,60 @@
   text-decoration: underline;
 }
 
+.docente-foro-replies {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 18px;
+  padding-left: 18px;
+  border-left: 3px solid rgba(17, 82, 212, 0.16);
+}
+
+.docente-foro-reply {
+  background: rgba(248, 250, 252, 0.9);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.docente-foro-reply-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+  font-size: 0.8rem;
+  color: rgba(100, 116, 139, 0.95);
+}
+
+.docente-foro-reply-meta strong {
+  color: rgba(15, 23, 42, 0.95);
+}
+
+.docente-foro-reply p {
+  margin: 0;
+  color: rgba(15, 23, 42, 0.86);
+  font-size: 0.9rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.docente-foro-reply-form {
+  margin-top: 16px;
+}
+
+.docente-foro-reply-textarea {
+  min-height: 82px;
+}
+
+.docente-foro-reply-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
 /* Empty State */
 .docente-foro-empty-state {
   text-align: center;

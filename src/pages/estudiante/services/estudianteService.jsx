@@ -24,10 +24,10 @@ export async function getForoPractica(practicaId) {
   return apiRequest(`/api/platform/practicas/${practicaId}/foro`);
 }
 
-export async function publicarPostForo(practicaId, contenido) {
+export async function publicarPostForo(practicaId, contenido, mensajePadreId = null) {
   return apiRequest(`/api/platform/practicas/${practicaId}/foro`, {
     method: 'POST',
-    body: JSON.stringify({ contenido }),
+    body: JSON.stringify({ contenido, mensajePadreId }),
   });
 }
 
