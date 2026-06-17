@@ -217,6 +217,13 @@ export async function createDocenteGrupo(payload) {
   });
 }
 
+export async function addEstudiantesToGrupo(grupoId, estudiantes) {
+  return apiRequest(`/api/platform/docente/grupos/${grupoId}/estudiantes`, {
+    method: 'POST',
+    body: JSON.stringify({ estudiantes }),
+  });
+}
+
 export async function fetchPracticasByGrupo(grupoId) {
   return apiRequest(`/api/platform/docente/grupos/${grupoId}/practicas`);
 }

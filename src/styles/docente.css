@@ -795,6 +795,76 @@
   font-weight: 700;
 }
 
+.docente-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(17, 24, 39, 0.45);
+}
+
+.docente-modal {
+  width: min(560px, 100%);
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.22);
+  overflow: hidden;
+}
+
+.docente-modal-header,
+.docente-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 20px;
+}
+
+.docente-modal-header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.docente-modal-header h2 {
+  margin: 0;
+  color: var(--doc-text);
+  font-size: 1.08rem;
+  font-weight: 900;
+}
+
+.docente-modal-close {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: #ffffff;
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.docente-modal-body {
+  padding: 20px;
+}
+
+.docente-modal-footer {
+  justify-content: flex-end;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.docente-practicas-grupo-secondary-btn {
+  background: #ffffff;
+  color: rgba(9, 63, 124, 0.96);
+  border: 1px solid rgba(9, 63, 124, 0.22);
+  box-shadow: none;
+}
+
+.docente-practicas-grupo-secondary-btn:hover {
+  background: rgba(9, 63, 124, 0.06);
+}
+
 .docente-form-buttons {
   display: flex;
   gap: 10px;

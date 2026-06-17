@@ -4,7 +4,11 @@ import DocenteLayout from '../components/DocenteLayout';
 import { ArrowLeftIcon } from '../components/icons';
 import '../../../styles/settings-panel.css';
 import '../../../styles/docente.css';
-import { fetchDocenteGrupo, fetchPracticasByGrupo } from '../services/docenteService';
+import {
+  addEstudiantesToGrupo,
+  fetchDocenteGrupo,
+  fetchPracticasByGrupo,
+} from '../services/docenteService';
 
 export default function PracticasGrupo() {
   const navigate = useNavigate();
@@ -13,35 +17,31 @@ export default function PracticasGrupo() {
   const [grupo, setGrupo] = useState({ nombre: 'Grupo', codigo: '' });
   const [practicas, setPracticas] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [savingStudents, setSavingStudents] = useState(false);
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
+  const [showStudentModal, setShowStudentModal] = useState(false);
+  const [studentEmails, setStudentEmails] = useState('');
+
+  async function loadData() {
+    try {
+      setLoading(true);
+      setError('');
+      const [grupoData, practicasData] = await Promise.all([
+        fetchDocenteGrupo(grupoId),
+        fetchPracticasByGrupo(grupoId),
+      ]);
+      setGrupo(grupoData || { nombre: 'Grupo', codigo: `Grupo ${grupoId}` });
+      setPracticas(practicasData);
+    } catch (err) {
+      setError(err.message || 'No se pudieron cargar las prácticas.');
+    } finally {
+      setLoading(false);
+    }
+  }
 
   useEffect(() => {
-    let alive = true;
-
-    const load = async () => {
-      try {
-        setLoading(true);
-        setError('');
-        const [grupoData, practicasData] = await Promise.all([
-          fetchDocenteGrupo(grupoId),
-          fetchPracticasByGrupo(grupoId),
-        ]);
-
-        if (!alive) return;
-        setGrupo(grupoData || { nombre: 'Grupo', codigo: `Grupo ${grupoId}` });
-        setPracticas(practicasData);
-      } catch (err) {
-        if (alive) setError(err.message || 'No se pudieron cargar las prácticas.');
-      } finally {
-        if (alive) setLoading(false);
-      }
-    };
-
-    load();
-
-    return () => {
-      alive = false;
-    };
+    loadData();
   }, [grupoId]);
 
   const filteredPracticas = useMemo(() => {
@@ -50,13 +50,11 @@ export default function PracticasGrupo() {
     return practicas.filter((p) => p.estado === 'cerrada');
   }, [practicas, filterStatus]);
 
-  const counts = useMemo(() => {
-    return {
-      todas: practicas.length,
-      activas: practicas.filter((p) => p.estado === 'activa').length,
-      cerradas: practicas.filter((p) => p.estado === 'cerrada').length,
-    };
-  }, [practicas]);
+  const counts = useMemo(() => ({
+    todas: practicas.length,
+    activas: practicas.filter((p) => p.estado === 'activa').length,
+    cerradas: practicas.filter((p) => p.estado === 'cerrada').length,
+  }), [practicas]);
 
   const handleNewPractice = () => {
     navigate('/docente/practicas/crear');
@@ -66,18 +64,44 @@ export default function PracticasGrupo() {
     navigate(`/docente/grupo/${grupoId}/practica/${practicaId}`);
   };
 
-  const handleMoreOptions = (practicaId) => {
+  const handleSaveStudents = async (event) => {
+    event.preventDefault();
+    setError('');
+    setNotice('');
+
+    if (!studentEmails.trim()) {
+      setError('Ingresa al menos un correo de estudiante.');
+      return;
+    }
+
+    try {
+      setSavingStudents(true);
+      const result = await addEstudiantesToGrupo(grupoId, studentEmails);
+      await loadData();
+      setShowStudentModal(false);
+      setStudentEmails('');
+
+      const parts = [];
+      if (result.estudiantesAgregados > 0) {
+        parts.push(`${result.estudiantesAgregados} estudiante(s) agregado(s)`);
+      }
+      if (result.estudiantesExistentes > 0) {
+        parts.push(`${result.estudiantesExistentes} ya estaban en el grupo`);
+      }
+      if (result.estudiantesNoEncontrados?.length > 0) {
+        parts.push(`no encontrados: ${result.estudiantesNoEncontrados.join(', ')}`);
+      }
+      setNotice(parts.length ? parts.join('. ') : 'Estudiantes actualizados.');
+    } catch (err) {
+      setError(err.message || 'No se pudieron asignar los estudiantes.');
+    } finally {
+      setSavingStudents(false);
+    }
   };
 
-  const getBadgeStyle = (estado) => {
-    return estado === 'activa' 
-      ? 'docente-practica-badge-active'
-      : 'docente-practica-badge-closed';
-  };
-
-  const getDateIcon = (estado) => {
-    return estado === 'activa' ? '📅' : '✓';
-  };
+  const getBadgeStyle = (estado) => (
+    estado === 'activa' ? 'docente-practica-badge-active' : 'docente-practica-badge-closed'
+  );
 
   return (
     <DocenteLayout
@@ -85,57 +109,25 @@ export default function PracticasGrupo() {
       topBand={
         <div className="docente-nav-band">
           <div className="docente-nav-band-inner">
-            <button
-              type="button"
-              className="docente-breadcrumb"
-              onClick={() => navigate('/')}
-              aria-label="Volver al inicio"
-            >
+            <button type="button" className="docente-breadcrumb" onClick={() => navigate('/')}>
               <ArrowLeftIcon size={14} />
               Inicio
-              <span style={{ margin: '0 4px', opacity: 0.4 }}>&rsaquo;</span>
-              <button
-                type="button"
-                className="docente-breadcrumb"
-                onClick={() => navigate('/docente')}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: 0,
-                  font: 'inherit',
-                  color: 'inherit',
-                }}
-              >
-                Dashboard Docente
-              </button>
-              <span style={{ margin: '0 4px', opacity: 0.4 }}>&rsaquo;</span>
-              <button
-                type="button"
-                className="docente-breadcrumb"
-                onClick={() => navigate('/docente/grupos')}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: 0,
-                  font: 'inherit',
-                  color: 'inherit',
-                }}
-              >
-                Grupos
-              </button>
-              <span style={{ margin: '0 4px', opacity: 0.4 }}>&rsaquo;</span>
-              <span className="docente-breadcrumb-current">
-                {grupo.nombre} - {grupo.codigo}
-              </span>
             </button>
+            <span style={{ margin: '0 4px', opacity: 0.4 }}>&rsaquo;</span>
+            <button type="button" className="docente-breadcrumb" onClick={() => navigate('/docente')}>
+              Dashboard Docente
+            </button>
+            <span style={{ margin: '0 4px', opacity: 0.4 }}>&rsaquo;</span>
+            <button type="button" className="docente-breadcrumb" onClick={() => navigate('/docente/grupos')}>
+              Grupos
+            </button>
+            <span style={{ margin: '0 4px', opacity: 0.4 }}>&rsaquo;</span>
+            <span className="docente-breadcrumb-current">{grupo.nombre} - {grupo.codigo}</span>
           </div>
         </div>
       }
     >
       <div className="docente-practicas-grupo-container">
-        {/* Header */}
         <div className="docente-practicas-grupo-header">
           <div className="docente-practicas-grupo-header-left">
             <button
@@ -147,28 +139,37 @@ export default function PracticasGrupo() {
               <ArrowLeftIcon size={20} />
             </button>
             <div>
-              <h1 className="docente-practicas-grupo-title">
-                {grupo.nombre} - {grupo.codigo}
-              </h1>
-              <p className="docente-practicas-grupo-subtitle">
-                Lista de prácticas creadas
-              </p>
+              <h1 className="docente-practicas-grupo-title">{grupo.nombre} - {grupo.codigo}</h1>
+              <p className="docente-practicas-grupo-subtitle">Lista de prácticas creadas</p>
             </div>
           </div>
           <div className="docente-practicas-grupo-header-right">
+            <button
+              type="button"
+              className="docente-practicas-grupo-new-btn docente-practicas-grupo-secondary-btn"
+              onClick={() => {
+                setError('');
+                setNotice('');
+                setShowStudentModal(true);
+              }}
+            >
+              Asignar estudiantes
+            </button>
             <button
               type="button"
               className="docente-practicas-grupo-new-btn"
               onClick={handleNewPractice}
               aria-label="Crear nueva práctica"
             >
-              <span className="docente-practicas-grupo-new-btn-icon">➕</span>
-              Nueva Práctica
+              <span className="docente-practicas-grupo-new-btn-icon">+</span>
+              Nueva práctica
             </button>
           </div>
         </div>
 
-        {/* Filter Tabs */}
+        {error && <p className="docente-form-error">{error}</p>}
+        {notice && <p className="docente-form-success">{notice}</p>}
+
         <div className="docente-practicas-grupo-filters">
           <button
             type="button"
@@ -193,13 +194,7 @@ export default function PracticasGrupo() {
           </button>
         </div>
 
-        {/* Practices Grid */}
         <div className="docente-practicas-grupo-grid">
-          {error && (
-            <div className="docente-practicas-grupo-empty">
-              <p>{error}</p>
-            </div>
-          )}
           {loading ? (
             <div className="docente-practicas-grupo-empty">
               <p>Cargando prácticas...</p>
@@ -210,53 +205,27 @@ export default function PracticasGrupo() {
                 key={practica.id}
                 className={`docente-practica-card ${practica.estado === 'cerrada' ? 'closed' : ''}`}
               >
-                {/* Card Header */}
                 <div className="docente-practica-card-header">
                   <span className={`docente-practica-badge ${getBadgeStyle(practica.estado)}`}>
                     {practica.estado === 'activa' ? 'Activa' : 'Cerrada'}
                   </span>
-                  <button
-                    type="button"
-                    className="docente-practica-card-menu-btn"
-                    onClick={() => handleMoreOptions(practica.id)}
-                    aria-label="Más opciones"
-                  >
-                    ⋮
-                  </button>
                 </div>
 
-                {/* Card Title */}
                 <h3 className="docente-practica-card-title">{practica.titulo}</h3>
 
-                {/* Card Dates */}
                 <div className="docente-practica-card-dates">
                   <div className="docente-practica-card-date-item">
-                    <span className="docente-practica-card-date-icon">📅</span>
-                    <span>Creado: {practica.fechaCreacion}</span>
+                    <span className="docente-practica-card-date-icon">Fecha</span>
+                    <span>Creado: {practica.fechaCreacion || 'Sin fecha'}</span>
                   </div>
                   <div className="docente-practica-card-date-item">
-                    <span className="docente-practica-card-date-icon">
-                      {getDateIcon(practica.estado)}
-                    </span>
-                    <span>
-                      {practica.estado === 'activa' ? 'Límite' : 'Finalizado'}:{' '}
-                      {practica.estado === 'activa' ? practica.fechaLimite : practica.fechaFin}
-                    </span>
+                    <span className="docente-practica-card-date-icon">Límite</span>
+                    <span>{practica.fechaLimite || practica.fechaFin || 'Sin fecha límite'}</span>
                   </div>
                 </div>
 
-                {/* Card Footer */}
                 <div className="docente-practica-card-footer">
                   <div className="docente-practica-card-footer-left">
-                    {practica.estudiantesAsignados && practica.estudiantesAsignados.length > 0 && (
-                      <div className="docente-practica-card-avatars">
-                        {practica.estudiantesAsignados.map((initials, idx) => (
-                          <div key={idx} className="docente-practica-card-avatar">
-                            {initials}
-                          </div>
-                        ))}
-                      </div>
-                    )}
                     <span className="docente-practica-card-reports-badge">
                       {practica.informesRecibidos} informes recibidos
                     </span>
@@ -273,11 +242,45 @@ export default function PracticasGrupo() {
             ))
           ) : (
             <div className="docente-practicas-grupo-empty">
-              <p>No hay prácticas con este filtro</p>
+              <p>No hay prácticas con este filtro.</p>
             </div>
           )}
         </div>
       </div>
+
+      {showStudentModal && (
+        <div className="docente-modal-overlay" onClick={() => setShowStudentModal(false)}>
+          <form className="docente-modal" onSubmit={handleSaveStudents} onClick={(event) => event.stopPropagation()}>
+            <div className="docente-modal-header">
+              <h2>Asignar estudiantes al grupo</h2>
+              <button type="button" className="docente-modal-close" onClick={() => setShowStudentModal(false)}>
+                x
+              </button>
+            </div>
+            <div className="docente-modal-body">
+              <label htmlFor="student-emails" className="docente-form-label">
+                Correos institucionales
+              </label>
+              <textarea
+                id="student-emails"
+                value={studentEmails}
+                onChange={(event) => setStudentEmails(event.target.value)}
+                className="docente-form-textarea"
+                rows="7"
+                placeholder="correo1@institucion.edu.co&#10;correo2@institucion.edu.co"
+              />
+            </div>
+            <div className="docente-modal-footer">
+              <button type="button" className="docente-form-btn docente-form-btn-secondary" onClick={() => setShowStudentModal(false)}>
+                Cancelar
+              </button>
+              <button type="submit" className="docente-form-btn docente-form-btn-primary" disabled={savingStudents}>
+                {savingStudents ? 'Asignando...' : 'Asignar estudiantes'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </DocenteLayout>
   );
 }
