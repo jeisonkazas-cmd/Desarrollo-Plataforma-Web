@@ -1,50 +1,62 @@
 import React, { useState } from 'react';
 
+const MAX_SIZE = 10 * 1024 * 1024;
+const ALLOWED_TYPES = [
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+];
+
 export default function SubirInformeModal({ open, onClose, onUpload }) {
   const [file, setFile] = useState(null);
   const [error, setError] = useState('');
-  const MAX_SIZE = 10 * 1024 * 1024; // 10 MB
-  const ALLOWED_TYPES = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleFileChange = (event) => {
-    const selectedFile = event.target.files?.[0];
+  const validateAndSetFile = (selectedFile) => {
     if (!selectedFile) return;
 
     setError('');
     if (selectedFile.size > MAX_SIZE) {
-      setError('El archivo no puede superar 10 MB');
+      setError('El archivo no puede superar 10 MB.');
       return;
     }
     if (!ALLOWED_TYPES.includes(selectedFile.type)) {
-      setError('Solo se permiten PDF o Word (.doc, .docx)');
+      setError('Solo se permiten PDF o Word (.doc, .docx).');
       return;
     }
 
     setFile(selectedFile);
   };
 
-  const handleDrop = (event) => {
-    event.preventDefault();
-    const droppedFile = event.dataTransfer.files?.[0];
-    if (droppedFile) {
-      handleFileChange({ target: { files: [droppedFile] } });
-    }
+  const handleFileChange = (event) => {
+    validateAndSetFile(event.target.files?.[0]);
+    event.target.value = '';
   };
 
-  const handleSubmit = () => {
+  const handleDrop = (event) => {
+    event.preventDefault();
+    validateAndSetFile(event.dataTransfer.files?.[0]);
+  };
+
+  const handleSubmit = async () => {
     if (!file) {
-      setError('Selecciona un archivo primero');
+      setError('Selecciona un archivo primero.');
       return;
     }
-    onUpload(file);
-    setFile(null);
+
+    try {
+      setSubmitting(true);
+      await onUpload(file);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (!open) return null;
 
   return (
     <div className="student-modal-overlay" onClick={onClose}>
-      <div className="student-modal-content" onClick={(e) => e.stopPropagation()}>
+      <div className="student-modal-content" onClick={(event) => event.stopPropagation()}>
         <div className="student-modal-header">
           <h2>Subir informe</h2>
           <button
@@ -53,7 +65,7 @@ export default function SubirInformeModal({ open, onClose, onUpload }) {
             onClick={onClose}
             aria-label="Cerrar"
           >
-            ✕
+            x
           </button>
         </div>
 
@@ -61,9 +73,9 @@ export default function SubirInformeModal({ open, onClose, onUpload }) {
           <div
             className="student-upload-zone"
             onDrop={handleDrop}
-            onDragOver={(e) => e.preventDefault()}
+            onDragOver={(event) => event.preventDefault()}
           >
-            <p className="student-upload-icon">📁</p>
+            <p className="student-upload-icon">Archivo</p>
             <p className="student-upload-text">Arrastra tu archivo aquí</p>
             <span className="student-upload-or">o</span>
             <label className="student-upload-label">
@@ -111,9 +123,9 @@ export default function SubirInformeModal({ open, onClose, onUpload }) {
             type="button"
             className="student-btn-submit"
             onClick={handleSubmit}
-            disabled={!file}
+            disabled={!file || submitting}
           >
-            Subir informe
+            {submitting ? 'Subiendo...' : 'Subir informe'}
           </button>
         </div>
       </div>

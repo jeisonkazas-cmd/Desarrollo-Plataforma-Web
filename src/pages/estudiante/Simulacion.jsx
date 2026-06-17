@@ -44,12 +44,12 @@ function Simulacion() {
   }, [setViewMode]);
 
   const handleUploadInforme = useCallback(async (file) => {
-    const success = await uploadFile(file);
-    if (success) {
+    const result = await uploadFile(file);
+    if (result === true) {
       setShowUploadModal(false);
       window.alert('Informe subido correctamente');
     } else {
-      window.alert('Error al subir el informe');
+      window.alert(typeof result === 'string' ? result : 'Error al subir el informe');
     }
   }, [uploadFile]);
 

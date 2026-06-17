@@ -23,8 +23,9 @@ export function useInformeUpload(practicaId) {
       await subirInforme(practicaId, file);
       return true;
     } catch (err) {
-      setError(err.message || 'Error al subir el informe');
-      return false;
+      const message = err.message || 'Error al subir el informe';
+      setError(message);
+      return message;
     } finally {
       setIsUploading(false);
     }
