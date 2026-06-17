@@ -122,6 +122,9 @@ body {
 
 .wl-nav-right {
   margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .wl-login {
@@ -147,6 +150,130 @@ body {
 
 .wl-login-svg {
   display: block;
+}
+
+.wl-notifications {
+  position: relative;
+}
+
+.wl-notification-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 9999px;
+  border: 1px solid rgba(255,255,255,0.35);
+  background: rgba(255,255,255,0.08);
+  color: #ffffff;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background 160ms ease, transform 160ms ease;
+  position: relative;
+}
+
+.wl-notification-btn:hover {
+  background: rgba(255,255,255,0.14);
+  transform: scale(1.02);
+}
+
+.wl-notification-badge {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #FFD100;
+  color: #082f67;
+  border: 2px solid #0d4a85;
+  font-size: 0.68rem;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wl-notification-panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: min(360px, calc(100vw - 24px));
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid rgba(0, 0, 0, 0.09);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.14);
+  z-index: 3100;
+  overflow: hidden;
+  animation: profileDropIn 140ms ease;
+}
+
+.wl-notification-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.07);
+}
+
+.wl-notification-panel-header button {
+  border: none;
+  background: transparent;
+  color: #1152d4;
+  font-weight: 800;
+  cursor: pointer;
+  padding: 0;
+}
+
+.wl-notification-list {
+  max-height: 390px;
+  overflow: auto;
+}
+
+.wl-notification-item {
+  width: 100%;
+  border: none;
+  background: #ffffff;
+  color: inherit;
+  text-align: left;
+  padding: 13px 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  display: grid;
+  gap: 5px;
+}
+
+.wl-notification-item:hover {
+  background: #f8fafc;
+}
+
+.wl-notification-item.is-unread {
+  background: #eef4ff;
+}
+
+.wl-notification-title {
+  font-weight: 900;
+  font-size: 0.88rem;
+}
+
+.wl-notification-message {
+  color: rgba(51, 65, 85, 0.88);
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+.wl-notification-date,
+.wl-notification-empty {
+  color: rgba(100, 116, 139, 0.9);
+  font-size: 0.74rem;
+}
+
+.wl-notification-empty {
+  margin: 0;
+  padding: 18px 16px;
 }
 
 /* Subrayado animado (line) como en wwwLabs */

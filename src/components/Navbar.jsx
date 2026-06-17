@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../services/supabaseClient';
+import NotificationBell from './NotificationBell';
 
 function Navbar() {
   const [openMenu, setOpenMenu] = useState(null);
@@ -204,6 +205,8 @@ function Navbar() {
 
         <div className="wl-nav-right" ref={profileRef}>
           {isAuthenticated ? (
+            <>
+            <NotificationBell enabled={isAuthenticated} />
             <div className="wl-profile-wrapper">
               <button
                 type="button"
@@ -239,6 +242,7 @@ function Navbar() {
                 </div>
               )}
             </div>
+            </>
           ) : (
             <NavLink to="/login" className="wl-login" aria-label="Iniciar sesión">
               <svg className="wl-login-svg" width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
