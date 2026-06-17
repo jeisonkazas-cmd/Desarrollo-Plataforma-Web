@@ -1631,6 +1631,14 @@
   box-shadow: 0 0 0 3px rgba(17, 82, 212, 0.1);
 }
 
+.docente-form-asset-path {
+  margin: -4px 0 0;
+  color: rgba(107, 114, 128, 0.9);
+  font-size: 0.82rem;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
 .docente-form-textarea {
   width: 100%;
   padding: 12px 14px;

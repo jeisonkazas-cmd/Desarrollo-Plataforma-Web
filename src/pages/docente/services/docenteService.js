@@ -206,6 +206,10 @@ export async function fetchDocenteGrupo(grupoId) {
   return apiRequest(`/api/platform/docente/grupos/${grupoId}`);
 }
 
+export async function fetchDocenteRecursos() {
+  return apiRequest('/api/platform/docente/recursos');
+}
+
 export async function createDocenteGrupo(payload) {
   return apiRequest('/api/platform/docente/grupos', {
     method: 'POST',

@@ -3,100 +3,90 @@ import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../components/AdminLayout';
 import { ArrowLeftIcon, BookIcon, TrashIcon, PlusIcon } from '../components/AdminIcons';
 import {
-  createContenidoAdmin,
-  deleteContenidoAdmin,
-  fetchContenidoAdmin,
-  fetchPracticasCatalogoAdmin,
+  createRecursoAdmin,
+  deleteRecursoAdmin,
+  fetchRecursosAdmin,
 } from '../services/adminSupabaseService';
 import '../../../styles/admin.css';
 
+const emptyForm = {
+  titulo: '',
+  tipo: 'guia',
+  laboratorio: 'Fisica 1',
+  file: null,
+};
+
 export default function GestionContenido() {
   const navigate = useNavigate();
-  const [contenidos, setContenidos] = useState([]);
-  const [practicas, setPracticas] = useState([]);
+  const [recursos, setRecursos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [filterTipo, setFilterTipo] = useState('todos');
   const [showUploadModal, setShowUploadModal] = useState(false);
-  const [formData, setFormData] = useState({
-    titulo: '',
-    tipo: 'simulacion',
-    url: '',
-    practicaId: '',
-  });
+  const [formData, setFormData] = useState(emptyForm);
 
-  async function loadContenido() {
+  async function loadRecursos() {
     try {
       setLoading(true);
       setError('');
-      const [contenidoData, practicasData] = await Promise.all([
-        fetchContenidoAdmin(),
-        fetchPracticasCatalogoAdmin(),
-      ]);
-      setContenidos(contenidoData);
-      setPracticas(practicasData);
+      setRecursos(await fetchRecursosAdmin());
     } catch (err) {
-      setError(err?.message || 'No se pudo cargar el contenido.');
-      setContenidos([]);
+      setError(err?.message || 'No se pudieron cargar los recursos.');
+      setRecursos([]);
     } finally {
       setLoading(false);
     }
   }
 
   useEffect(() => {
-    loadContenido();
+    loadRecursos();
   }, []);
 
-  const filteredContenidos = useMemo(() => {
-    return contenidos.filter((contenido) => {
-      const matchSearch =
-        search.length === 0 ||
-        contenido.titulo.toLowerCase().includes(search.toLowerCase());
-      const matchTipo = filterTipo === 'todos' || contenido.tipo === filterTipo;
+  const filteredRecursos = useMemo(() => {
+    return recursos.filter((recurso) => {
+      const text = `${recurso.titulo} ${recurso.laboratorio} ${recurso.archivoNombre}`.toLowerCase();
+      const matchSearch = !search || text.includes(search.toLowerCase());
+      const matchTipo = filterTipo === 'todos' || recurso.tipo === filterTipo;
       return matchSearch && matchTipo;
     });
-  }, [contenidos, search, filterTipo]);
+  }, [recursos, search, filterTipo]);
 
-  const handleSaveContenido = async () => {
-    if (!formData.titulo || !formData.url || !formData.practicaId) {
-      alert('Por favor completa todos los campos');
+  const handleSaveRecurso = async () => {
+    if (!formData.titulo.trim() || !formData.file) {
+      alert('Completa el titulo y selecciona un archivo.');
       return;
     }
 
     try {
       setSaving(true);
-      const nextContenido = await createContenidoAdmin({
-        ...formData,
-        practicaId: Number(formData.practicaId),
-      });
-      setContenidos(nextContenido);
+      setRecursos(await createRecursoAdmin(formData));
       setShowUploadModal(false);
-      setFormData({ titulo: '', tipo: 'simulacion', url: '', practicaId: '' });
+      setFormData(emptyForm);
     } catch (err) {
-      alert(err?.message || 'No se pudo guardar el contenido');
+      alert(err?.message || 'No se pudo subir el recurso.');
     } finally {
       setSaving(false);
     }
   };
 
-  const handleDeleteContenido = async (contenido) => {
-    if (!window.confirm('Estas seguro de que deseas eliminar este contenido?')) return;
+  const handleDeleteRecurso = async (recurso) => {
+    if (!window.confirm('Estas seguro de desactivar este recurso?')) return;
 
     try {
-      await deleteContenidoAdmin(contenido);
-      await loadContenido();
+      await deleteRecursoAdmin(recurso.id);
+      await loadRecursos();
     } catch (err) {
-      alert(err?.message || 'No se pudo eliminar el contenido');
+      alert(err?.message || 'No se pudo eliminar el recurso.');
     }
   };
 
   const resumen = {
-    total: contenidos.length,
-    simulaciones: contenidos.filter((contenido) => contenido.tipo === 'simulacion').length,
-    recursos: contenidos.filter((contenido) => contenido.tipo === 'recurso').length,
-    descargarTotal: contenidos.reduce((sum, contenido) => sum + contenido.descargas, 0),
+    total: recursos.length,
+    guias: recursos.filter((recurso) => recurso.tipo === 'guia').length,
+    informes: recursos.filter((recurso) => recurso.tipo === 'informe').length,
+    activos: recursos.filter((recurso) => recurso.estado === 'activo').length,
   };
 
   return (
@@ -112,25 +102,17 @@ export default function GestionContenido() {
             >
               <ArrowLeftIcon size={14} />
               Inicio
-              <span style={{ margin: '0 4px', opacity: 0.4 }}>&rsaquo;</span>
             </button>
+            <span style={{ margin: '0 4px', opacity: 0.4 }}>&rsaquo;</span>
             <button
               type="button"
               className="admin-breadcrumb"
               onClick={() => navigate('/dashboard/admin')}
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                padding: 0,
-                font: 'inherit',
-                color: 'inherit',
-              }}
             >
               Dashboard Administrador
             </button>
             <span style={{ margin: '0 4px', opacity: 0.4 }}>&rsaquo;</span>
-            <span className="admin-breadcrumb-current">Gestion de Contenido</span>
+            <span className="admin-breadcrumb-current">Catalogo de recursos</span>
           </div>
         </div>
       }
@@ -139,9 +121,9 @@ export default function GestionContenido() {
         <div className="admin-header-content">
           <div className="admin-header-title">
             <BookIcon />
-            <h1>Gestion de Contenido</h1>
+            <h1>Catalogo de guias e informes</h1>
           </div>
-          <p>Administra laboratorios, simulaciones y recursos educativos</p>
+          <p>Sube archivos PDF o HTML para que los docentes los asignen a sus practicas.</p>
         </div>
         <button
           type="button"
@@ -149,33 +131,33 @@ export default function GestionContenido() {
           onClick={() => setShowUploadModal(true)}
         >
           <PlusIcon size={18} />
-          Subir contenido
+          Subir recurso
         </button>
       </div>
 
       <div className="admin-stats-grid">
         <div className="admin-stat-card">
           <div className="admin-stat-content">
-            <p className="admin-stat-label">Total contenidos</p>
+            <p className="admin-stat-label">Total recursos</p>
             <p className="admin-stat-value">{resumen.total}</p>
           </div>
         </div>
         <div className="admin-stat-card">
           <div className="admin-stat-content">
-            <p className="admin-stat-label">Simulaciones</p>
-            <p className="admin-stat-value">{resumen.simulaciones}</p>
+            <p className="admin-stat-label">Guias</p>
+            <p className="admin-stat-value">{resumen.guias}</p>
           </div>
         </div>
         <div className="admin-stat-card">
           <div className="admin-stat-content">
-            <p className="admin-stat-label">Recursos</p>
-            <p className="admin-stat-value">{resumen.recursos}</p>
+            <p className="admin-stat-label">Informes</p>
+            <p className="admin-stat-value">{resumen.informes}</p>
           </div>
         </div>
         <div className="admin-stat-card">
           <div className="admin-stat-content">
-            <p className="admin-stat-label">Descargas totales</p>
-            <p className="admin-stat-value">{resumen.descargarTotal}</p>
+            <p className="admin-stat-label">Activos</p>
+            <p className="admin-stat-value">{resumen.activos}</p>
           </div>
         </div>
       </div>
@@ -185,7 +167,7 @@ export default function GestionContenido() {
           <span>Buscar</span>
           <input
             type="text"
-            placeholder="Buscar contenido"
+            placeholder="Buscar recurso"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
           />
@@ -197,8 +179,8 @@ export default function GestionContenido() {
           className="admin-filter-select"
         >
           <option value="todos">Todos los tipos</option>
-          <option value="simulacion">Simulaciones</option>
-          <option value="recurso">Recursos</option>
+          <option value="guia">Guias</option>
+          <option value="informe">Informes</option>
         </select>
       </div>
 
@@ -209,8 +191,8 @@ export default function GestionContenido() {
             <tr>
               <th>Titulo</th>
               <th>Tipo</th>
-              <th>Fecha creacion</th>
-              <th>Descargas</th>
+              <th>Laboratorio</th>
+              <th>Archivo</th>
               <th>Estado</th>
               <th>Acciones</th>
             </tr>
@@ -219,33 +201,35 @@ export default function GestionContenido() {
             {loading ? (
               <tr>
                 <td colSpan="6" className="admin-table-empty">
-                  Cargando contenido...
+                  Cargando recursos...
                 </td>
               </tr>
-            ) : filteredContenidos.length > 0 ? (
-              filteredContenidos.map((contenido) => (
-                <tr key={contenido.id}>
-                  <td className="admin-table-name">{contenido.titulo}</td>
+            ) : filteredRecursos.length > 0 ? (
+              filteredRecursos.map((recurso) => (
+                <tr key={recurso.id}>
+                  <td className="admin-table-name">{recurso.titulo}</td>
                   <td>
-                    <span className={`admin-badge admin-badge-${contenido.tipo}`}>
-                      {contenido.tipo}
+                    <span className={`admin-badge admin-badge-${recurso.tipo}`}>
+                      {recurso.tipo}
                     </span>
                   </td>
+                  <td>{recurso.laboratorio || 'General'}</td>
                   <td>
-                    {new Date(contenido.fechaCreacion).toLocaleDateString('es-ES')}
+                    <a href={recurso.url} target="_blank" rel="noreferrer">
+                      {recurso.archivoNombre || 'Abrir archivo'}
+                    </a>
                   </td>
-                  <td className="admin-table-number">{contenido.descargas}</td>
                   <td>
                     <span className="admin-badge admin-badge-activo">
-                      {contenido.estado}
+                      {recurso.estado}
                     </span>
                   </td>
                   <td className="admin-table-actions">
                     <button
                       type="button"
                       className="admin-btn-icon admin-btn-delete"
-                      onClick={() => handleDeleteContenido(contenido)}
-                      title="Eliminar"
+                      onClick={() => handleDeleteRecurso(recurso)}
+                      title="Desactivar"
                     >
                       <TrashIcon size={16} />
                     </button>
@@ -255,7 +239,7 @@ export default function GestionContenido() {
             ) : (
               <tr>
                 <td colSpan="6" className="admin-table-empty">
-                  No se encontro contenido
+                  No se encontraron recursos.
                 </td>
               </tr>
             )}
@@ -267,7 +251,7 @@ export default function GestionContenido() {
         <div className="admin-modal-overlay" onClick={() => setShowUploadModal(false)}>
           <div className="admin-modal" onClick={(event) => event.stopPropagation()}>
             <div className="admin-modal-header">
-              <h2>Subir nuevo contenido</h2>
+              <h2>Subir guia o informe</h2>
               <button
                 type="button"
                 className="admin-modal-close"
@@ -279,27 +263,12 @@ export default function GestionContenido() {
 
             <div className="admin-modal-body">
               <div className="admin-form-group">
-                <label>Practica asociada</label>
-                <select
-                  value={formData.practicaId}
-                  onChange={(event) => setFormData({ ...formData, practicaId: event.target.value })}
-                >
-                  <option value="">Selecciona una practica</option>
-                  {practicas.map((practica) => (
-                    <option key={practica.id} value={practica.id}>
-                      {practica.titulo}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="admin-form-group">
                 <label>Titulo</label>
                 <input
                   type="text"
                   value={formData.titulo}
                   onChange={(event) => setFormData({ ...formData, titulo: event.target.value })}
-                  placeholder="Ej: Caida Libre"
+                  placeholder="Ej: Guia cubeta de ondas"
                 />
               </div>
 
@@ -309,18 +278,30 @@ export default function GestionContenido() {
                   value={formData.tipo}
                   onChange={(event) => setFormData({ ...formData, tipo: event.target.value })}
                 >
-                  <option value="simulacion">Simulacion</option>
-                  <option value="recurso">Recurso</option>
+                  <option value="guia">Guia</option>
+                  <option value="informe">Informe</option>
                 </select>
               </div>
 
               <div className="admin-form-group">
-                <label>URL o ruta</label>
+                <label>Laboratorio</label>
+                <select
+                  value={formData.laboratorio}
+                  onChange={(event) => setFormData({ ...formData, laboratorio: event.target.value })}
+                >
+                  <option value="Fisica 1">Fisica 1</option>
+                  <option value="Fisica 2">Fisica 2</option>
+                  <option value="Fisica 3">Fisica 3</option>
+                  <option value="General">General</option>
+                </select>
+              </div>
+
+              <div className="admin-form-group">
+                <label>Archivo PDF o HTML</label>
                 <input
-                  type="text"
-                  value={formData.url}
-                  onChange={(event) => setFormData({ ...formData, url: event.target.value })}
-                  placeholder="Ej: /laboratorios/caida_libre.html"
+                  type="file"
+                  accept=".pdf,.html,text/html,application/pdf"
+                  onChange={(event) => setFormData({ ...formData, file: event.target.files?.[0] || null })}
                 />
               </div>
             </div>
@@ -336,10 +317,10 @@ export default function GestionContenido() {
               <button
                 type="button"
                 className="admin-btn-primary"
-                onClick={handleSaveContenido}
+                onClick={handleSaveRecurso}
                 disabled={saving}
               >
-                {saving ? 'Guardando...' : 'Subir contenido'}
+                {saving ? 'Subiendo...' : 'Subir recurso'}
               </button>
             </div>
           </div>

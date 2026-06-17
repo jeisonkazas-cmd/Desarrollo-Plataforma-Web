@@ -44,6 +44,30 @@ export async function fetchContenidoAdmin() {
   return apiRequest('/api/platform/admin/contenido');
 }
 
+export async function fetchRecursosAdmin() {
+  return apiRequest('/api/platform/admin/recursos');
+}
+
+export async function createRecursoAdmin(payload) {
+  const body = new FormData();
+  body.append('titulo', payload.titulo);
+  body.append('tipo', payload.tipo);
+  body.append('laboratorio', payload.laboratorio || '');
+  body.append('file', payload.file);
+
+  await apiRequest('/api/platform/admin/recursos', {
+    method: 'POST',
+    body,
+  });
+  return fetchRecursosAdmin();
+}
+
+export async function deleteRecursoAdmin(recursoId) {
+  await apiRequest(`/api/platform/admin/recursos/${recursoId}`, {
+    method: 'DELETE',
+  });
+}
+
 export async function createContenidoAdmin(payload) {
   await apiRequest('/api/platform/admin/contenido', {
     method: 'POST',
