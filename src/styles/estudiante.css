@@ -908,7 +908,14 @@
 }
 
 .student-composer-avatar {
-  font-size: 1.6rem;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: rgba(63, 77, 230, 0.1);
+  color: #283889;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex: 0 0 auto;
 }
 
@@ -937,6 +944,10 @@
   font-size: 0.78rem;
   font-weight: 700;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .student-btn-publish:hover {

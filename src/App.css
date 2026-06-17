@@ -389,7 +389,9 @@ body {
 }
 
 .wl-profile-item {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   width: 100%;
   text-align: left;
   padding: 10px 16px;

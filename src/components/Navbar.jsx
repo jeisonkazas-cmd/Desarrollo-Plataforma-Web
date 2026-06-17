@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { LogOut, Settings, UserRound } from 'lucide-react';
 import { supabase } from '../services/supabaseClient';
 import NotificationBell from './NotificationBell';
 
@@ -7,9 +8,18 @@ function Navbar() {
   const [openMenu, setOpenMenu] = useState(null);
   const [profileOpen, setProfileOpen] = useState(false);
   const navRef = useRef(null);
-  const profileRef = useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
+
+  const currentArea = useMemo(() => {
+    if (location.pathname.startsWith('/docente') || location.pathname.startsWith('/dashboard/docente')) return 'docente';
+    if (location.pathname.startsWith('/admin') || location.pathname.startsWith('/dashboard/admin')) return 'admin';
+    if (location.pathname.startsWith('/estudiante') || location.pathname.startsWith('/dashboard/estudiante')) return 'estudiante';
+    if (location.pathname.startsWith('/perfil') || location.pathname.startsWith('/configuracion')) return 'cuenta';
+    return null;
+  }, [location.pathname]);
+
+  const isAuthenticated = Boolean(currentArea);
 
   const handleLogout = async () => {
     setProfileOpen(false);
@@ -17,17 +27,13 @@ function Navbar() {
     navigate('/login', { replace: true });
   };
 
-  const isAuthenticated = useMemo(
-    () => ['/docente', '/admin', '/estudiante'].some((p) => location.pathname.startsWith(p)),
-    [location.pathname]
-  );
-
   const roleLabel = useMemo(() => {
-    if (location.pathname.startsWith('/docente')) return { name: 'Docente', sub: 'Panel académico' };
-    if (location.pathname.startsWith('/admin')) return { name: 'Administrador', sub: 'Panel de gestión' };
-    if (location.pathname.startsWith('/estudiante')) return { name: 'Estudiante', sub: 'Panel académico' };
+    if (currentArea === 'docente') return { name: 'Docente', sub: 'Panel académico' };
+    if (currentArea === 'admin') return { name: 'Administrador', sub: 'Panel de gestión' };
+    if (currentArea === 'estudiante') return { name: 'Estudiante', sub: 'Panel académico' };
+    if (currentArea === 'cuenta') return { name: 'Cuenta', sub: 'Perfil y configuración' };
     return null;
-  }, [location.pathname]);
+  }, [currentArea]);
 
   const { navLinks, menus } = useMemo(() => {
     const visitorMenus = [
@@ -60,32 +66,26 @@ function Navbar() {
       },
     ];
 
-    if (location.pathname.startsWith('/estudiante')) {
-      return {
-        navLinks: [
-          { label: 'Mis cursos', to: '/dashboard/estudiante' },
-        ],
-        menus: [],
-      };
+    if (currentArea === 'estudiante') {
+      return { navLinks: [{ label: 'Mis cursos', to: '/dashboard/estudiante' }], menus: [] };
     }
-    if (location.pathname.startsWith('/docente')) {
-      return {
-        navLinks: [
-          { label: 'Mis cursos', to: '/dashboard/docente' },
-        ],
-        menus: [],
-      };
+    if (currentArea === 'docente') {
+      return { navLinks: [{ label: 'Mis cursos', to: '/dashboard/docente' }], menus: [] };
     }
-    if (location.pathname.startsWith('/admin')) {
+    if (currentArea === 'admin') {
+      return { navLinks: [{ label: 'Dashboard', to: '/dashboard/admin' }], menus: [] };
+    }
+    if (currentArea === 'cuenta') {
       return {
         navLinks: [
-          { label: 'Dashboard', to: '/dashboard/admin' },
+          { label: 'Mi perfil', to: '/perfil' },
+          { label: 'Configuración', to: '/configuracion' },
         ],
         menus: [],
       };
     }
     return { navLinks: [], menus: visitorMenus };
-  }, [location.pathname]);
+  }, [currentArea]);
 
   useEffect(() => {
     const onPointerDown = (event) => {
@@ -112,6 +112,7 @@ function Navbar() {
 
   useEffect(() => {
     setOpenMenu(null);
+    setProfileOpen(false);
   }, [location.pathname]);
 
   useEffect(() => {
@@ -124,7 +125,6 @@ function Navbar() {
     };
 
     updateVar();
-
     let ro;
     if (typeof ResizeObserver !== 'undefined') {
       ro = new ResizeObserver(() => updateVar());
@@ -156,9 +156,7 @@ function Navbar() {
               <li key={link.to} className="wl-nav-item">
                 <NavLink
                   to={link.to}
-                  className={({ isActive }) =>
-                    `wl-nav-link ${isActive ? 'active' : ''}`
-                  }
+                  className={({ isActive }) => `wl-nav-link ${isActive ? 'active' : ''}`}
                   role="menuitem"
                 >
                   {link.label}
@@ -166,7 +164,7 @@ function Navbar() {
               </li>
             ))
           ) : (
-            menus && menus.map((menu) => (
+            menus.map((menu) => (
               <li
                 key={menu.id}
                 className={`wl-nav-item wl-dropdown ${openMenu === menu.id ? 'is-open' : ''}`}
@@ -203,52 +201,63 @@ function Navbar() {
           )}
         </ul>
 
-        <div className="wl-nav-right" ref={profileRef}>
+        <div className="wl-nav-right">
           {isAuthenticated ? (
             <>
-            <NotificationBell enabled={isAuthenticated} />
-            <div className="wl-profile-wrapper">
-              <button
-                type="button"
-                className="wl-login wl-profile-btn"
-                aria-label="Menú de usuario"
-                aria-expanded={profileOpen}
-                onClick={() => setProfileOpen((v) => !v)}
-              >
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                  <path d="M12 12c2.7614 0 5-2.2386 5-5s-2.2386-5-5-5-5 2.2386-5 5 2.2386 5 5 5Z" stroke="currentColor" strokeWidth="1.8" />
-                  <path d="M20 22c0-4.4183-3.5817-8-8-8s-8 3.5817-8 8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-                </svg>
-              </button>
-              {profileOpen && (
-                <div className="wl-profile-dropdown" role="menu">
-                  {roleLabel && (
-                    <div className="wl-profile-info">
-                      <span className="wl-profile-name">{roleLabel.name}</span>
-                      <span className="wl-profile-sub">{roleLabel.sub}</span>
-                    </div>
-                  )}
-                  <button type="button" className="wl-profile-item" role="menuitem" onClick={() => setProfileOpen(false)}>Mi perfil</button>
-                  <button type="button" className="wl-profile-item" role="menuitem" onClick={() => setProfileOpen(false)}>Configuración</button>
-                  <div className="wl-profile-divider" />
-                  <button
-                    type="button"
-                    className="wl-profile-item wl-profile-logout"
-                    role="menuitem"
-                    onClick={handleLogout}
-                  >
-                    Cerrar sesión
-                  </button>
-                </div>
-              )}
-            </div>
+              <NotificationBell enabled={isAuthenticated} />
+              <div className="wl-profile-wrapper">
+                <button
+                  type="button"
+                  className="wl-login wl-profile-btn"
+                  aria-label="Menú de usuario"
+                  aria-expanded={profileOpen}
+                  onClick={() => setProfileOpen((value) => !value)}
+                >
+                  <UserRound size={22} />
+                </button>
+                {profileOpen && (
+                  <div className="wl-profile-dropdown" role="menu">
+                    {roleLabel && (
+                      <div className="wl-profile-info">
+                        <span className="wl-profile-name">{roleLabel.name}</span>
+                        <span className="wl-profile-sub">{roleLabel.sub}</span>
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      className="wl-profile-item"
+                      role="menuitem"
+                      onClick={() => navigate('/perfil')}
+                    >
+                      <UserRound size={16} />
+                      Mi perfil
+                    </button>
+                    <button
+                      type="button"
+                      className="wl-profile-item"
+                      role="menuitem"
+                      onClick={() => navigate('/configuracion')}
+                    >
+                      <Settings size={16} />
+                      Configuración
+                    </button>
+                    <div className="wl-profile-divider" />
+                    <button
+                      type="button"
+                      className="wl-profile-item wl-profile-logout"
+                      role="menuitem"
+                      onClick={handleLogout}
+                    >
+                      <LogOut size={16} />
+                      Cerrar sesión
+                    </button>
+                  </div>
+                )}
+              </div>
             </>
           ) : (
             <NavLink to="/login" className="wl-login" aria-label="Iniciar sesión">
-              <svg className="wl-login-svg" width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <path d="M12 12c2.7614 0 5-2.2386 5-5s-2.2386-5-5-5-5 2.2386-5 5 2.2386 5 5 5Z" stroke="currentColor" strokeWidth="1.8" />
-                <path d="M20 22c0-4.4183-3.5817-8-8-8s-8 3.5817-8 8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-              </svg>
+              <UserRound size={22} />
             </NavLink>
           )}
         </div>

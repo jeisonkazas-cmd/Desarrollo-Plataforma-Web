@@ -23,6 +23,7 @@ import PracticasGrupo from './pages/docente/Practicas/PracticasGrupo';
 import PracticaEstudiantes from './pages/docente/Practicas/EstudiantesPractica';
 import InformeEstudiante from './pages/docente/Practicas/InformeEstudiante';
 import CrearPractica from './pages/docente/Practicas/CrearPractica';
+import Cuenta from './pages/Cuenta';
 import { getOrCreateUserProfile } from './services/authService';
 
 function PendienteAprobacion() {
@@ -130,6 +131,22 @@ function AppContent() {
         <Route path="/investigacion" element={<Investigacion />} />
         <Route path="/login" element={<Login />} />
         <Route path="/pendiente" element={<PendienteAprobacion />} />
+        <Route
+          path="/perfil"
+          element={
+            <ProtectedRoute allowedRoles={['Administrador', 'Docente', 'Estudiante']}>
+              <Cuenta mode="perfil" />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/configuracion"
+          element={
+            <ProtectedRoute allowedRoles={['Administrador', 'Docente', 'Estudiante']}>
+              <Cuenta mode="configuracion" />
+            </ProtectedRoute>
+          }
+        />
 
         <Route
           path="/dashboard/admin"

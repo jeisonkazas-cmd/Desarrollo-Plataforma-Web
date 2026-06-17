@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { Send, UserRound } from 'lucide-react';
 import StudentBreadcrumb from './components/StudentBreadcrumb';
 import { getForoPractica, getGrupoDetalle, getPracticaDetalle, publicarPostForo } from './services/estudianteService';
 import '../../styles/estudiante.css';
@@ -195,7 +196,9 @@ export default function Foro() {
         <div className="student-foro-content">
           <section className="student-foro-composer">
             <div className="student-composer-header">
-              <span className="student-composer-avatar">YO</span>
+              <span className="student-composer-avatar" aria-hidden="true">
+                <UserRound size={24} />
+              </span>
               <textarea
                 className="student-composer-input"
                 placeholder="Escribe una pregunta o comentario..."
@@ -207,6 +210,7 @@ export default function Foro() {
               />
             </div>
             <button type="button" className="student-btn-publish" onClick={handlePublicar} disabled={publishing}>
+              <Send size={16} />
               Publicar
             </button>
             {error && <p className="student-foro-error">{error}</p>}
