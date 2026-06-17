@@ -18,7 +18,7 @@ import '../../styles/estudiante.css';
 function Simulacion() {
   const { practicaId } = useParams();
 
-  const { practica, loading } = usePracticaData(practicaId);
+  const { practica, loading, reload } = usePracticaData(practicaId);
 
   const {
     viewMode,
@@ -46,12 +46,14 @@ function Simulacion() {
   const handleUploadInforme = useCallback(async (file) => {
     const result = await uploadFile(file);
     if (result === true) {
+      await reload();
       setShowUploadModal(false);
+      setViewMode('submission');
       window.alert('Informe subido correctamente');
     } else {
       window.alert(typeof result === 'string' ? result : 'Error al subir el informe');
     }
-  }, [uploadFile]);
+  }, [reload, setViewMode, uploadFile]);
 
   if (loading) {
     return <LoadingScreen />;
