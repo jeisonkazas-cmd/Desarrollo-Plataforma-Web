@@ -1094,6 +1094,16 @@
   white-space: pre-wrap;
 }
 
+.student-reply-button {
+  margin-top: 8px;
+}
+
+.student-nested-replies {
+  margin-top: 10px;
+  padding-left: 12px;
+  border-left-color: rgba(63, 77, 230, 0.12);
+}
+
 .student-reply-form {
   margin-top: 14px;
 }

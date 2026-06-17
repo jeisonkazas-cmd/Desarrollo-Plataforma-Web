@@ -128,6 +128,69 @@ export default function Foro() {
     }
   };
 
+  const renderRespuesta = (item) => {
+    const respuestas = getRespuestas(item);
+
+    return (
+      <div key={item.id} className="docente-foro-reply">
+        <div className="docente-foro-reply-meta">
+          <strong>{item.autorNombre}</strong>
+          <span>{item.autorRol === 'docente' ? 'Docente' : 'Estudiante'}</span>
+          <span>{item.tiempoPublicacion}</span>
+        </div>
+        <p>{item.contenido}</p>
+        <button
+          type="button"
+          className="docente-foro-see-discussion-btn docente-foro-reply-button"
+          onClick={() => {
+            setReplyingTo(replyingTo === item.id ? null : item.id);
+            setRespuesta('');
+            setErrorHilo('');
+          }}
+        >
+          Responder
+        </button>
+
+        {replyingTo === item.id && (
+          <div className="docente-foro-reply-form">
+            <textarea
+              value={respuesta}
+              onChange={(event) => setRespuesta(event.target.value)}
+              className="docente-foro-textarea docente-foro-reply-textarea"
+              placeholder="Escribe tu respuesta..."
+            />
+            <div className="docente-foro-reply-actions">
+              <button
+                type="button"
+                className="docente-foro-back-btn"
+                onClick={() => {
+                  setReplyingTo(null);
+                  setRespuesta('');
+                }}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="docente-foro-publish-btn"
+                onClick={() => handleResponder(item.id)}
+                disabled={publishing}
+              >
+                Publicar respuesta
+              </button>
+            </div>
+          </div>
+        )}
+
+        {respuestas.length > 0 && (
+          <div className="docente-foro-replies docente-foro-nested-replies">
+            {respuestas.map(renderRespuesta)}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <DocenteLayout
       footerText="© 2026 Universidad - Sistema de Gestión de Prácticas Académicas. Todos los derechos reservados."
@@ -250,7 +313,7 @@ export default function Foro() {
                       <div className="docente-foro-thread-footer">
                         <div className="docente-foro-thread-stats">
                           <div className="docente-foro-stat">
-                            <span className="docente-foro-stat-value">{respuestas.length} respuestas</span>
+                            <span className="docente-foro-stat-value">{Number(hilo.respuestas || respuestas.length)} respuestas</span>
                           </div>
                         </div>
                         <button
@@ -268,16 +331,7 @@ export default function Foro() {
 
                       {respuestas.length > 0 && (
                         <div className="docente-foro-replies">
-                          {respuestas.map((item) => (
-                            <div key={item.id} className="docente-foro-reply">
-                              <div className="docente-foro-reply-meta">
-                                <strong>{item.autorNombre}</strong>
-                                <span>{item.autorRol === 'docente' ? 'Docente' : 'Estudiante'}</span>
-                                <span>{item.tiempoPublicacion}</span>
-                              </div>
-                              <p>{item.contenido}</p>
-                            </div>
-                          ))}
+                          {respuestas.map(renderRespuesta)}
                         </div>
                       )}
 

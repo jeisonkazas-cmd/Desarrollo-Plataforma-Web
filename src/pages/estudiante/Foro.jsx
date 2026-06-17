@@ -66,7 +66,7 @@ export default function Foro() {
   }, [practicaId, grupoId]);
 
   const totalRespuestas = useMemo(
-    () => posts.reduce((total, post) => total + getRespuestas(post).length, 0),
+    () => posts.reduce((total, post) => total + Number(post.respuestas || getRespuestas(post).length), 0),
     [posts]
   );
 
@@ -107,6 +107,69 @@ export default function Foro() {
     } finally {
       setPublishing(false);
     }
+  };
+
+  const renderRespuesta = (item) => {
+    const respuestas = getRespuestas(item);
+
+    return (
+      <div key={item.id} className="student-foro-reply">
+        <div className="student-reply-meta">
+          <strong>{item.autorNombre || item.autor}</strong>
+          <span>{item.autorRol === 'docente' ? 'Docente' : 'Estudiante'}</span>
+          <span>{item.timestamp || item.tiempoPublicacion}</span>
+        </div>
+        <p>{item.contenido}</p>
+        <button
+          type="button"
+          className="student-btn-see-discussion student-reply-button"
+          onClick={() => {
+            setReplyingTo(replyingTo === item.id ? null : item.id);
+            setRespuesta('');
+            setError('');
+          }}
+        >
+          Responder
+        </button>
+
+        {replyingTo === item.id && (
+          <div className="student-reply-form">
+            <textarea
+              className="student-composer-input"
+              value={respuesta}
+              onChange={(event) => setRespuesta(event.target.value)}
+              placeholder="Escribe tu respuesta..."
+            />
+            <div className="student-reply-actions">
+              <button
+                type="button"
+                className="student-btn-secondary"
+                onClick={() => {
+                  setReplyingTo(null);
+                  setRespuesta('');
+                }}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="student-btn-publish"
+                onClick={() => handleResponder(item.id)}
+                disabled={publishing}
+              >
+                Publicar respuesta
+              </button>
+            </div>
+          </div>
+        )}
+
+        {respuestas.length > 0 && (
+          <div className="student-foro-replies student-nested-replies">
+            {respuestas.map(renderRespuesta)}
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -170,7 +233,7 @@ export default function Foro() {
                     <h3 className="student-post-title">{post.titulo}</h3>
                     <p className="student-post-content">{post.contenido}</p>
                     <div className="student-post-footer">
-                      <span>{respuestas.length} respuestas</span>
+                      <span>{Number(post.respuestas || respuestas.length)} respuestas</span>
                       <button
                         type="button"
                         className="student-btn-see-discussion"
@@ -186,16 +249,7 @@ export default function Foro() {
 
                     {respuestas.length > 0 && (
                       <div className="student-foro-replies">
-                        {respuestas.map((item) => (
-                          <div key={item.id} className="student-foro-reply">
-                            <div className="student-reply-meta">
-                              <strong>{item.autorNombre || item.autor}</strong>
-                              <span>{item.autorRol === 'docente' ? 'Docente' : 'Estudiante'}</span>
-                              <span>{item.timestamp || item.tiempoPublicacion}</span>
-                            </div>
-                            <p>{item.contenido}</p>
-                          </div>
-                        ))}
+                        {respuestas.map(renderRespuesta)}
                       </div>
                     )}
 

@@ -4571,6 +4571,17 @@
   white-space: pre-wrap;
 }
 
+.docente-foro-reply-button {
+  margin-top: 10px;
+  font-size: 0.82rem;
+}
+
+.docente-foro-nested-replies {
+  margin-top: 12px;
+  padding-left: 14px;
+  border-left-color: rgba(17, 82, 212, 0.12);
+}
+
 .docente-foro-reply-form {
   margin-top: 16px;
 }
