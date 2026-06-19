@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   fetchNotificaciones,
@@ -30,7 +30,7 @@ export default function NotificationBell({ enabled }) {
     [items]
   );
 
-  const load = async () => {
+  const load = useCallback(async () => {
     if (!enabled) return;
     try {
       setLoading(true);
@@ -41,14 +41,14 @@ export default function NotificationBell({ enabled }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [enabled]);
 
   useEffect(() => {
     load();
     if (!enabled) return undefined;
     const interval = window.setInterval(load, 45000);
     return () => window.clearInterval(interval);
-  }, [enabled]);
+  }, [enabled, load]);
 
   useEffect(() => {
     const onPointerDown = (event) => {

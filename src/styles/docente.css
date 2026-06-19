@@ -5085,3 +5085,35 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+@media print {
+  .wl-navbar,
+  .docente-nav-band,
+  .docente-footer,
+  .docente-estudiantes-practica-back-btn,
+  .docente-estudiantes-practica-header-right,
+  .docente-estudiantes-practica-controls,
+  .docente-estudiantes-practica-footer,
+  .docente-informe-card-btn {
+    display: none !important;
+  }
+
+  .docente-main,
+  .docente-estudiantes-practica-container {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+  }
+
+  .docente-estudiantes-practica-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .docente-informe-card {
+    break-inside: avoid;
+    box-shadow: none !important;
+    border: 1px solid #bbb !important;
+  }
+}

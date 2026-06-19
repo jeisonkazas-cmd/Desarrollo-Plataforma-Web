@@ -70,7 +70,13 @@ function Navbar() {
       return { navLinks: [{ label: 'Mis cursos', to: '/dashboard/estudiante' }], menus: [] };
     }
     if (currentArea === 'docente') {
-      return { navLinks: [{ label: 'Mis cursos', to: '/dashboard/docente' }], menus: [] };
+      return {
+        navLinks: [
+          { label: 'Mis cursos', to: '/dashboard/docente' },
+          { label: 'Herramientas', to: '/docente/herramientas' },
+        ],
+        menus: [],
+      };
     }
     if (currentArea === 'admin') {
       return { navLinks: [{ label: 'Dashboard', to: '/dashboard/admin' }], menus: [] };
@@ -111,11 +117,6 @@ function Navbar() {
   }, []);
 
   useEffect(() => {
-    setOpenMenu(null);
-    setProfileOpen(false);
-  }, [location.pathname]);
-
-  useEffect(() => {
     const el = navRef.current;
     if (!el) return undefined;
 
@@ -150,14 +151,13 @@ function Navbar() {
           />
         </NavLink>
 
-        <ul className="wl-nav-list line" role="menubar">
+        <ul className="wl-nav-list line">
           {isAuthenticated ? (
             navLinks.map((link) => (
               <li key={link.to} className="wl-nav-item">
                 <NavLink
                   to={link.to}
                   className={({ isActive }) => `wl-nav-link ${isActive ? 'active' : ''}`}
-                  role="menuitem"
                 >
                   {link.label}
                 </NavLink>
@@ -182,13 +182,12 @@ function Navbar() {
                   <span className="wl-caret" aria-hidden="true">▾</span>
                 </button>
 
-                <ul className="wl-dropdown-menu" role="menu">
+                <ul className="wl-dropdown-menu">
                   {menu.items.map((item) => (
-                    <li key={item.label} role="none">
+                    <li key={item.label}>
                       <NavLink
                         to={item.to}
                         className="wl-dropdown-item"
-                        role="menuitem"
                         onClick={() => setOpenMenu(null)}
                       >
                         {item.label}

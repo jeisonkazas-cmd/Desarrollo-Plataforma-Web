@@ -91,13 +91,13 @@ function Home() {
   const navigate = useNavigate();
 
   return (
-    <div className="App">
+    <main className="App">
       <SimulacionesCarrusel />
 
       <section className="info-adicional">
         <div className="info-texto">
-          <h2>Institución Universitaria Antonio José Camacho</h2>
-          <h4>Laboratorios de Física al alcance de toda la comunidad universitaria</h4>
+          <h1>Institución Universitaria Antonio José Camacho</h1>
+          <h2>Laboratorios de Física al alcance de toda la comunidad universitaria</h2>
           <p>
             Explora, experimenta y aprende desde cualquier lugar. Nuestra plataforma integra 
             laboratorios <strong>presenciales, virtuales y remotos</strong> para brindarte una 
@@ -111,6 +111,8 @@ function Home() {
           <img 
             src="/imagenes/logo_camacho.png" 
             alt="Logo UNIAJC" 
+            width="200"
+            height="87"
             style={{ maxWidth: '200px' }}
           />
         </div>
@@ -121,7 +123,7 @@ function Home() {
           <div className="card-icon" aria-hidden="true">
             <CardIcon name="quienes" />
           </div>
-          <h3>Quiénes Somos</h3>
+          <h2>Quiénes Somos</h2>
           <p>
             El Departamento de Ciencias Básicas de la UNIAJC pone a disposición de la comunidad 
             universitaria sus laboratorios de Física, ofreciendo servicios de apoyo académico 
@@ -139,7 +141,7 @@ function Home() {
           <div className="card-icon" aria-hidden="true">
             <CardIcon name="investigacion" />
           </div>
-          <h3>Investigación y Semilleros</h3>
+          <h2>Investigación y Semilleros</h2>
           <p>
             Fomentamos la cultura investigativa a través de semilleros donde estudiantes y 
             docentes trabajan colaborativamente en proyectos de ciencia aplicada e innovación 
@@ -157,7 +159,7 @@ function Home() {
           <div className="card-icon" aria-hidden="true">
             <CardIcon name="noticias" />
           </div>
-          <h3>Noticias y Eventos</h3>
+          <h2>Noticias y Eventos</h2>
           <p>
             Mantente al día con las últimas novedades del Departamento de Ciencias Básicas: jornadas de laboratorio abierto,
             talleres especializados, ferias de ciencia, eventos académicos y actividades para la comunidad.
@@ -177,7 +179,7 @@ function Home() {
       }}>
         <p>© 2026 Laboratorios de Física - UNIAJC. Todos los derechos reservados.</p>
       </footer>
-    </div>
+    </main>
   );
 }
 

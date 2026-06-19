@@ -25,6 +25,7 @@ export default function PracticasGrupo() {
         const practicasData = await getPracticasByGrupo(grupoId);
         setPracticas(practicasData || []);
       } catch (error) {
+        console.error('No se pudieron cargar las prácticas del grupo:', error);
       } finally {
         setLoading(false);
       }

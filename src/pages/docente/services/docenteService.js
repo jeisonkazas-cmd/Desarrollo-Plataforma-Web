@@ -224,6 +224,32 @@ export async function addEstudiantesToGrupo(grupoId, estudiantes) {
   });
 }
 
+export async function fetchEstudiantesGrupo(grupoId) {
+  return apiRequest(`/api/platform/docente/grupos/${grupoId}/estudiantes`);
+}
+
+export async function fetchRubricas() {
+  return apiRequest('/api/platform/docente/rubricas');
+}
+
+export async function createRubrica(payload) {
+  return apiRequest('/api/platform/docente/rubricas', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function fetchAsistenciaPractica(practicaId) {
+  return apiRequest(`/api/platform/docente/practicas/${practicaId}/asistencia`);
+}
+
+export async function saveAsistenciaPractica(practicaId, registros) {
+  return apiRequest(`/api/platform/docente/practicas/${practicaId}/asistencia`, {
+    method: 'PUT',
+    body: JSON.stringify({ registros }),
+  });
+}
+
 export async function fetchPracticasByGrupo(grupoId) {
   return apiRequest(`/api/platform/docente/grupos/${grupoId}/practicas`);
 }

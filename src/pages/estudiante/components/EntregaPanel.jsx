@@ -48,6 +48,11 @@ function EntregaPanel({ practica }) {
           <p className="student-delivery-label">Retroalimentación</p>
           <p>{practica?.retroalimentacion || 'El docente aún no ha dejado comentarios.'}</p>
         </article>
+        <article className="student-feedback-card">
+          <p className="student-delivery-label">Asistencia</p>
+          <strong>{practica?.asistencia || 'Sin registrar'}</strong>
+          {practica?.observacionAsistencia && <p>{practica.observacionAsistencia}</p>}
+        </article>
       </div>
     </section>
   );
@@ -59,6 +64,8 @@ EntregaPanel.propTypes = {
     archivoNombre: PropTypes.string,
     calificacion: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     retroalimentacion: PropTypes.string,
+    asistencia: PropTypes.string,
+    observacionAsistencia: PropTypes.string,
   }),
 };
 

@@ -38,8 +38,7 @@ export default function DashboardAdmin() {
 
         setStatsError('No se pudieron cargar las estadísticas.');
       } finally {
-        if (!alive) return;
-        setLoadingStats(false);
+        if (alive) setLoadingStats(false);
       }
     };
 

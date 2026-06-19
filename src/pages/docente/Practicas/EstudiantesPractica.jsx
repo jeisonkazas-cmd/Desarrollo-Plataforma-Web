@@ -84,6 +84,10 @@ export default function EstudiantesPractica() {
     navigate(`/docente/grupo/${grupoId}/practica/${practicaId}/informe/${informeId}`);
   };
 
+  const handleExportPdf = () => {
+    window.print();
+  };
+
   const getInitials = (name) => {
     return name
       .split(' ')
@@ -174,6 +178,14 @@ export default function EstudiantesPractica() {
               aria-label="Ver foro"
             >
               Ver foro
+            </button>
+            <button
+              type="button"
+              className="docente-estudiantes-practica-forum-btn"
+              onClick={handleExportPdf}
+              aria-label="Exportar resultados a PDF"
+            >
+              Exportar PDF
             </button>
           </div>
         </div>

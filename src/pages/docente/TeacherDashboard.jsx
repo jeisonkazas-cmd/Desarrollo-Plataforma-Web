@@ -83,6 +83,8 @@ function KpiIcon({ kind }) {
   );
 }
 
+// Datos de referencia conservados para prototipos visuales.
+// eslint-disable-next-line no-unused-vars
 const pendingReports = [
   {
     id: 1,
@@ -131,6 +133,7 @@ const pendingReports = [
   },
 ];
 
+// eslint-disable-next-line no-unused-vars
 const recentGrades = [
   {
     id: 1,

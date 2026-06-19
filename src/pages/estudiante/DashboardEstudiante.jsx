@@ -37,6 +37,7 @@ export default function DashboardEstudiante() {
         }
         setPracticas(todasPracticas);
       } catch (error) {
+        console.error('No se pudo cargar el panel del estudiante:', error);
       }
     };
 

@@ -15,13 +15,13 @@ export function useSimulacionNavigation(practica, practicaId) {
       ? `/estudiante/grupos/${practica.grupoId}/practicas`
       : '/dashboard/estudiante';
     navigate(baseUrl);
-  }, [navigate, practica?.grupoId]);
+  }, [navigate, practica]);
 
   const goToForum = useCallback(() => {
     if (practica?.grupoId) {
       navigate(`/estudiante/practicas/${practicaId}/foro/${practica.grupoId}`);
     }
-  }, [navigate, practica?.grupoId, practicaId]);
+  }, [navigate, practica, practicaId]);
 
   return { goBackToGroup, goToForum };
 }

@@ -1,5 +1,7 @@
+/* eslint-disable react-hooks/static-components */
 import React, { useState } from 'react';
 import Slider from 'react-slick';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import { SIMULACIONES } from '../data/simulaciones';
@@ -15,7 +17,7 @@ function SimulacionesCarrusel() {
         onClick={onClick}
         aria-label="Anterior"
       >
-        ‹
+        <ChevronLeft aria-hidden="true" size={28} />
       </button>
     );
   }
@@ -28,7 +30,7 @@ function SimulacionesCarrusel() {
         onClick={onClick}
         aria-label="Siguiente"
       >
-        ›
+        <ChevronRight aria-hidden="true" size={28} />
       </button>
     );
   }
@@ -39,8 +41,7 @@ function SimulacionesCarrusel() {
     speed: 500,
     slidesToShow: 1,
     slidesToScroll: 1,
-    autoplay: true,
-    autoplaySpeed: 4000,
+    autoplay: false,
     arrows: true,
     prevArrow: <PrevArrow />,
     nextArrow: <NextArrow />,
@@ -60,6 +61,7 @@ function SimulacionesCarrusel() {
         .carousel-shell {
           background: #ffffff;
           padding: 22px 0 30px;
+          overflow: hidden;
         }
 
         .carousel-card {
@@ -235,12 +237,16 @@ function SimulacionesCarrusel() {
           }
 
           .carousel-card {
+            margin: 0 12px;
             padding: 16px 14px 18px;
+            min-width: 0;
           }
 
           .carousel-media {
             width: 100%;
             margin-top: 14px;
+            min-width: 0;
+            overflow: hidden;
           }
 
           .carousel-image {
@@ -261,6 +267,7 @@ function SimulacionesCarrusel() {
           .carousel-desc-under {
             width: 100%;
             padding: 0 10px;
+            overflow-wrap: anywhere;
           }
 
           .carousel-arrow {
@@ -271,6 +278,15 @@ function SimulacionesCarrusel() {
         }
 
         @media (max-width: 480px) {
+          .carousel-card {
+            margin: 0 8px;
+            padding-inline: 10px;
+          }
+
+          .carousel-image-frame {
+            aspect-ratio: 1 / 1;
+          }
+
           .carousel-title-overlay {
             font-size: 14px;
           }
@@ -286,7 +302,7 @@ function SimulacionesCarrusel() {
       <div className="carousel-card">
         <div className="carousel-media">
           <Slider {...settings}>
-            {SIMULACIONES.map((sim) => (
+            {SIMULACIONES.map((sim, index) => (
               <div key={sim.id}>
                 <div className="carousel-image-frame">
                   <div className="carousel-title-overlay">{sim.nombre}</div>
@@ -297,7 +313,11 @@ function SimulacionesCarrusel() {
                       className="carousel-image"
                       src={`/imagenes/${sim.imagen}`}
                       alt={sim.nombre}
-                      loading="lazy"
+                      width="900"
+                      height="700"
+                      loading={index === 0 ? 'eager' : 'lazy'}
+                      fetchPriority={index === 0 ? 'high' : 'auto'}
+                      decoding="async"
                       onError={() => {
                         setImageErrors((prev) => ({
                           ...prev,

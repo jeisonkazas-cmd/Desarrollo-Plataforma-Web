@@ -1,30 +1,32 @@
 import './App.css';
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import ScrollToTop from './components/ScrollToTop';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
-import Simulaciones from './pages/Simulaciones';
-import QuienesSomos from './pages/QuienesSomos';
-import Investigacion from './pages/Investigacion';
-import Login from './pages/Login';
-import DashboardAdmin from './pages/Admin/DashboardAdmin';
-import GestionUsuarios from './pages/Admin/Usuarios/GestionUsuarios';
-import GestionContenido from './pages/Admin/Contenido/GestionContenido';
-import AdminReportes from './pages/Admin/Reportes/AdminReportes';
-import DashboardEstudiante from './pages/estudiante/DashboardEstudiante';
-import PracticasGrupoEstudiante from './pages/estudiante/PracticasGrupo';
-import SimulacionEstudiante from './pages/estudiante/Simulacion';
-import ForoEstudiante from './pages/estudiante/Foro';
-import TeacherDashboard from './pages/docente/TeacherDashboard';
-import Foro from './pages/docente/Practicas/Foro';
-import TeacherGrupos from './pages/docente/Practicas/Grupos';
-import PracticasGrupo from './pages/docente/Practicas/PracticasGrupo';
-import PracticaEstudiantes from './pages/docente/Practicas/EstudiantesPractica';
-import InformeEstudiante from './pages/docente/Practicas/InformeEstudiante';
-import CrearPractica from './pages/docente/Practicas/CrearPractica';
-import Cuenta from './pages/Cuenta';
 import { getOrCreateUserProfile } from './services/authService';
+
+const Simulaciones = lazy(() => import('./pages/Simulaciones'));
+const QuienesSomos = lazy(() => import('./pages/QuienesSomos'));
+const Investigacion = lazy(() => import('./pages/Investigacion'));
+const Login = lazy(() => import('./pages/Login'));
+const DashboardAdmin = lazy(() => import('./pages/Admin/DashboardAdmin'));
+const GestionUsuarios = lazy(() => import('./pages/Admin/Usuarios/GestionUsuarios'));
+const GestionContenido = lazy(() => import('./pages/Admin/Contenido/GestionContenido'));
+const AdminReportes = lazy(() => import('./pages/Admin/Reportes/AdminReportes'));
+const DashboardEstudiante = lazy(() => import('./pages/estudiante/DashboardEstudiante'));
+const PracticasGrupoEstudiante = lazy(() => import('./pages/estudiante/PracticasGrupo'));
+const SimulacionEstudiante = lazy(() => import('./pages/estudiante/Simulacion'));
+const ForoEstudiante = lazy(() => import('./pages/estudiante/Foro'));
+const TeacherDashboard = lazy(() => import('./pages/docente/TeacherDashboard'));
+const Foro = lazy(() => import('./pages/docente/Practicas/Foro'));
+const TeacherGrupos = lazy(() => import('./pages/docente/Practicas/Grupos'));
+const PracticasGrupo = lazy(() => import('./pages/docente/Practicas/PracticasGrupo'));
+const PracticaEstudiantes = lazy(() => import('./pages/docente/Practicas/EstudiantesPractica'));
+const InformeEstudiante = lazy(() => import('./pages/docente/Practicas/InformeEstudiante'));
+const CrearPractica = lazy(() => import('./pages/docente/Practicas/CrearPractica'));
+const HerramientasAcademicas = lazy(() => import('./pages/docente/HerramientasAcademicas'));
+const Cuenta = lazy(() => import('./pages/Cuenta'));
 
 function PendienteAprobacion() {
   return (
@@ -59,7 +61,7 @@ function ProtectedRoute({ children, allowedRoles }) {
   }, []);
 
   if (state.loading) {
-    return <div style={{ padding: 40 }}>Cargando...</div>;
+    return <Home />;
   }
 
   if (!state.user) {
@@ -124,7 +126,8 @@ function AppContent() {
     <>
       <ScrollToTop />
       <Navbar />
-      <Routes>
+      <Suspense fallback={<div style={{ padding: 40 }}>Cargando módulo...</div>}>
+        <Routes>
         <Route path="/" element={<RoleRedirect />} />
         <Route path="/simulaciones" element={<Simulaciones />} />
         <Route path="/quienes-somos" element={<QuienesSomos />} />
@@ -270,11 +273,20 @@ function AppContent() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/docente/herramientas"
+          element={
+            <ProtectedRoute allowedRoles={['Docente']}>
+              <HerramientasAcademicas />
+            </ProtectedRoute>
+          }
+        />
 
         <Route path="/estudiante" element={<Navigate to="/dashboard/estudiante" replace />} />
         <Route path="/docente" element={<Navigate to="/dashboard/docente" replace />} />
         <Route path="/admin" element={<Navigate to="/dashboard/admin" replace />} />
-      </Routes>
+        </Routes>
+      </Suspense>
     </>
   );
 }

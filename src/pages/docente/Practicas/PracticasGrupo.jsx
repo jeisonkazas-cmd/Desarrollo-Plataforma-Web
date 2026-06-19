@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import DocenteLayout from '../components/DocenteLayout';
 import { ArrowLeftIcon } from '../components/icons';
@@ -23,7 +23,7 @@ export default function PracticasGrupo() {
   const [showStudentModal, setShowStudentModal] = useState(false);
   const [studentEmails, setStudentEmails] = useState('');
 
-  async function loadData() {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
@@ -38,11 +38,11 @@ export default function PracticasGrupo() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [grupoId]);
 
   useEffect(() => {
     loadData();
-  }, [grupoId]);
+  }, [loadData]);
 
   const filteredPracticas = useMemo(() => {
     if (filterStatus === 'todas') return practicas;
