@@ -28,6 +28,21 @@ const CrearPractica = lazy(() => import('./pages/docente/Practicas/CrearPractica
 const HerramientasAcademicas = lazy(() => import('./pages/docente/HerramientasAcademicas'));
 const Cuenta = lazy(() => import('./pages/Cuenta'));
 
+const ROLE_HOME = {
+  Administrador: '/dashboard/admin',
+  Docente: '/dashboard/docente',
+  Estudiante: '/dashboard/estudiante',
+};
+
+const ALL_ROLES = ['Administrador', 'Docente', 'Estudiante'];
+
+const initialAuthState = {
+  loading: true,
+  user: null,
+  perfil: null,
+  rol: null,
+};
+
 function PendienteAprobacion() {
   return (
     <div style={{ padding: '80px 20px', textAlign: 'center' }}>
@@ -37,17 +52,11 @@ function PendienteAprobacion() {
   );
 }
 
-function ProtectedRoute({ children, allowedRoles }) {
-  const location = useLocation();
-  const [state, setState] = useState({
-    loading: true,
-    user: null,
-    perfil: null,
-    rol: null,
-  });
+function useAuthProfile() {
+  const [state, setState] = useState(initialAuthState);
 
   useEffect(() => {
-    const check = async () => {
+    const loadProfile = async () => {
       const auth = await getOrCreateUserProfile();
       setState({
         loading: false,
@@ -57,8 +66,23 @@ function ProtectedRoute({ children, allowedRoles }) {
       });
     };
 
-    check();
+    loadProfile();
   }, []);
+
+  return state;
+}
+
+function getRoleHome(rol) {
+  return ROLE_HOME[rol] || '/pendiente';
+}
+
+function isActiveProfile(state) {
+  return state.perfil?.estado === 'activo' && Boolean(state.rol);
+}
+
+function ProtectedRoute({ children, allowedRoles = ALL_ROLES }) {
+  const location = useLocation();
+  const state = useAuthProfile();
 
   if (state.loading) {
     return <Home />;
@@ -68,41 +92,19 @@ function ProtectedRoute({ children, allowedRoles }) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (!state.perfil || state.perfil.estado !== 'activo' || !state.rol) {
+  if (!isActiveProfile(state)) {
     return <Navigate to="/pendiente" replace />;
   }
 
-  if (allowedRoles && !allowedRoles.includes(state.rol)) {
-    if (state.rol === 'Administrador') return <Navigate to="/dashboard/admin" replace />;
-    if (state.rol === 'Docente') return <Navigate to="/dashboard/docente" replace />;
-    if (state.rol === 'Estudiante') return <Navigate to="/dashboard/estudiante" replace />;
-    return <Navigate to="/pendiente" replace />;
+  if (!allowedRoles.includes(state.rol)) {
+    return <Navigate to={getRoleHome(state.rol)} replace />;
   }
 
   return children;
 }
 
 function RoleRedirect() {
-  const [state, setState] = useState({
-    loading: true,
-    user: null,
-    perfil: null,
-    rol: null,
-  });
-
-  useEffect(() => {
-    const check = async () => {
-      const auth = await getOrCreateUserProfile();
-      setState({
-        loading: false,
-        user: auth.user,
-        perfil: auth.perfil,
-        rol: auth.rol,
-      });
-    };
-
-    check();
-  }, []);
+  const state = useAuthProfile();
 
   if (state.loading) {
     return <div style={{ padding: 40 }}>Cargando...</div>;
@@ -110,15 +112,11 @@ function RoleRedirect() {
 
   if (!state.user) return <Home />;
 
-  if (!state.perfil || state.perfil.estado !== 'activo' || !state.rol) {
+  if (!isActiveProfile(state)) {
     return <Navigate to="/pendiente" replace />;
   }
 
-  if (state.rol === 'Administrador') return <Navigate to="/dashboard/admin" replace />;
-  if (state.rol === 'Docente') return <Navigate to="/dashboard/docente" replace />;
-  if (state.rol === 'Estudiante') return <Navigate to="/dashboard/estudiante" replace />;
-
-  return <Navigate to="/pendiente" replace />;
+  return <Navigate to={getRoleHome(state.rol)} replace />;
 }
 
 function AppContent() {
@@ -137,7 +135,7 @@ function AppContent() {
         <Route
           path="/perfil"
           element={
-            <ProtectedRoute allowedRoles={['Administrador', 'Docente', 'Estudiante']}>
+            <ProtectedRoute allowedRoles={ALL_ROLES}>
               <Cuenta mode="perfil" />
             </ProtectedRoute>
           }
@@ -145,7 +143,7 @@ function AppContent() {
         <Route
           path="/configuracion"
           element={
-            <ProtectedRoute allowedRoles={['Administrador', 'Docente', 'Estudiante']}>
+            <ProtectedRoute allowedRoles={ALL_ROLES}>
               <Cuenta mode="configuracion" />
             </ProtectedRoute>
           }

@@ -3740,10 +3740,18 @@
 }
 
 .docente-informe-card-section-icon {
-  font-size: 1.75rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 30px;
+  height: 30px;
+  color: var(--doc-primary);
+  stroke-width: 1.8;
+}
+
+.docente-informe-card-section-icon-wrapper.orange .docente-informe-card-section-icon {
+  color: #b45309;
+}
+
+.docente-informe-card-section-icon-wrapper.emerald .docente-informe-card-section-icon {
+  color: #047857;
 }
 
 .docente-informe-card-section-title {

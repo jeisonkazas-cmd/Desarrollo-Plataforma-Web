@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { ClipboardCheck, FileText, MessageSquareText } from 'lucide-react';
 import DocenteLayout from '../components/DocenteLayout';
 import { ArrowLeftIcon } from '../components/icons';
 import '../../../styles/settings-panel.css';
@@ -185,7 +186,7 @@ export default function InformeEstudiante() {
           <section className="docente-informe-card-section">
             <div className="docente-informe-card-section-header">
               <div className="docente-informe-card-section-icon-wrapper">
-                <div className="docente-informe-card-section-icon">PDF</div>
+                <FileText className="docente-informe-card-section-icon" size={30} aria-hidden="true" />
               </div>
               <div>
                 <h2 className="docente-informe-card-section-title">Informe entregado</h2>
@@ -222,7 +223,7 @@ export default function InformeEstudiante() {
           <section className="docente-informe-card-section">
             <div className="docente-informe-card-section-header-divider">
               <div className="docente-informe-card-section-icon-wrapper orange">
-                <div className="docente-informe-card-section-icon">Nota</div>
+                <ClipboardCheck className="docente-informe-card-section-icon" size={30} aria-hidden="true" />
               </div>
               <div>
                 <h2 className="docente-informe-card-section-title">Calificación</h2>
@@ -276,7 +277,7 @@ export default function InformeEstudiante() {
           <section className="docente-informe-card-section">
             <div className="docente-informe-card-section-header-divider">
               <div className="docente-informe-card-section-icon-wrapper emerald">
-                <div className="docente-informe-card-section-icon">Texto</div>
+                <MessageSquareText className="docente-informe-card-section-icon" size={30} aria-hidden="true" />
               </div>
               <div>
                 <h2 className="docente-informe-card-section-title">Retroalimentación</h2>

@@ -11,19 +11,45 @@ import {
 } from './services/docenteService';
 import '../../styles/academic-tools.css';
 
-const emptyCriteria = [
+const DEFAULT_RUBRIC_CRITERIA = [
   { nombre: 'Contenido y análisis', peso: 50, puntajeMaximo: 5 },
   { nombre: 'Presentación y conclusiones', peso: 50, puntajeMaximo: 5 },
 ];
 
+const ATTENDANCE_OPTIONS = [
+  { value: 'presente', label: 'Presente' },
+  { value: 'ausente', label: 'Ausente' },
+  { value: 'tarde', label: 'Llegó tarde' },
+  { value: 'justificada', label: 'Falta justificada' },
+];
+
+function createRubricForm() {
+  return {
+    nombre: '',
+    descripcion: '',
+    criterios: DEFAULT_RUBRIC_CRITERIA,
+  };
+}
+
+function mapAttendanceByStudent(registros) {
+  return Object.fromEntries((registros ?? []).map((item) => [
+    item.estudianteId,
+    { estado: item.estado, observacion: item.observacion || '' },
+  ]));
+}
+
+function buildAttendanceRecords(estudiantes, asistencia) {
+  return estudiantes.map((student) => ({
+    estudianteId: student.id,
+    estado: asistencia[student.id]?.estado || 'presente',
+    observacion: asistencia[student.id]?.observacion || '',
+  }));
+}
+
 export default function HerramientasAcademicas() {
   const [tab, setTab] = useState('rubricas');
   const [rubricas, setRubricas] = useState([]);
-  const [rubricaForm, setRubricaForm] = useState({
-    nombre: '',
-    descripcion: '',
-    criterios: emptyCriteria,
-  });
+  const [rubricaForm, setRubricaForm] = useState(createRubricForm);
   const [grupos, setGrupos] = useState([]);
   const [grupoId, setGrupoId] = useState('');
   const [practicas, setPracticas] = useState([]);
@@ -72,11 +98,7 @@ export default function HerramientasAcademicas() {
     }
     fetchAsistenciaPractica(practicaId)
       .then((registros) => {
-        const byStudent = Object.fromEntries((registros || []).map((item) => [
-          item.estudianteId,
-          { estado: item.estado, observacion: item.observacion || '' },
-        ]));
-        setAsistencia(byStudent);
+        setAsistencia(mapAttendanceByStudent(registros));
       })
       .catch((err) => setError(err.message || 'No se pudo cargar la asistencia.'));
   }, [practicaId]);
@@ -103,7 +125,7 @@ export default function HerramientasAcademicas() {
       await createRubrica(rubricaForm);
       const data = await fetchRubricas();
       setRubricas(data || []);
-      setRubricaForm({ nombre: '', descripcion: '', criterios: emptyCriteria });
+      setRubricaForm(createRubricForm());
       setMessage('Rúbrica creada correctamente.');
     } catch (err) {
       setError(err.message || 'No se pudo crear la rúbrica.');
@@ -130,11 +152,7 @@ export default function HerramientasAcademicas() {
       setError('Selecciona una práctica.');
       return;
     }
-    const registros = estudiantes.map((student) => ({
-      estudianteId: student.id,
-      estado: asistencia[student.id]?.estado || 'presente',
-      observacion: asistencia[student.id]?.observacion || '',
-    }));
+    const registros = buildAttendanceRecords(estudiantes, asistencia);
     if (registros.length === 0) {
       setError('El grupo no tiene estudiantes activos.');
       return;
@@ -287,10 +305,9 @@ export default function HerramientasAcademicas() {
                     value={asistencia[student.id]?.estado || 'presente'}
                     onChange={(event) => updateAttendance(student.id, 'estado', event.target.value)}
                   >
-                    <option value="presente">Presente</option>
-                    <option value="ausente">Ausente</option>
-                    <option value="tarde">Llegó tarde</option>
-                    <option value="justificada">Falta justificada</option>
+                    {ATTENDANCE_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>{option.label}</option>
+                    ))}
                   </select>
                   <input
                     aria-label={`Observación de ${student.nombre}`}
