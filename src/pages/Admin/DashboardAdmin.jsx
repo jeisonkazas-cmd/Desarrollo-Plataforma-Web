@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminLayout from './components/AdminLayout';
-import { UsersIcon, BookIcon, BarChartIcon } from './components/AdminIcons';
+import { BarChartIcon, BookIcon, UsersIcon } from './components/AdminIcons';
 import { fetchAdminStats } from './services/adminSupabaseService';
 import '../../styles/admin.css';
 
@@ -27,10 +27,12 @@ export default function DashboardAdmin() {
       } catch (err) {
         console.error('Error cargando stats admin:', err);
         if (!alive) return;
+
         if (err?.status === 401) {
           setStatsError('No se pudieron cargar las estadísticas porque el backend no recibió la autenticación.');
           return;
         }
+
         if (err?.status === 403) {
           navigate('/pendiente', { replace: true });
           return;
@@ -59,7 +61,7 @@ export default function DashboardAdmin() {
               onClick={() => navigate('/')}
               aria-label="Volver al inicio"
             >
-              ← Inicio
+              {'<-'} Inicio
             </button>
             <span style={{ margin: '0 4px', opacity: 0.4 }}>&rsaquo;</span>
             <span className="admin-breadcrumb-current">Dashboard Administrador</span>
@@ -70,7 +72,7 @@ export default function DashboardAdmin() {
       <header className="admin-dashboard-header">
         <div>
           <h1>Panel de Administración</h1>
-          <p>Gestión general de usuarios, roles y configuración</p>
+          <p>Gestión general de usuarios, roles, grupos y configuración</p>
         </div>
       </header>
 
@@ -95,11 +97,26 @@ export default function DashboardAdmin() {
             <BookIcon />
           </div>
           <h3>Gestión de Contenido</h3>
-          <p>Gestión de laboratorios, recursos y publicaciones institucionales.</p>
+          <p>Gestión de simulaciones, guías, informes y recursos institucionales.</p>
           <button
             type="button"
             className="admin-btn-card"
             onClick={() => navigate('/admin/contenido')}
+          >
+            Abrir gestión
+          </button>
+        </div>
+
+        <div className="admin-action-card">
+          <div className="admin-card-icon">
+            <UsersIcon />
+          </div>
+          <h3>Gestión de Grupos</h3>
+          <p>Administra grupos académicos, estado y trazabilidad de asignaciones.</p>
+          <button
+            type="button"
+            className="admin-btn-card"
+            onClick={() => navigate('/admin/grupos')}
           >
             Abrir gestión
           </button>
@@ -130,31 +147,31 @@ export default function DashboardAdmin() {
         )}
         <div className="admin-quick-stat-grid">
           <div className="admin-quick-stat">
-            <div className="admin-quick-stat-icon">👥</div>
+            <div className="admin-quick-stat-icon">US</div>
             <div>
               <p>Total usuarios</p>
-              <strong>{loadingStats ? '—' : stats.totalUsuarios}</strong>
+              <strong>{loadingStats ? '-' : stats.totalUsuarios}</strong>
             </div>
           </div>
           <div className="admin-quick-stat">
-            <div className="admin-quick-stat-icon">🎓</div>
+            <div className="admin-quick-stat-icon">ES</div>
             <div>
               <p>Estudiantes activos</p>
-              <strong>{loadingStats ? '—' : stats.estudiantesActivos}</strong>
+              <strong>{loadingStats ? '-' : stats.estudiantesActivos}</strong>
             </div>
           </div>
           <div className="admin-quick-stat">
-            <div className="admin-quick-stat-icon">👨‍🏫</div>
+            <div className="admin-quick-stat-icon">DO</div>
             <div>
               <p>Docentes activos</p>
-              <strong>{loadingStats ? '—' : stats.docentesActivos}</strong>
+              <strong>{loadingStats ? '-' : stats.docentesActivos}</strong>
             </div>
           </div>
           <div className="admin-quick-stat">
-            <div className="admin-quick-stat-icon">⚙️</div>
+            <div className="admin-quick-stat-icon">AD</div>
             <div>
               <p>Administradores</p>
-              <strong>{loadingStats ? '—' : stats.administradores}</strong>
+              <strong>{loadingStats ? '-' : stats.administradores}</strong>
             </div>
           </div>
         </div>

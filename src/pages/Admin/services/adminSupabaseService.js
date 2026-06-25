@@ -40,6 +40,23 @@ export async function deleteUsuarioAdmin(usuarioId) {
   });
 }
 
+export async function fetchGruposAdmin() {
+  return apiRequest('/api/platform/admin/grupos');
+}
+
+export async function updateGrupoAdmin(grupoId, patch) {
+  return apiRequest(`/api/platform/admin/grupos/${grupoId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(patch),
+  });
+}
+
+export async function deleteGrupoAdmin(grupoId) {
+  return apiRequest(`/api/platform/admin/grupos/${grupoId}`, {
+    method: 'DELETE',
+  });
+}
+
 export async function fetchContenidoAdmin() {
   return apiRequest('/api/platform/admin/contenido');
 }
@@ -66,6 +83,14 @@ export async function deleteRecursoAdmin(recursoId) {
   await apiRequest(`/api/platform/admin/recursos/${recursoId}`, {
     method: 'DELETE',
   });
+}
+
+export async function updateRecursoAdmin(recursoId, patch) {
+  await apiRequest(`/api/platform/admin/recursos/${recursoId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(patch),
+  });
+  return fetchRecursosAdmin();
 }
 
 export async function createContenidoAdmin(payload) {

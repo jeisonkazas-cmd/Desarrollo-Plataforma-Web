@@ -1,19 +1,26 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../components/AdminLayout';
-import { ArrowLeftIcon, BookIcon, TrashIcon, PlusIcon } from '../components/AdminIcons';
+import { ArrowLeftIcon, BookIcon, EyeIcon, PlusIcon, TrashIcon } from '../components/AdminIcons';
 import {
   createRecursoAdmin,
   deleteRecursoAdmin,
   fetchRecursosAdmin,
+  updateRecursoAdmin,
 } from '../services/adminSupabaseService';
 import '../../../styles/admin.css';
 
 const emptyForm = {
   titulo: '',
-  tipo: 'guia',
-  laboratorio: 'Fisica 1',
+  tipo: 'simulacion',
+  laboratorio: 'Física 1',
   file: null,
+};
+
+const tipoLabels = {
+  simulacion: 'Simulación',
+  guia: 'Guía',
+  informe: 'Informe',
 };
 
 export default function GestionContenido() {
@@ -24,6 +31,7 @@ export default function GestionContenido() {
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [filterTipo, setFilterTipo] = useState('todos');
+  const [filterEstado, setFilterEstado] = useState('todos');
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [formData, setFormData] = useState(emptyForm);
 
@@ -45,17 +53,19 @@ export default function GestionContenido() {
   }, []);
 
   const filteredRecursos = useMemo(() => {
+    const normalizedSearch = search.trim().toLowerCase();
     return recursos.filter((recurso) => {
       const text = `${recurso.titulo} ${recurso.laboratorio} ${recurso.archivoNombre}`.toLowerCase();
-      const matchSearch = !search || text.includes(search.toLowerCase());
+      const matchSearch = !normalizedSearch || text.includes(normalizedSearch);
       const matchTipo = filterTipo === 'todos' || recurso.tipo === filterTipo;
-      return matchSearch && matchTipo;
+      const matchEstado = filterEstado === 'todos' || recurso.estado === filterEstado;
+      return matchSearch && matchTipo && matchEstado;
     });
-  }, [recursos, search, filterTipo]);
+  }, [recursos, search, filterTipo, filterEstado]);
 
   const handleSaveRecurso = async () => {
     if (!formData.titulo.trim() || !formData.file) {
-      alert('Completa el titulo y selecciona un archivo.');
+      alert('Completa el título y selecciona un archivo.');
       return;
     }
 
@@ -71,19 +81,29 @@ export default function GestionContenido() {
     }
   };
 
+  const handleToggleRecurso = async (recurso) => {
+    const nuevoEstado = recurso.estado === 'activo' ? 'inactivo' : 'activo';
+    try {
+      setRecursos(await updateRecursoAdmin(recurso.id, { estado: nuevoEstado }));
+    } catch (err) {
+      alert(err?.message || 'No se pudo cambiar el estado del recurso.');
+    }
+  };
+
   const handleDeleteRecurso = async (recurso) => {
-    if (!window.confirm('Estas seguro de desactivar este recurso?')) return;
+    if (!window.confirm(`¿Deseas desactivar "${recurso.titulo}"?`)) return;
 
     try {
       await deleteRecursoAdmin(recurso.id);
       await loadRecursos();
     } catch (err) {
-      alert(err?.message || 'No se pudo eliminar el recurso.');
+      alert(err?.message || 'No se pudo desactivar el recurso.');
     }
   };
 
   const resumen = {
     total: recursos.length,
+    simulaciones: recursos.filter((recurso) => recurso.tipo === 'simulacion').length,
     guias: recursos.filter((recurso) => recurso.tipo === 'guia').length,
     informes: recursos.filter((recurso) => recurso.tipo === 'informe').length,
     activos: recursos.filter((recurso) => recurso.estado === 'activo').length,
@@ -112,7 +132,7 @@ export default function GestionContenido() {
               Dashboard Administrador
             </button>
             <span style={{ margin: '0 4px', opacity: 0.4 }}>&rsaquo;</span>
-            <span className="admin-breadcrumb-current">Catalogo de recursos</span>
+            <span className="admin-breadcrumb-current">Catálogo de recursos</span>
           </div>
         </div>
       }
@@ -121,9 +141,9 @@ export default function GestionContenido() {
         <div className="admin-header-content">
           <div className="admin-header-title">
             <BookIcon />
-            <h1>Catalogo de guias e informes</h1>
+            <h1>Catálogo de simulaciones, guías e informes</h1>
           </div>
-          <p>Sube archivos PDF o HTML para que los docentes los asignen a sus practicas.</p>
+          <p>Sube archivos HTML o PDF para que los docentes los asignen a sus prácticas.</p>
         </div>
         <button
           type="button"
@@ -144,7 +164,13 @@ export default function GestionContenido() {
         </div>
         <div className="admin-stat-card">
           <div className="admin-stat-content">
-            <p className="admin-stat-label">Guias</p>
+            <p className="admin-stat-label">Simulaciones</p>
+            <p className="admin-stat-value">{resumen.simulaciones}</p>
+          </div>
+        </div>
+        <div className="admin-stat-card">
+          <div className="admin-stat-content">
+            <p className="admin-stat-label">Guías</p>
             <p className="admin-stat-value">{resumen.guias}</p>
           </div>
         </div>
@@ -173,15 +199,28 @@ export default function GestionContenido() {
           />
         </div>
 
-        <select
-          value={filterTipo}
-          onChange={(event) => setFilterTipo(event.target.value)}
-          className="admin-filter-select"
-        >
-          <option value="todos">Todos los tipos</option>
-          <option value="guia">Guias</option>
-          <option value="informe">Informes</option>
-        </select>
+        <div className="admin-filter-group">
+          <select
+            value={filterTipo}
+            onChange={(event) => setFilterTipo(event.target.value)}
+            className="admin-filter-select"
+          >
+            <option value="todos">Todos los tipos</option>
+            <option value="simulacion">Simulaciones</option>
+            <option value="guia">Guías</option>
+            <option value="informe">Informes</option>
+          </select>
+
+          <select
+            value={filterEstado}
+            onChange={(event) => setFilterEstado(event.target.value)}
+            className="admin-filter-select"
+          >
+            <option value="todos">Todos los estados</option>
+            <option value="activo">Activos</option>
+            <option value="inactivo">Inactivos</option>
+          </select>
+        </div>
       </div>
 
       <div className="admin-table-container">
@@ -189,7 +228,7 @@ export default function GestionContenido() {
         <table className="admin-table">
           <thead>
             <tr>
-              <th>Titulo</th>
+              <th>Título</th>
               <th>Tipo</th>
               <th>Laboratorio</th>
               <th>Archivo</th>
@@ -210,7 +249,7 @@ export default function GestionContenido() {
                   <td className="admin-table-name">{recurso.titulo}</td>
                   <td>
                     <span className={`admin-badge admin-badge-${recurso.tipo}`}>
-                      {recurso.tipo}
+                      {tipoLabels[recurso.tipo] || recurso.tipo}
                     </span>
                   </td>
                   <td>{recurso.laboratorio || 'General'}</td>
@@ -220,19 +259,29 @@ export default function GestionContenido() {
                     </a>
                   </td>
                   <td>
-                    <span className="admin-badge admin-badge-activo">
+                    <span className={`admin-badge admin-badge-${recurso.estado}`}>
                       {recurso.estado}
                     </span>
                   </td>
                   <td className="admin-table-actions">
                     <button
                       type="button"
-                      className="admin-btn-icon admin-btn-delete"
-                      onClick={() => handleDeleteRecurso(recurso)}
-                      title="Desactivar"
+                      className="admin-btn-icon admin-btn-toggle"
+                      onClick={() => handleToggleRecurso(recurso)}
+                      title={recurso.estado === 'activo' ? 'Desactivar' : 'Activar'}
                     >
-                      <TrashIcon size={16} />
+                      <EyeIcon size={16} />
                     </button>
+                    {recurso.estado === 'activo' && (
+                      <button
+                        type="button"
+                        className="admin-btn-icon admin-btn-delete"
+                        onClick={() => handleDeleteRecurso(recurso)}
+                        title="Desactivar"
+                      >
+                        <TrashIcon size={16} />
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))
@@ -251,7 +300,7 @@ export default function GestionContenido() {
         <div className="admin-modal-overlay" onClick={() => setShowUploadModal(false)}>
           <div className="admin-modal" onClick={(event) => event.stopPropagation()}>
             <div className="admin-modal-header">
-              <h2>Subir guia o informe</h2>
+              <h2>Subir simulación, guía o informe</h2>
               <button
                 type="button"
                 className="admin-modal-close"
@@ -263,12 +312,12 @@ export default function GestionContenido() {
 
             <div className="admin-modal-body">
               <div className="admin-form-group">
-                <label>Titulo</label>
+                <label>Título</label>
                 <input
                   type="text"
                   value={formData.titulo}
                   onChange={(event) => setFormData({ ...formData, titulo: event.target.value })}
-                  placeholder="Ej: Guia cubeta de ondas"
+                  placeholder="Ej: Cubeta de ondas"
                 />
               </div>
 
@@ -278,7 +327,8 @@ export default function GestionContenido() {
                   value={formData.tipo}
                   onChange={(event) => setFormData({ ...formData, tipo: event.target.value })}
                 >
-                  <option value="guia">Guia</option>
+                  <option value="simulacion">Simulación</option>
+                  <option value="guia">Guía</option>
                   <option value="informe">Informe</option>
                 </select>
               </div>
@@ -289,18 +339,18 @@ export default function GestionContenido() {
                   value={formData.laboratorio}
                   onChange={(event) => setFormData({ ...formData, laboratorio: event.target.value })}
                 >
-                  <option value="Fisica 1">Fisica 1</option>
-                  <option value="Fisica 2">Fisica 2</option>
-                  <option value="Fisica 3">Fisica 3</option>
+                  <option value="Física 1">Física 1</option>
+                  <option value="Física 2">Física 2</option>
+                  <option value="Física 3">Física 3</option>
                   <option value="General">General</option>
                 </select>
               </div>
 
               <div className="admin-form-group">
-                <label>Archivo PDF o HTML</label>
+                <label>Archivo HTML o PDF</label>
                 <input
                   type="file"
-                  accept=".pdf,.html,text/html,application/pdf"
+                  accept=".html,.htm,.pdf,text/html,application/pdf"
                   onChange={(event) => setFormData({ ...formData, file: event.target.files?.[0] || null })}
                 />
               </div>

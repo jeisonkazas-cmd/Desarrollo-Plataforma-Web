@@ -410,9 +410,24 @@
   color: var(--admin-danger);
 }
 
+.admin-badge-inactivo {
+  background-color: #f3f4f6;
+  color: var(--admin-text-secondary);
+}
+
 .admin-badge-simulacion {
   background-color: #e0e7ff;
   color: #4f46e5;
+}
+
+.admin-badge-guia {
+  background-color: #d1fae5;
+  color: var(--admin-success);
+}
+
+.admin-badge-informe {
+  background-color: #fef3c7;
+  color: var(--admin-warning);
 }
 
 .admin-badge-recurso {

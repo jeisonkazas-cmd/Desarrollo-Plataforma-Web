@@ -12,6 +12,7 @@ const Investigacion = lazy(() => import('./pages/Investigacion'));
 const Login = lazy(() => import('./pages/Login'));
 const DashboardAdmin = lazy(() => import('./pages/Admin/DashboardAdmin'));
 const GestionUsuarios = lazy(() => import('./pages/Admin/Usuarios/GestionUsuarios'));
+const GestionGrupos = lazy(() => import('./pages/Admin/Grupos/GestionGrupos'));
 const GestionContenido = lazy(() => import('./pages/Admin/Contenido/GestionContenido'));
 const AdminReportes = lazy(() => import('./pages/Admin/Reportes/AdminReportes'));
 const DashboardEstudiante = lazy(() => import('./pages/estudiante/DashboardEstudiante'));
@@ -162,6 +163,14 @@ function AppContent() {
           element={
             <ProtectedRoute allowedRoles={['Administrador']}>
               <GestionUsuarios />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/grupos"
+          element={
+            <ProtectedRoute allowedRoles={['Administrador']}>
+              <GestionGrupos />
             </ProtectedRoute>
           }
         />

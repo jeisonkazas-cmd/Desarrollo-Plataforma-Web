@@ -4,7 +4,7 @@ import '../../../styles/admin.css';
 export default function AdminLayout({
   topBand,
   children,
-  footerText = '© 2026 Plataforma Universitaria - Panel de Administración. Todos los derechos reservados.',
+  footerText = '2026 Plataforma Universitaria - Panel de Administración. Todos los derechos reservados.',
 }) {
   return (
     <div className="admin-container">

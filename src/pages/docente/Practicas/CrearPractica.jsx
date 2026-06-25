@@ -44,6 +44,7 @@ export default function CrearPractica() {
     objective: '',
     description: '',
   });
+  const [resourceSimulations, setResourceSimulations] = useState([]);
   const [resourceReports, setResourceReports] = useState([]);
   const [grupos, setGrupos] = useState([]);
   const [grupoId, setGrupoId] = useState('');
@@ -51,8 +52,31 @@ export default function CrearPractica() {
   const [formError, setFormError] = useState('');
 
   const selectedSimulation = useMemo(
-    () => virtualLabSimulations.find((item) => item.url === formData.simulationUrl) || null,
-    [formData.simulationUrl]
+    () => {
+      const simulationOptions = [
+        ...resourceSimulations.map((item) => ({
+          id: `storage-sim-${item.id}`,
+          lab: item.laboratorio || 'Storage',
+          label: item.label,
+          url: item.url,
+        })),
+        ...virtualLabSimulations,
+      ];
+      return simulationOptions.find((item) => item.url === formData.simulationUrl) || null;
+    },
+    [formData.simulationUrl, resourceSimulations]
+  );
+  const simulationOptions = useMemo(
+    () => [
+      ...resourceSimulations.map((item) => ({
+        id: `storage-sim-${item.id}`,
+        lab: item.laboratorio || 'Storage',
+        label: item.label,
+        url: item.url,
+      })),
+      ...virtualLabSimulations,
+    ],
+    [resourceSimulations]
   );
   const reportOptions = useMemo(
     () => [
@@ -83,6 +107,7 @@ export default function CrearPractica() {
         if (!alive) return;
         setGrupos(data);
         setGrupoId(data[0]?.id || '');
+        setResourceSimulations(recursos.filter((recurso) => recurso.tipo === 'simulacion'));
         setResourceReports(recursos.filter((recurso) => ["guia", "informe"].includes(recurso.tipo)));
       } catch (err) {
         if (alive) setFormError(err.message || 'No se pudieron cargar los grupos.');
@@ -249,7 +274,7 @@ export default function CrearPractica() {
                 id="simulation-url"
                 label="Simulacion interactiva"
                 value={formData.simulationUrl}
-                options={virtualLabSimulations}
+                options={simulationOptions}
                 onChange={(value) => setFormData((prev) => ({ ...prev, simulationUrl: value }))}
               />
               <AssetSelect
