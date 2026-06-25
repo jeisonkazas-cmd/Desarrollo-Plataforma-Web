@@ -10,6 +10,13 @@ const imageMap = {
   '4': '/imagenes/is3.png',
 };
 
+function getValidDate(value) {
+  if (!value || value === 'Sin fecha') return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime()) || date.getFullYear() < 2000) return null;
+  return date;
+}
+
 export default function DashboardEstudiante() {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
@@ -89,24 +96,27 @@ export default function DashboardEstudiante() {
 
   const nextPractice = useMemo(() => {
     const pendientes = practicas.filter(p => p.estado === 'pendiente').sort((a, b) => {
-      return new Date(a.fechaEntrega) - new Date(b.fechaEntrega);
+      const dateA = getValidDate(a.fechaEntrega)?.getTime() ?? Number.MAX_SAFE_INTEGER;
+      const dateB = getValidDate(b.fechaEntrega)?.getTime() ?? Number.MAX_SAFE_INTEGER;
+      return dateA - dateB;
     });
     
     if (pendientes.length > 0) {
       const grupo = grupos.find(g => g.id === pendientes[0].grupoId);
+      const dueDate = getValidDate(pendientes[0].fechaEntrega);
       return {
+        id: pendientes[0].id,
         title: `${grupo?.nombre} - ${pendientes[0].titulo}`,
-        dueDate: new Date(pendientes[0].fechaEntrega).toLocaleDateString('es-ES', { 
-          year: 'numeric', 
-          month: 'short', 
-          day: 'numeric' 
-        }),
+        dueDate: dueDate
+          ? dueDate.toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' })
+          : 'Sin fecha límite',
       };
     }
     
     return {
+      id: null,
       title: 'No hay prácticas pendientes',
-      dueDate: '—',
+      dueDate: '-',
     };
   }, [practicas, grupos]);
 
@@ -119,11 +129,12 @@ export default function DashboardEstudiante() {
             <button type="button" className="student-shell-link active">
               Inicio
             </button>
-            <button type="button" className="student-shell-link">
+            <button
+              type="button"
+              className="student-shell-link"
+              onClick={() => navigate('/estudiante/practicas')}
+            >
               Cursos
-            </button>
-            <button type="button" className="student-shell-link">
-              Laboratorios
             </button>
           </nav>
           <div className="student-shell-user">{perfil.nombre}</div>
@@ -246,7 +257,7 @@ export default function DashboardEstudiante() {
               <button
                 type="button"
                 className="student-primary-btn"
-                onClick={() => navigate('/dashboard/estudiante')}
+                onClick={() => navigate('/estudiante/practicas')}
               >
                 Ir a Mis prácticas
               </button>
@@ -262,7 +273,8 @@ export default function DashboardEstudiante() {
               <button
                 type="button"
                 className="student-secondary-btn"
-                onClick={() => navigate('/dashboard/estudiante')}
+                onClick={() => nextPractice.id && navigate(`/estudiante/practicas/${nextPractice.id}`)}
+                disabled={!nextPractice.id}
               >
                 Ver detalles
               </button>
