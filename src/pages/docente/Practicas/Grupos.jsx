@@ -9,7 +9,6 @@ import { createDocenteGrupo, fetchDocenteGrupos } from '../services/docenteServi
 const initialGroupForm = {
   nombre: '',
   descripcion: '',
-  estudiantes: '',
 };
 
 export default function Grupos() {
@@ -104,22 +103,15 @@ export default function Grupos() {
 
     try {
       setSaving(true);
-      const result = await createDocenteGrupo(groupForm);
+      await createDocenteGrupo({
+        nombre: groupForm.nombre,
+        descripcion: groupForm.descripcion,
+      });
       await loadGrupos();
       setShowCreateModal(false);
       setGroupForm(initialGroupForm);
 
-      if (result.estudiantesNoEncontrados.length > 0) {
-        setNotice(
-          `Grupo creado. No encontré estos correos como usuarios: ${result.estudiantesNoEncontrados.join(', ')}`
-        );
-      } else {
-        setNotice(
-          result.estudiantesAgregados > 0
-            ? `Grupo creado con ${result.estudiantesAgregados} estudiantes.`
-            : 'Grupo creado correctamente.'
-        );
-      }
+      setNotice('Grupo creado correctamente. Ahora puedes asignarle estudiantes desde el grupo.');
     } catch (err) {
       setFormError(err.message || 'No se pudo crear el grupo.');
     } finally {
@@ -366,20 +358,6 @@ export default function Grupos() {
                     onChange={(event) => setGroupForm({ ...groupForm, descripcion: event.target.value })}
                     className="docente-form-input"
                     placeholder="Ej. 2026-1 · Martes 8 am"
-                  />
-                </div>
-
-                <div className="docente-form-group">
-                  <label htmlFor="group-students" className="docente-form-label">
-                    Estudiantes por correo
-                  </label>
-                  <textarea
-                    id="group-students"
-                    value={groupForm.estudiantes}
-                    onChange={(event) => setGroupForm({ ...groupForm, estudiantes: event.target.value })}
-                    className="docente-form-textarea"
-                    placeholder="correo1@institucion.edu.co&#10;correo2@institucion.edu.co"
-                    rows={5}
                   />
                 </div>
 

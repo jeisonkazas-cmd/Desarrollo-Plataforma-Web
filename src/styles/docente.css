@@ -2486,6 +2486,44 @@
   padding: 22px 26px 26px;
 }
 
+.docente-student-picker {
+  display: grid;
+  gap: 10px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.docente-student-picker-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.docente-student-picker-row input {
+  margin-top: 4px;
+}
+
+.docente-student-picker-row span {
+  display: grid;
+  gap: 3px;
+}
+
+.docente-student-picker-row small,
+.docente-form-help,
+.docente-student-picker-empty {
+  color: var(--doc-muted);
+}
+
+.docente-student-picker-empty {
+  margin: 0;
+}
+
 .docente-modal-footer {
   display: flex;
   justify-content: flex-end;

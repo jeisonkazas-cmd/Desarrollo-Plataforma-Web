@@ -218,10 +218,18 @@ export async function createDocenteGrupo(payload) {
 }
 
 export async function addEstudiantesToGrupo(grupoId, estudiantes) {
+  const body = Array.isArray(estudiantes)
+    ? { estudianteIds: estudiantes }
+    : { estudiantes };
+
   return apiRequest(`/api/platform/docente/grupos/${grupoId}/estudiantes`, {
     method: 'POST',
-    body: JSON.stringify({ estudiantes }),
+    body: JSON.stringify(body),
   });
+}
+
+export async function fetchEstudiantesDisponiblesGrupo(grupoId) {
+  return apiRequest(`/api/platform/docente/grupos/${grupoId}/estudiantes-disponibles`);
 }
 
 export async function fetchEstudiantesGrupo(grupoId) {

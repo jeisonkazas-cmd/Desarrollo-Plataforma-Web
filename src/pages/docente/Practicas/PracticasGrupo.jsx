@@ -7,6 +7,7 @@ import '../../../styles/docente.css';
 import {
   addEstudiantesToGrupo,
   fetchDocenteGrupo,
+  fetchEstudiantesDisponiblesGrupo,
   fetchPracticasByGrupo,
 } from '../services/docenteService';
 
@@ -18,10 +19,13 @@ export default function PracticasGrupo() {
   const [practicas, setPracticas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [savingStudents, setSavingStudents] = useState(false);
+  const [loadingStudents, setLoadingStudents] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [showStudentModal, setShowStudentModal] = useState(false);
-  const [studentEmails, setStudentEmails] = useState('');
+  const [availableStudents, setAvailableStudents] = useState([]);
+  const [selectedStudentIds, setSelectedStudentIds] = useState([]);
+  const [studentSearch, setStudentSearch] = useState('');
 
   const loadData = useCallback(async () => {
     try {
@@ -56,6 +60,15 @@ export default function PracticasGrupo() {
     cerradas: practicas.filter((p) => p.estado === 'cerrada').length,
   }), [practicas]);
 
+  const filteredStudents = useMemo(() => {
+    const term = studentSearch.trim().toLowerCase();
+    return availableStudents.filter((student) => {
+      if (student.asignado) return false;
+      if (!term) return true;
+      return `${student.nombre} ${student.email}`.toLowerCase().includes(term);
+    });
+  }, [availableStudents, studentSearch]);
+
   const handleNewPractice = () => {
     navigate('/docente/practicas/crear');
   };
@@ -64,22 +77,49 @@ export default function PracticasGrupo() {
     navigate(`/docente/grupo/${grupoId}/practica/${practicaId}`);
   };
 
+  const openStudentModal = async () => {
+    setError('');
+    setNotice('');
+    setShowStudentModal(true);
+    setStudentSearch('');
+    setSelectedStudentIds([]);
+
+    try {
+      setLoadingStudents(true);
+      setAvailableStudents(await fetchEstudiantesDisponiblesGrupo(grupoId));
+    } catch (err) {
+      setError(err.message || 'No se pudieron cargar los estudiantes.');
+      setAvailableStudents([]);
+    } finally {
+      setLoadingStudents(false);
+    }
+  };
+
+  const toggleSelectedStudent = (studentId) => {
+    setSelectedStudentIds((prev) => (
+      prev.includes(studentId)
+        ? prev.filter((id) => id !== studentId)
+        : [...prev, studentId]
+    ));
+  };
+
   const handleSaveStudents = async (event) => {
     event.preventDefault();
     setError('');
     setNotice('');
 
-    if (!studentEmails.trim()) {
-      setError('Ingresa al menos un correo de estudiante.');
+    if (selectedStudentIds.length === 0) {
+      setError('Selecciona al menos un estudiante.');
       return;
     }
 
     try {
       setSavingStudents(true);
-      const result = await addEstudiantesToGrupo(grupoId, studentEmails);
+      const result = await addEstudiantesToGrupo(grupoId, selectedStudentIds);
       await loadData();
       setShowStudentModal(false);
-      setStudentEmails('');
+      setSelectedStudentIds([]);
+      setAvailableStudents([]);
 
       const parts = [];
       if (result.estudiantesAgregados > 0) {
@@ -147,11 +187,7 @@ export default function PracticasGrupo() {
             <button
               type="button"
               className="docente-practicas-grupo-new-btn docente-practicas-grupo-secondary-btn"
-              onClick={() => {
-                setError('');
-                setNotice('');
-                setShowStudentModal(true);
-              }}
+              onClick={openStudentModal}
             >
               Asignar estudiantes
             </button>
@@ -258,17 +294,45 @@ export default function PracticasGrupo() {
               </button>
             </div>
             <div className="docente-modal-body">
-              <label htmlFor="student-emails" className="docente-form-label">
-                Correos institucionales
+              <label htmlFor="student-search" className="docente-form-label">
+                Buscar estudiantes activos
               </label>
-              <textarea
-                id="student-emails"
-                value={studentEmails}
-                onChange={(event) => setStudentEmails(event.target.value)}
-                className="docente-form-textarea"
-                rows="7"
-                placeholder="correo1@institucion.edu.co&#10;correo2@institucion.edu.co"
+              <input
+                id="student-search"
+                type="text"
+                value={studentSearch}
+                onChange={(event) => setStudentSearch(event.target.value)}
+                className="docente-form-input"
+                placeholder="Nombre o correo del estudiante"
               />
+
+              <div className="docente-student-picker">
+                {loadingStudents ? (
+                  <p className="docente-student-picker-empty">Cargando estudiantes...</p>
+                ) : filteredStudents.length > 0 ? (
+                  filteredStudents.map((student) => (
+                    <label key={student.id} className="docente-student-picker-row">
+                      <input
+                        type="checkbox"
+                        checked={selectedStudentIds.includes(student.id)}
+                        onChange={() => toggleSelectedStudent(student.id)}
+                      />
+                      <span>
+                        <strong>{student.nombre}</strong>
+                        <small>{student.email}</small>
+                      </span>
+                    </label>
+                  ))
+                ) : (
+                  <p className="docente-student-picker-empty">
+                    No hay estudiantes activos disponibles para asignar.
+                  </p>
+                )}
+              </div>
+
+              <p className="docente-form-help">
+                Seleccionados: {selectedStudentIds.length}
+              </p>
             </div>
             <div className="docente-modal-footer">
               <button type="button" className="docente-form-btn docente-form-btn-secondary" onClick={() => setShowStudentModal(false)}>
