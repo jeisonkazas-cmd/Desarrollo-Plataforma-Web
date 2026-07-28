@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { Search } from 'lucide-react';
 import DocenteLayout from '../components/DocenteLayout';
 import { ArrowLeftIcon } from '../components/icons';
 import '../../../styles/settings-panel.css';
@@ -192,7 +193,11 @@ export default function EstudiantesPractica() {
 
         <div className="docente-estudiantes-practica-controls">
           <div className="docente-estudiantes-practica-search">
-            <span className="docente-estudiantes-practica-search-icon">Buscar</span>
+            <Search
+              className="docente-estudiantes-practica-search-icon"
+              size={20}
+              aria-hidden="true"
+            />
             <input
               type="text"
               placeholder="Buscar estudiante..."
