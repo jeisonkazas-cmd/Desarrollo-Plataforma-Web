@@ -10,6 +10,7 @@ import {
   fetchInformeDetalle,
   fetchPracticaDetalle,
   saveInformeGrade,
+  setInformeReentrega,
 } from '../services/docenteService';
 
 const NOTA_MIN = 0.0;
@@ -25,9 +26,10 @@ export default function InformeEstudiante() {
   const [informe, setInforme] = useState(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
-  const [form, setForm] = useState({ nota: '', feedback: '' });
+  const [form, setForm] = useState({ nota: '', feedback: '', criterios: [] });
   const [formError, setFormError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [isUpdatingReentrega, setIsUpdatingReentrega] = useState(false);
 
   const isNotaValid = () => {
     if (!form.nota.trim()) return false;
@@ -35,7 +37,14 @@ export default function InformeEstudiante() {
     return !Number.isNaN(notaNum) && notaNum >= NOTA_MIN && notaNum <= NOTA_MAX;
   };
 
-  const isSaveDisabled = !isNotaValid();
+  const rubricaCompleta = form.criterios.length === 0 || form.criterios.every((criterio) => {
+    const puntaje = Number(criterio.puntaje);
+    return criterio.puntaje !== ''
+      && Number.isFinite(puntaje)
+      && puntaje >= 0
+      && puntaje <= Number(criterio.puntajeMaximo);
+  });
+  const isSaveDisabled = !isNotaValid() || !rubricaCompleta;
 
   useEffect(() => {
     let alive = true;
@@ -57,6 +66,10 @@ export default function InformeEstudiante() {
         setForm({
           nota: informeData?.nota ? String(informeData.nota) : '',
           feedback: informeData?.feedback || '',
+          criterios: (informeData?.rubrica?.criterios || []).map((criterio) => ({
+            ...criterio,
+            puntaje: criterio.puntaje ?? '',
+          })),
         });
       } catch (err) {
         if (alive) setLoadError(err.message || 'No se pudo cargar el informe.');
@@ -90,12 +103,43 @@ export default function InformeEstudiante() {
 
     try {
       setIsSaving(true);
-      await saveInformeGrade(informeId, form.nota, form.feedback);
+      await saveInformeGrade(informeId, form.nota, form.feedback, form.criterios);
       navigate(`/docente/grupo/${grupoId}/practica/${practicaId}`);
     } catch (err) {
       setFormError(err.message || 'No se pudo guardar la calificación.');
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleCriterioChange = (criterioId, value) => {
+    setForm((prev) => {
+      const criterios = prev.criterios.map((criterio) => (
+        criterio.id === criterioId ? { ...criterio, puntaje: value } : criterio
+      ));
+      const completos = criterios.every((criterio) => (
+        criterio.puntaje !== '' && !Number.isNaN(Number(criterio.puntaje))
+      ));
+      const nota = completos
+        ? criterios.reduce((sum, criterio) => (
+          sum + (Number(criterio.puntaje) / Number(criterio.puntajeMaximo)) * 5 * (Number(criterio.peso) / 100)
+        ), 0).toFixed(2)
+        : prev.nota;
+      return { ...prev, criterios, nota };
+    });
+  };
+
+  const handleReentrega = async () => {
+    try {
+      setIsUpdatingReentrega(true);
+      const habilitada = !informe.reentregaHabilitada;
+      await setInformeReentrega(informeId, habilitada);
+      setInforme((prev) => ({ ...prev, reentregaHabilitada: habilitada }));
+      setFormError('');
+    } catch (err) {
+      setFormError(err.message || 'No se pudo actualizar el permiso de reentrega.');
+    } finally {
+      setIsUpdatingReentrega(false);
     }
   };
 
@@ -220,6 +264,41 @@ export default function InformeEstudiante() {
             </div>
           </section>
 
+          {informe.rubrica && (
+            <section className="docente-informe-card-section">
+              <div className="docente-informe-card-section-header-divider">
+                <div>
+                  <h2 className="docente-informe-card-section-title">
+                    Rúbrica: {informe.rubrica.nombre}
+                  </h2>
+                  <p className="docente-informe-card-section-subtitle">
+                    Califica cada criterio; la nota final se calcula automáticamente.
+                  </p>
+                </div>
+              </div>
+              <div className="docente-informe-grading-grid">
+                {form.criterios.map((criterio) => (
+                  <div className="docente-informe-grading-input-wrapper" key={criterio.id}>
+                    <label className="docente-informe-label" htmlFor={`criterio-${criterio.id}`}>
+                      {criterio.nombre} ({criterio.peso}%)
+                    </label>
+                    <input
+                      id={`criterio-${criterio.id}`}
+                      type="number"
+                      min="0"
+                      max={criterio.puntajeMaximo}
+                      step="0.1"
+                      value={criterio.puntaje}
+                      onChange={(event) => handleCriterioChange(criterio.id, event.target.value)}
+                      className="docente-informe-number-input"
+                    />
+                    <span>Máximo: {criterio.puntajeMaximo}</span>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
           <section className="docente-informe-card-section">
             <div className="docente-informe-card-section-header-divider">
               <div className="docente-informe-card-section-icon-wrapper orange">
@@ -308,6 +387,18 @@ export default function InformeEstudiante() {
         </div>
 
         <footer className="docente-informe-action-footer">
+          <button
+            type="button"
+            className="docente-informe-btn-cancel"
+            onClick={handleReentrega}
+            disabled={isUpdatingReentrega}
+          >
+            {isUpdatingReentrega
+              ? 'Actualizando...'
+              : informe.reentregaHabilitada
+                ? 'Bloquear nueva entrega'
+                : 'Habilitar nueva entrega'}
+          </button>
           <button
             type="button"
             className="docente-informe-btn-cancel"

@@ -1,11 +1,18 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import DocenteLayout from '../components/DocenteLayout';
 import { ArrowLeftIcon } from '../components/icons';
 import '../../../styles/settings-panel.css';
 import '../../../styles/docente.css';
 import { virtualLabReports, virtualLabSimulations } from '../../../data/virtualLabsCatalog';
-import { createPracticaForGrupo, fetchDocenteGrupos, fetchDocenteRecursos } from '../services/docenteService';
+import {
+  createPracticaForGrupo,
+  fetchDocenteGrupos,
+  fetchDocenteRecursos,
+  fetchPracticaDetalle,
+  fetchRubricas,
+  updatePracticaForGrupo,
+} from '../services/docenteService';
 
 function AssetSelect({ id, label, value, options, onChange }) {
   const selected = options.find((option) => option.url === value);
@@ -35,6 +42,8 @@ function AssetSelect({ id, label, value, options, onChange }) {
 
 export default function CrearPractica() {
   const navigate = useNavigate();
+  const { grupoId: routeGrupoId, practicaId } = useParams();
+  const isEditing = Boolean(practicaId);
   const [formData, setFormData] = useState({
     title: '',
     duration: '',
@@ -43,10 +52,13 @@ export default function CrearPractica() {
     guideUrl: '',
     objective: '',
     description: '',
+    deadline: '',
+    rubricId: '',
   });
   const [resourceSimulations, setResourceSimulations] = useState([]);
   const [resourceReports, setResourceReports] = useState([]);
   const [grupos, setGrupos] = useState([]);
+  const [rubricas, setRubricas] = useState([]);
   const [grupoId, setGrupoId] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [formError, setFormError] = useState('');
@@ -100,15 +112,35 @@ export default function CrearPractica() {
 
     const load = async () => {
       try {
-        const [data, recursos] = await Promise.all([
+        const [data, recursos, rubricasData] = await Promise.all([
           fetchDocenteGrupos(),
           fetchDocenteRecursos().catch(() => []),
+          fetchRubricas().catch(() => []),
         ]);
         if (!alive) return;
         setGrupos(data);
-        setGrupoId(data[0]?.id || '');
+        const selectedGrupoId = routeGrupoId || data[0]?.id || '';
+        setGrupoId(selectedGrupoId);
+        setRubricas(rubricasData || []);
         setResourceSimulations(recursos.filter((recurso) => recurso.tipo === 'simulacion'));
         setResourceReports(recursos.filter((recurso) => ["guia", "informe"].includes(recurso.tipo)));
+        if (isEditing && selectedGrupoId) {
+          const practica = await fetchPracticaDetalle(selectedGrupoId, practicaId);
+          if (alive && practica) {
+            setFormData((current) => ({
+              ...current,
+              title: practica.titulo || '',
+              simulationUrl: practica.simuladorUrl || '',
+              guideUrl: practica.guiaUrl || '',
+              objective: practica.objetivos || '',
+              description: practica.descripcion || '',
+              deadline: practica.fechaLimiteIso
+                ? new Date(practica.fechaLimiteIso).toISOString().slice(0, 16)
+                : '',
+              rubricId: practica.rubricaId || '',
+            }));
+          }
+        }
       } catch (err) {
         if (alive) setFormError(err.message || 'No se pudieron cargar los grupos.');
       }
@@ -119,7 +151,7 @@ export default function CrearPractica() {
     return () => {
       alive = false;
     };
-  }, []);
+  }, [isEditing, practicaId, routeGrupoId]);
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
@@ -152,10 +184,14 @@ export default function CrearPractica() {
       setFormError('Selecciona el informe o guia de la practica.');
       return;
     }
+    if (!formData.deadline) {
+      setFormError('Selecciona la fecha y hora límite de entrega.');
+      return;
+    }
 
     try {
       setIsSaving(true);
-      await createPracticaForGrupo(grupoId, {
+      const payload = {
         titulo: formData.title.trim(),
         descripcion: formData.description.trim(),
         objetivos: formData.objective.trim(),
@@ -165,8 +201,14 @@ export default function CrearPractica() {
         simulacionDescripcion: selectedSimulation?.lab || '',
         guiaUrl: formData.guideUrl,
         guiaNombre: selectedReport?.label || null,
-        fecha_entrega: null,
-      });
+        fecha_entrega: new Date(formData.deadline).toISOString(),
+        rubrica_id: formData.rubricId || null,
+      };
+      if (isEditing) {
+        await updatePracticaForGrupo(grupoId, practicaId, payload);
+      } else {
+        await createPracticaForGrupo(grupoId, payload);
+      }
       navigate(`/docente/grupo/${grupoId}/practicas`);
     } catch (err) {
       setFormError(err.message || 'No se pudo guardar la practica.');
@@ -220,7 +262,9 @@ export default function CrearPractica() {
             >
               <ArrowLeftIcon size={20} />
             </button>
-            <h1 className="docente-create-practice-title">Crear practica virtual</h1>
+            <h1 className="docente-create-practice-title">
+              {isEditing ? 'Editar práctica virtual' : 'Crear práctica virtual'}
+            </h1>
           </div>
           <div className="docente-create-practice-badge">
             <span>Virtual</span>
@@ -267,6 +311,43 @@ export default function CrearPractica() {
                 onChange={handleInputChange}
                 className="docente-form-input docente-form-input-lg"
               />
+            </div>
+
+            <div className="docente-form-row">
+              <div className="docente-form-group">
+                <label htmlFor="deadline" className="docente-form-label">
+                  Fecha y hora límite de entrega
+                </label>
+                <input
+                  id="deadline"
+                  name="deadline"
+                  type="datetime-local"
+                  value={formData.deadline}
+                  onChange={handleInputChange}
+                  className="docente-form-input"
+                  required
+                />
+              </div>
+
+              <div className="docente-form-group">
+                <label htmlFor="rubricId" className="docente-form-label">
+                  Rúbrica de evaluación
+                </label>
+                <select
+                  id="rubricId"
+                  name="rubricId"
+                  value={formData.rubricId}
+                  onChange={handleInputChange}
+                  className="docente-form-select"
+                >
+                  <option value="">Sin rúbrica</option>
+                  {rubricas.map((rubrica) => (
+                    <option key={rubrica.rubrica_id} value={rubrica.rubrica_id}>
+                      {rubrica.nombre}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             <div className="docente-form-row">
@@ -362,7 +443,7 @@ export default function CrearPractica() {
                 Cancelar
               </button>
               <button type="submit" className="docente-form-btn docente-form-btn-primary" disabled={isSaving}>
-                Guardar practica
+                {isEditing ? 'Guardar cambios' : 'Guardar práctica'}
               </button>
             </div>
           </form>

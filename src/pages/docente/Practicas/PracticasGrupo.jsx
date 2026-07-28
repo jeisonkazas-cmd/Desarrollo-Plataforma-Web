@@ -269,6 +269,13 @@ export default function PracticasGrupo() {
                   <button
                     type="button"
                     className="docente-practica-card-view-btn"
+                    onClick={() => navigate(`/docente/grupo/${grupoId}/practica/${practica.id}/editar`)}
+                  >
+                    Editar
+                  </button>
+                  <button
+                    type="button"
+                    className="docente-practica-card-view-btn"
                     onClick={() => handleViewReports(practica.id)}
                   >
                     Ver informes

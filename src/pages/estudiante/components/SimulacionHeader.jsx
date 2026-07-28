@@ -11,6 +11,8 @@ function SimulacionHeader({
   onGoBack,
   onOpenUploadModal,
   onGoToForum,
+  canUpload,
+  uploadDisabledReason,
 }) {
   return (
     <header className="student-simulacion-header">
@@ -31,6 +33,8 @@ function SimulacionHeader({
           type="button"
           className="student-btn-upload"
           onClick={onOpenUploadModal}
+          disabled={!canUpload}
+          title={!canUpload ? uploadDisabledReason : undefined}
           aria-label="Subir informe"
         >
           📤 Subir informe
@@ -54,6 +58,13 @@ SimulacionHeader.propTypes = {
   onGoBack: PropTypes.func.isRequired,
   onOpenUploadModal: PropTypes.func.isRequired,
   onGoToForum: PropTypes.func.isRequired,
+  canUpload: PropTypes.bool,
+  uploadDisabledReason: PropTypes.string,
+};
+
+SimulacionHeader.defaultProps = {
+  canUpload: true,
+  uploadDisabledReason: '',
 };
 
 export default SimulacionHeader;

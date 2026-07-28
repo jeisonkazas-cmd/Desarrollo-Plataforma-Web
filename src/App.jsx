@@ -290,6 +290,14 @@ function AppContent() {
           }
         />
         <Route
+          path="/docente/grupo/:grupoId/practica/:practicaId/editar"
+          element={
+            <ProtectedRoute allowedRoles={['Docente']}>
+              <CrearPractica />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/docente/herramientas"
           element={
             <ProtectedRoute allowedRoles={['Docente']}>

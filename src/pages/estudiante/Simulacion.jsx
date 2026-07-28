@@ -35,6 +35,10 @@ function Simulacion() {
   const { uploadFile } = useInformeUpload(practicaId);
 
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const canUpload = practica?.puedeEntregar !== false;
+  const uploadDisabledReason = practica?.estado === 'calificado'
+    ? 'El informe ya fue calificado. Solicita al docente que habilite una nueva entrega.'
+    : 'La fecha límite de entrega ya venció.';
 
   const handleOpenUploadModal = useCallback(() => {
     setViewMode('report');
@@ -69,6 +73,8 @@ function Simulacion() {
         onGoBack={goBackToGroup}
         onOpenUploadModal={handleOpenUploadModal}
         onGoToForum={goToForum}
+        canUpload={canUpload}
+        uploadDisabledReason={uploadDisabledReason}
       />
 
       <ViewModeTabs

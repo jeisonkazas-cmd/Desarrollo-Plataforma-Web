@@ -274,6 +274,13 @@ export async function createPracticaForGrupo(grupoId, payload) {
   });
 }
 
+export async function updatePracticaForGrupo(grupoId, practicaId, payload) {
+  return apiRequest(`/api/platform/docente/grupos/${grupoId}/practicas/${practicaId}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  });
+}
+
 export async function uploadPracticaGuide(file) {
   if (!file) return null;
   const body = new FormData();
@@ -293,10 +300,17 @@ export async function fetchInformeDetalle(informeId) {
   return apiRequest(`/api/platform/docente/informes/${informeId}`);
 }
 
-export async function saveInformeGrade(informeId, nota, comentario) {
+export async function saveInformeGrade(informeId, nota, comentario, criterios = []) {
   return apiRequest(`/api/platform/docente/informes/${informeId}/calificacion`, {
     method: 'PUT',
-    body: JSON.stringify({ nota, comentario }),
+    body: JSON.stringify({ nota, comentario, criterios }),
+  });
+}
+
+export async function setInformeReentrega(informeId, habilitada) {
+  return apiRequest(`/api/platform/docente/informes/${informeId}/reentrega`, {
+    method: 'PUT',
+    body: JSON.stringify({ habilitada }),
   });
 }
 
