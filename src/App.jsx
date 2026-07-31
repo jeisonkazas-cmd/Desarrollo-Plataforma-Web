@@ -87,7 +87,7 @@ function ProtectedRoute({ children, allowedRoles = ALL_ROLES }) {
   const state = useAuthProfile();
 
   if (state.loading) {
-    return <Home />;
+    return <div style={{ padding: 40 }}>Cargando sesión...</div>;
   }
 
   if (!state.user) {

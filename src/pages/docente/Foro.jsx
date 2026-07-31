@@ -50,7 +50,7 @@ export default function Foro() {
     <DocenteLayout
       title="Foro / Chat"
       left={(
-        <IconButton label="Volver" onClick={() => navigate(-1)}>
+        <IconButton label="Volver" onClick={() => navigate('/dashboard/docente')}>
           <ArrowLeftIcon />
         </IconButton>
       )}

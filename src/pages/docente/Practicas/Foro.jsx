@@ -197,7 +197,7 @@ export default function Foro() {
       topBand={
         <div className="docente-nav-band">
           <div className="docente-nav-band-inner">
-            <button type="button" className="docente-breadcrumb" onClick={() => navigate('/')}>
+            <button type="button" className="docente-breadcrumb" onClick={() => navigate('/dashboard/docente')}>
               <ArrowLeftIcon size={14} />
               Inicio
             </button>

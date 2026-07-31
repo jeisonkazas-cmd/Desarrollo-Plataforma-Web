@@ -135,7 +135,7 @@ export default function GestionUsuarios() {
             <button
               type="button"
               className="admin-breadcrumb"
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/dashboard/admin')}
               aria-label="Volver al inicio"
             >
               <ArrowLeftIcon size={14} />

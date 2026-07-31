@@ -272,7 +272,7 @@ export default function TeacherDashboard() {
               <button
                 type="button"
                 className="docente-breadcrumb"
-                onClick={() => navigate('/')}
+                onClick={() => navigate('/dashboard/docente')}
                 aria-label="Volver al inicio"
               >
                 <ArrowLeftIcon size={14} />
