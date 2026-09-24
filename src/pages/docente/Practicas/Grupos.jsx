@@ -237,7 +237,7 @@ export default function Grupos() {
           <button type="button" className="docente-grupos-nav-tab active">
             Grupos
           </button>
-          <button type="button" className="docente-grupos-nav-tab" onClick={() => navigate('/dashboard/docente#informes-pendientes')}>
+          <button type="button" className="docente-grupos-nav-tab" onClick={() => navigate('/docente/reportes')}>
             Reportes
           </button>
         </nav>

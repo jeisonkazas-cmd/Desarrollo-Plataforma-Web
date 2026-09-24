@@ -438,6 +438,13 @@ export default function TeacherDashboard() {
                 <button
                   type="button"
                   className="docente-quick-btn"
+                  onClick={() => navigate('/docente/reportes')}
+                >
+                  Ver reportes
+                </button>
+                <button
+                  type="button"
+                  className="docente-quick-btn"
                   onClick={handleReminder}
                 >
                   Enviar recordatorio a un grupo

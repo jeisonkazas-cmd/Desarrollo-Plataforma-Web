@@ -586,6 +586,75 @@
   border-color: var(--admin-primary);
 }
 
+.admin-group-members {
+  display: grid;
+  gap: 14px;
+  margin-top: 6px;
+  padding-top: 18px;
+  border-top: 1px solid var(--admin-border);
+}
+
+.admin-group-members-section {
+  padding: 14px;
+  border: 1px solid var(--admin-border);
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.admin-group-members-section h3 {
+  margin: 0 0 10px;
+  color: var(--admin-text);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.admin-group-members-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-group-students-list {
+  max-height: 190px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.admin-group-members-list li {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.admin-group-members-list strong {
+  color: var(--admin-text);
+  font-size: 0.86rem;
+}
+
+.admin-group-members-list span {
+  color: #6b7280;
+  font-size: 0.8rem;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.admin-group-members-empty,
+.admin-group-members-note {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.82rem;
+}
+
+.admin-group-members-note {
+  line-height: 1.5;
+}
+
 .admin-card-icon {
   font-size: 48px;
   width: 64px;

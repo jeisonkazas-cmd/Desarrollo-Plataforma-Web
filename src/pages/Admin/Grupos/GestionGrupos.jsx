@@ -320,6 +320,44 @@ export default function GestionGrupos() {
                   <option value="inactivo">Inactivo</option>
                 </select>
               </div>
+
+              <div className="admin-group-members" aria-label="Personas vinculadas al grupo">
+                <div className="admin-group-members-section">
+                  <h3>Docente asignado</h3>
+                  {selectedGroup.docentesDetalle?.length > 0 ? (
+                    <ul className="admin-group-members-list">
+                      {selectedGroup.docentesDetalle.map((docente) => (
+                        <li key={docente.id}>
+                          <strong>{docente.nombre || 'Docente'}</strong>
+                          <span>{docente.correo || 'Sin correo registrado'}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="admin-group-members-empty">No hay un docente asignado.</p>
+                  )}
+                </div>
+
+                <div className="admin-group-members-section">
+                  <h3>Estudiantes vinculados ({selectedGroup.estudiantesDetalle?.length || 0})</h3>
+                  {selectedGroup.estudiantesDetalle?.length > 0 ? (
+                    <ul className="admin-group-members-list admin-group-students-list">
+                      {selectedGroup.estudiantesDetalle.map((estudiante) => (
+                        <li key={estudiante.id}>
+                          <strong>{estudiante.nombre || 'Estudiante'}</strong>
+                          <span>{estudiante.correo || 'Sin correo registrado'}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="admin-group-members-empty">No hay estudiantes vinculados.</p>
+                  )}
+                </div>
+
+                <p className="admin-group-members-note">
+                  Esta información es de consulta. La asignación de estudiantes se gestiona desde el módulo docente.
+                </p>
+              </div>
             </div>
 
             <div className="admin-modal-footer">

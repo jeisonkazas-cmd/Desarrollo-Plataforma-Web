@@ -68,6 +68,7 @@ function Navbar() {
     if (currentArea === 'docente') {
       return [
         { label: 'Mis cursos', to: '/dashboard/docente' },
+        { label: 'Reportes', to: '/docente/reportes' },
         { label: 'Herramientas', to: '/docente/herramientas' },
       ];
     }

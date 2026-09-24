@@ -12,12 +12,49 @@ export async function getGrupoDetalle(grupoId) {
   return apiRequest(`/api/platform/estudiante/grupos/${grupoId}`);
 }
 
+function normalizePracticeStatus(practica) {
+  const rawStatus = String(practica?.estado || '').trim().toLowerCase();
+  const hasGrade = practica?.calificacion !== null && practica?.calificacion !== undefined;
+  const gradedStatuses = new Set(['calificado', 'calificada', 'evaluado', 'evaluada', 'graded']);
+  const submittedStatuses = new Set([
+    'entregado',
+    'entregada',
+    'enviado',
+    'enviada',
+    'submitted',
+    'pendiente_revision',
+    'pendiente de revisión',
+    'revisado',
+    'revisada',
+  ]);
+
+  if (hasGrade || gradedStatuses.has(rawStatus)) return 'calificado';
+  if (
+    practica?.informeId
+    || practica?.informeEntregadoUrl
+    || practica?.archivoNombre
+    || submittedStatuses.has(rawStatus)
+  ) {
+    return 'entregado';
+  }
+  return 'pendiente';
+}
+
+function normalizePractice(practica) {
+  return {
+    ...practica,
+    estado: normalizePracticeStatus(practica),
+  };
+}
+
 export async function getPracticasByGrupo(grupoId) {
-  return apiRequest(`/api/platform/estudiante/grupos/${grupoId}/practicas`);
+  const practicas = await apiRequest(`/api/platform/estudiante/grupos/${grupoId}/practicas`);
+  return (practicas || []).map(normalizePractice);
 }
 
 export async function getPracticaDetalle(practicaId) {
-  return apiRequest(`/api/platform/estudiante/practicas/${practicaId}`);
+  const practica = await apiRequest(`/api/platform/estudiante/practicas/${practicaId}`);
+  return practica ? normalizePractice(practica) : practica;
 }
 
 export async function getForoPractica(practicaId) {

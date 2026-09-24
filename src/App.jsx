@@ -28,6 +28,7 @@ const PracticaEstudiantes = lazy(() => import('./pages/docente/Practicas/Estudia
 const InformeEstudiante = lazy(() => import('./pages/docente/Practicas/InformeEstudiante'));
 const CrearPractica = lazy(() => import('./pages/docente/Practicas/CrearPractica'));
 const HerramientasAcademicas = lazy(() => import('./pages/docente/HerramientasAcademicas'));
+const ReportesDocente = lazy(() => import('./pages/docente/ReportesDocente'));
 const Cuenta = lazy(() => import('./pages/Cuenta'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
@@ -323,6 +324,14 @@ function AppContent() {
           element={
             <ProtectedRoute allowedRoles={['Docente']}>
               <HerramientasAcademicas />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/docente/reportes"
+          element={
+            <ProtectedRoute allowedRoles={['Docente']}>
+              <ReportesDocente />
             </ProtectedRoute>
           }
         />

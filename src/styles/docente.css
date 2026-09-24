@@ -5058,6 +5058,65 @@
   font-weight: 800;
 }
 
+.docente-reportes-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px 44px;
+}
+
+.docente-reportes-subtitle {
+  margin: 6px 0 0;
+  color: rgba(107, 114, 128, 0.95);
+  font-size: 0.9rem;
+}
+
+.docente-reportes-filters {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) 220px 200px;
+  gap: 12px;
+  margin: 18px 0;
+}
+
+.docente-reportes-filters input,
+.docente-reportes-filters select {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 13px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 10px;
+  background: #ffffff;
+  color: var(--doc-text);
+  font: inherit;
+}
+
+.docente-reportes-filters input:focus,
+.docente-reportes-filters select:focus {
+  outline: none;
+  border-color: var(--doc-primary);
+  box-shadow: 0 0 0 3px rgba(9, 63, 124, 0.1);
+}
+
+.docente-reportes-empty {
+  padding: 28px !important;
+  text-align: center !important;
+  color: rgba(107, 114, 128, 0.95) !important;
+}
+
+@media (max-width: 760px) {
+  .docente-reportes-page .docente-grupos-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .docente-reportes-page .docente-primary-action {
+    width: 100%;
+  }
+
+  .docente-reportes-filters {
+    grid-template-columns: 1fr;
+  }
+}
+
 .docente-student-cell {
   display: flex;
   align-items: center;
