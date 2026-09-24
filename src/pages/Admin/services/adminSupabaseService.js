@@ -18,7 +18,7 @@ export async function fetchUsuariosAdmin() {
     rol: normalizeRoleToUi(row.rol),
     estado: row.estado ?? 'pendiente',
     fechaRegistro: row.fechaRegistro ?? null,
-    ultimoAcceso: null,
+    ultimoAcceso: row.ultimoAcceso ?? null,
     grupo: null,
   }));
 }

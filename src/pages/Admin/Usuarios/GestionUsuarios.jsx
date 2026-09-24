@@ -299,7 +299,10 @@ export default function GestionUsuarios() {
                   </td>
                   <td className="admin-table-date">
                     {usuario.ultimoAcceso
-                      ? new Date(usuario.ultimoAcceso).toLocaleDateString('es-ES')
+                      ? new Date(usuario.ultimoAcceso).toLocaleString('es-CO', {
+                          dateStyle: 'medium',
+                          timeStyle: 'short',
+                        })
                       : 'Nunca'}
                   </td>
                   <td className="admin-table-actions">
