@@ -66,6 +66,7 @@ async function fallbackFetchDocenteGrupos() {
     .from('grupos')
     .select('grupo_id, nombre, descripcion, estado, fecha_creacion')
     .in('grupo_id', grupoIds)
+    .or('estado.eq.activo,estado.is.null')
     .order('nombre', { ascending: true });
 
   if (gruposError) throw gruposError;
