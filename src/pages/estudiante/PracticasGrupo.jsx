@@ -10,7 +10,7 @@ export default function PracticasGrupo() {
   const { grupoId } = useParams();
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState('Todos');
+  const [filter, setFilter] = useState('todos');
   const [practicas, setPracticas] = useState([]);
   const [grupo, setGrupo] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -42,9 +42,8 @@ export default function PracticasGrupo() {
       );
     }
 
-    if (filter !== 'Todos') {
-      const filterKey = filter.toLowerCase();
-      result = result.filter((p) => p.estado?.includes(filterKey));
+    if (filter !== 'todos') {
+      result = result.filter((practica) => practica.estado === filter);
     }
 
     return result;

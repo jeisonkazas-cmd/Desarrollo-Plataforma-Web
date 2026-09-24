@@ -1,20 +1,25 @@
 import React from 'react';
 
 export default function StateFilterTabs({ activeFilter, onFilterChange }) {
-  const filters = ['Todos', 'Pendientes', 'Entregados', 'Calificados'];
+  const filters = [
+    { value: 'todos', label: 'Todos' },
+    { value: 'pendiente', label: 'Pendientes' },
+    { value: 'entregado', label: 'Entregados' },
+    { value: 'calificado', label: 'Calificados' },
+  ];
 
   return (
     <div className="student-filter-tabs" role="tablist">
       {filters.map((filter) => (
         <button
-          key={filter}
+          key={filter.value}
           type="button"
           role="tab"
-          aria-selected={activeFilter === filter}
-          className={`student-filter-tab ${activeFilter === filter ? 'active' : ''}`}
-          onClick={() => onFilterChange(filter)}
+          aria-selected={activeFilter === filter.value}
+          className={`student-filter-tab ${activeFilter === filter.value ? 'active' : ''}`}
+          onClick={() => onFilterChange(filter.value)}
         >
-          {filter}
+          {filter.label}
         </button>
       ))}
     </div>

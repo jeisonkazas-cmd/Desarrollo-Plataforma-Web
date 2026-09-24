@@ -9,7 +9,7 @@ import '../../styles/estudiante.css';
 export default function MisPracticas() {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState('Todos');
+  const [filter, setFilter] = useState('todos');
   const [practicas, setPracticas] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -50,13 +50,8 @@ export default function MisPracticas() {
       );
     }
 
-    if (filter !== 'Todos') {
-      const statesByFilter = {
-        Pendientes: 'pendiente',
-        Entregados: 'entregado',
-        Calificados: 'calificado',
-      };
-      result = result.filter((practica) => practica.estado === statesByFilter[filter]);
+    if (filter !== 'todos') {
+      result = result.filter((practica) => practica.estado === filter);
     }
 
     return result;
