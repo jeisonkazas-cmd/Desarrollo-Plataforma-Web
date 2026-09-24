@@ -1,10 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../components/AdminLayout';
-import { ArrowLeftIcon, BookIcon, EyeIcon, PlusIcon, TrashIcon } from '../components/AdminIcons';
+import { ArrowLeftIcon, BookIcon, EyeIcon, PlusIcon } from '../components/AdminIcons';
 import {
   createRecursoAdmin,
-  deleteRecursoAdmin,
   fetchRecursosAdmin,
   updateRecursoAdmin,
 } from '../services/adminSupabaseService';
@@ -83,21 +82,17 @@ export default function GestionContenido() {
 
   const handleToggleRecurso = async (recurso) => {
     const nuevoEstado = recurso.estado === 'activo' ? 'inactivo' : 'activo';
+    if (
+      nuevoEstado === 'inactivo' &&
+      !window.confirm(`¿Deseas desactivar el recurso "${recurso.titulo}"?`)
+    ) {
+      return;
+    }
+
     try {
       setRecursos(await updateRecursoAdmin(recurso.id, { estado: nuevoEstado }));
     } catch (err) {
       alert(err?.message || 'No se pudo cambiar el estado del recurso.');
-    }
-  };
-
-  const handleDeleteRecurso = async (recurso) => {
-    if (!window.confirm(`¿Deseas desactivar "${recurso.titulo}"?`)) return;
-
-    try {
-      await deleteRecursoAdmin(recurso.id);
-      await loadRecursos();
-    } catch (err) {
-      alert(err?.message || 'No se pudo desactivar el recurso.');
     }
   };
 
@@ -269,19 +264,10 @@ export default function GestionContenido() {
                       className="admin-btn-icon admin-btn-toggle"
                       onClick={() => handleToggleRecurso(recurso)}
                       title={recurso.estado === 'activo' ? 'Desactivar' : 'Activar'}
+                      aria-label={`${recurso.estado === 'activo' ? 'Desactivar' : 'Activar'} recurso ${recurso.titulo}`}
                     >
                       <EyeIcon size={16} />
                     </button>
-                    {recurso.estado === 'activo' && (
-                      <button
-                        type="button"
-                        className="admin-btn-icon admin-btn-delete"
-                        onClick={() => handleDeleteRecurso(recurso)}
-                        title="Desactivar"
-                      >
-                        <TrashIcon size={16} />
-                      </button>
-                    )}
                   </td>
                 </tr>
               ))

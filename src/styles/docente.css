@@ -1750,16 +1750,16 @@
   align-items: center;
 }
 
-.docente-form-input-icon {
+.docente-form-input-unit {
   position: absolute;
-  left: 12px;
-  font-size: 1rem;
+  right: 14px;
+  font-size: 0.9rem;
   pointer-events: none;
   opacity: 0.6;
 }
 
 .docente-form-input-wrapper .docente-form-input {
-  padding-left: 36px;
+  padding-right: 52px;
 }
 
 /* Simulation Selector */

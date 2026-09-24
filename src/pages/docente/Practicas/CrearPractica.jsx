@@ -371,19 +371,21 @@ export default function CrearPractica() {
             <div className="docente-form-row">
               <div className="docente-form-group">
                 <label htmlFor="duration" className="docente-form-label">
-                  Duracion estimada (minutos)
+                  Duración estimada
                 </label>
                 <div className="docente-form-input-wrapper">
-                  <span className="docente-form-input-icon">min</span>
                   <input
                     id="duration"
                     name="duration"
                     type="number"
+                    min="1"
+                    step="1"
                     placeholder="Ej. 90"
                     value={formData.duration}
                     onChange={handleInputChange}
                     className="docente-form-input"
                   />
+                  <span className="docente-form-input-unit">min</span>
                 </div>
               </div>
 

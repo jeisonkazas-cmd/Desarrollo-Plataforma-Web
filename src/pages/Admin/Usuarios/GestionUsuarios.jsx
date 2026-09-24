@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../components/AdminLayout';
-import { ArrowLeftIcon, UsersIcon, PencilIcon, TrashIcon, EyeIcon, PlusIcon } from '../components/AdminIcons';
+import { ArrowLeftIcon, UsersIcon, PencilIcon, TrashIcon, EyeIcon, RefreshIcon } from '../components/AdminIcons';
 import { deleteUsuarioAdmin, fetchUsuariosAdmin, updateUsuarioAdmin } from '../services/adminSupabaseService';
 import '../../../styles/admin.css';
 
@@ -177,8 +177,8 @@ export default function GestionUsuarios() {
           onClick={loadUsuarios}
           disabled={loading}
         >
-          <PlusIcon size={18} />
-          Actualizar lista
+          <RefreshIcon size={18} />
+          {loading ? 'Actualizando...' : 'Actualizar lista'}
         </button>
       </div>
 

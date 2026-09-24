@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../components/AdminLayout';
-import { ArrowLeftIcon, EyeIcon, PencilIcon, PlusIcon, TrashIcon, UsersIcon } from '../components/AdminIcons';
-import { deleteGrupoAdmin, fetchGruposAdmin, updateGrupoAdmin } from '../services/adminSupabaseService';
+import { ArrowLeftIcon, EyeIcon, PencilIcon, RefreshIcon, UsersIcon } from '../components/AdminIcons';
+import { fetchGruposAdmin, updateGrupoAdmin } from '../services/adminSupabaseService';
 import '../../../styles/admin.css';
 
 const initialForm = {
@@ -92,24 +92,19 @@ export default function GestionGrupos() {
 
   const handleToggleEstado = async (grupo) => {
     const nuevoEstado = grupo.estado === 'activo' ? 'inactivo' : 'activo';
+    if (
+      nuevoEstado === 'inactivo' &&
+      !window.confirm(`¿Deseas desactivar el grupo "${grupo.nombre}"?`)
+    ) {
+      return;
+    }
+
     try {
       await updateGrupoAdmin(grupo.id, { estado: nuevoEstado });
       await loadGrupos();
     } catch (err) {
       console.error('Error actualizando grupo:', err);
       alert(err?.message || 'No se pudo cambiar el estado del grupo.');
-    }
-  };
-
-  const handleDeactivateGroup = async (grupo) => {
-    if (!window.confirm(`¿Deseas desactivar el grupo "${grupo.nombre}"?`)) return;
-
-    try {
-      await deleteGrupoAdmin(grupo.id);
-      await loadGrupos();
-    } catch (err) {
-      console.error('Error desactivando grupo:', err);
-      alert(err?.message || 'No se pudo desactivar el grupo.');
     }
   };
 
@@ -155,8 +150,8 @@ export default function GestionGrupos() {
           onClick={loadGrupos}
           disabled={loading}
         >
-          <PlusIcon size={18} />
-          Actualizar lista
+          <RefreshIcon size={18} />
+          {loading ? 'Actualizando...' : 'Actualizar lista'}
         </button>
       </div>
 
@@ -264,19 +259,10 @@ export default function GestionGrupos() {
                       className="admin-btn-icon admin-btn-toggle"
                       onClick={() => handleToggleEstado(grupo)}
                       title={grupo.estado === 'activo' ? 'Desactivar' : 'Activar'}
+                      aria-label={`${grupo.estado === 'activo' ? 'Desactivar' : 'Activar'} grupo ${grupo.nombre}`}
                     >
                       <EyeIcon size={16} />
                     </button>
-                    {grupo.estado === 'activo' && (
-                      <button
-                        type="button"
-                        className="admin-btn-icon admin-btn-delete"
-                        onClick={() => handleDeactivateGroup(grupo)}
-                        title="Desactivar"
-                      >
-                        <TrashIcon size={16} />
-                      </button>
-                    )}
                   </td>
                 </tr>
               ))
