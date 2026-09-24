@@ -2,11 +2,12 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { LogOut, Settings, UserRound } from 'lucide-react';
 import { supabase } from '../services/supabaseClient';
+import { getOrCreateUserProfile } from '../services/authService';
 import NotificationBell from './NotificationBell';
 
 function Navbar() {
-  const [openMenu, setOpenMenu] = useState(null);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [authState, setAuthState] = useState({ user: null, rol: null });
   const navRef = useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
@@ -19,91 +20,78 @@ function Navbar() {
     return null;
   }, [location.pathname]);
 
-  const isAuthenticated = Boolean(currentArea);
+  const isAuthenticated = Boolean(authState.user);
+  const notificationsEnabled = isAuthenticated && Boolean(authState.rol);
+
+  useEffect(() => {
+    let active = true;
+
+    const loadAuth = async () => {
+      const auth = await getOrCreateUserProfile();
+      if (active) setAuthState({ user: auth.user, rol: auth.rol });
+    };
+
+    loadAuth();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session?.user) {
+        if (active) setAuthState({ user: null, rol: null });
+        return;
+      }
+      window.setTimeout(loadAuth, 0);
+    });
+
+    return () => {
+      active = false;
+      subscription?.unsubscribe();
+    };
+  }, []);
 
   const handleLogout = async () => {
     setProfileOpen(false);
     await supabase.auth.signOut();
+    setAuthState({ user: null, rol: null });
     navigate('/login', { replace: true });
   };
 
   const roleLabel = useMemo(() => {
-    if (currentArea === 'docente') return { name: 'Docente', sub: 'Panel académico' };
-    if (currentArea === 'admin') return { name: 'Administrador', sub: 'Panel de gestión' };
-    if (currentArea === 'estudiante') return { name: 'Estudiante', sub: 'Panel académico' };
+    if (authState.rol === 'Docente') return { name: 'Docente', sub: 'Panel académico' };
+    if (authState.rol === 'Administrador') return { name: 'Administrador', sub: 'Panel de gestión' };
+    if (authState.rol === 'Estudiante') return { name: 'Estudiante', sub: 'Panel académico' };
     if (currentArea === 'cuenta') return { name: 'Cuenta', sub: 'Perfil y configuración' };
     return null;
-  }, [currentArea]);
+  }, [authState.rol, currentArea]);
 
-  const { navLinks, menus } = useMemo(() => {
-    const visitorMenus = [
-      {
-        id: 'presencial',
-        label: 'Laboratorios de Física Presencial',
-        items: [
-          { label: 'Laboratorio de Física I Presencial', to: '/simulaciones' },
-          { label: 'Laboratorio de Física II Presencial', to: '/simulaciones' },
-          { label: 'Laboratorio de Física III Presencial', to: '/simulaciones' },
-        ],
-      },
-      {
-        id: 'virtual',
-        label: 'Laboratorios de Física Virtual',
-        items: [
-          { label: 'Laboratorio de Física I Virtual', to: '/simulaciones' },
-          { label: 'Laboratorio de Física II Virtual', to: '/simulaciones' },
-          { label: 'Laboratorio de Física III Virtual', to: '/simulaciones' },
-        ],
-      },
-      {
-        id: 'remotos',
-        label: 'Laboratorios de Física Remotos',
-        items: [
-          { label: 'Laboratorio de Física I Remoto', to: '/simulaciones' },
-          { label: 'Laboratorio de Física II Remoto', to: '/simulaciones' },
-          { label: 'Laboratorio de Física III Remoto', to: '/simulaciones' },
-        ],
-      },
-    ];
-
+  const navLinks = useMemo(() => {
     if (currentArea === 'estudiante') {
-      return { navLinks: [{ label: 'Mis cursos', to: '/dashboard/estudiante' }], menus: [] };
+      return [{ label: 'Mis cursos', to: '/dashboard/estudiante' }];
     }
     if (currentArea === 'docente') {
-      return {
-        navLinks: [
-          { label: 'Mis cursos', to: '/dashboard/docente' },
-          { label: 'Herramientas', to: '/docente/herramientas' },
-        ],
-        menus: [],
-      };
+      return [
+        { label: 'Mis cursos', to: '/dashboard/docente' },
+        { label: 'Herramientas', to: '/docente/herramientas' },
+      ];
     }
     if (currentArea === 'admin') {
-      return { navLinks: [{ label: 'Dashboard', to: '/dashboard/admin' }], menus: [] };
+      return [{ label: 'Dashboard', to: '/dashboard/admin' }];
     }
     if (currentArea === 'cuenta') {
-      return {
-        navLinks: [
-          { label: 'Mi perfil', to: '/perfil' },
-          { label: 'Configuración', to: '/configuracion' },
-        ],
-        menus: [],
-      };
+      return [
+        { label: 'Mi perfil', to: '/perfil' },
+        { label: 'Configuración', to: '/configuracion' },
+      ];
     }
-    return { navLinks: [], menus: visitorMenus };
+    return [{ label: 'Laboratorios de Física', to: '/' }];
   }, [currentArea]);
 
   useEffect(() => {
     const onPointerDown = (event) => {
       if (!navRef.current) return;
       if (navRef.current.contains(event.target)) return;
-      setOpenMenu(null);
       setProfileOpen(false);
     };
 
     const onKeyDown = (event) => {
       if (event.key === 'Escape') {
-        setOpenMenu(null);
         setProfileOpen(false);
       }
     };
@@ -152,58 +140,23 @@ function Navbar() {
         </NavLink>
 
         <ul className="wl-nav-list line">
-          {isAuthenticated ? (
-            navLinks.map((link) => (
-              <li key={link.to} className="wl-nav-item">
-                <NavLink
-                  to={link.to}
-                  className={({ isActive }) => `wl-nav-link ${isActive ? 'active' : ''}`}
-                >
-                  {link.label}
-                </NavLink>
-              </li>
-            ))
-          ) : (
-            menus.map((menu) => (
-              <li
-                key={menu.id}
-                className={`wl-nav-item wl-dropdown ${openMenu === menu.id ? 'is-open' : ''}`}
-                onMouseEnter={() => setOpenMenu(menu.id)}
-                onMouseLeave={() => setOpenMenu(null)}
+          {navLinks.map((link) => (
+            <li key={link.to} className="wl-nav-item">
+              <NavLink
+                to={link.to}
+                end={link.to === '/'}
+                className={({ isActive }) => `wl-nav-link ${isActive ? 'active' : ''}`}
               >
-                <button
-                  type="button"
-                  className="wl-nav-link wl-dropdown-toggle"
-                  aria-haspopup="true"
-                  aria-expanded={openMenu === menu.id}
-                  onClick={() => setOpenMenu((prev) => (prev === menu.id ? null : menu.id))}
-                >
-                  {menu.label}
-                  <span className="wl-caret" aria-hidden="true">▾</span>
-                </button>
-
-                <ul className="wl-dropdown-menu">
-                  {menu.items.map((item) => (
-                    <li key={item.label}>
-                      <NavLink
-                        to={item.to}
-                        className="wl-dropdown-item"
-                        onClick={() => setOpenMenu(null)}
-                      >
-                        {item.label}
-                      </NavLink>
-                    </li>
-                  ))}
-                </ul>
-              </li>
-            ))
-          )}
+                {link.label}
+              </NavLink>
+            </li>
+          ))}
         </ul>
 
         <div className="wl-nav-right">
           {isAuthenticated ? (
             <>
-              <NotificationBell enabled={isAuthenticated} />
+              <NotificationBell enabled={notificationsEnabled} />
               <div className="wl-profile-wrapper">
                 <button
                   type="button"

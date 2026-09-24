@@ -29,6 +29,7 @@ const InformeEstudiante = lazy(() => import('./pages/docente/Practicas/InformeEs
 const CrearPractica = lazy(() => import('./pages/docente/Practicas/CrearPractica'));
 const HerramientasAcademicas = lazy(() => import('./pages/docente/HerramientasAcademicas'));
 const Cuenta = lazy(() => import('./pages/Cuenta'));
+const NotFound = lazy(() => import('./pages/NotFound'));
 
 const ROLE_HOME = {
   Administrador: '/dashboard/admin',
@@ -86,6 +87,13 @@ function ProtectedRoute({ children, allowedRoles = ALL_ROLES }) {
   const location = useLocation();
   const state = useAuthProfile();
 
+  useEffect(() => {
+    const currentPath = `${location.pathname}${location.search}${location.hash}`;
+    if (window.sessionStorage.getItem('postLoginPath') === currentPath) {
+      window.sessionStorage.removeItem('postLoginPath');
+    }
+  }, [location.hash, location.pathname, location.search]);
+
   if (state.loading) {
     return <div style={{ padding: 40 }}>Cargando sesión...</div>;
   }
@@ -116,6 +124,11 @@ function RoleRedirect() {
 
   if (!isActiveProfile(state)) {
     return <Navigate to="/pendiente" replace />;
+  }
+
+  const savedPath = window.sessionStorage.getItem('postLoginPath');
+  if (savedPath?.startsWith('/') && !savedPath.startsWith('//')) {
+    return <Navigate to={savedPath} replace />;
   }
 
   return <Navigate to={getRoleHome(state.rol)} replace />;
@@ -290,6 +303,14 @@ function AppContent() {
           }
         />
         <Route
+          path="/docente/grupo/:grupoId/practicas/crear"
+          element={
+            <ProtectedRoute allowedRoles={['Docente']}>
+              <CrearPractica />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/docente/grupo/:grupoId/practica/:practicaId/editar"
           element={
             <ProtectedRoute allowedRoles={['Docente']}>
@@ -309,6 +330,7 @@ function AppContent() {
         <Route path="/estudiante" element={<Navigate to="/dashboard/estudiante" replace />} />
         <Route path="/docente" element={<Navigate to="/dashboard/docente" replace />} />
         <Route path="/admin" element={<Navigate to="/dashboard/admin" replace />} />
+        <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
     </>

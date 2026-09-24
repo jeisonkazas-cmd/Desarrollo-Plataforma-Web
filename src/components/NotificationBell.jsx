@@ -2,6 +2,8 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom';
 import {
   fetchNotificaciones,
+  clearNotificaciones,
+  deleteNotificacion,
   markNotificacionLeida,
   markNotificacionesLeidas,
 } from '../services/notificationService';
@@ -84,6 +86,17 @@ export default function NotificationBell({ enabled }) {
     setItems((current) => current.map((item) => ({ ...item, leida: true })));
   };
 
+  const handleDelete = async (event, notificationId) => {
+    event.stopPropagation();
+    await deleteNotificacion(notificationId);
+    setItems((current) => current.filter((item) => item.id !== notificationId));
+  };
+
+  const handleClear = async () => {
+    await clearNotificaciones();
+    setItems([]);
+  };
+
   return (
     <div className="wl-notifications" ref={panelRef}>
       <button
@@ -104,11 +117,18 @@ export default function NotificationBell({ enabled }) {
         <div className="wl-notification-panel">
           <div className="wl-notification-panel-header">
             <strong>Notificaciones</strong>
-            {unreadCount > 0 && (
-              <button type="button" onClick={handleMarkAll}>
-                Marcar leídas
-              </button>
-            )}
+            <div className="wl-notification-header-actions">
+              {unreadCount > 0 && (
+                <button type="button" onClick={handleMarkAll}>
+                  Marcar leídas
+                </button>
+              )}
+              {items.length > 0 && (
+                <button type="button" onClick={handleClear}>
+                  Quitar todas
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="wl-notification-list">
@@ -118,16 +138,28 @@ export default function NotificationBell({ enabled }) {
               <p className="wl-notification-empty">No tienes notificaciones.</p>
             ) : (
               items.map((item) => (
-                <button
+                <div
                   key={item.id}
-                  type="button"
                   className={`wl-notification-item ${item.leida ? '' : 'is-unread'}`}
-                  onClick={() => handleItemClick(item)}
                 >
-                  <span className="wl-notification-title">{item.titulo}</span>
-                  <span className="wl-notification-message">{item.mensaje}</span>
-                  <span className="wl-notification-date">{formatNotificationDate(item.fechaCreacion)}</span>
-                </button>
+                  <button
+                    type="button"
+                    className="wl-notification-content"
+                    onClick={() => handleItemClick(item)}
+                  >
+                    <span className="wl-notification-title">{item.titulo}</span>
+                    <span className="wl-notification-message">{item.mensaje}</span>
+                    <span className="wl-notification-date">{formatNotificationDate(item.fechaCreacion)}</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="wl-notification-remove"
+                    aria-label={`Quitar notificación: ${item.titulo}`}
+                    onClick={(event) => handleDelete(event, item.id)}
+                  >
+                    ×
+                  </button>
+                </div>
               ))
             )}
           </div>

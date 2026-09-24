@@ -218,7 +218,7 @@ export default function CrearPractica() {
   };
 
   const handleCancel = () => {
-    navigate('/docente/grupos');
+    navigate(grupoId ? `/docente/grupo/${grupoId}/practicas` : '/docente/grupos');
   };
 
   return (
@@ -285,6 +285,7 @@ export default function CrearPractica() {
                 value={grupoId}
                 onChange={(event) => setGrupoId(event.target.value)}
                 className="docente-form-select"
+                disabled={isEditing}
               >
                 {grupos.length === 0 ? (
                   <option value="">Sin grupos asignados</option>

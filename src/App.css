@@ -2,6 +2,30 @@
   box-sizing: border-box;
 }
 
+.not-found-page {
+  min-height: calc(100vh - var(--wl-navbar-height, 84px));
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 14px;
+  padding: 40px 20px;
+  text-align: center;
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.not-found-page h1,
+.not-found-page p {
+  margin: 0;
+}
+
+.not-found-code {
+  color: #093f7c;
+  font-size: clamp(4rem, 12vw, 8rem);
+  font-weight: 900;
+  line-height: 1;
+}
+
 :root {
   --wl-navbar-height: 84px;
 
@@ -228,22 +252,57 @@ body {
   padding: 0;
 }
 
+.wl-notification-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .wl-notification-list {
   max-height: 390px;
   overflow: auto;
 }
 
 .wl-notification-item {
+  position: relative;
   width: 100%;
   border: none;
   background: #ffffff;
   color: inherit;
-  text-align: left;
-  padding: 13px 16px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.wl-notification-content {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  padding: 13px 44px 13px 16px;
   cursor: pointer;
   display: grid;
   gap: 5px;
+}
+
+.wl-notification-remove {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #64748b;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.wl-notification-remove:hover,
+.wl-notification-remove:focus-visible {
+  color: #b42318;
+  background: #fee4e2;
+  outline: none;
 }
 
 .wl-notification-item:hover {

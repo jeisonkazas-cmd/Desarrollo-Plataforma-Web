@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import DocenteLayout from './components/DocenteLayout';
 import { ArrowLeftIcon } from './components/icons';
 import '../../styles/docente.css';
-import { fetchDocenteDashboard } from './services/docenteService';
+import { fetchDocenteDashboard, sendGrupoReminder } from './services/docenteService';
 const summaryCards = [
   {
     id: 1,
@@ -170,6 +170,10 @@ export default function TeacherDashboard() {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
+  const [showReminderModal, setShowReminderModal] = useState(false);
+  const [reminderGroupId, setReminderGroupId] = useState('');
+  const [sendingReminder, setSendingReminder] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -200,6 +204,12 @@ export default function TeacherDashboard() {
       alive = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (!loading && window.location.hash === '#informes-pendientes') {
+      document.getElementById('informes-pendientes')?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [loading]);
 
   const dashboardCards = useMemo(() => [
     {
@@ -259,7 +269,28 @@ export default function TeacherDashboard() {
   }, [dashboard]);
 
   const handleReminder = () => {
-    window.alert('Recordatorio enviado al grupo seleccionado (demo).');
+    if (dashboard.grupos.length === 0) {
+      setError('No tienes grupos disponibles para enviar un recordatorio.');
+      return;
+    }
+    setError('');
+    setNotice('');
+    setReminderGroupId(dashboard.grupos[0].id);
+    setShowReminderModal(true);
+  };
+
+  const handleSendReminder = async (event) => {
+    event.preventDefault();
+    try {
+      setSendingReminder(true);
+      const result = await sendGrupoReminder(reminderGroupId);
+      setShowReminderModal(false);
+      setNotice(`Recordatorio enviado a ${result.destinatarios} estudiante(s).`);
+    } catch (err) {
+      setError(err.message || 'No se pudo enviar el recordatorio.');
+    } finally {
+      setSendingReminder(false);
+    }
   };
 
   return (
@@ -309,6 +340,7 @@ export default function TeacherDashboard() {
           </section>
 
           {error && <p className="docente-form-error">{error}</p>}
+          {notice && <p className="docente-form-success">{notice}</p>}
           {loading && <p>Cargando información docente...</p>}
 
           <section className="docente-kpi-grid" aria-label="Indicadores principales">
@@ -327,7 +359,7 @@ export default function TeacherDashboard() {
           </section>
 
           <section className="docente-main-grid" aria-label="Zona de trabajo docente">
-            <article className="docente-reports-panel">
+            <article className="docente-reports-panel" id="informes-pendientes">
               <header className="docente-reports-header">
                 <h2 className="docente-reports-title">Informes pendientes por calificar</h2>
                 <p className="docente-reports-updated">Última actualización: 2 horas</p>
@@ -438,6 +470,47 @@ export default function TeacherDashboard() {
           </section>
         </div>
       </DocenteLayout>
+
+      {showReminderModal && (
+        <div className="docente-modal-overlay" onClick={() => setShowReminderModal(false)}>
+          <form
+            className="docente-modal"
+            onSubmit={handleSendReminder}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="docente-modal-header">
+              <div>
+                <h2>Enviar recordatorio</h2>
+                <p>Se notificará a los estudiantes activos del grupo.</p>
+              </div>
+              <button type="button" className="docente-modal-close" onClick={() => setShowReminderModal(false)}>
+                x
+              </button>
+            </div>
+            <div className="docente-modal-body">
+              <label htmlFor="reminder-group" className="docente-form-label">Grupo</label>
+              <select
+                id="reminder-group"
+                className="docente-form-select"
+                value={reminderGroupId}
+                onChange={(event) => setReminderGroupId(event.target.value)}
+              >
+                {dashboard.grupos.map((grupo) => (
+                  <option key={grupo.id} value={grupo.id}>{grupo.nombre}</option>
+                ))}
+              </select>
+            </div>
+            <div className="docente-modal-footer">
+              <button type="button" className="docente-form-btn docente-form-btn-secondary" onClick={() => setShowReminderModal(false)}>
+                Cancelar
+              </button>
+              <button type="submit" className="docente-form-btn docente-form-btn-primary" disabled={sendingReminder}>
+                {sendingReminder ? 'Enviando...' : 'Enviar recordatorio'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </>
   );
 }

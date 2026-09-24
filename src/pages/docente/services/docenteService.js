@@ -217,6 +217,19 @@ export async function createDocenteGrupo(payload) {
   });
 }
 
+export async function updateDocenteGrupo(grupoId, payload) {
+  return apiRequest(`/api/platform/docente/grupos/${grupoId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function sendGrupoReminder(grupoId) {
+  return apiRequest(`/api/platform/docente/grupos/${grupoId}/recordatorio`, {
+    method: 'POST',
+  });
+}
+
 export async function addEstudiantesToGrupo(grupoId, estudiantes) {
   const body = Array.isArray(estudiantes)
     ? { estudianteIds: estudiantes }

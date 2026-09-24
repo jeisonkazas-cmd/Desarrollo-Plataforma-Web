@@ -4,7 +4,7 @@ import DocenteLayout from '../components/DocenteLayout';
 import { ArrowLeftIcon } from '../components/icons';
 import '../../../styles/settings-panel.css';
 import '../../../styles/docente.css';
-import { createDocenteGrupo, fetchDocenteGrupos } from '../services/docenteService';
+import { createDocenteGrupo, fetchDocenteGrupos, updateDocenteGrupo } from '../services/docenteService';
 
 const initialGroupForm = {
   nombre: '',
@@ -21,6 +21,7 @@ export default function Grupos() {
   const [formError, setFormError] = useState('');
   const [notice, setNotice] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [editingGroupId, setEditingGroupId] = useState(null);
   const [groupForm, setGroupForm] = useState(initialGroupForm);
 
   const loadGrupos = async () => {
@@ -81,12 +82,23 @@ export default function Grupos() {
     setFormError('');
     setNotice('');
     setGroupForm(initialGroupForm);
+    setEditingGroupId(null);
+    setShowCreateModal(true);
+  };
+
+  const handleEditGroup = (event, grupo) => {
+    event.stopPropagation();
+    setFormError('');
+    setNotice('');
+    setEditingGroupId(grupo.id);
+    setGroupForm({ nombre: grupo.nombre, descripcion: grupo.descripcion || '' });
     setShowCreateModal(true);
   };
 
   const handleCloseCreateModal = () => {
     if (saving) return;
     setShowCreateModal(false);
+    setEditingGroupId(null);
     setFormError('');
     setGroupForm(initialGroupForm);
   };
@@ -103,15 +115,23 @@ export default function Grupos() {
 
     try {
       setSaving(true);
-      await createDocenteGrupo({
+      const payload = {
         nombre: groupForm.nombre,
         descripcion: groupForm.descripcion,
-      });
+      };
+      if (editingGroupId) {
+        await updateDocenteGrupo(editingGroupId, payload);
+      } else {
+        await createDocenteGrupo(payload);
+      }
       await loadGrupos();
       setShowCreateModal(false);
+      setEditingGroupId(null);
       setGroupForm(initialGroupForm);
 
-      setNotice('Grupo creado correctamente. Ahora puedes asignarle estudiantes desde el grupo.');
+      setNotice(editingGroupId
+        ? 'Grupo actualizado correctamente.'
+        : 'Grupo creado correctamente. Ahora puedes asignarle estudiantes desde el grupo.');
     } catch (err) {
       setFormError(err.message || 'No se pudo crear el grupo.');
     } finally {
@@ -163,14 +183,11 @@ export default function Grupos() {
       topBand={
         <div className="docente-nav-band">
           <div className="docente-nav-band-inner">
-            <button
-              type="button"
-              className="docente-breadcrumb"
-              onClick={() => navigate('/dashboard/docente')}
-              aria-label="Volver al inicio"
-            >
-              <ArrowLeftIcon size={14} />
-              Inicio
+            <div className="docente-breadcrumb" aria-label="Ruta de navegación">
+              <button type="button" className="docente-breadcrumb" onClick={() => navigate('/dashboard/docente')}>
+                <ArrowLeftIcon size={14} />
+                Inicio
+              </button>
               <span style={{ margin: '0 4px', opacity: 0.4 }}>&rsaquo;</span>
               <button
                 type="button"
@@ -189,7 +206,7 @@ export default function Grupos() {
               </button>
               <span style={{ margin: '0 4px', opacity: 0.4 }}>&rsaquo;</span>
               <span className="docente-breadcrumb-current">Prácticas</span>
-            </button>
+            </div>
           </div>
         </div>
       }
@@ -214,13 +231,13 @@ export default function Grupos() {
 
         {/* Navigation Tabs */}
         <nav className="docente-grupos-nav-tabs">
-          <button type="button" className="docente-grupos-nav-tab">
+          <button type="button" className="docente-grupos-nav-tab" onClick={() => navigate('/dashboard/docente')}>
             Dashboard
           </button>
           <button type="button" className="docente-grupos-nav-tab active">
             Grupos
           </button>
-          <button type="button" className="docente-grupos-nav-tab">
+          <button type="button" className="docente-grupos-nav-tab" onClick={() => navigate('/dashboard/docente#informes-pendientes')}>
             Reportes
           </button>
         </nav>
@@ -235,7 +252,7 @@ export default function Grupos() {
             className="docente-grupos-search-input"
             aria-label="Buscar grupo"
           />
-          <button className="docente-grupos-search-btn" aria-label="Buscar">
+          <button type="button" className="docente-grupos-search-btn" aria-label="Buscar">
             🔍
           </button>
         </div>
@@ -251,13 +268,24 @@ export default function Grupos() {
             </div>
           ) : filteredGrupos.length > 0 ? (
             filteredGrupos.map((grupo) => (
-            <button
+            <article
               key={grupo.id}
-              type="button"
               className="docente-grupo-card"
-              onClick={() => handleGroupClick(grupo.id)}
-              aria-label={`Ir a ${grupo.nombre} ${grupo.codigo}`}
             >
+              <button
+                type="button"
+                className="docente-grupo-card-edit"
+                onClick={(event) => handleEditGroup(event, grupo)}
+                aria-label={`Editar ${grupo.nombre}`}
+              >
+                Editar
+              </button>
+              <button
+                type="button"
+                className="docente-grupo-card-main"
+                onClick={() => handleGroupClick(grupo.id)}
+                aria-label={`Ir a ${grupo.nombre} ${grupo.codigo}`}
+              >
               {/* Header Icon Area */}
               <div className="docente-grupo-card-icon-area">
                 {grupo.estado === 'activo' && (
@@ -291,7 +319,8 @@ export default function Grupos() {
                 <span className="docente-grupo-card-semester">{grupo.semestre}</span>
                 <span className="docente-grupo-card-chevron">→</span>
               </div>
-            </button>
+              </button>
+            </article>
             ))
           ) : (
             <div className="docente-practicas-grupo-empty">
@@ -317,8 +346,10 @@ export default function Grupos() {
             <div className="docente-modal" onClick={(event) => event.stopPropagation()}>
               <div className="docente-modal-header">
                 <div>
-                  <h2>Crear grupo</h2>
-                  <p>Registra el grupo y asígnalo a tu perfil docente.</p>
+                  <h2>{editingGroupId ? 'Editar grupo' : 'Crear grupo'}</h2>
+                  <p>{editingGroupId
+                    ? 'Actualiza el nombre y el periodo o descripción del grupo.'
+                    : 'Registra el grupo y asígnalo a tu perfil docente.'}</p>
                 </div>
                 <button
                   type="button"
@@ -375,7 +406,9 @@ export default function Grupos() {
                     className="docente-form-btn docente-form-btn-primary"
                     disabled={saving}
                   >
-                    {saving ? 'Creando...' : 'Crear grupo'}
+                    {saving
+                      ? (editingGroupId ? 'Guardando...' : 'Creando...')
+                      : (editingGroupId ? 'Guardar cambios' : 'Crear grupo')}
                   </button>
                 </div>
               </form>

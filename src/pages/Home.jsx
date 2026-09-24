@@ -164,9 +164,9 @@ function Home() {
             Mantente al día con las últimas novedades del Departamento de Ciencias Básicas: jornadas de laboratorio abierto,
             talleres especializados, ferias de ciencia, eventos académicos y actividades para la comunidad.
           </p>
-          <button type="button" className="btn-ver-mas" disabled>
+          <a href="/laboratorios/noticias.html" className="btn-ver-mas">
             Ver más
-          </button>
+          </a>
         </div>
       </section>
 

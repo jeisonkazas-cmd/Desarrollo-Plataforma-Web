@@ -28,6 +28,7 @@ export default function InformeEstudiante() {
   const [loadError, setLoadError] = useState('');
   const [form, setForm] = useState({ nota: '', feedback: '', criterios: [] });
   const [formError, setFormError] = useState('');
+  const [actionNotice, setActionNotice] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [isUpdatingReentrega, setIsUpdatingReentrega] = useState(false);
 
@@ -136,6 +137,9 @@ export default function InformeEstudiante() {
       await setInformeReentrega(informeId, habilitada);
       setInforme((prev) => ({ ...prev, reentregaHabilitada: habilitada }));
       setFormError('');
+      setActionNotice(habilitada
+        ? 'El estudiante puede realizar una nueva entrega.'
+        : 'La nueva entrega quedó bloqueada.');
     } catch (err) {
       setFormError(err.message || 'No se pudo actualizar el permiso de reentrega.');
     } finally {
@@ -386,10 +390,12 @@ export default function InformeEstudiante() {
           </section>
         </div>
 
+        {actionNotice && <p className="docente-form-success">{actionNotice}</p>}
+
         <footer className="docente-informe-action-footer">
           <button
             type="button"
-            className="docente-informe-btn-cancel"
+            className="docente-informe-btn-reentry"
             onClick={handleReentrega}
             disabled={isUpdatingReentrega}
           >

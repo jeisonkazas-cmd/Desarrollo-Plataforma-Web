@@ -2184,6 +2184,44 @@
   outline-offset: 3px;
 }
 
+.docente-grupo-card-main {
+  width: 100%;
+  min-height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.docente-grupo-card-main:focus-visible {
+  outline: 3px solid var(--doc-accent);
+  outline-offset: -3px;
+}
+
+.docente-grupo-card-edit {
+  position: absolute;
+  z-index: 3;
+  top: 12px;
+  left: 12px;
+  border: 1px solid rgba(9, 63, 124, 0.22);
+  border-radius: 8px;
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--doc-primary);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.docente-grupo-card-edit:hover {
+  background: var(--doc-primary);
+  color: #ffffff;
+}
+
 .docente-grupo-card-icon-area {
   height: 120px;
   background: linear-gradient(135deg, rgba(9, 63, 124, 0.08) 0%, rgba(255, 209, 0, 0.06) 100%);
@@ -4076,6 +4114,25 @@
   transition: all 140ms ease;
 }
 
+.docente-informe-btn-reentry {
+  padding: 12px 24px;
+  border: 1px solid rgba(17, 82, 212, 0.34);
+  background: rgba(17, 82, 212, 0.07);
+  color: var(--doc-primary);
+  border-radius: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.docente-informe-btn-reentry:hover:not(:disabled) {
+  background: rgba(17, 82, 212, 0.14);
+}
+
+.docente-informe-btn-reentry:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .docente-informe-btn-cancel:hover:not(:disabled) {
   background: rgba(0, 0, 0, 0.05);
   color: rgba(17, 24, 39, 0.96);
@@ -4159,6 +4216,7 @@
   }
 
   .docente-informe-btn-cancel,
+  .docente-informe-btn-reentry,
   .docente-informe-btn-save {
     width: 100%;
     justify-content: center;

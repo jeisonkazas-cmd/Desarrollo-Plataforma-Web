@@ -15,3 +15,15 @@ export async function markNotificacionesLeidas() {
     method: 'PATCH',
   });
 }
+
+export async function deleteNotificacion(notificacionId) {
+  return apiRequest(`/api/platform/notificaciones/${notificacionId}`, {
+    method: 'DELETE',
+  });
+}
+
+export async function clearNotificaciones() {
+  return apiRequest('/api/platform/notificaciones', {
+    method: 'DELETE',
+  });
+}

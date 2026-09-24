@@ -70,7 +70,7 @@ export default function PracticasGrupo() {
   }, [availableStudents, studentSearch]);
 
   const handleNewPractice = () => {
-    navigate('/docente/practicas/crear');
+    navigate(`/docente/grupo/${grupoId}/practicas/crear`);
   };
 
   const handleViewReports = (practicaId) => {

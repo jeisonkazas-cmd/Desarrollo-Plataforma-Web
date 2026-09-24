@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import '../styles/login.css';
 import { supabase } from '../services/supabaseClient';
 import { getOrCreateUserProfile } from '../services/authService';
@@ -34,6 +34,7 @@ function IconSupport() {
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -49,13 +50,17 @@ export default function Login() {
         return;
       }
 
-      if (rol === 'Administrador') {
-        navigate('/dashboard/admin', { replace: true });
-      } else if (rol === 'Docente') {
-        navigate('/dashboard/docente', { replace: true });
-      } else if (rol === 'Estudiante') {
-        navigate('/dashboard/estudiante', { replace: true });
-      }
+      const roleHome = rol === 'Administrador'
+        ? '/dashboard/admin'
+        : rol === 'Docente'
+          ? '/dashboard/docente'
+          : '/dashboard/estudiante';
+      const savedPath = window.sessionStorage.getItem('postLoginPath');
+      window.sessionStorage.removeItem('postLoginPath');
+      const destination = savedPath?.startsWith('/') && !savedPath.startsWith('//')
+        ? savedPath
+        : roleHome;
+      navigate(destination, { replace: true });
     };
 
     checkSession();
@@ -64,6 +69,12 @@ export default function Login() {
   const handleMicrosoftLogin = async () => {
     setError('');
     setLoading(true);
+
+    const requestedLocation = location.state?.from;
+    if (requestedLocation?.pathname) {
+      const requestedPath = `${requestedLocation.pathname}${requestedLocation.search || ''}${requestedLocation.hash || ''}`;
+      window.sessionStorage.setItem('postLoginPath', requestedPath);
+    }
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'azure',

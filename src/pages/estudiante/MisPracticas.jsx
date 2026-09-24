@@ -51,8 +51,12 @@ export default function MisPracticas() {
     }
 
     if (filter !== 'Todos') {
-      const filterKey = filter.toLowerCase();
-      result = result.filter((practica) => practica.estado?.includes(filterKey));
+      const statesByFilter = {
+        Pendientes: 'pendiente',
+        Entregados: 'entregado',
+        Calificados: 'calificado',
+      };
+      result = result.filter((practica) => practica.estado === statesByFilter[filter]);
     }
 
     return result;

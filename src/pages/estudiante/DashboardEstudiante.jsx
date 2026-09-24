@@ -3,12 +3,21 @@ import { useNavigate } from 'react-router-dom';
 import { getGrupos, getPerfilEstudiante, getPracticasByGrupo } from './services/estudianteService';
 import '../../styles/estudiante-dashboard.css';
 
-const imageMap = {
-  '1': '/imagenes/CAIDA_LIBRE.png',
-  '2': '/imagenes/CAMPO_MAGNETICO.png',
-  '3': '/imagenes/REPRESENTACION_VECTORIAL.png',
-  '4': '/imagenes/is3.png',
-};
+const physicsImages = [
+  '/imagenes/CAIDA_LIBRE.webp',
+  '/imagenes/CAMPO_MAGNETICO.webp',
+  '/imagenes/COLISIONES.webp',
+  '/imagenes/COEFICIENTEFRICCION.webp',
+  '/imagenes/ONDA_ESTACIONARIA.webp',
+  '/imagenes/PROYECTILES.webp',
+  '/imagenes/REPRESENTACION_VECTORIAL.webp',
+];
+
+function getPhysicsGroupImage(groupId) {
+  const key = String(groupId || '0');
+  const hash = [...key].reduce((total, character) => total + character.charCodeAt(0), 0);
+  return physicsImages[hash % physicsImages.length];
+}
 
 function getValidDate(value) {
   if (!value || value === 'Sin fecha') return null;
@@ -21,7 +30,6 @@ export default function DashboardEstudiante() {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [semester, setSemester] = useState('todos');
-  const [onlyActive, setOnlyActive] = useState(true);
   const [grupos, setGrupos] = useState([]);
   const [practicas, setPracticas] = useState([]);
   const [perfil, setPerfil] = useState({ nombre: 'Estudiante', primerNombre: 'Estudiante' });
@@ -33,12 +41,13 @@ export default function DashboardEstudiante() {
           getPerfilEstudiante(),
           getGrupos(),
         ]);
+        const gruposActivos = gruposData.filter((grupo) => grupo.activo);
         setPerfil(perfilData);
-        setGrupos(gruposData);
+        setGrupos(gruposActivos);
         
         // Cargar prácticas de todos los grupos
         const todasPracticas = [];
-        for (const grupo of gruposData) {
+        for (const grupo of gruposActivos) {
           const practicasGrupo = await getPracticasByGrupo(grupo.id);
           todasPracticas.push(...practicasGrupo);
         }
@@ -66,7 +75,7 @@ export default function DashboardEstudiante() {
         progress: progress,
         semester: grupo.semester,
         active: grupo.activo,
-        image: imageMap[grupo.id] || '/imagenes/is3.png',
+        image: getPhysicsGroupImage(grupo.id),
       };
     });
   }, [grupos, practicas]);
@@ -80,11 +89,9 @@ export default function DashboardEstudiante() {
         group.course.toLowerCase().includes(term) ||
         `${group.practicesAssigned} prácticas`.toLowerCase().includes(term);
       const matchesSemester = semester === 'todos' || group.semester === semester;
-      const matchesActive = !onlyActive || group.active;
-
-      return matchesSearch && matchesSemester && matchesActive;
+      return matchesSearch && matchesSemester && group.active;
     });
-  }, [search, semester, onlyActive, enrolledGroups]);
+  }, [search, semester, enrolledGroups]);
 
   const summary = useMemo(() => {
     return {
@@ -172,15 +179,6 @@ export default function DashboardEstudiante() {
             <option value="2023-II">Semestre: 2023-II</option>
           </select>
 
-          <label className="student-active-toggle" htmlFor="only-active">
-            <span>Sólo activos</span>
-            <input
-              id="only-active"
-              type="checkbox"
-              checked={onlyActive}
-              onChange={(event) => setOnlyActive(event.target.checked)}
-            />
-          </label>
         </section>
 
         <section className="student-main-grid" aria-label="Cursos y resumen">

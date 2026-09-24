@@ -1,5 +1,38 @@
 import React from 'react';
 
+const featuredSimulations = [
+  {
+    title: 'Caída Libre',
+    description: 'Explora el movimiento de objetos bajo la influencia de la gravedad.',
+    url: '/laboratorios/lab_fisica1_virtual/Simulador_CaidaLibre.html',
+  },
+  {
+    title: 'Movimiento rectilíneo',
+    description: 'Compara el movimiento uniforme y el uniformemente acelerado.',
+    url: '/laboratorios/lab_fisica1_virtual/Simulador_MUR-MUA.html',
+  },
+  {
+    title: 'Leyes de Newton',
+    description: 'Experimenta con fuerzas, masa, aceleración y movimiento sobre un plano.',
+    url: '/laboratorios/lab_fisica1_virtual/Simulador_Leyes_de_Newton_Plano.html',
+  },
+  {
+    title: 'Campo Magnético',
+    description: 'Visualiza la dependencia del campo magnético y sus variables principales.',
+    url: '/laboratorios/lab_fisica2_virtual/Simulador_Dependencia_campo_Magnetico.html',
+  },
+  {
+    title: 'Ley de Coulomb',
+    description: 'Analiza la fuerza eléctrica entre cargas y cómo cambia con la distancia.',
+    url: '/laboratorios/lab_fisica2_virtual/Simulador_Ley_Coulomb.html',
+  },
+  {
+    title: 'Ondas estacionarias',
+    description: 'Observa nodos, antinodos y patrones de interferencia en ondas estacionarias.',
+    url: '/laboratorios/lab_fisica3_virtual/Simulador_Ondas_Estacionarias.html',
+  },
+];
+
 function Simulaciones() {
   return (
     <div className="App">
@@ -10,71 +43,14 @@ function Simulaciones() {
       </section>
 
       <section className="card-container" style={{ margin: '40px' }}>
-        <div className="card">
-          <div className="card-icon">
+        {featuredSimulations.map((simulation) => (
+          <div className="card" key={simulation.url}>
+            <div className="card-icon" aria-hidden="true" />
+            <h3>{simulation.title}</h3>
+            <p>{simulation.description}</p>
+            <a href={simulation.url} className="btn-ver-mas">Abrir Simulación</a>
           </div>
-          <h3>Caída Libre</h3>
-          <p>
-            Explora el movimiento de objetos bajo la influencia de la gravedad. 
-            Aprende cómo la altura, masa y resistencia del aire afectan la caída.
-          </p>
-          <a href="#caida-libre" className="btn-ver-mas">Abrir Simulación</a>
-        </div>
-
-        <div className="card">
-          <div className="card-icon">
-          </div>
-          <h3>Equilibrio de Tensiones</h3>
-          <p>
-            Aprende cómo las fuerzas se equilibran en sistemas estáticos. 
-            Modifica ángulos y masas para entender el equilibrio de fuerzas.
-          </p>
-          <a href="#equilibrio" className="btn-ver-mas">Abrir Simulación</a>
-        </div>
-
-        <div className="card">
-          <div className="card-icon">
-          </div>
-          <h3>Plano Inclinado</h3>
-          <p>
-            Experimenta con fuerzas en planos inclinados y fricción. 
-            Varía el ángulo y el coeficiente de fricción para ver cómo cambia el movimiento.
-          </p>
-          <a href="#plano-inclinado" className="btn-ver-mas">Abrir Simulación</a>
-        </div>
-
-        <div className="card">
-          <div className="card-icon">
-          </div>
-          <h3>Colisiones</h3>
-          <p>
-            Estudia colisiones elásticas e inelásticas. 
-            Observa cómo se conserva la cantidad de movimiento en diferentes tipos de colisión.
-          </p>
-          <a href="#colisiones" className="btn-ver-mas">Abrir Simulación</a>
-        </div>
-
-        <div className="card">
-          <div className="card-icon">
-          </div>
-          <h3>Campo Magnético</h3>
-          <p>
-            Visualiza campos magnéticos y su interacción con cargas eléctricas. 
-            Experimenta con diferentes configuraciones de imanes.
-          </p>
-          <a href="#campo-magnetico" className="btn-ver-mas">Abrir Simulación</a>
-        </div>
-
-        <div className="card">
-          <div className="card-icon">
-          </div>
-          <h3>Movimiento Circular</h3>
-          <p>
-            Aprende sobre aceleración centrípeta y movimiento circular uniforme. 
-            Modifica velocidad y radio para ver los efectos en la trayectoria.
-          </p>
-          <a href="#movimiento-circular" className="btn-ver-mas">Abrir Simulación</a>
-        </div>
+        ))}
       </section>
 
       <section style={{ padding: '40px', backgroundColor: '#f5f5f5', margin: '40px 0' }}>
